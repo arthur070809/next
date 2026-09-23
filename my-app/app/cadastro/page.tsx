@@ -9,7 +9,6 @@ type FormData = {
   email: string;
   senha: string;
   confirmarSenha: string;
-  setor: "" | "setor1" | "setor2" | "setor3";
   codigoCracha: string;
 };
 
@@ -20,7 +19,6 @@ const initialForm: FormData = {
   email: "",
   senha: "",
   confirmarSenha: "",
-  setor: "",
   codigoCracha: "",
 };
 
@@ -45,7 +43,6 @@ function validateForm(form: FormData): FormErrors {
   } else if (form.confirmarSenha !== form.senha) {
     errors.confirmarSenha = "As senhas não coincidem.";
   }
-  if (!form.setor) errors.setor = "Selecione um setor.";
   if (!form.codigoCracha) errors.codigoCracha = "Informe o código do crachá.";
 
   return errors;
@@ -90,7 +87,6 @@ export default function CadastroPage() {
       nome: form.nome.trim(),
       email: form.email.trim(),
       senha: form.senha,
-      setor: form.setor as "setor1" | "setor2" | "setor3",
       codigoCracha: form.codigoCracha,
     };
 
@@ -146,18 +142,7 @@ export default function CadastroPage() {
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label htmlFor="setor" className="text-sm font-semibold text-slate-800">Setor</label>
-              <select id="setor" name="setor" value={form.setor} onChange={(event) => updateField("setor", event.target.value)} className={inputClass("setor")} aria-invalid={Boolean(errors.setor)} aria-describedby={errors.setor ? "setor-error" : undefined}>
-                <option value="">Selecione seu setor</option>
-                <option value="setor1">Setor 1</option>
-                <option value="setor2">Setor 2</option>
-                <option value="setor3">Setor 3</option>
-              </select>
-              {errors.setor && <p id="setor-error" className="mt-1 text-sm text-red-600">{errors.setor}</p>}
-            </div>
-
+          <div>
             <div>
               <label htmlFor="codigoCracha" className="text-sm font-semibold text-slate-800">Código do crachá</label>
               <input id="codigoCracha" name="codigoCracha" type="text" inputMode="numeric" pattern="[0-9]*" value={form.codigoCracha} onChange={(event) => updateField("codigoCracha", event.target.value.replace(/\D/g, ""))} className={inputClass("codigoCracha")} aria-invalid={Boolean(errors.codigoCracha)} aria-describedby={errors.codigoCracha ? "cracha-error" : undefined} />
