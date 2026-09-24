@@ -55,7 +55,7 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
     </svg>
   ) : (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M2.3 12S5.7 5 12 5s9.7 7 9.7 7-3.4 7-9.7 7-9.7-7-9.7-7Z" />
+      <path d="M2.3 12S5.7 5 12 5s9.7 7 9.7 7-3.4 7-9.7 7-9.7-7Z" />
       <circle cx="12" cy="12" r="2.5" />
     </svg>
   );
@@ -67,6 +67,7 @@ export default function CadastroPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const updateField = (field: keyof FormData, value: string) => {
     const nextForm = { ...form, [field]: value } as FormData;
@@ -76,23 +77,40 @@ export default function CadastroPage() {
 
   const isValid = Object.keys(validateForm(form)).length === 0;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateForm(form);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    const userData = {
-      nome: form.nome.trim(),
-      email: form.email.trim(),
-      senha: form.senha,
-      codigoCracha: form.codigoCracha,
-    };
+    setLoading(true);
 
-    // Conectar userData à API/MongoDB quando a rota de cadastro estiver disponível.
-    void userData;
-    router.push("/login");
+    try {
+      const response = await fetch("/api/auth/cadastro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.nome.trim(),
+          email: form.email.trim(),
+          password: form.senha,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Usuário criado com sucesso!");
+        router.push("/login");
+      } else {
+        alert("Erro ao cadastrar: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      alert("Falha na comunicação com o servidor.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = (field: keyof FormData) =>
@@ -150,7 +168,9 @@ export default function CadastroPage() {
             </div>
           </div>
 
-          <button type="submit" disabled={!isValid} className="min-h-12 w-full rounded-lg bg-royal px-5 text-base font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal disabled:cursor-not-allowed disabled:bg-slate-300">Criar conta</button>
+          <button type="submit" disabled={!isValid || loading} className="min-h-12 w-full rounded-lg bg-royal px-5 text-base font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal disabled:cursor-not-allowed disabled:bg-slate-300">
+            {loading ? "A criar conta..." : "Criar conta"}
+          </button>
         </form>
 
         <p className="mt-7 text-center text-sm text-slate-600">
