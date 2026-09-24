@@ -1,88 +1,30 @@
 "use client";
 
-import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-
-type FormData = {
-  nome: string;
-  email: string;
-  senha: string;
-  confirmarSenha: string;
-  codigoCracha: string;
-};
-
-type FormErrors = Partial<Record<keyof FormData, string>>;
-
-const initialForm: FormData = {
-  nome: "",
-  email: "",
-  senha: "",
-  confirmarSenha: "",
-  codigoCracha: "",
-};
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validateForm(form: FormData): FormErrors {
-  const errors: FormErrors = {};
-
-  if (!form.nome.trim()) errors.nome = "Informe seu nome completo.";
-  if (!form.email.trim()) {
-    errors.email = "Informe seu email.";
-  } else if (!emailPattern.test(form.email)) {
-    errors.email = "Informe um email válido.";
-  }
-  if (!form.senha) {
-    errors.senha = "Informe uma senha.";
-  } else if (form.senha.length < 8) {
-    errors.senha = "A senha deve ter no mínimo 8 caracteres.";
-  }
-  if (!form.confirmarSenha) {
-    errors.confirmarSenha = "Confirme sua senha.";
-  } else if (form.confirmarSenha !== form.senha) {
-    errors.confirmarSenha = "As senhas não coincidem.";
-  }
-  if (!form.codigoCracha) errors.codigoCracha = "Informe o código do crachá.";
-
-  return errors;
-}
-
-function EyeIcon({ hidden }: { hidden: boolean }) {
-  return hidden ? (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c5.2 0 8.6 4.4 9.7 6.1a1.5 1.5 0 0 1 0 1.8 17 17 0 0 1-3.1 3.2M6.1 6.1A17 17 0 0 0 2.3 11a1.5 1.5 0 0 0 0 2C3.5 14.8 6.9 19 12 19c1.1 0 2.1-.2 3-.5" />
-    </svg>
-  ) : (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M2.3 12S5.7 5 12 5s9.7 7 9.7 7-3.4 7-9.7 7-9.7-7Z" />
-      <circle cx="12" cy="12" r="2.5" />
-    </svg>
-  );
-}
+import { useState } from "react";
 
 export default function CadastroPage() {
-  const router = useRouter();
-  const [form, setForm] = useState<FormData>(initialForm);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [cargo, setCargo] = useState("operador");
+  const [cracha, setCracha] = useState("");
+
+  // Estados para alternar a visibilidade das senhas
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+
   const [loading, setLoading] = useState(false);
+  const [mensagem, setMensagem] = useState<{ tipo: "erro" | "sucesso"; texto: string } | null>(null);
 
-  const updateField = (field: keyof FormData, value: string) => {
-    const nextForm = { ...form, [field]: value } as FormData;
-    setForm(nextForm);
-    setErrors(validateForm(nextForm));
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMensagem(null);
 
-  const isValid = Object.keys(validateForm(form)).length === 0;
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const nextErrors = validateForm(form);
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length > 0) return;
+    if (senha !== confirmarSenha) {
+      setMensagem({ tipo: "erro", texto: "As senhas não coincidem!" });
+      return;
+    }
 
     setLoading(true);
 
@@ -90,93 +32,188 @@ export default function CadastroPage() {
       const response = await fetch("/api/auth/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.nome.trim(),
-          email: form.email.trim(),
-          password: form.senha,
-        }),
+        body: JSON.stringify({ nome, email, senha, cargo, cracha }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: { error?: string } = {};
 
-      if (response.ok) {
-        alert("Usuário criado com sucesso!");
-        router.push("/login");
-      } else {
-        alert("Erro ao cadastrar: " + (data.error || "Erro desconhecido"));
+      try {
+        data = JSON.parse(responseText) as { error?: string };
+      } catch {
+        throw new Error(
+          "O servidor respondeu uma página inválida. Reinicie o Next.js na pasta next\\my-app."
+        );
       }
-    } catch (error) {
-      console.error("Erro na requisição:", error);
-      alert("Falha na comunicação com o servidor.");
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao realizar cadastro.");
+      }
+
+      setMensagem({ tipo: "sucesso", texto: "Conta criada com sucesso!" });
+      // Limpa os campos após o sucesso
+      setNome("");
+      setEmail("");
+      setSenha("");
+      setConfirmarSenha("");
+      setCracha("");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Erro inesperado ao conectar com o servidor.";
+      setMensagem({ tipo: "erro", texto: errorMsg });
     } finally {
       setLoading(false);
     }
   };
 
-  const inputClass = (field: keyof FormData) =>
-    `mt-2 block w-full rounded-lg border bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-royal focus:ring-2 focus:ring-royal/20 ${
-      errors[field] ? "border-red-500" : "border-slate-300"
-    }`;
-
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center bg-slate-50 px-5 py-10 sm:px-8">
-      <section className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10 sm:py-10">
-        <header className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-royal">Almoxarifado Marcon</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Criar sua conta</h1>
-          <p className="mt-2 text-slate-600">Cadastre-se para fazer requisições ao almoxarifado.</p>
-        </header>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-gray-100">
+        <span className="text-xs font-semibold tracking-wider text-blue-600 uppercase">
+          Almoxarifado Marcon
+        </span>
+        <h1 className="mt-2 text-2xl font-bold text-gray-900">Criar sua conta</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Cadastre-se para fazer requisições ao almoxarifado.
+        </p>
 
-        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        {mensagem && (
+          <div
+            className={`mt-4 p-3 text-sm rounded-lg ${
+              mensagem.tipo === "erro"
+                ? "bg-red-50 text-red-600 border border-red-100"
+                : "bg-green-50 text-green-600 border border-green-100"
+            }`}
+          >
+            {mensagem.texto}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="nome" className="text-sm font-semibold text-slate-800">Nome completo</label>
-            <input id="nome" name="nome" type="text" autoComplete="name" value={form.nome} onChange={(event) => updateField("nome", event.target.value)} className={inputClass("nome")} aria-invalid={Boolean(errors.nome)} aria-describedby={errors.nome ? "nome-error" : undefined} />
-            {errors.nome && <p id="nome-error" className="mt-1 text-sm text-red-600">{errors.nome}</p>}
+            <label className="block text-xs font-medium text-gray-700">
+              Nome completo
+            </label>
+            <input
+              type="text"
+              required
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Ex: João Silva"
+              className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:outline-blue-500"
+            />
           </div>
 
           <div>
-            <label htmlFor="email" className="text-sm font-semibold text-slate-800">Email</label>
-            <input id="email" name="email" type="email" autoComplete="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} className={inputClass("email")} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} />
-            {errors.email && <p id="email-error" className="mt-1 text-sm text-red-600">{errors.email}</p>}
+            <label className="block text-xs font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="joao@marcon.com"
+              className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:outline-blue-500"
+            />
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="senha" className="text-sm font-semibold text-slate-800">Senha</label>
-              <div className="relative">
-                <input id="senha" name="senha" type={showPassword ? "text" : "password"} autoComplete="new-password" value={form.senha} onChange={(event) => updateField("senha", event.target.value)} className={`${inputClass("senha")} pr-12`} aria-invalid={Boolean(errors.senha)} aria-describedby={errors.senha ? "senha-error" : undefined} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-royal focus-visible:outline-2 focus-visible:outline-royal" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}><EyeIcon hidden={!showPassword} /></button>
+              <label className="block text-xs font-medium text-gray-700">Senha</label>
+              <div className="relative mt-1">
+                <input
+                  type={mostrarSenha ? "text" : "password"}
+                  required
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 p-2.5 pr-9 text-sm focus:outline-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  className="absolute right-2.5 top-3 text-gray-400 hover:text-gray-600"
+                >
+                  {mostrarSenha ? (
+                    // Ícone Olho Fechado (SVG)
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a8.962 8.962 0 013.682-.763c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m-0.469 0.469A8.96 8.96 0 0112 15c-1.657 0-3-1.343-3-3 0-.372.068-.728.192-1.056m4.864 4.864L3 3l18 18" />
+                    </svg>
+                  ) : (
+                    // Ícone Olho Aberto (SVG)
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </div>
-              {errors.senha && <p id="senha-error" className="mt-1 text-sm text-red-600">{errors.senha}</p>}
             </div>
 
             <div>
-              <label htmlFor="confirmarSenha" className="text-sm font-semibold text-slate-800">Confirmar senha</label>
-              <div className="relative">
-                <input id="confirmarSenha" name="confirmarSenha" type={showConfirmation ? "text" : "password"} autoComplete="new-password" value={form.confirmarSenha} onChange={(event) => updateField("confirmarSenha", event.target.value)} className={`${inputClass("confirmarSenha")} pr-12`} aria-invalid={Boolean(errors.confirmarSenha)} aria-describedby={errors.confirmarSenha ? "confirmar-senha-error" : undefined} />
-                <button type="button" onClick={() => setShowConfirmation(!showConfirmation)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-royal focus-visible:outline-2 focus-visible:outline-royal" aria-label={showConfirmation ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}><EyeIcon hidden={!showConfirmation} /></button>
+              <label className="block text-xs font-medium text-gray-700">
+                Confirmar senha
+              </label>
+              <div className="relative mt-1">
+                <input
+                  type={mostrarConfirmarSenha ? "text" : "password"}
+                  required
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 p-2.5 pr-9 text-sm focus:outline-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+                  className="absolute right-2.5 top-3 text-gray-400 hover:text-gray-600"
+                >
+                  {mostrarConfirmarSenha ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a8.962 8.962 0 013.682-.763c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m-0.469 0.469A8.96 8.96 0 0112 15c-1.657 0-3-1.343-3-3 0-.372.068-.728.192-1.056m4.864 4.864L3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </div>
-              {errors.confirmarSenha && <p id="confirmar-senha-error" className="mt-1 text-sm text-red-600">{errors.confirmarSenha}</p>}
             </div>
           </div>
 
           <div>
-            <div>
-              <label htmlFor="codigoCracha" className="text-sm font-semibold text-slate-800">Código do crachá</label>
-              <input id="codigoCracha" name="codigoCracha" type="text" inputMode="numeric" pattern="[0-9]*" value={form.codigoCracha} onChange={(event) => updateField("codigoCracha", event.target.value.replace(/\D/g, ""))} className={inputClass("codigoCracha")} aria-invalid={Boolean(errors.codigoCracha)} aria-describedby={errors.codigoCracha ? "cracha-error" : undefined} />
-              {errors.codigoCracha && <p id="cracha-error" className="mt-1 text-sm text-red-600">{errors.codigoCracha}</p>}
-            </div>
+            <label className="block text-xs font-medium text-gray-700">Cargo</label>
+            <select
+              value={cargo}
+              onChange={(e) => setCargo(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:outline-blue-500 bg-white"
+            >
+              <option value="operador">Operador</option>
+              <option value="almoxarife">Almoxarife</option>
+            </select>
           </div>
 
-          <button type="submit" disabled={!isValid || loading} className="min-h-12 w-full rounded-lg bg-royal px-5 text-base font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal disabled:cursor-not-allowed disabled:bg-slate-300">
-            {loading ? "A criar conta..." : "Criar conta"}
+          <div>
+            <label className="block text-xs font-medium text-gray-700">
+              Código do crachá
+            </label>
+            <input
+              type="text"
+              required
+              value={cracha}
+              onChange={(e) => setCracha(e.target.value)}
+              placeholder="Ex: MAR011"
+              className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:outline-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-blue-600 p-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+          >
+            {loading ? "A cadastrar..." : "Criar conta"}
           </button>
         </form>
-
-        <p className="mt-7 text-center text-sm text-slate-600">
-          Já tem uma conta? <Link href="/login" className="font-semibold text-royal hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-royal">Fazer login</Link>
-        </p>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

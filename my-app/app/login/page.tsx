@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type LoginFormData = {
 	codigoCracha: string;
@@ -38,6 +39,7 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
 	const [form, setForm] = useState<LoginFormData>(initialForm);
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [submitError, setSubmitError] = useState("");
@@ -60,19 +62,25 @@ export default function LoginPage() {
 
 		if (Object.keys(nextErrors).length > 0) return;
 
-		const credentials = {
-			codigoCracha: form.codigoCracha,
-			senha: form.senha,
-		};
-
 		setIsLoading(true);
 		setSubmitError("");
 
 		try {
-			// Conectar credentials à rota de autenticação quando a API estiver disponível.
-			void credentials;
+			const response = await fetch("/api/auth/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(form),
+			});
+			const data = await response.json();
+
+			if (!response.ok) {
+				setSubmitError(data.error ?? "Não foi possível entrar.");
+				return;
+			}
+
+			router.push("/");
 		} catch {
-			setSubmitError("Setor, crachá ou senha incorretos");
+			setSubmitError("Não foi possível comunicar com o servidor.");
 		} finally {
 			setIsLoading(false);
 		}
