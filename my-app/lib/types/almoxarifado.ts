@@ -9,7 +9,9 @@ export type RequisicaoMock = {
   data: string // ISO
   codigoTratamento: string
   prioridade: "padrao" | "prioridade"
-  status: "pendente" | "em_separacao" | "pronto" | "retirado" | "anulado"
+  status: "pendente" | "em_separacao" | "pronto" | "retirado" | "assumida" | "anulado"
   anuladoPorCracha?: string
   anuladoAt?: string
+  assumidaPorCracha?: string
+  assumidaAt?: string
 }
