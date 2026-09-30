@@ -7,7 +7,7 @@ type HistoryRow = RowDataPacket & {
   id: number; requisicao_id: number; numero_pedido: string; evento: EventoHistorico["evento"];
   codigo_cracha: string; descricao_motivo: string | null; ocorrido_em: Date;
   item_nome: string | null; separado: number | null; motivo_item: string | null;
-}
+} //a
 
 export async function GET() {
   try {
