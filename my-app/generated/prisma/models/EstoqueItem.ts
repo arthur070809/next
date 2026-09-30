@@ -28,10 +28,14 @@ export type AggregateEstoqueItem = {
 
 export type EstoqueItemAvgAggregateOutputType = {
   quantidade: number | null
+  quantidadePorEmbalagem: number | null
+  ultimaEntradaEmbalagens: number | null
 }
 
 export type EstoqueItemSumAggregateOutputType = {
   quantidade: number | null
+  quantidadePorEmbalagem: number | null
+  ultimaEntradaEmbalagens: number | null
 }
 
 export type EstoqueItemMinAggregateOutputType = {
@@ -40,6 +44,9 @@ export type EstoqueItemMinAggregateOutputType = {
   categoria: string | null
   unidade: string | null
   quantidade: number | null
+  tipoUnidade: string | null
+  quantidadePorEmbalagem: number | null
+  ultimaEntradaEmbalagens: number | null
   ativo: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +58,9 @@ export type EstoqueItemMaxAggregateOutputType = {
   categoria: string | null
   unidade: string | null
   quantidade: number | null
+  tipoUnidade: string | null
+  quantidadePorEmbalagem: number | null
+  ultimaEntradaEmbalagens: number | null
   ativo: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -62,6 +72,9 @@ export type EstoqueItemCountAggregateOutputType = {
   categoria: number
   unidade: number
   quantidade: number
+  tipoUnidade: number
+  quantidadePorEmbalagem: number
+  ultimaEntradaEmbalagens: number
   ativo: number
   createdAt: number
   updatedAt: number
@@ -71,10 +84,14 @@ export type EstoqueItemCountAggregateOutputType = {
 
 export type EstoqueItemAvgAggregateInputType = {
   quantidade?: true
+  quantidadePorEmbalagem?: true
+  ultimaEntradaEmbalagens?: true
 }
 
 export type EstoqueItemSumAggregateInputType = {
   quantidade?: true
+  quantidadePorEmbalagem?: true
+  ultimaEntradaEmbalagens?: true
 }
 
 export type EstoqueItemMinAggregateInputType = {
@@ -83,6 +100,9 @@ export type EstoqueItemMinAggregateInputType = {
   categoria?: true
   unidade?: true
   quantidade?: true
+  tipoUnidade?: true
+  quantidadePorEmbalagem?: true
+  ultimaEntradaEmbalagens?: true
   ativo?: true
   createdAt?: true
   updatedAt?: true
@@ -94,6 +114,9 @@ export type EstoqueItemMaxAggregateInputType = {
   categoria?: true
   unidade?: true
   quantidade?: true
+  tipoUnidade?: true
+  quantidadePorEmbalagem?: true
+  ultimaEntradaEmbalagens?: true
   ativo?: true
   createdAt?: true
   updatedAt?: true
@@ -105,6 +128,9 @@ export type EstoqueItemCountAggregateInputType = {
   categoria?: true
   unidade?: true
   quantidade?: true
+  tipoUnidade?: true
+  quantidadePorEmbalagem?: true
+  ultimaEntradaEmbalagens?: true
   ativo?: true
   createdAt?: true
   updatedAt?: true
@@ -203,6 +229,9 @@ export type EstoqueItemGroupByOutputType = {
   categoria: string
   unidade: string
   quantidade: number
+  tipoUnidade: string
+  quantidadePorEmbalagem: number
+  ultimaEntradaEmbalagens: number | null
   ativo: boolean
   createdAt: Date
   updatedAt: Date
@@ -237,6 +266,9 @@ export type EstoqueItemWhereInput = {
   categoria?: Prisma.StringFilter<"EstoqueItem"> | string
   unidade?: Prisma.StringFilter<"EstoqueItem"> | string
   quantidade?: Prisma.IntFilter<"EstoqueItem"> | number
+  tipoUnidade?: Prisma.StringFilter<"EstoqueItem"> | string
+  quantidadePorEmbalagem?: Prisma.IntFilter<"EstoqueItem"> | number
+  ultimaEntradaEmbalagens?: Prisma.IntNullableFilter<"EstoqueItem"> | number | null
   ativo?: Prisma.BoolFilter<"EstoqueItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EstoqueItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EstoqueItem"> | Date | string
@@ -249,6 +281,9 @@ export type EstoqueItemOrderByWithRelationInput = {
   categoria?: Prisma.SortOrder
   unidade?: Prisma.SortOrder
   quantidade?: Prisma.SortOrder
+  tipoUnidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrderInput | Prisma.SortOrder
   ativo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -265,6 +300,9 @@ export type EstoqueItemWhereUniqueInput = Prisma.AtLeast<{
   categoria?: Prisma.StringFilter<"EstoqueItem"> | string
   unidade?: Prisma.StringFilter<"EstoqueItem"> | string
   quantidade?: Prisma.IntFilter<"EstoqueItem"> | number
+  tipoUnidade?: Prisma.StringFilter<"EstoqueItem"> | string
+  quantidadePorEmbalagem?: Prisma.IntFilter<"EstoqueItem"> | number
+  ultimaEntradaEmbalagens?: Prisma.IntNullableFilter<"EstoqueItem"> | number | null
   ativo?: Prisma.BoolFilter<"EstoqueItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EstoqueItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EstoqueItem"> | Date | string
@@ -277,6 +315,9 @@ export type EstoqueItemOrderByWithAggregationInput = {
   categoria?: Prisma.SortOrder
   unidade?: Prisma.SortOrder
   quantidade?: Prisma.SortOrder
+  tipoUnidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrderInput | Prisma.SortOrder
   ativo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -296,6 +337,9 @@ export type EstoqueItemScalarWhereWithAggregatesInput = {
   categoria?: Prisma.StringWithAggregatesFilter<"EstoqueItem"> | string
   unidade?: Prisma.StringWithAggregatesFilter<"EstoqueItem"> | string
   quantidade?: Prisma.IntWithAggregatesFilter<"EstoqueItem"> | number
+  tipoUnidade?: Prisma.StringWithAggregatesFilter<"EstoqueItem"> | string
+  quantidadePorEmbalagem?: Prisma.IntWithAggregatesFilter<"EstoqueItem"> | number
+  ultimaEntradaEmbalagens?: Prisma.IntNullableWithAggregatesFilter<"EstoqueItem"> | number | null
   ativo?: Prisma.BoolWithAggregatesFilter<"EstoqueItem"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EstoqueItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EstoqueItem"> | Date | string
@@ -307,6 +351,9 @@ export type EstoqueItemCreateInput = {
   categoria: string
   unidade?: string
   quantidade?: number
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  ultimaEntradaEmbalagens?: number | null
   ativo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -319,6 +366,9 @@ export type EstoqueItemUncheckedCreateInput = {
   categoria: string
   unidade?: string
   quantidade?: number
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  ultimaEntradaEmbalagens?: number | null
   ativo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -331,6 +381,9 @@ export type EstoqueItemUpdateInput = {
   categoria?: Prisma.StringFieldUpdateOperationsInput | string
   unidade?: Prisma.StringFieldUpdateOperationsInput | string
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -343,6 +396,9 @@ export type EstoqueItemUncheckedUpdateInput = {
   categoria?: Prisma.StringFieldUpdateOperationsInput | string
   unidade?: Prisma.StringFieldUpdateOperationsInput | string
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +411,9 @@ export type EstoqueItemCreateManyInput = {
   categoria: string
   unidade?: string
   quantidade?: number
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  ultimaEntradaEmbalagens?: number | null
   ativo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -366,6 +425,9 @@ export type EstoqueItemUpdateManyMutationInput = {
   categoria?: Prisma.StringFieldUpdateOperationsInput | string
   unidade?: Prisma.StringFieldUpdateOperationsInput | string
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -377,6 +439,9 @@ export type EstoqueItemUncheckedUpdateManyInput = {
   categoria?: Prisma.StringFieldUpdateOperationsInput | string
   unidade?: Prisma.StringFieldUpdateOperationsInput | string
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -394,6 +459,9 @@ export type EstoqueItemCountOrderByAggregateInput = {
   categoria?: Prisma.SortOrder
   unidade?: Prisma.SortOrder
   quantidade?: Prisma.SortOrder
+  tipoUnidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -401,6 +469,8 @@ export type EstoqueItemCountOrderByAggregateInput = {
 
 export type EstoqueItemAvgOrderByAggregateInput = {
   quantidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrder
 }
 
 export type EstoqueItemMaxOrderByAggregateInput = {
@@ -409,6 +479,9 @@ export type EstoqueItemMaxOrderByAggregateInput = {
   categoria?: Prisma.SortOrder
   unidade?: Prisma.SortOrder
   quantidade?: Prisma.SortOrder
+  tipoUnidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -420,6 +493,9 @@ export type EstoqueItemMinOrderByAggregateInput = {
   categoria?: Prisma.SortOrder
   unidade?: Prisma.SortOrder
   quantidade?: Prisma.SortOrder
+  tipoUnidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -427,11 +503,21 @@ export type EstoqueItemMinOrderByAggregateInput = {
 
 export type EstoqueItemSumOrderByAggregateInput = {
   quantidade?: Prisma.SortOrder
+  quantidadePorEmbalagem?: Prisma.SortOrder
+  ultimaEntradaEmbalagens?: Prisma.SortOrder
 }
 
 export type EstoqueItemScalarRelationFilter = {
   is?: Prisma.EstoqueItemWhereInput
   isNot?: Prisma.EstoqueItemWhereInput
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type EstoqueItemCreateNestedOneWithoutDepositoInput = {
@@ -454,6 +540,9 @@ export type EstoqueItemCreateWithoutDepositoInput = {
   categoria: string
   unidade?: string
   quantidade?: number
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  ultimaEntradaEmbalagens?: number | null
   ativo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -465,6 +554,9 @@ export type EstoqueItemUncheckedCreateWithoutDepositoInput = {
   categoria: string
   unidade?: string
   quantidade?: number
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  ultimaEntradaEmbalagens?: number | null
   ativo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -492,6 +584,9 @@ export type EstoqueItemUpdateWithoutDepositoInput = {
   categoria?: Prisma.StringFieldUpdateOperationsInput | string
   unidade?: Prisma.StringFieldUpdateOperationsInput | string
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -503,6 +598,9 @@ export type EstoqueItemUncheckedUpdateWithoutDepositoInput = {
   categoria?: Prisma.StringFieldUpdateOperationsInput | string
   unidade?: Prisma.StringFieldUpdateOperationsInput | string
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -516,6 +614,9 @@ export type EstoqueItemSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   categoria?: boolean
   unidade?: boolean
   quantidade?: boolean
+  tipoUnidade?: boolean
+  quantidadePorEmbalagem?: boolean
+  ultimaEntradaEmbalagens?: boolean
   ativo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -530,12 +631,15 @@ export type EstoqueItemSelectScalar = {
   categoria?: boolean
   unidade?: boolean
   quantidade?: boolean
+  tipoUnidade?: boolean
+  quantidadePorEmbalagem?: boolean
+  ultimaEntradaEmbalagens?: boolean
   ativo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EstoqueItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "categoria" | "unidade" | "quantidade" | "ativo" | "createdAt" | "updatedAt", ExtArgs["result"]["estoqueItem"]>
+export type EstoqueItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "categoria" | "unidade" | "quantidade" | "tipoUnidade" | "quantidadePorEmbalagem" | "ultimaEntradaEmbalagens" | "ativo" | "createdAt" | "updatedAt", ExtArgs["result"]["estoqueItem"]>
 export type EstoqueItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   deposito?: boolean | Prisma.EstoqueItem$depositoArgs<ExtArgs>
 }
@@ -551,6 +655,9 @@ export type $EstoqueItemPayload<ExtArgs extends runtime.Types.Extensions.Interna
     categoria: string
     unidade: string
     quantidade: number
+    tipoUnidade: string
+    quantidadePorEmbalagem: number
+    ultimaEntradaEmbalagens: number | null
     ativo: boolean
     createdAt: Date
     updatedAt: Date
@@ -929,6 +1036,9 @@ export interface EstoqueItemFieldRefs {
   readonly categoria: Prisma.FieldRef<"EstoqueItem", 'String'>
   readonly unidade: Prisma.FieldRef<"EstoqueItem", 'String'>
   readonly quantidade: Prisma.FieldRef<"EstoqueItem", 'Int'>
+  readonly tipoUnidade: Prisma.FieldRef<"EstoqueItem", 'String'>
+  readonly quantidadePorEmbalagem: Prisma.FieldRef<"EstoqueItem", 'Int'>
+  readonly ultimaEntradaEmbalagens: Prisma.FieldRef<"EstoqueItem", 'Int'>
   readonly ativo: Prisma.FieldRef<"EstoqueItem", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"EstoqueItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EstoqueItem", 'DateTime'>

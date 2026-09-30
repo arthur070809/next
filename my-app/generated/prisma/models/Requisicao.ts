@@ -504,10 +504,6 @@ export type RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput = {
   deleteMany?: Prisma.RequisicaoScalarWhereInput | Prisma.RequisicaoScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type RequisicaoCreateWithoutFuncionarioInput = {
   id?: string
   item: string

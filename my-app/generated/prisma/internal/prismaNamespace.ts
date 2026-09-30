@@ -906,6 +906,9 @@ export const EstoqueItemScalarFieldEnum = {
   categoria: 'categoria',
   unidade: 'unidade',
   quantidade: 'quantidade',
+  tipoUnidade: 'tipoUnidade',
+  quantidadePorEmbalagem: 'quantidadePorEmbalagem',
+  ultimaEntradaEmbalagens: 'ultimaEntradaEmbalagens',
   ativo: 'ativo',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -989,7 +992,8 @@ export const EstoqueItemOrderByRelevanceFieldEnum = {
   id: 'id',
   nome: 'nome',
   categoria: 'categoria',
-  unidade: 'unidade'
+  unidade: 'unidade',
+  tipoUnidade: 'tipoUnidade'
 } as const
 
 export type EstoqueItemOrderByRelevanceFieldEnum = (typeof EstoqueItemOrderByRelevanceFieldEnum)[keyof typeof EstoqueItemOrderByRelevanceFieldEnum]

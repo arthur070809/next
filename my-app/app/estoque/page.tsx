@@ -1,6 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import styles from "./stock-list.module.css";
+import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
 
 type EstoqueItem = {
   id: string;
@@ -8,12 +10,17 @@ type EstoqueItem = {
   categoria: string;
   unidade: string;
   quantidade: number;
+  tipoUnidade: StockUnit | null;
+  quantidadePorEmbalagem: number | null;
+  ultimaEntradaEmbalagens: number | null;
 };
 
 const initialForm = {
   nome: "",
   categoria: "",
-  quantidade: "0",
+  tipoUnidade: "unidade" as StockUnit,
+  quantidadePorEmbalagem: "1",
+  quantidadeEmbalagens: "",
 };
 
 const catalogo = {
@@ -53,9 +60,12 @@ export default function EstoquePage() {
   const [categoriaBusca, setCategoriaBusca] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  const [erroLista, setErroLista] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [nomeAberto, setNomeAberto] = useState(false);
+  const salvandoRef = useRef(false);
+  const listaRef = useRef<HTMLDivElement>(null);
 
   const materiaisDaCategoria = form.categoria
     ? catalogo[form.categoria as keyof typeof catalogo] ?? []
@@ -70,20 +80,43 @@ export default function EstoquePage() {
       const response = await fetch("/api/estoque", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) {
-        setErro(data.error ?? "Não foi possível carregar o estoque.");
+        setErroLista(data.error ?? "Não foi possível carregar o estoque.");
         return;
       }
+      setErroLista("");
       setItens(data.itens ?? []);
     } catch {
-      setErro("Não foi possível comunicar com o servidor.");
+      setErroLista("Não foi possível comunicar com o servidor.");
     } finally {
       setCarregando(false);
     }
   };
 
   useEffect(() => {
-    void carregarItens();
+    let ativo = true;
+    fetch("/api/estoque", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar o estoque.");
+        return data.itens ?? [];
+      })
+      .then((itensCarregados) => {
+        if (!ativo) return;
+        setErroLista("");
+        setItens(itensCarregados);
+      })
+      .catch((cause) => {
+        if (ativo) setErroLista(cause instanceof Error ? cause.message : "Não foi possível comunicar com o servidor.");
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => { ativo = false; };
   }, []);
+
+  useEffect(() => {
+    listaRef.current?.scrollTo({ top: 0 });
+  }, [busca, categoriaBusca]);
 
   const itensFiltrados = useMemo(
     () => itens.filter((item) => {
@@ -96,6 +129,7 @@ export default function EstoquePage() {
 
   const cadastrarItem = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (salvandoRef.current) return;
     setErro("");
     setMensagem("");
 
@@ -108,24 +142,51 @@ export default function EstoquePage() {
         setErro("Selecione uma categoria e um material disponível nessa categoria.");
         return;
       }
-      if (!/^\d+$/.test(form.quantidade)) {
-        setErro("Informe uma quantidade inteira válida.");
+      const unidadeSelecionada = STOCK_UNITS.find((unit) => unit.value === form.tipoUnidade);
+      const quantidadeEmbalagens = Number(form.quantidadeEmbalagens);
+      const quantidadePorEmbalagem = form.tipoUnidade === "unidade" ? 1 : Number(form.quantidadePorEmbalagem);
+      const camposNumericosValidos = /^\d+$/.test(form.quantidadeEmbalagens)
+        && quantidadeEmbalagens >= 1
+        && quantidadeEmbalagens <= MAX_STOCK_INPUT
+        && (form.tipoUnidade === "unidade" || (/^\d+$/.test(form.quantidadePorEmbalagem)
+          && quantidadePorEmbalagem >= 1
+          && quantidadePorEmbalagem <= MAX_STOCK_INPUT));
+
+      if (!unidadeSelecionada || !camposNumericosValidos) {
+        setErro(`Informe quantidades inteiras positivas, de até ${MAX_STOCK_INPUT.toLocaleString("pt-BR")} por campo.`);
         return;
       }
 
+      const total = quantidadeEmbalagens * quantidadePorEmbalagem;
+      if (!Number.isSafeInteger(total) || total > MAX_STOCK_BALANCE) {
+        setErro("O saldo calculado excede o limite permitido para o estoque.");
+        return;
+      }
+
+      salvandoRef.current = true;
       setSalvando(true);
 
       const response = await fetch("/api/estoque", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, quantidade: Number(form.quantidade) }),
+        body: JSON.stringify({
+          nome: form.nome,
+          categoria: form.categoria,
+          tipoUnidade: form.tipoUnidade,
+          quantidadePorEmbalagem,
+          quantidadeEmbalagens,
+        }),
       });
       const data = await response.json();
       if (!response.ok) {
-        setErro(data.detail ? `${data.error ?? "Não foi possível cadastrar o item."} ${data.detail}` : data.error ?? "Não foi possível cadastrar o item.");
+        setErro(data.error ?? "Não foi possível cadastrar o item. Tente novamente.");
         return;
       }
-      setForm(initialForm);
+      setForm((current) => ({
+        ...current,
+        quantidadePorEmbalagem: current.tipoUnidade === "unidade" ? "1" : "",
+        quantidadeEmbalagens: "",
+      }));
       setNomeAberto(false);
       setMensagem("Item cadastrado no estoque.");
       setCarregando(true);
@@ -133,58 +194,103 @@ export default function EstoquePage() {
     } catch {
       setErro("Não foi possível comunicar com o servidor.");
     } finally {
+      salvandoRef.current = false;
       setSalvando(false);
     }
   };
 
+  const unidadeSelecionada = STOCK_UNITS.find((unit) => unit.value === form.tipoUnidade);
+  const quantidadeEmbalagensResumo = Number(form.quantidadeEmbalagens);
+  const quantidadePorEmbalagemResumo = form.tipoUnidade === "unidade" ? 1 : Number(form.quantidadePorEmbalagem);
+  const totalResumo = quantidadeEmbalagensResumo * quantidadePorEmbalagemResumo;
+  const resumoValido = Boolean(
+    unidadeSelecionada
+    && /^\d+$/.test(form.quantidadeEmbalagens)
+    && quantidadeEmbalagensResumo >= 1
+    && quantidadeEmbalagensResumo <= MAX_STOCK_INPUT
+    && (form.tipoUnidade === "unidade" || (/^\d+$/.test(form.quantidadePorEmbalagem)
+      && quantidadePorEmbalagemResumo >= 1
+      && quantidadePorEmbalagemResumo <= MAX_STOCK_INPUT))
+    && Number.isSafeInteger(totalResumo)
+    && totalResumo <= MAX_STOCK_BALANCE
+  );
+  const resumo = resumoValido && unidadeSelecionada
+    ? form.tipoUnidade === "unidade"
+      ? `${quantidadeEmbalagensResumo} ${unidadeSelecionada.plural}`
+      : `${quantidadeEmbalagensResumo} ${quantidadeEmbalagensResumo === 1 ? unidadeSelecionada.singular : unidadeSelecionada.plural} × ${quantidadePorEmbalagemResumo} = ${totalResumo} ${unidadeSelecionada.baseUnit}`
+    : "Informe quantidades válidas para ver o total.";
+
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-8 pb-12 sm:px-8 sm:py-8 sm:pb-12 lg:px-12">
-      <div className="mx-auto w-full max-w-7xl flex-1">
-        <header className="border-b border-slate-200 pb-6">
+    <main className="min-h-screen bg-slate-100 px-4 py-6 sm:px-8 md:flex md:h-dvh md:min-h-0 md:flex-col md:overflow-hidden md:px-12">
+      <div className="mx-auto flex w-full max-w-7xl flex-col md:min-h-0 md:flex-1">
+        <header className="border-b border-slate-200 pb-3">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-royal">Almoxarifado Marcon</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Estoque</h1>
-          <p className="mt-1 text-slate-600">Cadastre e acompanhe os materiais disponíveis.</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">Estoque</h1>
+          <p className="text-sm text-slate-600">Cadastre e acompanhe os materiais disponíveis.</p>
         </header>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">Itens cadastrados</p><p className="mt-2 text-3xl font-bold text-slate-950">{itens.length}</p></div>
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">Categorias</p><p className="mt-2 text-3xl font-bold text-slate-950">{new Set(itens.map((item) => item.categoria)).size}</p></div>
+        <section className="mt-3 grid gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
+          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2 shadow-sm"><p className="text-sm text-slate-500">Itens cadastrados</p><p className="text-xl font-bold text-slate-950">{itens.length}</p></div>
+          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2 shadow-sm"><p className="text-sm text-slate-500">Categorias</p><p className="text-xl font-bold text-slate-950">{new Set(itens.map((item) => item.categoria)).size}</p></div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-950">Novo item</h2>
-            <form onSubmit={cadastrarItem} noValidate className="mt-5 space-y-4">
+        <div className="mt-4 grid gap-4 md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
+          <section className={`${styles.formPanel} min-h-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm`}>
+            <h2 className="text-lg font-bold text-slate-950">Novo item</h2>
+            <form onSubmit={cadastrarItem} noValidate className={`${styles.formLayout} mt-2`}>
+              <div className={`${styles.formBody} space-y-2`}>
               <div>
-                <label htmlFor="categoria" className="text-sm font-semibold text-slate-800">Categoria</label>
-                <select id="categoria" required value={form.categoria} onChange={(event) => setForm({ ...form, categoria: event.target.value, nome: "" })} className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
+                <label htmlFor="categoria" className="text-xs font-semibold text-slate-800">Categoria</label>
+                <select id="categoria" required value={form.categoria} onChange={(event) => setForm({ ...form, categoria: event.target.value, nome: "" })} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
                   <option value="">Selecione uma categoria</option>
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="nome" className="text-sm font-semibold text-slate-800">Nome do material</label>
-                <div className="relative mt-2">
-                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setNomeAberto(true); }} className="block w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 disabled:cursor-not-allowed disabled:bg-slate-100" />
+                <label htmlFor="nome" className="text-xs font-semibold text-slate-800">Nome do material</label>
+                <div className="relative mt-1">
+                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setNomeAberto(true); }} className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 disabled:cursor-not-allowed disabled:bg-slate-100" />
                   {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-slate-300 bg-white p-1 shadow-lg">
                     {materiaisSugeridos.map((material) => <button key={material} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setForm({ ...form, nome: material }); setNomeAberto(false); }} className="block w-full rounded-md px-3 py-2 text-left text-sm leading-5 text-slate-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none">{material}</button>)}
                   </div>}
                 </div>
               </div>
-              <div>
+              <div className={`grid gap-2 ${form.tipoUnidade === "unidade" ? "" : "grid-cols-2"}`}>
                 <div>
-                  <label htmlFor="quantidade" className="text-sm font-semibold text-slate-800">Quantidade a adicionar</label>
-                  <input id="quantidade" required min="0" step="1" type="number" inputMode="numeric" placeholder="Ex.: 50" value={form.quantidade} onChange={(event) => setForm({ ...form, quantidade: event.target.value.replace(/\D/g, "") })} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+                <label htmlFor="tipoUnidade" className="text-xs font-semibold text-slate-800">Tipo de unidade</label>
+                <select id="tipoUnidade" required value={form.tipoUnidade} onChange={(event) => {
+                  const tipoUnidade = event.target.value as StockUnit;
+                  setForm((current) => ({
+                    ...current,
+                    tipoUnidade,
+                    quantidadePorEmbalagem: tipoUnidade === "unidade" ? "1" : current.tipoUnidade === "unidade" ? "" : current.quantidadePorEmbalagem,
+                  }));
+                }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
+                  {STOCK_UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
+                </select>
                 </div>
+                {form.tipoUnidade !== "unidade" && <div>
+                  <label htmlFor="quantidadePorEmbalagem" className="text-xs font-semibold text-slate-800">Qtd. por embalagem</label>
+                  <input id="quantidadePorEmbalagem" required type="text" inputMode="numeric" pattern="[0-9]*" maxLength={7} placeholder="Ex.: 100" value={form.quantidadePorEmbalagem} onChange={(event) => setForm({ ...form, quantidadePorEmbalagem: event.target.value })} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+                </div>}
               </div>
+              <div>
+                <label htmlFor="quantidadeEmbalagens" className="text-xs font-semibold text-slate-800">Nº de embalagens</label>
+                <input id="quantidadeEmbalagens" required type="text" inputMode="numeric" pattern="[0-9]*" maxLength={7} placeholder="Ex.: 5" value={form.quantidadeEmbalagens} onChange={(event) => setForm({ ...form, quantidadeEmbalagens: event.target.value })} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+              </div>
+              </div>
+              <div className={styles.formFooter}>
               {erro && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
               {mensagem && <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{mensagem}</p>}
-              <button type="submit" disabled={salvando} className="min-h-12 w-full rounded-lg bg-royal px-5 font-semibold text-white hover:bg-blue-700 disabled:bg-slate-300">{salvando ? "Salvando..." : "Cadastrar item"}</button>
+              <p aria-live="polite" className="min-h-5 text-sm font-medium text-slate-600">{resumo}</p>
+              <button type="submit" disabled={salvando} className="mt-2 min-h-10 w-full rounded-lg bg-royal px-5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-300">{salvando ? "Salvando..." : "Cadastrar item"}</button>
+              </div>
             </form>
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+          <section className={`${styles.stockPanel} rounded-xl border border-slate-200 bg-white p-6 shadow-sm`}>
+            <div className={styles.stockHeader}>
+              <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
               <h2 className="text-center text-xl font-bold text-slate-950 sm:col-start-2">Itens do estoque</h2>
               <div className="flex flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
                 <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal">
@@ -194,10 +300,13 @@ export default function EstoquePage() {
                 <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal sm:w-48" />
               </div>
             </div>
-            <div className="mt-5 max-h-[60vh] space-y-3 overflow-y-auto pr-2 sm:max-h-[480px]">
-              {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erro ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erro}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
-                return <article key={item.id} className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+            </div>
+            <div ref={listaRef} tabIndex={0} aria-label="Lista de itens do estoque" className={`${styles.stockBody} mt-5 space-y-3 pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal`}>
+              {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
+                const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
+                return <article key={item.id} tabIndex={0} className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between">
                   <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p></div>
+                  {tipoUltimaEntrada && item.ultimaEntradaEmbalagens !== null && item.quantidadePorEmbalagem !== null && <p className="text-sm text-slate-500">Última entrada: {item.ultimaEntradaEmbalagens} {item.ultimaEntradaEmbalagens === 1 ? tipoUltimaEntrada.singular : tipoUltimaEntrada.plural}{item.tipoUnidade === "unidade" ? "" : ` de ${item.quantidadePorEmbalagem}`}</p>}
                   <div className="text-sm font-semibold text-slate-700">Disponível</div>
                 </article>;
               })}
@@ -205,7 +314,7 @@ export default function EstoquePage() {
           </section>
         </div>
       </div>
-      <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-slate-200 pt-4 text-center text-xs text-slate-400">
+      <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-slate-200 pt-4 text-center text-xs text-slate-400 md:mt-auto md:shrink-0">
         Almoxarifado Marcon
       </footer>
     </main>
