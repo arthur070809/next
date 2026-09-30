@@ -1,61 +1,74 @@
-import { NextResponse } from "next/server"
-import type { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/promise"
-import { db } from "../../../lib/mysql"
+import { NextResponse } from "next/server";
+import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-type RequisitionItemInput = { itemNome: string; setor: string; quantidade: number; unidadeMedida: string; descricao: string; prioridade: string }
-type UserRow = RowDataPacket & { id: number }
-type ItemRow = RowDataPacket & { id: number; almoxarifado_id: number }
-const sectors = new Set(["setor1", "setor2", "setor3"])
-const units = new Set(["UN", "DZ", "CT"])
+export async function GET() {
+  const funcionario = await getAuthenticatedFuncionario();
+
+  if (!funcionario) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  const requisicoes = await prisma.requisicao.findMany({
+    where: { funcionarioId: funcionario.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json({ requisicoes });
+}
 
 export async function POST(request: Request) {
-  let connection: PoolConnection | undefined
   try {
-    const body = await request.json() as { solicitanteId?: number; itens?: RequisitionItemInput[] }
-    const solicitanteId = Number(body.solicitanteId)
-    if (!Number.isInteger(solicitanteId) || solicitanteId < 1 || !body.itens?.length || body.itens.length > 100) {
-      return NextResponse.json({ error: "Informe o usuário solicitante e ao menos um item." }, { status: 400 })
-    }
-    for (const item of body.itens) {
-      if (!item.itemNome?.trim() || !sectors.has(item.setor) || !Number.isFinite(Number(item.quantidade)) || Number(item.quantidade) <= 0 || !units.has(item.unidadeMedida) || !item.descricao?.trim() || !["padrao", "prioridade"].includes(item.prioridade)) {
-        return NextResponse.json({ error: "Um ou mais itens da requisição têm dados inválidos." }, { status: 400 })
-      }
+    const funcionario = await getAuthenticatedFuncionario();
+
+    if (!funcionario) {
+      return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    connection = await db.getConnection()
-    await connection.beginTransaction()
-    const [users] = await connection.execute<UserRow[]>("SELECT id FROM usuarios WHERE id = ? AND ativo = TRUE LIMIT 1", [solicitanteId])
-    if (!users[0]) {
-      await connection.rollback()
-      return NextResponse.json({ error: "O usuário solicitante não existe ou está inativo. Entre novamente." }, { status: 401 })
-    }
-    const [inserted] = await connection.execute<ResultSetHeader>("INSERT INTO requisicoes (solicitante_id, status) VALUES (?, 'pendente')", [solicitanteId])
-    const numeroPedido = `#${String(inserted.insertId).padStart(4, "0")}`
-    await connection.execute("UPDATE requisicoes SET numero_pedido = ? WHERE id = ?", [numeroPedido, inserted.insertId])
+    const body = await request.json();
+    const item = typeof body?.item === "string" ? body.item.trim() : "";
+    const quantidade = Number(body?.quantidade);
+    const observacao = typeof body?.observacao === "string" ? body.observacao.trim() : null;
 
-    for (const item of body.itens) {
-      const [items] = await connection.execute<ItemRow[]>(
-        "SELECT id, almoxarifado_id FROM itens WHERE nome = ? AND ativo = TRUE ORDER BY id ASC LIMIT 1",
-        [item.itemNome.trim()],
-      )
-      if (!items[0]) {
-        await connection.rollback()
-        return NextResponse.json({ error: `O item “${item.itemNome}” não está cadastrado no catálogo.` }, { status: 422 })
-      }
-      await connection.execute(
-        `INSERT INTO requisicao_itens
-          (requisicao_id, item_id, almoxarifado_id, setor, quantidade, unidade_medida, descricao, prioridade, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendente')`,
-        [inserted.insertId, items[0].id, items[0].almoxarifado_id, item.setor, Number(item.quantidade), item.unidadeMedida, item.descricao.trim(), item.prioridade],
-      )
+    if (!item || !Number.isInteger(quantidade) || quantidade < 1) {
+      return NextResponse.json(
+        { error: "Informe um item e uma quantidade inteira maior que zero." },
+        { status: 400 }
+      );
     }
-    await connection.commit()
-    return NextResponse.json({ message: "Requisição criada.", requisicaoId: inserted.insertId, numeroPedido }, { status: 201 })
+
+    const requisicao = await prisma.$transaction(async (transaction) => {
+      const estoqueItem = await transaction.estoqueItem.findFirst({
+        where: { nome: item, ativo: true },
+      });
+
+      let atendePeloDeposito = false;
+
+      if (estoqueItem) {
+        const reserva = await transaction.depositoItem.updateMany({
+          where: {
+            estoqueItemId: estoqueItem.id,
+            quantidade: { gte: quantidade },
+          },
+          data: { quantidade: { decrement: quantidade } },
+        });
+        atendePeloDeposito = reserva.count === 1;
+      }
+
+      return transaction.requisicao.create({
+        data: {
+          item,
+          quantidade,
+          observacao: observacao || null,
+          origem: atendePeloDeposito ? "DEPOSITO" : "ESTOQUE",
+          funcionarioId: funcionario.id,
+        },
+      });
+    });
+
+    return NextResponse.json({ requisicao }, { status: 201 });
   } catch (error) {
-    if (connection) await connection.rollback().catch(() => undefined)
-    console.error("Falha ao salvar requisição no MySQL:", error)
-    return NextResponse.json({ error: "Não foi possível salvar a requisição no MySQL." }, { status: 500 })
-  } finally {
-    connection?.release()
+    console.error("Erro ao criar requisição:", error);
+    return NextResponse.json({ error: "Não foi possível criar a requisição." }, { status: 500 });
   }
 }

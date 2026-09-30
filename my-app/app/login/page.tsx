@@ -5,21 +5,21 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type LoginFormData = {
-	codigoCracha: string;
+	identificador: string;
 	senha: string;
 };
 
 type FormErrors = Partial<Record<keyof LoginFormData, string>>;
 
 const initialForm: LoginFormData = {
-	codigoCracha: "",
+	identificador: "",
 	senha: "",
 };
 
 function validateForm(form: LoginFormData): FormErrors {
 	const errors: FormErrors = {};
 
-	if (!form.codigoCracha) errors.codigoCracha = "Informe o código do crachá.";
+	if (!form.identificador) errors.identificador = "Informe seu e-mail ou código do crachá.";
 	if (!form.senha) errors.senha = "Informe sua senha.";
 
 	return errors;
@@ -39,7 +39,7 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
 }
 
 export default function LoginPage() {
-	const router = useRouter();
+  const router = useRouter();
 	const [form, setForm] = useState<LoginFormData>(initialForm);
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [submitError, setSubmitError] = useState("");
@@ -62,22 +62,25 @@ export default function LoginPage() {
 
 		if (Object.keys(nextErrors).length > 0) return;
 
-		const credentials = {
-			codigoCracha: form.codigoCracha,
-			senha: form.senha,
-		};
-
 		setIsLoading(true);
 		setSubmitError("");
 
 		try {
-			const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(credentials) });
+			const response = await fetch("/api/auth/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(form),
+			});
 			const data = await response.json();
-			if (!response.ok) throw new Error(data.error || "Crachá ou senha incorretos.");
-			localStorage.setItem("marcon-user", JSON.stringify(data.user));
-			router.push("/requisicao");
-		} catch (error) {
-			setSubmitError(error instanceof Error ? error.message : "Não foi possível entrar.");
+
+			if (!response.ok) {
+				setSubmitError(data.error ?? "Não foi possível entrar.");
+				return;
+			}
+
+			router.push("/");
+		} catch {
+			setSubmitError("Não foi possível comunicar com o servidor.");
 		} finally {
 			setIsLoading(false);
 		}
@@ -99,9 +102,9 @@ export default function LoginPage() {
 
 				<form onSubmit={handleSubmit} noValidate className="space-y-5">
 					<div>
-						<label htmlFor="codigoCracha" className="text-sm font-semibold text-slate-800">Código do crachá</label>
-						<input id="codigoCracha" name="codigoCracha" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="username" value={form.codigoCracha} onChange={(event) => updateField("codigoCracha", event.target.value.replace(/\D/g, ""))} className={inputClass("codigoCracha")} aria-invalid={Boolean(errors.codigoCracha)} aria-describedby={errors.codigoCracha ? "cracha-error" : undefined} />
-						{errors.codigoCracha && <p id="cracha-error" className="mt-1 text-sm text-red-600">{errors.codigoCracha}</p>}
+						<label htmlFor="identificador" className="text-sm font-semibold text-slate-800">E-mail ou código do crachá</label>
+						<input id="identificador" name="identificador" type="text" inputMode="text" autoCapitalize="characters" autoCorrect="off" spellCheck={false} autoComplete="username" placeholder="Ex.: MAR100 ou seu e-mail" value={form.identificador} onChange={(event) => updateField("identificador", event.target.value.toUpperCase())} className={inputClass("identificador")} aria-invalid={Boolean(errors.identificador)} aria-describedby={errors.identificador ? "identificador-error" : undefined} />
+						{errors.identificador && <p id="identificador-error" className="mt-1 text-sm text-red-600">{errors.identificador}</p>}
 					</div>
 
 					<div>
