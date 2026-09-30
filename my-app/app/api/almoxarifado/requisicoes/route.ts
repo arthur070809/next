@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
+import { getAuthenticatedFuncionario } from "../../../../lib/auth"
 import { listOpenRequisitions } from "../../../../lib/requisicoes-db"
 
 export async function GET() {
+  if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
   try {
     const requisicoes = await listOpenRequisitions()
     return NextResponse.json({ requisicoes })

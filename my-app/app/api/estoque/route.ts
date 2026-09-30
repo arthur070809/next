@@ -68,21 +68,25 @@ export async function POST(request: Request) {
         ? body.quantidadePorEmbalagem
         : Number.NaN;
 
-    if (
-      !nome ||
-      !categoria ||
-      !tipoUnidade ||
-      !Number.isInteger(quantidadeEmbalagens) ||
-      quantidadeEmbalagens < 1 ||
-      quantidadeEmbalagens > MAX_STOCK_INPUT ||
-      !Number.isInteger(quantidadePorEmbalagem) ||
-      quantidadePorEmbalagem < 1 ||
-      quantidadePorEmbalagem > MAX_STOCK_INPUT
-    ) {
-      return respostaJson(
-        { error: `Use quantidades inteiras positivas, de até ${MAX_STOCK_INPUT.toLocaleString("pt-BR")} por campo.` },
-        { status: 400 }
-      );
+    if (!nome || !categoria) {
+      return respostaJson({ error: "Informe o nome do material e a categoria." }, { status: 400 });
+    }
+    if (!tipoUnidade) {
+      return respostaJson({ error: "Selecione o tipo de unidade." }, { status: 400 });
+    }
+
+    const limite = MAX_STOCK_INPUT.toLocaleString("pt-BR");
+    if (tipoUnidade.value !== "unidade" && (!Number.isInteger(quantidadePorEmbalagem) || quantidadePorEmbalagem < 1 || quantidadePorEmbalagem > MAX_STOCK_INPUT)) {
+      return respostaJson({
+        error: `Informe a quantidade por ${tipoUnidade.singular} como inteiro positivo (máximo: ${limite}).`,
+        field: "quantidadePorEmbalagem",
+      }, { status: 400 });
+    }
+    if (!Number.isInteger(quantidadeEmbalagens) || quantidadeEmbalagens < 1 || quantidadeEmbalagens > MAX_STOCK_INPUT) {
+      return respostaJson({
+        error: `Informe a quantidade de ${tipoUnidade.countLabel} como inteiro positivo (máximo: ${limite}).`,
+        field: "quantidadeEmbalagens",
+      }, { status: 400 });
     }
 
     const quantidade = quantidadeEmbalagens * quantidadePorEmbalagem;
