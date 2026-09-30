@@ -12,8 +12,6 @@ export type ItemFormData = {
   prioridade: "padrao" | "prioridade"
 }
 
-const itensMock = Array.from({ length: 20 }, (_, i) => `Item ${i + 1}`)
-
 export default function FormularioItem({
   onAdd,
   editingItem,
@@ -21,6 +19,8 @@ export default function FormularioItem({
   onAdd: (item: ItemFormData) => void
   editingItem?: ItemFormData
 }) {
+  const [catalogItems, setCatalogItems] = useState<string[]>([])
+  const [catalogError, setCatalogError] = useState("")
   const [form, setForm] = useState<ItemFormData>({
     itemNome: "",
     setor: "Setor 1",
@@ -33,6 +33,14 @@ export default function FormularioItem({
   useEffect(() => {
     if (editingItem) setForm(editingItem)
   }, [editingItem])
+
+  useEffect(() => {
+    fetch("/api/itens").then(async (response) => {
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Falha ao carregar o catálogo.")
+      setCatalogItems((data.items as Array<{ nome: string }>).map((item) => item.nome))
+    }).catch((error: unknown) => setCatalogError(error instanceof Error ? error.message : "Falha ao carregar o catálogo do MySQL."))
+  }, [])
 
   function update<K extends keyof ItemFormData>(k: K, v: ItemFormData[K]) {
     setForm((s) => ({ ...s, [k]: v }))
@@ -58,12 +66,14 @@ export default function FormularioItem({
         <label className="text-sm font-medium text-slate-800">Nome do item</label>
         <select value={form.itemNome} onChange={(e) => update("itemNome", e.target.value)} className="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 bg-white">
           <option value="">Escolha um item...</option>
-          {itensMock.map((it) => (
+          {catalogItems.map((it) => (
             <option key={it} value={it}>
               {it}
             </option>
           ))}
         </select>
+        {catalogError && <p className="mt-1 text-xs text-red-600">{catalogError}</p>}
+        {!catalogError && catalogItems.length === 0 && <p className="mt-1 text-xs text-slate-500">Carregando itens do MySQL…</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

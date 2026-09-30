@@ -2,6 +2,30 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### MySQL
+
+O projeto usa somente MySQL para persistir usuários, catálogo, requisições e histórico. O driver utilizado no servidor é `mysql2`.
+
+1. Crie as tabelas e carregue os 20 itens iniciais usando MySQL 8.0.16 ou superior. No cliente `mysql`, execute:
+
+   ```powershell
+   SOURCE database/schema.sql;
+   ```
+
+2. Copie `.env.example` para `.env.local` e informe as credenciais do seu MySQL.
+3. Registre os usuários pela página `/cadastro`. Novos cadastros recebem o perfil `operador`.
+4. Para permitir que um funcionário atenda requisições, altere seu perfil no MySQL:
+
+   ```sql
+   UPDATE usuarios SET role = 'almoxarife' WHERE codigo_cracha = 'CODIGO_DO_CRACHA';
+   ```
+
+As rotas de mutação usam transações InnoDB. A atribuição de uma requisição usa bloqueio da linha do pedido para impedir que dois almoxarifes a assumam ao mesmo tempo. Não há dados demo de requisições/histórico inseridos; esses registros passam a ser criados pelo fluxo da aplicação.
+
+O cadastro/login atual ainda não cria uma sessão segura no servidor; a tela guarda o usuário autenticado no navegador para associar novas requisições ao respectivo registro. Use sessão por cookie HttpOnly antes de expor o sistema como aplicação de produção.
+
+## Getting Started (Next.js)
+
 First, run the development server:
 
 ```bash

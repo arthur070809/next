@@ -1,134 +1,48 @@
 "use client"
 
-import React from "react"
+import Link from "next/link"
 import type { RequisicaoMock } from "../../lib/types/almoxarifado"
 import PriorityBadge from "./PriorityBadge"
 
-export default function TabelaRequisicoes({ list, onOpen, onRequestAnular }: { list: RequisicaoMock[]; onOpen: (r: RequisicaoMock) => void; onRequestAnular?: (r: RequisicaoMock) => void }) {
-  if (list.length === 0) return <p className="text-sm text-slate-600">Nenhuma requisição encontrada.</p>
+type Props = {
+  list: RequisicaoMock[]
+  onAssume: (r: RequisicaoMock) => void
+  onCancel: (r: RequisicaoMock) => void
+  onReturn: (r: RequisicaoMock) => void
+}
 
-  const getStatusColor = (status: string) => {
-    if (status === "anulado") return "bg-gray-400"
-    if (status === "assumida") return "bg-blue-600"
-    return "bg-green-500"
-  }
+const warehouseName: Record<string, string> = { central: "Central", embalagens: "Embalagens", "materia-prima": "Matéria-prima", importados: "Produtos importados" }
+const dateLabel = (value: string) => new Date(value).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
 
-  return (
-    <div className="rounded-lg bg-white shadow-sm">
-      <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full min-w-[900px]">
-          <thead className="bg-slate-50 text-left text-sm text-slate-600 sticky top-0">
-            <tr>
-              <th className="p-3">Status</th>
-              <th className="p-3">Pedido</th>
-              <th>Almox.</th>
-              <th>Setor</th>
-              <th>Item</th>
-              <th>Qtd</th>
-              <th>Unid.</th>
-              <th>Data</th>
-              <th>Cod.</th>
-              <th>Prioridade</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((r) => (
-              <tr
-                key={r.numeroPedido}
-                onClick={() => onOpen(r)}
-                className={`cursor-pointer border-b ${r.prioridade === "prioridade" ? "border-amber-200" : ""}`}
-              >
-                <td className="p-3 pr-1">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      if (r.status !== "anulado" && onRequestAnular) onRequestAnular(r)
-                    }}
-                    title={r.status}
-                    aria-label={`Status ${r.numeroPedido}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-slate-50 transition active:bg-gray-200 active:opacity-80 touch-manipulation"
-                  >
-                    <span className={`${getStatusColor(r.status)} inline-block h-5 w-5 rounded-sm border border-black`} aria-hidden="true" />
-                  </button>
-                </td>
-                <td className="border-l border-slate-100 pl-3 p-3 font-medium">{r.numeroPedido}</td>
-                <td>{r.almoxarifado}</td>
-                <td>{r.setor}</td>
-                <td>{r.item}</td>
-                <td>{r.quantidade}</td>
-                <td>{r.unidadeMedida}</td>
-                <td>{new Date(r.data).toLocaleString()}</td>
-                <td>{r.codigoTratamento}</td>
-                <td><PriorityBadge priority={r.prioridade} /></td>
-                <td className="text-right p-3"></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+function Actions({ request, props }: { request: RequisicaoMock; props: Props }) {
+  if (request.status === "assumida") return <div className="flex flex-wrap gap-2">
+    <button onClick={() => props.onReturn(request)} className="rounded-lg border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-50">Devolver</button>
+    <Link href={`/almoxarifado/requisicao/${encodeURIComponent(request.numeroPedido)}`} className="rounded-lg bg-royal px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">Continuar / Abrir</Link>
+  </div>
+  return <div className="flex flex-wrap gap-2">
+    <button onClick={() => props.onAssume(request)} className="rounded-lg bg-royal px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">Assumir</button>
+    <button onClick={() => props.onCancel(request)} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50">Anular</button>
+  </div>
+}
 
-      <div className="space-y-3 p-3 sm:hidden">
-        {list.map((r) => (
-          <div key={r.numeroPedido} className={`rounded-xl border bg-slate-50 p-3 shadow-sm ${r.prioridade === "prioridade" ? "border-amber-200 bg-amber-50/40" : "border-slate-200"}`}>
-            <div className="flex items-start gap-3">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (r.status !== "anulado" && onRequestAnular) onRequestAnular(r)
-                }}
-                title={r.status}
-                aria-label={`Status ${r.numeroPedido}`}
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-slate-800 shadow-sm transition active:bg-gray-200 active:opacity-80 touch-manipulation ${getStatusColor(r.status)}`}
-              >
-                <span className="h-5 w-5 rounded-sm border border-black bg-white/10" aria-hidden="true" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onOpen(r)}
-                title={`Assumir pedido ${r.numeroPedido}`}
-                aria-label={`Assumir ${r.numeroPedido}`}
-                className="min-w-0 flex-1 rounded-lg p-2 text-left active:bg-gray-100 active:opacity-80 touch-manipulation"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-base font-semibold text-slate-800">Pedido {r.numeroPedido}</p>
-                  <PriorityBadge priority={r.prioridade} />
-                </div>
-
-                <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-slate-600">
-                  <div>
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Almox.</span>
-                    <span>{r.almoxarifado}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Setor</span>
-                    <span>{r.setor}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Item</span>
-                    <span className="break-words">{r.item}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Qtd</span>
-                    <span>{r.quantidade} {r.unidadeMedida}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Data</span>
-                    <span>{new Date(r.data).toLocaleString()}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Cód.</span>
-                    <span>{r.codigoTratamento}</span>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+export default function TabelaRequisicoes(props: Props) {
+  const { list } = props
+  if (list.length === 0) return <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">Nenhuma requisição pendente ou assumida corresponde aos filtros.</div>
+  return <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><h2 className="font-semibold text-slate-900">Fila de atendimento</h2><p className="mt-1 text-sm text-slate-500">{list.length} {list.length === 1 ? "requisição" : "requisições"} aguardando atendimento</p></div><span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-royal">Atualizada agora</span></div>
+    <div className="hidden overflow-x-auto md:block">
+      <table className="w-full min-w-[1180px] border-collapse text-left">
+        <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr>{["Status", "Pedido", "Almoxarifado", "Setor", "Item", "Qtd.", "Unid.", "Data", "Cód.", "Prioridade", "Ações"].map((h) => <th key={h} className="border-b border-slate-200 px-4 py-3 font-semibold">{h}</th>)}</tr></thead>
+        <tbody>{list.map((r) => <tr key={r.numeroPedido} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${r.status === "assumida" ? "bg-amber-50/50" : ""}`}>
+          <td className="px-4 py-4">{r.status === "assumida" ? <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800"><span className="h-1.5 w-1.5 rounded-full bg-amber-500"/>Assumida</span> : <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-royal"><span className="h-1.5 w-1.5 rounded-full bg-royal"/>Disponível</span>}</td>
+          <td className="px-4 py-4 font-semibold text-slate-900">{r.numeroPedido}</td><td className="px-4 py-4 text-sm text-slate-600">{warehouseName[r.almoxarifado]}</td><td className="px-4 py-4 text-sm text-slate-600">{r.setor}</td><td className="px-4 py-4 font-medium text-slate-800">{r.item}</td><td className="px-4 py-4 text-sm text-slate-700">{r.quantidade}</td><td className="px-4 py-4 text-sm text-slate-600">{r.unidadeMedida}</td><td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">{dateLabel(r.data)}</td><td className="px-4 py-4 text-sm text-slate-600">{r.codigoTratamento || "209"}</td><td className="px-4 py-4"><PriorityBadge priority={r.prioridade}/></td><td className="px-4 py-4"><Actions request={r} props={props}/></td>
+        </tr>)}</tbody>
+      </table>
     </div>
-  )
+    <div className="space-y-3 p-3 md:hidden">{list.map((r) => <article key={r.numeroPedido} className={`rounded-xl border p-4 ${r.status === "assumida" ? "border-amber-200 bg-amber-50/50" : "border-slate-200 bg-white"}`}>
+      <div className="flex items-start justify-between gap-3"><div><div className="font-semibold text-slate-900">{r.numeroPedido}</div><div className="mt-1 text-sm text-slate-500">{warehouseName[r.almoxarifado]} · {r.setor}</div></div>{r.status === "assumida" ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Assumida</span> : <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-royal">Disponível</span>}</div>
+      <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-slate-400">Item</p><p className="font-medium text-slate-800">{r.item}</p></div><div><p className="text-xs text-slate-400">Quantidade</p><p>{r.quantidade} {r.unidadeMedida}</p></div><div><p className="text-xs text-slate-400">Data</p><p>{dateLabel(r.data)}</p></div><div><p className="text-xs text-slate-400">Prioridade</p><PriorityBadge priority={r.prioridade}/></div></div>
+      <div className="mt-4"><Actions request={r} props={props}/></div>
+    </article>)}</div>
+  </section>
 }
