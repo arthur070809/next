@@ -399,7 +399,9 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Funcionario: 'Funcionario',
   Sessao: 'Sessao',
-  Requisicao: 'Requisicao'
+  Requisicao: 'Requisicao',
+  EstoqueItem: 'EstoqueItem',
+  DepositoItem: 'DepositoItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "funcionario" | "sessao" | "requisicao"
+    modelProps: "funcionario" | "sessao" | "requisicao" | "estoqueItem" | "depositoItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -617,6 +619,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EstoqueItem: {
+      payload: Prisma.$EstoqueItemPayload<ExtArgs>
+      fields: Prisma.EstoqueItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EstoqueItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EstoqueItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+        }
+        findFirst: {
+          args: Prisma.EstoqueItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EstoqueItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+        }
+        findMany: {
+          args: Prisma.EstoqueItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>[]
+        }
+        create: {
+          args: Prisma.EstoqueItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+        }
+        createMany: {
+          args: Prisma.EstoqueItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EstoqueItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+        }
+        update: {
+          args: Prisma.EstoqueItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.EstoqueItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EstoqueItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EstoqueItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+        }
+        aggregate: {
+          args: Prisma.EstoqueItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEstoqueItem>
+        }
+        groupBy: {
+          args: Prisma.EstoqueItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EstoqueItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EstoqueItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EstoqueItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    DepositoItem: {
+      payload: Prisma.$DepositoItemPayload<ExtArgs>
+      fields: Prisma.DepositoItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DepositoItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DepositoItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>
+        }
+        findFirst: {
+          args: Prisma.DepositoItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DepositoItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>
+        }
+        findMany: {
+          args: Prisma.DepositoItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>[]
+        }
+        create: {
+          args: Prisma.DepositoItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>
+        }
+        createMany: {
+          args: Prisma.DepositoItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.DepositoItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>
+        }
+        update: {
+          args: Prisma.DepositoItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.DepositoItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DepositoItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.DepositoItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepositoItemPayload>
+        }
+        aggregate: {
+          args: Prisma.DepositoItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDepositoItem>
+        }
+        groupBy: {
+          args: Prisma.DepositoItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DepositoItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DepositoItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DepositoItemCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -685,12 +819,38 @@ export const RequisicaoScalarFieldEnum = {
   quantidade: 'quantidade',
   observacao: 'observacao',
   status: 'status',
+  origem: 'origem',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type RequisicaoScalarFieldEnum = (typeof RequisicaoScalarFieldEnum)[keyof typeof RequisicaoScalarFieldEnum]
+
+
+export const EstoqueItemScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  categoria: 'categoria',
+  unidade: 'unidade',
+  quantidade: 'quantidade',
+  ativo: 'ativo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EstoqueItemScalarFieldEnum = (typeof EstoqueItemScalarFieldEnum)[keyof typeof EstoqueItemScalarFieldEnum]
+
+
+export const DepositoItemScalarFieldEnum = {
+  id: 'id',
+  estoqueItemId: 'estoqueItemId',
+  quantidade: 'quantidade',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DepositoItemScalarFieldEnum = (typeof DepositoItemScalarFieldEnum)[keyof typeof DepositoItemScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -732,10 +892,29 @@ export const RequisicaoOrderByRelevanceFieldEnum = {
   id: 'id',
   item: 'item',
   observacao: 'observacao',
-  status: 'status'
+  status: 'status',
+  origem: 'origem'
 } as const
 
 export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
+
+
+export const EstoqueItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  categoria: 'categoria',
+  unidade: 'unidade'
+} as const
+
+export type EstoqueItemOrderByRelevanceFieldEnum = (typeof EstoqueItemOrderByRelevanceFieldEnum)[keyof typeof EstoqueItemOrderByRelevanceFieldEnum]
+
+
+export const DepositoItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  estoqueItemId: 'estoqueItemId'
+} as const
+
+export type DepositoItemOrderByRelevanceFieldEnum = (typeof DepositoItemOrderByRelevanceFieldEnum)[keyof typeof DepositoItemOrderByRelevanceFieldEnum]
 
 
 
@@ -762,6 +941,13 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -925,6 +1111,8 @@ export type GlobalOmitConfig = {
   funcionario?: Prisma.FuncionarioOmit
   sessao?: Prisma.SessaoOmit
   requisicao?: Prisma.RequisicaoOmit
+  estoqueItem?: Prisma.EstoqueItemOmit
+  depositoItem?: Prisma.DepositoItemOmit
 }
 
 /* Types for Logging */

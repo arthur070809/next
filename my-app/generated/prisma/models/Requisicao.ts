@@ -42,6 +42,7 @@ export type RequisicaoMinAggregateOutputType = {
   quantidade: number | null
   observacao: string | null
   status: string | null
+  origem: string | null
   funcionarioId: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -53,6 +54,7 @@ export type RequisicaoMaxAggregateOutputType = {
   quantidade: number | null
   observacao: string | null
   status: string | null
+  origem: string | null
   funcionarioId: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -64,6 +66,7 @@ export type RequisicaoCountAggregateOutputType = {
   quantidade: number
   observacao: number
   status: number
+  origem: number
   funcionarioId: number
   createdAt: number
   updatedAt: number
@@ -87,6 +90,7 @@ export type RequisicaoMinAggregateInputType = {
   quantidade?: true
   observacao?: true
   status?: true
+  origem?: true
   funcionarioId?: true
   createdAt?: true
   updatedAt?: true
@@ -98,6 +102,7 @@ export type RequisicaoMaxAggregateInputType = {
   quantidade?: true
   observacao?: true
   status?: true
+  origem?: true
   funcionarioId?: true
   createdAt?: true
   updatedAt?: true
@@ -109,6 +114,7 @@ export type RequisicaoCountAggregateInputType = {
   quantidade?: true
   observacao?: true
   status?: true
+  origem?: true
   funcionarioId?: true
   createdAt?: true
   updatedAt?: true
@@ -207,6 +213,7 @@ export type RequisicaoGroupByOutputType = {
   quantidade: number
   observacao: string | null
   status: string
+  origem: string
   funcionarioId: number
   createdAt: Date
   updatedAt: Date
@@ -241,6 +248,7 @@ export type RequisicaoWhereInput = {
   quantidade?: Prisma.IntFilter<"Requisicao"> | number
   observacao?: Prisma.StringNullableFilter<"Requisicao"> | string | null
   status?: Prisma.StringFilter<"Requisicao"> | string
+  origem?: Prisma.StringFilter<"Requisicao"> | string
   funcionarioId?: Prisma.IntFilter<"Requisicao"> | number
   createdAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
@@ -253,6 +261,7 @@ export type RequisicaoOrderByWithRelationInput = {
   quantidade?: Prisma.SortOrder
   observacao?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  origem?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -269,6 +278,7 @@ export type RequisicaoWhereUniqueInput = Prisma.AtLeast<{
   quantidade?: Prisma.IntFilter<"Requisicao"> | number
   observacao?: Prisma.StringNullableFilter<"Requisicao"> | string | null
   status?: Prisma.StringFilter<"Requisicao"> | string
+  origem?: Prisma.StringFilter<"Requisicao"> | string
   funcionarioId?: Prisma.IntFilter<"Requisicao"> | number
   createdAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
@@ -281,6 +291,7 @@ export type RequisicaoOrderByWithAggregationInput = {
   quantidade?: Prisma.SortOrder
   observacao?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  origem?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -300,6 +311,7 @@ export type RequisicaoScalarWhereWithAggregatesInput = {
   quantidade?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
   observacao?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
+  origem?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
   funcionarioId?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Requisicao"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Requisicao"> | Date | string
@@ -311,6 +323,7 @@ export type RequisicaoCreateInput = {
   quantidade: number
   observacao?: string | null
   status?: string
+  origem?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   funcionario: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesInput
@@ -322,6 +335,7 @@ export type RequisicaoUncheckedCreateInput = {
   quantidade: number
   observacao?: string | null
   status?: string
+  origem?: string
   funcionarioId: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -333,6 +347,7 @@ export type RequisicaoUpdateInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput
@@ -344,6 +359,7 @@ export type RequisicaoUncheckedUpdateInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +371,7 @@ export type RequisicaoCreateManyInput = {
   quantidade: number
   observacao?: string | null
   status?: string
+  origem?: string
   funcionarioId: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -366,6 +383,7 @@ export type RequisicaoUpdateManyMutationInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -376,6 +394,7 @@ export type RequisicaoUncheckedUpdateManyInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -403,6 +422,7 @@ export type RequisicaoCountOrderByAggregateInput = {
   quantidade?: Prisma.SortOrder
   observacao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  origem?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -419,6 +439,7 @@ export type RequisicaoMaxOrderByAggregateInput = {
   quantidade?: Prisma.SortOrder
   observacao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  origem?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -430,6 +451,7 @@ export type RequisicaoMinOrderByAggregateInput = {
   quantidade?: Prisma.SortOrder
   observacao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  origem?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -492,6 +514,7 @@ export type RequisicaoCreateWithoutFuncionarioInput = {
   quantidade: number
   observacao?: string | null
   status?: string
+  origem?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -502,6 +525,7 @@ export type RequisicaoUncheckedCreateWithoutFuncionarioInput = {
   quantidade: number
   observacao?: string | null
   status?: string
+  origem?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -541,6 +565,7 @@ export type RequisicaoScalarWhereInput = {
   quantidade?: Prisma.IntFilter<"Requisicao"> | number
   observacao?: Prisma.StringNullableFilter<"Requisicao"> | string | null
   status?: Prisma.StringFilter<"Requisicao"> | string
+  origem?: Prisma.StringFilter<"Requisicao"> | string
   funcionarioId?: Prisma.IntFilter<"Requisicao"> | number
   createdAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
@@ -552,6 +577,7 @@ export type RequisicaoCreateManyFuncionarioInput = {
   quantidade: number
   observacao?: string | null
   status?: string
+  origem?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -562,6 +588,7 @@ export type RequisicaoUpdateWithoutFuncionarioInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -572,6 +599,7 @@ export type RequisicaoUncheckedUpdateWithoutFuncionarioInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -582,6 +610,7 @@ export type RequisicaoUncheckedUpdateManyWithoutFuncionarioInput = {
   quantidade?: Prisma.IntFieldUpdateOperationsInput | number
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  origem?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -594,6 +623,7 @@ export type RequisicaoSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   quantidade?: boolean
   observacao?: boolean
   status?: boolean
+  origem?: boolean
   funcionarioId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -608,12 +638,13 @@ export type RequisicaoSelectScalar = {
   quantidade?: boolean
   observacao?: boolean
   status?: boolean
+  origem?: boolean
   funcionarioId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RequisicaoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "item" | "quantidade" | "observacao" | "status" | "funcionarioId" | "createdAt" | "updatedAt", ExtArgs["result"]["requisicao"]>
+export type RequisicaoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "item" | "quantidade" | "observacao" | "status" | "origem" | "funcionarioId" | "createdAt" | "updatedAt", ExtArgs["result"]["requisicao"]>
 export type RequisicaoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
 }
@@ -629,6 +660,7 @@ export type $RequisicaoPayload<ExtArgs extends runtime.Types.Extensions.Internal
     quantidade: number
     observacao: string | null
     status: string
+    origem: string
     funcionarioId: number
     createdAt: Date
     updatedAt: Date
@@ -1007,6 +1039,7 @@ export interface RequisicaoFieldRefs {
   readonly quantidade: Prisma.FieldRef<"Requisicao", 'Int'>
   readonly observacao: Prisma.FieldRef<"Requisicao", 'String'>
   readonly status: Prisma.FieldRef<"Requisicao", 'String'>
+  readonly origem: Prisma.FieldRef<"Requisicao", 'String'>
   readonly funcionarioId: Prisma.FieldRef<"Requisicao", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Requisicao", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Requisicao", 'DateTime'>

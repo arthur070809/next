@@ -11,7 +11,11 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL não foi configurada.");
 }
 
-const adapter = new PrismaMariaDb(databaseUrl);
+const databaseUrlWithCharset = databaseUrl.includes("?")
+  ? `${databaseUrl}&charset=utf8mb4`
+  : `${databaseUrl}?charset=utf8mb4`;
+
+const adapter = new PrismaMariaDb(databaseUrlWithCharset);
 
 export const prisma =
   globalForPrisma.prisma ?? new PrismaClient({ adapter });

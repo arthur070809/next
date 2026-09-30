@@ -53,7 +53,9 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Funcionario: 'Funcionario',
   Sessao: 'Sessao',
-  Requisicao: 'Requisicao'
+  Requisicao: 'Requisicao',
+  EstoqueItem: 'EstoqueItem',
+  DepositoItem: 'DepositoItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -101,12 +103,38 @@ export const RequisicaoScalarFieldEnum = {
   quantidade: 'quantidade',
   observacao: 'observacao',
   status: 'status',
+  origem: 'origem',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type RequisicaoScalarFieldEnum = (typeof RequisicaoScalarFieldEnum)[keyof typeof RequisicaoScalarFieldEnum]
+
+
+export const EstoqueItemScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  categoria: 'categoria',
+  unidade: 'unidade',
+  quantidade: 'quantidade',
+  ativo: 'ativo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EstoqueItemScalarFieldEnum = (typeof EstoqueItemScalarFieldEnum)[keyof typeof EstoqueItemScalarFieldEnum]
+
+
+export const DepositoItemScalarFieldEnum = {
+  id: 'id',
+  estoqueItemId: 'estoqueItemId',
+  quantidade: 'quantidade',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DepositoItemScalarFieldEnum = (typeof DepositoItemScalarFieldEnum)[keyof typeof DepositoItemScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -148,8 +176,27 @@ export const RequisicaoOrderByRelevanceFieldEnum = {
   id: 'id',
   item: 'item',
   observacao: 'observacao',
-  status: 'status'
+  status: 'status',
+  origem: 'origem'
 } as const
 
 export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
+
+
+export const EstoqueItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  categoria: 'categoria',
+  unidade: 'unidade'
+} as const
+
+export type EstoqueItemOrderByRelevanceFieldEnum = (typeof EstoqueItemOrderByRelevanceFieldEnum)[keyof typeof EstoqueItemOrderByRelevanceFieldEnum]
+
+
+export const DepositoItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  estoqueItemId: 'estoqueItemId'
+} as const
+
+export type DepositoItemOrderByRelevanceFieldEnum = (typeof DepositoItemOrderByRelevanceFieldEnum)[keyof typeof DepositoItemOrderByRelevanceFieldEnum]
 
