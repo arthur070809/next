@@ -1,0 +1,9 @@
+ALTER TABLE `estoque_itens`
+  ADD COLUMN `tipoItem` ENUM('COMPONENTE', 'CONSUMIVEL', 'MATERIA_PRIMA', 'EMBALAGEM') NOT NULL DEFAULT 'CONSUMIVEL',
+  ADD COLUMN `codigo` VARCHAR(50) NULL,
+  ADD COLUMN `filial` VARCHAR(20) NULL,
+  ADD COLUMN `grupoErp` VARCHAR(80) NULL,
+  ADD COLUMN `pontoPedido` INT NOT NULL DEFAULT 0,
+  ADD COLUMN `estoqueSeguranca` INT NOT NULL DEFAULT 0,
+  ADD COLUMN `bloqueadoCompra` BOOLEAN NOT NULL DEFAULT false,
+  ADD UNIQUE INDEX `estoque_itens_filial_codigo_key` (`filial`, `codigo`);

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/promise"
 import { db } from "../../../../../lib/mysql"
+import { getAuthenticatedFuncionario } from "../../../../../lib/auth"
+import { isSameOrigin } from "../../../../../lib/security"
 import { getRequisition } from "../../../../../lib/requisicoes-db"
 
 type RequestRow = RowDataPacket & { id: number; status: "pendente" | "assumida" | "concluida" | "anulada" }
@@ -8,13 +10,20 @@ type UserRow = RowDataPacket & { id: number; role: "operador" | "almoxarife" | "
 type ItemRow = RowDataPacket & { id: number }
 type CompletionItem = { id: string | number; separado: boolean; motivo?: string }
 type ActionBody = { action?: string; codigoCracha?: string; descricaoMotivo?: string; itens?: CompletionItem[] }
-type RouteContext = { params: Promise<{ numeroPedido: string }> }
+type RouteContext = { params: Promise<unknown> }
 
 const badRequest = (message: string, status = 400) => NextResponse.json({ error: message }, { status })
 
+function getNumeroPedido(params: unknown) {
+  if (typeof params !== "object" || params === null || !("numeroPedido" in params)) return null
+  return typeof params.numeroPedido === "string" ? params.numeroPedido : null
+}
+
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
-    const { numeroPedido } = await params
+    if (!(await getAuthenticatedFuncionario())) return badRequest("Não autenticado.", 401)
+    const numeroPedido = getNumeroPedido(await params)
+    if (!numeroPedido) return badRequest("Número da requisição inválido.")
     const requisicao = await getRequisition(decodeURIComponent(numeroPedido))
     if (!requisicao) return badRequest("Requisição não encontrada.", 404)
     return NextResponse.json({ requisicao })
@@ -27,7 +36,10 @@ export async function GET(_request: Request, { params }: RouteContext) {
 export async function PATCH(request: Request, { params }: RouteContext) {
   let connection: PoolConnection | undefined
   try {
-    const { numeroPedido: encodedNumber } = await params
+    if (!(await getAuthenticatedFuncionario())) return badRequest("Não autenticado.", 401)
+    if (!isSameOrigin(request)) return badRequest("Origem inválida.", 403)
+    const encodedNumber = getNumeroPedido(await params)
+    if (!encodedNumber) return badRequest("Número da requisição inválido.")
     const numeroPedido = decodeURIComponent(encodedNumber)
     const body = await request.json() as ActionBody
     const action = body.action

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 import type { RowDataPacket } from "mysql2/promise"
+import { getAuthenticatedFuncionario } from "../../../lib/auth"
 import { db } from "../../../lib/mysql"
 
 type ItemRow = RowDataPacket & { id: number; nome: string; categoria: string; unidade_padrao: "UN" | "DZ" | "CT"; estoque_atual: number; almoxarifado: string }
 
 export async function GET() {
+  if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
   try {
     const [rows] = await db.execute<ItemRow[]>(`
       SELECT i.id, i.nome, i.categoria, i.unidade_padrao, i.estoque_atual, a.nome AS almoxarifado

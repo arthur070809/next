@@ -14,7 +14,8 @@ type DepositoItem = {
 
 export default function DepositoPage() {
   const pathname = usePathname();
-  const estoqueHref = pathname.startsWith("/admin/") ? "/admin/estoque" : "/estoque";
+  const estoquePrefix = pathname.startsWith("/admin/") ? "/admin" : pathname.startsWith("/almoxarifado/") ? "/almoxarifado" : "";
+  const estoqueHref = estoquePrefix ? `${estoquePrefix}/estoque` : "/estoque";
   const [itens, setItens] = useState<DepositoItem[]>([]);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);

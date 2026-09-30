@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
-import AdminShell from "./admin-shell";
+import PortalShell from "../components/PortalShell";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const funcionario = await getAuthenticatedFuncionario();
   if (!funcionario) redirect("/login");
-  if (funcionario.role !== "admin") redirect("/");
-  return <AdminShell userName={funcionario.nome}>{children}</AdminShell>;
+  if (funcionario.role !== "admin") forbidden();
+  return <PortalShell userName={funcionario.nome} role="admin">{children}</PortalShell>;
 }

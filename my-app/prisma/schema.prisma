@@ -1,7 +1,116 @@
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "mysql"
+}
+
+enum TipoItem {
+  COMPONENTE
+  CONSUMIVEL
+  MATERIA_PRIMA
+  EMBALAGEM
+}
+
+model Funcionario {
+  id                 Int           @id @default(autoincrement())
+  nome               String        @db.VarChar(100)
+  login              String?       @unique(map: "login") @db.VarChar(50)
+  email              String        @unique(map: "email") @db.VarChar(100)
+  senha              String        @db.VarChar(255)
+  cargo              String        @db.VarChar(50)
+  cracha             String        @unique(map: "cracha") @db.VarChar(20)
+  role               String        @default("user") @db.VarChar(20)
+  mustChangePassword Boolean       @default(false)
+  ativo              Boolean       @default(true)
+  sessoes            Sessao[]
+  requisicoes        Requisicao[]
+  auditorias         Auditoria[]   @relation("AuditoriaAutor")
+
+  @@map("funcionarios")
+}
+
+model Sessao {
+  id            String      @id @default(uuid())
+  token         String      @unique
+  expiresAt     DateTime
+  accessArea    String?     @db.VarChar(30)
+  funcionarioId Int
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId])
+  @@index([expiresAt])
+}
+
+model Requisicao {
+  id            String      @id @default(uuid())
+  item          String
+  quantidade    Int
+  observacao    String?     @db.Text
+  status        String      @default("PENDENTE")
+  origem        String      @default("ESTOQUE")
+  funcionarioId Int
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([funcionarioId])
+  @@index([status])
+}
+
+model EstoqueItem {
+  id                      String        @id @default(uuid())
+  nome                    String        @db.VarChar(120)
+  categoria               String        @db.VarChar(80)
+  unidade                 String        @default("unidade") @db.VarChar(30)
+  quantidade              Int           @default(0)
+  tipoUnidade             String        @default("unidade") @db.VarChar(20)
+  quantidadePorEmbalagem  Int           @default(1)
+  tipoItem                TipoItem      @default(CONSUMIVEL)
+  codigo                  String?       @db.VarChar(50)
+  filial                  String?       @db.VarChar(20)
+  grupoErp                String?       @db.VarChar(80)
+  pontoPedido             Int           @default(0)
+  estoqueSeguranca        Int           @default(0)
+  bloqueadoCompra         Boolean       @default(false)
+  ultimaEntradaEmbalagens Int?
+  ativo                   Boolean       @default(true)
+  deposito                DepositoItem?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([categoria])
+  @@index([ativo])
+  @@unique([filial, codigo], map: "estoque_itens_filial_codigo_key")
+  @@map("estoque_itens")
+}
+
+model DepositoItem {
+  id            String      @id @default(uuid())
+  estoqueItemId String      @unique
+  quantidade    Int         @default(0)
+  estoqueItem   EstoqueItem @relation(fields: [estoqueItemId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([quantidade])
+  @@map("deposito_itens")
+}
+
+model Auditoria {
+  id        String      @id @default(uuid())
+  acao      String      @db.VarChar(50)
+  alvoId    Int
+  autorId   Int
+  createdAt DateTime    @default(now())
+  autor     Funcionario @relation("AuditoriaAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([alvoId])
+  @@index([autorId])
+  @@index([createdAt])
+  @@map("auditorias")
 }

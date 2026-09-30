@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { RowDataPacket } from "mysql2/promise"
+import { getAuthenticatedFuncionario } from "../../../lib/auth"
 import { db } from "../../../lib/mysql"
 import type { EventoHistorico } from "../../../lib/types/almoxarifado"
 
@@ -10,6 +11,7 @@ type HistoryRow = RowDataPacket & {
 } //a
 
 export async function GET() {
+  if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
   try {
     const [rows] = await db.execute<HistoryRow[]>(`
       SELECT h.id, h.requisicao_id, r.numero_pedido, h.evento, h.codigo_cracha,

@@ -18,10 +18,13 @@ type EstoqueItem = {
 const initialForm = {
   nome: "",
   categoria: "",
-  tipoUnidade: "unidade" as StockUnit,
+  tipoUnidade: "unidade" as StockUnit | "",
   quantidadePorEmbalagem: "1",
   quantidadeEmbalagens: "",
 };
+
+type QuantityField = "quantidadePorEmbalagem" | "quantidadeEmbalagens";
+type QuantityErrors = Partial<Record<QuantityField, string>>;
 
 const catalogo = {
   Parafusos: ["Parafuso Sextavado (Aço Carbono / Inox)", "Parafuso Allen (Cabeça Cilíndrica)", "Parafuso Allen (Cabeça Chata / Escareada)", "Parafuso Allen sem Cabeça (Sextavado Interno)", "Parafuso Auto-Brocante / Auto-Perfurante", "Parafuso Cabeça Panela (Philips / Fenda)", "Parafuso Francês", "Parafuso Prisioneiro / Haste Roscada"],
@@ -60,6 +63,7 @@ export default function EstoquePage() {
   const [categoriaBusca, setCategoriaBusca] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  const [errosQuantidade, setErrosQuantidade] = useState<QuantityErrors>({});
   const [erroLista, setErroLista] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
@@ -131,6 +135,7 @@ export default function EstoquePage() {
     event.preventDefault();
     if (salvandoRef.current) return;
     setErro("");
+    setErrosQuantidade({});
     setMensagem("");
 
     try {
@@ -143,20 +148,27 @@ export default function EstoquePage() {
         return;
       }
       const unidadeSelecionada = STOCK_UNITS.find((unit) => unit.value === form.tipoUnidade);
-      const quantidadeEmbalagens = Number(form.quantidadeEmbalagens);
-      const quantidadePorEmbalagem = form.tipoUnidade === "unidade" ? 1 : Number(form.quantidadePorEmbalagem);
-      const camposNumericosValidos = /^\d+$/.test(form.quantidadeEmbalagens)
-        && quantidadeEmbalagens >= 1
-        && quantidadeEmbalagens <= MAX_STOCK_INPUT
-        && (form.tipoUnidade === "unidade" || (/^\d+$/.test(form.quantidadePorEmbalagem)
-          && quantidadePorEmbalagem >= 1
-          && quantidadePorEmbalagem <= MAX_STOCK_INPUT));
-
-      if (!unidadeSelecionada || !camposNumericosValidos) {
-        setErro(`Informe quantidades inteiras positivas, de até ${MAX_STOCK_INPUT.toLocaleString("pt-BR")} por campo.`);
+      if (!unidadeSelecionada) {
+        setErro("Selecione o tipo de unidade.");
         return;
       }
 
+      const quantidadeValida = (value: string) => /^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= MAX_STOCK_INPUT;
+      const limite = MAX_STOCK_INPUT.toLocaleString("pt-BR");
+      const novosErros: QuantityErrors = {};
+      if (form.tipoUnidade !== "unidade" && !quantidadeValida(form.quantidadePorEmbalagem)) {
+        novosErros.quantidadePorEmbalagem = `Informe a quantidade por ${unidadeSelecionada.singular} como inteiro positivo (máximo: ${limite}).`;
+      }
+      if (!quantidadeValida(form.quantidadeEmbalagens)) {
+        novosErros.quantidadeEmbalagens = `Informe a quantidade de ${unidadeSelecionada.countLabel} como inteiro positivo (máximo: ${limite}).`;
+      }
+      if (Object.keys(novosErros).length > 0) {
+        setErrosQuantidade(novosErros);
+        return;
+      }
+
+      const quantidadeEmbalagens = Number(form.quantidadeEmbalagens);
+      const quantidadePorEmbalagem = form.tipoUnidade === "unidade" ? 1 : Number(form.quantidadePorEmbalagem);
       const total = quantidadeEmbalagens * quantidadePorEmbalagem;
       if (!Number.isSafeInteger(total) || total > MAX_STOCK_BALANCE) {
         setErro("O saldo calculado excede o limite permitido para o estoque.");
@@ -179,14 +191,19 @@ export default function EstoquePage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setErro(data.error ?? "Não foi possível cadastrar o item. Tente novamente.");
+        if (data.field && (data.field === "quantidadePorEmbalagem" || data.field === "quantidadeEmbalagens")) {
+          setErrosQuantidade({ [data.field]: data.error ?? "Informe uma quantidade válida." });
+        } else {
+          setErro(data.error ?? "Não foi possível cadastrar o item. Tente novamente.");
+        }
         return;
       }
       setForm((current) => ({
         ...current,
-        quantidadePorEmbalagem: current.tipoUnidade === "unidade" ? "1" : "",
+        quantidadePorEmbalagem: "",
         quantidadeEmbalagens: "",
       }));
+      setErrosQuantidade({});
       setNomeAberto(false);
       setMensagem("Item cadastrado no estoque.");
       setCarregando(true);
@@ -203,14 +220,13 @@ export default function EstoquePage() {
   const quantidadeEmbalagensResumo = Number(form.quantidadeEmbalagens);
   const quantidadePorEmbalagemResumo = form.tipoUnidade === "unidade" ? 1 : Number(form.quantidadePorEmbalagem);
   const totalResumo = quantidadeEmbalagensResumo * quantidadePorEmbalagemResumo;
+  const quantidadeResumoValida = (value: string, amount: number) => /^\d+$/.test(value)
+    && amount >= 1
+    && amount <= MAX_STOCK_INPUT;
   const resumoValido = Boolean(
     unidadeSelecionada
-    && /^\d+$/.test(form.quantidadeEmbalagens)
-    && quantidadeEmbalagensResumo >= 1
-    && quantidadeEmbalagensResumo <= MAX_STOCK_INPUT
-    && (form.tipoUnidade === "unidade" || (/^\d+$/.test(form.quantidadePorEmbalagem)
-      && quantidadePorEmbalagemResumo >= 1
-      && quantidadePorEmbalagemResumo <= MAX_STOCK_INPUT))
+    && quantidadeResumoValida(form.quantidadeEmbalagens, quantidadeEmbalagensResumo)
+    && (form.tipoUnidade === "unidade" || quantidadeResumoValida(form.quantidadePorEmbalagem, quantidadePorEmbalagemResumo))
     && Number.isSafeInteger(totalResumo)
     && totalResumo <= MAX_STOCK_BALANCE
   );
@@ -218,7 +234,7 @@ export default function EstoquePage() {
     ? form.tipoUnidade === "unidade"
       ? `${quantidadeEmbalagensResumo} ${unidadeSelecionada.plural}`
       : `${quantidadeEmbalagensResumo} ${quantidadeEmbalagensResumo === 1 ? unidadeSelecionada.singular : unidadeSelecionada.plural} × ${quantidadePorEmbalagemResumo} = ${totalResumo} ${unidadeSelecionada.baseUnit}`
-    : "Informe quantidades válidas para ver o total.";
+    : unidadeSelecionada ? "Informe as quantidades válidas para ver o total." : "Selecione o tipo de unidade.";
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 sm:px-8 md:flex md:h-dvh md:min-h-0 md:flex-col md:overflow-hidden md:px-12">
@@ -235,7 +251,7 @@ export default function EstoquePage() {
         </section>
 
         <div className="mt-4 grid gap-4 md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
-          <section className={`${styles.formPanel} min-h-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm`}>
+          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm`}>
             <h2 className="text-lg font-bold text-slate-950">Novo item</h2>
             <form onSubmit={cadastrarItem} noValidate className={`${styles.formLayout} mt-2`}>
               <div className={`${styles.formBody} space-y-2`}>
@@ -255,28 +271,42 @@ export default function EstoquePage() {
                   </div>}
                 </div>
               </div>
-              <div className={`grid gap-2 ${form.tipoUnidade === "unidade" ? "" : "grid-cols-2"}`}>
-                <div>
+              <div>
                 <label htmlFor="tipoUnidade" className="text-xs font-semibold text-slate-800">Tipo de unidade</label>
                 <select id="tipoUnidade" required value={form.tipoUnidade} onChange={(event) => {
-                  const tipoUnidade = event.target.value as StockUnit;
+                  const tipoUnidade = event.target.value as StockUnit | "";
                   setForm((current) => ({
                     ...current,
                     tipoUnidade,
-                    quantidadePorEmbalagem: tipoUnidade === "unidade" ? "1" : current.tipoUnidade === "unidade" ? "" : current.quantidadePorEmbalagem,
+                    quantidadePorEmbalagem: "",
+                    quantidadeEmbalagens: "",
                   }));
+                  setErrosQuantidade({});
+                  setErro("");
                 }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
+                  <option value="">Selecione o tipo de unidade</option>
                   {STOCK_UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
                 </select>
-                </div>
-                {form.tipoUnidade !== "unidade" && <div>
-                  <label htmlFor="quantidadePorEmbalagem" className="text-xs font-semibold text-slate-800">Qtd. por embalagem</label>
-                  <input id="quantidadePorEmbalagem" required type="text" inputMode="numeric" pattern="[0-9]*" maxLength={7} placeholder="Ex.: 100" value={form.quantidadePorEmbalagem} onChange={(event) => setForm({ ...form, quantidadePorEmbalagem: event.target.value })} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
-                </div>}
               </div>
-              <div>
-                <label htmlFor="quantidadeEmbalagens" className="text-xs font-semibold text-slate-800">Nº de embalagens</label>
-                <input id="quantidadeEmbalagens" required type="text" inputMode="numeric" pattern="[0-9]*" maxLength={7} placeholder="Ex.: 5" value={form.quantidadeEmbalagens} onChange={(event) => setForm({ ...form, quantidadeEmbalagens: event.target.value })} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+              <div key={form.tipoUnidade} className={styles.quantityFields}>
+                {!unidadeSelecionada ? null : <div className={form.tipoUnidade === "unidade" ? "" : "grid gap-2 md:grid-cols-2"}>
+                  {form.tipoUnidade !== "unidade" && <div>
+                    <label htmlFor="quantidadePorEmbalagem" className="text-xs font-semibold text-slate-800">Quantidade por {unidadeSelecionada.singular}</label>
+                    <input id="quantidadePorEmbalagem" required type="number" inputMode="numeric" min={1} max={MAX_STOCK_INPUT} step={1} value={form.quantidadePorEmbalagem} aria-invalid={Boolean(errosQuantidade.quantidadePorEmbalagem)} aria-describedby={errosQuantidade.quantidadePorEmbalagem ? "quantidadePorEmbalagem-erro" : undefined} onChange={(event) => {
+                      setForm((current) => ({ ...current, quantidadePorEmbalagem: event.target.value }));
+                      setErrosQuantidade((current) => ({ ...current, quantidadePorEmbalagem: undefined }));
+                    }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 aria-invalid:border-red-500 aria-invalid:focus:ring-red-500/20" />
+                    {errosQuantidade.quantidadePorEmbalagem && <p id="quantidadePorEmbalagem-erro" className="mt-1 text-xs text-red-700">{errosQuantidade.quantidadePorEmbalagem}</p>}
+                  </div>}
+                  <div>
+                    <label htmlFor="quantidadeEmbalagens" className="text-xs font-semibold text-slate-800">Quantidade de {unidadeSelecionada.countLabel}</label>
+                    <input id="quantidadeEmbalagens" required type="number" inputMode="numeric" min={1} max={MAX_STOCK_INPUT} step={1} value={form.quantidadeEmbalagens} aria-invalid={Boolean(errosQuantidade.quantidadeEmbalagens)} aria-describedby={errosQuantidade.quantidadeEmbalagens ? "quantidadeEmbalagens-erro" : undefined} onChange={(event) => {
+                      setForm((current) => ({ ...current, quantidadeEmbalagens: event.target.value }));
+                      setErrosQuantidade((current) => ({ ...current, quantidadeEmbalagens: undefined }));
+                    }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 aria-invalid:border-red-500 aria-invalid:focus:ring-red-500/20" />
+                    {errosQuantidade.quantidadeEmbalagens && <p id="quantidadeEmbalagens-erro" className="mt-1 text-xs text-red-700">{errosQuantidade.quantidadeEmbalagens}</p>}
+                  </div>
+                </div>}
               </div>
               </div>
               <div className={styles.formFooter}>

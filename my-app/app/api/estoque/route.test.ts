@@ -97,7 +97,7 @@ describe("POST /api/estoque", () => {
       categoria: "Arruelas",
       tipoUnidade: "pacote",
       quantidadePorEmbalagem: 10,
-      quantidadeEmbalagens: 2,
+      quantidadeEmbalagens: 3,
     }));
 
     expect(response.status).toBe(201);
@@ -106,10 +106,10 @@ describe("POST /api/estoque", () => {
         nome: "Arruela Lisa",
         categoria: "Arruelas",
         unidade: "peças",
-        quantidade: 20,
+        quantidade: 30,
         tipoUnidade: "pacote",
         quantidadePorEmbalagem: 10,
-        ultimaEntradaEmbalagens: 2,
+        ultimaEntradaEmbalagens: 3,
       },
     });
   });
@@ -128,7 +128,7 @@ describe("POST /api/estoque", () => {
     expect(transactionMock.estoqueItem.update).toHaveBeenNthCalledWith(2, expect.objectContaining({ data: expect.objectContaining({ quantidade: { increment: 30 } }) }));
   });
 
-  it.each([0, -1, 1.5, "", "3", 1_000_001, null])("rejeita quantidade de embalagens inválida: %s", async (quantidadeEmbalagens) => {
+  it.each([0, -1, 1.5, "", "3", "texto", 1_000_001, null])("rejeita quantidade de embalagens inválida: %s", async (quantidadeEmbalagens) => {
     const response = await POST(request({
       nome: "Arruela Lisa",
       categoria: "Arruelas",
@@ -138,6 +138,23 @@ describe("POST /api/estoque", () => {
     }));
 
     expect(response.status).toBe(400);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it.each([0, -1, 1.5, "", "texto", 1_000_001, null])("rejeita quantidade por embalagem inválida: %s", async (quantidadePorEmbalagem) => {
+    const response = await POST(request({
+      nome: "Arruela Lisa",
+      categoria: "Arruelas",
+      tipoUnidade: "caixa",
+      quantidadePorEmbalagem,
+      quantidadeEmbalagens: 5,
+    }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      field: "quantidadePorEmbalagem",
+      error: expect.stringContaining("quantidade por caixa"),
+    });
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
