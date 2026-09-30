@@ -38,7 +38,25 @@ export default function DepositoPage() {
   };
 
   useEffect(() => {
-    void carregarItens();
+    let ativo = true;
+    fetch("/api/estoque", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar o depósito.");
+        return data.itens ?? [];
+      })
+      .then((itensCarregados) => {
+        if (!ativo) return;
+        setErro("");
+        setItens(itensCarregados);
+      })
+      .catch((cause) => {
+        if (ativo) setErro(cause instanceof Error ? cause.message : "Não foi possível comunicar com o servidor.");
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => { ativo = false; };
   }, []);
 
   const itensFiltrados = useMemo(

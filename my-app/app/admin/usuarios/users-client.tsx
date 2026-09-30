@@ -34,7 +34,28 @@ export default function AdminUsersClient() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { void loadUsers(1); }, []);
+  useEffect(() => {
+    let ativo = true;
+    const params = new URLSearchParams({ page: "1", pageSize: String(pagination.pageSize) });
+    fetch(`/api/admin/users?${params}`, { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar os usuários.");
+        return data;
+      })
+      .then((data) => {
+        if (!ativo) return;
+        setUsers(data.funcionarios ?? []);
+        setPagination(data.pagination);
+      })
+      .catch((cause: unknown) => {
+        if (ativo) setError(cause instanceof Error ? cause.message : "Não foi possível carregar os usuários.");
+      })
+      .finally(() => {
+        if (ativo) setLoading(false);
+      });
+    return () => { ativo = false; };
+  }, [pagination.pageSize]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setError(""); setMessage("");
