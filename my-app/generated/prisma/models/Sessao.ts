@@ -38,6 +38,7 @@ export type SessaoMinAggregateOutputType = {
   id: string | null
   token: string | null
   expiresAt: Date | null
+  accessArea: string | null
   funcionarioId: number | null
   createdAt: Date | null
 }
@@ -46,6 +47,7 @@ export type SessaoMaxAggregateOutputType = {
   id: string | null
   token: string | null
   expiresAt: Date | null
+  accessArea: string | null
   funcionarioId: number | null
   createdAt: Date | null
 }
@@ -54,6 +56,7 @@ export type SessaoCountAggregateOutputType = {
   id: number
   token: number
   expiresAt: number
+  accessArea: number
   funcionarioId: number
   createdAt: number
   _all: number
@@ -72,6 +75,7 @@ export type SessaoMinAggregateInputType = {
   id?: true
   token?: true
   expiresAt?: true
+  accessArea?: true
   funcionarioId?: true
   createdAt?: true
 }
@@ -80,6 +84,7 @@ export type SessaoMaxAggregateInputType = {
   id?: true
   token?: true
   expiresAt?: true
+  accessArea?: true
   funcionarioId?: true
   createdAt?: true
 }
@@ -88,6 +93,7 @@ export type SessaoCountAggregateInputType = {
   id?: true
   token?: true
   expiresAt?: true
+  accessArea?: true
   funcionarioId?: true
   createdAt?: true
   _all?: true
@@ -183,6 +189,7 @@ export type SessaoGroupByOutputType = {
   id: string
   token: string
   expiresAt: Date
+  accessArea: string | null
   funcionarioId: number
   createdAt: Date
   _count: SessaoCountAggregateOutputType | null
@@ -214,6 +221,7 @@ export type SessaoWhereInput = {
   id?: Prisma.StringFilter<"Sessao"> | string
   token?: Prisma.StringFilter<"Sessao"> | string
   expiresAt?: Prisma.DateTimeFilter<"Sessao"> | Date | string
+  accessArea?: Prisma.StringNullableFilter<"Sessao"> | string | null
   funcionarioId?: Prisma.IntFilter<"Sessao"> | number
   createdAt?: Prisma.DateTimeFilter<"Sessao"> | Date | string
   funcionario?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
@@ -223,6 +231,7 @@ export type SessaoOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   token?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  accessArea?: Prisma.SortOrderInput | Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   funcionario?: Prisma.FuncionarioOrderByWithRelationInput
@@ -236,6 +245,7 @@ export type SessaoWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.SessaoWhereInput[]
   NOT?: Prisma.SessaoWhereInput | Prisma.SessaoWhereInput[]
   expiresAt?: Prisma.DateTimeFilter<"Sessao"> | Date | string
+  accessArea?: Prisma.StringNullableFilter<"Sessao"> | string | null
   funcionarioId?: Prisma.IntFilter<"Sessao"> | number
   createdAt?: Prisma.DateTimeFilter<"Sessao"> | Date | string
   funcionario?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
@@ -245,6 +255,7 @@ export type SessaoOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   token?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  accessArea?: Prisma.SortOrderInput | Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.SessaoCountOrderByAggregateInput
@@ -261,6 +272,7 @@ export type SessaoScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Sessao"> | string
   token?: Prisma.StringWithAggregatesFilter<"Sessao"> | string
   expiresAt?: Prisma.DateTimeWithAggregatesFilter<"Sessao"> | Date | string
+  accessArea?: Prisma.StringNullableWithAggregatesFilter<"Sessao"> | string | null
   funcionarioId?: Prisma.IntWithAggregatesFilter<"Sessao"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Sessao"> | Date | string
 }
@@ -269,6 +281,7 @@ export type SessaoCreateInput = {
   id?: string
   token: string
   expiresAt: Date | string
+  accessArea?: string | null
   createdAt?: Date | string
   funcionario: Prisma.FuncionarioCreateNestedOneWithoutSessoesInput
 }
@@ -277,6 +290,7 @@ export type SessaoUncheckedCreateInput = {
   id?: string
   token: string
   expiresAt: Date | string
+  accessArea?: string | null
   funcionarioId: number
   createdAt?: Date | string
 }
@@ -285,6 +299,7 @@ export type SessaoUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutSessoesNestedInput
 }
@@ -293,6 +308,7 @@ export type SessaoUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -301,6 +317,7 @@ export type SessaoCreateManyInput = {
   id?: string
   token: string
   expiresAt: Date | string
+  accessArea?: string | null
   funcionarioId: number
   createdAt?: Date | string
 }
@@ -309,6 +326,7 @@ export type SessaoUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -316,6 +334,7 @@ export type SessaoUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -340,6 +359,7 @@ export type SessaoCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   token?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  accessArea?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -352,6 +372,7 @@ export type SessaoMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   token?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  accessArea?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -360,6 +381,7 @@ export type SessaoMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   token?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  accessArea?: Prisma.SortOrder
   funcionarioId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -418,6 +440,7 @@ export type SessaoCreateWithoutFuncionarioInput = {
   id?: string
   token: string
   expiresAt: Date | string
+  accessArea?: string | null
   createdAt?: Date | string
 }
 
@@ -425,6 +448,7 @@ export type SessaoUncheckedCreateWithoutFuncionarioInput = {
   id?: string
   token: string
   expiresAt: Date | string
+  accessArea?: string | null
   createdAt?: Date | string
 }
 
@@ -461,6 +485,7 @@ export type SessaoScalarWhereInput = {
   id?: Prisma.StringFilter<"Sessao"> | string
   token?: Prisma.StringFilter<"Sessao"> | string
   expiresAt?: Prisma.DateTimeFilter<"Sessao"> | Date | string
+  accessArea?: Prisma.StringNullableFilter<"Sessao"> | string | null
   funcionarioId?: Prisma.IntFilter<"Sessao"> | number
   createdAt?: Prisma.DateTimeFilter<"Sessao"> | Date | string
 }
@@ -469,6 +494,7 @@ export type SessaoCreateManyFuncionarioInput = {
   id?: string
   token: string
   expiresAt: Date | string
+  accessArea?: string | null
   createdAt?: Date | string
 }
 
@@ -476,6 +502,7 @@ export type SessaoUpdateWithoutFuncionarioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -483,6 +510,7 @@ export type SessaoUncheckedUpdateWithoutFuncionarioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -490,6 +518,7 @@ export type SessaoUncheckedUpdateManyWithoutFuncionarioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   token?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accessArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -499,6 +528,7 @@ export type SessaoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   token?: boolean
   expiresAt?: boolean
+  accessArea?: boolean
   funcionarioId?: boolean
   createdAt?: boolean
   funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
@@ -510,11 +540,12 @@ export type SessaoSelectScalar = {
   id?: boolean
   token?: boolean
   expiresAt?: boolean
+  accessArea?: boolean
   funcionarioId?: boolean
   createdAt?: boolean
 }
 
-export type SessaoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "token" | "expiresAt" | "funcionarioId" | "createdAt", ExtArgs["result"]["sessao"]>
+export type SessaoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "token" | "expiresAt" | "accessArea" | "funcionarioId" | "createdAt", ExtArgs["result"]["sessao"]>
 export type SessaoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
 }
@@ -528,6 +559,7 @@ export type $SessaoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     token: string
     expiresAt: Date
+    accessArea: string | null
     funcionarioId: number
     createdAt: Date
   }, ExtArgs["result"]["sessao"]>
@@ -903,6 +935,7 @@ export interface SessaoFieldRefs {
   readonly id: Prisma.FieldRef<"Sessao", 'String'>
   readonly token: Prisma.FieldRef<"Sessao", 'String'>
   readonly expiresAt: Prisma.FieldRef<"Sessao", 'DateTime'>
+  readonly accessArea: Prisma.FieldRef<"Sessao", 'String'>
   readonly funcionarioId: Prisma.FieldRef<"Sessao", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Sessao", 'DateTime'>
 }

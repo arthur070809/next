@@ -64,3 +64,8 @@ export type EstoqueItem = Prisma.EstoqueItemModel
  * 
  */
 export type DepositoItem = Prisma.DepositoItemModel
+/**
+ * Model Auditoria
+ * 
+ */
+export type Auditoria = Prisma.AuditoriaModel

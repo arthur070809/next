@@ -15,6 +15,8 @@ export async function GET() {
       email: funcionario.email,
       cargo: funcionario.cargo,
       cracha: funcionario.cracha,
+        role: funcionario.role,
+        mustChangePassword: funcionario.mustChangePassword,
     },
   });
 }

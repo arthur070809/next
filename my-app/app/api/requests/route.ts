@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isSameOrigin } from "@/lib/security";
 
 export async function GET() {
   const funcionario = await getAuthenticatedFuncionario();
@@ -19,6 +20,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
+    }
     const funcionario = await getAuthenticatedFuncionario();
 
     if (!funcionario) {

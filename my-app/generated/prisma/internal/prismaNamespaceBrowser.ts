@@ -55,7 +55,8 @@ export const ModelName = {
   Sessao: 'Sessao',
   Requisicao: 'Requisicao',
   EstoqueItem: 'EstoqueItem',
-  DepositoItem: 'DepositoItem'
+  DepositoItem: 'DepositoItem',
+  Auditoria: 'Auditoria'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -77,10 +78,14 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const FuncionarioScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
+  login: 'login',
   email: 'email',
   senha: 'senha',
   cargo: 'cargo',
-  cracha: 'cracha'
+  cracha: 'cracha',
+  role: 'role',
+  mustChangePassword: 'mustChangePassword',
+  ativo: 'ativo'
 } as const
 
 export type FuncionarioScalarFieldEnum = (typeof FuncionarioScalarFieldEnum)[keyof typeof FuncionarioScalarFieldEnum]
@@ -90,6 +95,7 @@ export const SessaoScalarFieldEnum = {
   id: 'id',
   token: 'token',
   expiresAt: 'expiresAt',
+  accessArea: 'accessArea',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt'
 } as const
@@ -137,6 +143,17 @@ export const DepositoItemScalarFieldEnum = {
 export type DepositoItemScalarFieldEnum = (typeof DepositoItemScalarFieldEnum)[keyof typeof DepositoItemScalarFieldEnum]
 
 
+export const AuditoriaScalarFieldEnum = {
+  id: 'id',
+  acao: 'acao',
+  alvoId: 'alvoId',
+  autorId: 'autorId',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditoriaScalarFieldEnum = (typeof AuditoriaScalarFieldEnum)[keyof typeof AuditoriaScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -145,12 +162,22 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 export const FuncionarioOrderByRelevanceFieldEnum = {
   nome: 'nome',
+  login: 'login',
   email: 'email',
   senha: 'senha',
   cargo: 'cargo',
-  cracha: 'cracha'
+  cracha: 'cracha',
+  role: 'role'
 } as const
 
 export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRelevanceFieldEnum)[keyof typeof FuncionarioOrderByRelevanceFieldEnum]
@@ -158,18 +185,11 @@ export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRel
 
 export const SessaoOrderByRelevanceFieldEnum = {
   id: 'id',
-  token: 'token'
+  token: 'token',
+  accessArea: 'accessArea'
 } as const
 
 export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFieldEnum)[keyof typeof SessaoOrderByRelevanceFieldEnum]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const RequisicaoOrderByRelevanceFieldEnum = {
@@ -199,4 +219,12 @@ export const DepositoItemOrderByRelevanceFieldEnum = {
 } as const
 
 export type DepositoItemOrderByRelevanceFieldEnum = (typeof DepositoItemOrderByRelevanceFieldEnum)[keyof typeof DepositoItemOrderByRelevanceFieldEnum]
+
+
+export const AuditoriaOrderByRelevanceFieldEnum = {
+  id: 'id',
+  acao: 'acao'
+} as const
+
+export type AuditoriaOrderByRelevanceFieldEnum = (typeof AuditoriaOrderByRelevanceFieldEnum)[keyof typeof AuditoriaOrderByRelevanceFieldEnum]
 

@@ -434,10 +434,6 @@ export type EstoqueItemScalarRelationFilter = {
   isNot?: Prisma.EstoqueItemWhereInput
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type EstoqueItemCreateNestedOneWithoutDepositoInput = {
   create?: Prisma.XOR<Prisma.EstoqueItemCreateWithoutDepositoInput, Prisma.EstoqueItemUncheckedCreateWithoutDepositoInput>
   connectOrCreate?: Prisma.EstoqueItemCreateOrConnectWithoutDepositoInput

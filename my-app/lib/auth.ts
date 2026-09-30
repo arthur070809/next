@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export const sessionCookieName = "marcon_session";
 
-export async function getAuthenticatedFuncionario() {
+export async function getAuthenticatedSession() {
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookieName)?.value;
 
@@ -21,5 +21,23 @@ export async function getAuthenticatedFuncionario() {
     return null;
   }
 
-  return session.funcionario;
+  if (!session.funcionario.ativo) return null;
+
+  return session;
+}
+
+export async function getAuthenticatedFuncionario() {
+  const session = await getAuthenticatedSession();
+  return session?.funcionario ?? null;
+}
+
+export async function requireAdmin() {
+  const funcionario = await getAuthenticatedFuncionario();
+  if (!funcionario) return { funcionario: null, status: 401 as const };
+  if (funcionario.role !== "admin") return { funcionario: null, status: 403 as const };
+  return { funcionario, status: 200 as const };
+}
+
+export function requiresPasswordChange(funcionario: { role: string; mustChangePassword: boolean }) {
+  return funcionario.role !== "admin" && funcionario.mustChangePassword;
 }

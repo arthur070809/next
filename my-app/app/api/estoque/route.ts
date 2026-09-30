@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isSameOrigin } from "@/lib/security";
+import { getAuthenticatedFuncionario } from "@/lib/auth";
 
 function respostaJson(body: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
@@ -9,6 +11,7 @@ function respostaJson(body: unknown, init?: ResponseInit) {
 
 export async function GET() {
   try {
+    if (!(await getAuthenticatedFuncionario())) return respostaJson({ error: "Não autenticado." }, { status: 401 });
     const itens = await prisma.estoqueItem.findMany({
       where: { ativo: true },
       orderBy: [{ categoria: "asc" }, { nome: "asc" }],
@@ -23,6 +26,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    if (!(await getAuthenticatedFuncionario())) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+    if (!isSameOrigin(request)) return respostaJson({ error: "Origem inválida." }, { status: 403 });
     const body = await request.json();
     const nome = typeof body?.nome === "string" ? body.nome.trim() : "";
     const categoria = typeof body?.categoria === "string" ? body.categoria.trim() : "";
@@ -70,6 +75,8 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    if (!(await getAuthenticatedFuncionario())) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+    if (!isSameOrigin(request)) return respostaJson({ error: "Origem inválida." }, { status: 403 });
     const body = await request.json();
     const id = typeof body?.id === "string" ? body.id : "";
     const quantidade = Number(body?.quantidade);

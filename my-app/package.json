@@ -7,12 +7,17 @@
     "build": "next build",
     "start": "next start",
     "seed": "node scripts/seed-stock.cjs",
+    "seed:admin": "node scripts/seed-admin.cjs",
+    "admin:reset-password": "node scripts/reset-admin-password.cjs",
+    "test": "vitest run",
     "lint": "eslint"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^16.6.1",
+    "mariadb": "^3.5.4",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -26,6 +31,7 @@
     "eslint-config-next": "16.3.5",
     "prisma": "^7.10.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

@@ -401,7 +401,8 @@ export const ModelName = {
   Sessao: 'Sessao',
   Requisicao: 'Requisicao',
   EstoqueItem: 'EstoqueItem',
-  DepositoItem: 'DepositoItem'
+  DepositoItem: 'DepositoItem',
+  Auditoria: 'Auditoria'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "funcionario" | "sessao" | "requisicao" | "estoqueItem" | "depositoItem"
+    modelProps: "funcionario" | "sessao" | "requisicao" | "estoqueItem" | "depositoItem" | "auditoria"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -751,6 +752,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Auditoria: {
+      payload: Prisma.$AuditoriaPayload<ExtArgs>
+      fields: Prisma.AuditoriaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditoriaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditoriaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>
+        }
+        findFirst: {
+          args: Prisma.AuditoriaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditoriaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>
+        }
+        findMany: {
+          args: Prisma.AuditoriaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>[]
+        }
+        create: {
+          args: Prisma.AuditoriaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>
+        }
+        createMany: {
+          args: Prisma.AuditoriaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AuditoriaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>
+        }
+        update: {
+          args: Prisma.AuditoriaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditoriaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditoriaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AuditoriaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditoriaPayload>
+        }
+        aggregate: {
+          args: Prisma.AuditoriaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuditoria>
+        }
+        groupBy: {
+          args: Prisma.AuditoriaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditoriaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditoriaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditoriaCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -793,10 +860,14 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const FuncionarioScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
+  login: 'login',
   email: 'email',
   senha: 'senha',
   cargo: 'cargo',
-  cracha: 'cracha'
+  cracha: 'cracha',
+  role: 'role',
+  mustChangePassword: 'mustChangePassword',
+  ativo: 'ativo'
 } as const
 
 export type FuncionarioScalarFieldEnum = (typeof FuncionarioScalarFieldEnum)[keyof typeof FuncionarioScalarFieldEnum]
@@ -806,6 +877,7 @@ export const SessaoScalarFieldEnum = {
   id: 'id',
   token: 'token',
   expiresAt: 'expiresAt',
+  accessArea: 'accessArea',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt'
 } as const
@@ -853,6 +925,17 @@ export const DepositoItemScalarFieldEnum = {
 export type DepositoItemScalarFieldEnum = (typeof DepositoItemScalarFieldEnum)[keyof typeof DepositoItemScalarFieldEnum]
 
 
+export const AuditoriaScalarFieldEnum = {
+  id: 'id',
+  acao: 'acao',
+  alvoId: 'alvoId',
+  autorId: 'autorId',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditoriaScalarFieldEnum = (typeof AuditoriaScalarFieldEnum)[keyof typeof AuditoriaScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -861,12 +944,22 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 export const FuncionarioOrderByRelevanceFieldEnum = {
   nome: 'nome',
+  login: 'login',
   email: 'email',
   senha: 'senha',
   cargo: 'cargo',
-  cracha: 'cracha'
+  cracha: 'cracha',
+  role: 'role'
 } as const
 
 export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRelevanceFieldEnum)[keyof typeof FuncionarioOrderByRelevanceFieldEnum]
@@ -874,18 +967,11 @@ export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRel
 
 export const SessaoOrderByRelevanceFieldEnum = {
   id: 'id',
-  token: 'token'
+  token: 'token',
+  accessArea: 'accessArea'
 } as const
 
 export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFieldEnum)[keyof typeof SessaoOrderByRelevanceFieldEnum]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const RequisicaoOrderByRelevanceFieldEnum = {
@@ -917,6 +1003,14 @@ export const DepositoItemOrderByRelevanceFieldEnum = {
 export type DepositoItemOrderByRelevanceFieldEnum = (typeof DepositoItemOrderByRelevanceFieldEnum)[keyof typeof DepositoItemOrderByRelevanceFieldEnum]
 
 
+export const AuditoriaOrderByRelevanceFieldEnum = {
+  id: 'id',
+  acao: 'acao'
+} as const
+
+export type AuditoriaOrderByRelevanceFieldEnum = (typeof AuditoriaOrderByRelevanceFieldEnum)[keyof typeof AuditoriaOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -938,16 +1032,16 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
- * Reference to a field of type 'DateTime'
+ * Reference to a field of type 'Boolean'
  */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
 /**
- * Reference to a field of type 'Boolean'
+ * Reference to a field of type 'DateTime'
  */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
     
 
 
@@ -1113,6 +1207,7 @@ export type GlobalOmitConfig = {
   requisicao?: Prisma.RequisicaoOmit
   estoqueItem?: Prisma.EstoqueItemOmit
   depositoItem?: Prisma.DepositoItemOmit
+  auditoria?: Prisma.AuditoriaOmit
 }
 
 /* Types for Logging */

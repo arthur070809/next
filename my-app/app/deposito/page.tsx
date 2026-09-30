@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type DepositoItem = {
@@ -12,6 +13,8 @@ type DepositoItem = {
 };
 
 export default function DepositoPage() {
+  const pathname = usePathname();
+  const estoqueHref = pathname.startsWith("/admin/") ? "/admin/estoque" : "/estoque";
   const [itens, setItens] = useState<DepositoItem[]>([]);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -65,7 +68,7 @@ export default function DepositoPage() {
               <h1 className="text-3xl font-bold tracking-tight text-slate-950">Deposito de sobras</h1>
               <p className="mt-1 text-slate-600">Itens avulsos devolvidos depois da abertura de uma caixa.</p>
             </div>
-            <Link href="/estoque" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-royal px-4 text-sm font-semibold text-royal hover:bg-blue-50">Ir para o estoque principal</Link>
+            <Link href={estoqueHref} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-royal px-4 text-sm font-semibold text-royal hover:bg-blue-50">Ir para o estoque principal</Link>
           </div>
         </header>
 

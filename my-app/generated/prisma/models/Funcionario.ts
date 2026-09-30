@@ -37,28 +37,40 @@ export type FuncionarioSumAggregateOutputType = {
 export type FuncionarioMinAggregateOutputType = {
   id: number | null
   nome: string | null
+  login: string | null
   email: string | null
   senha: string | null
   cargo: string | null
   cracha: string | null
+  role: string | null
+  mustChangePassword: boolean | null
+  ativo: boolean | null
 }
 
 export type FuncionarioMaxAggregateOutputType = {
   id: number | null
   nome: string | null
+  login: string | null
   email: string | null
   senha: string | null
   cargo: string | null
   cracha: string | null
+  role: string | null
+  mustChangePassword: boolean | null
+  ativo: boolean | null
 }
 
 export type FuncionarioCountAggregateOutputType = {
   id: number
   nome: number
+  login: number
   email: number
   senha: number
   cargo: number
   cracha: number
+  role: number
+  mustChangePassword: number
+  ativo: number
   _all: number
 }
 
@@ -74,28 +86,40 @@ export type FuncionarioSumAggregateInputType = {
 export type FuncionarioMinAggregateInputType = {
   id?: true
   nome?: true
+  login?: true
   email?: true
   senha?: true
   cargo?: true
   cracha?: true
+  role?: true
+  mustChangePassword?: true
+  ativo?: true
 }
 
 export type FuncionarioMaxAggregateInputType = {
   id?: true
   nome?: true
+  login?: true
   email?: true
   senha?: true
   cargo?: true
   cracha?: true
+  role?: true
+  mustChangePassword?: true
+  ativo?: true
 }
 
 export type FuncionarioCountAggregateInputType = {
   id?: true
   nome?: true
+  login?: true
   email?: true
   senha?: true
   cargo?: true
   cracha?: true
+  role?: true
+  mustChangePassword?: true
+  ativo?: true
   _all?: true
 }
 
@@ -188,10 +212,14 @@ export type FuncionarioGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type FuncionarioGroupByOutputType = {
   id: number
   nome: string
+  login: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role: string
+  mustChangePassword: boolean
+  ativo: boolean
   _count: FuncionarioCountAggregateOutputType | null
   _avg: FuncionarioAvgAggregateOutputType | null
   _sum: FuncionarioSumAggregateOutputType | null
@@ -220,28 +248,39 @@ export type FuncionarioWhereInput = {
   NOT?: Prisma.FuncionarioWhereInput | Prisma.FuncionarioWhereInput[]
   id?: Prisma.IntFilter<"Funcionario"> | number
   nome?: Prisma.StringFilter<"Funcionario"> | string
+  login?: Prisma.StringNullableFilter<"Funcionario"> | string | null
   email?: Prisma.StringFilter<"Funcionario"> | string
   senha?: Prisma.StringFilter<"Funcionario"> | string
   cargo?: Prisma.StringFilter<"Funcionario"> | string
   cracha?: Prisma.StringFilter<"Funcionario"> | string
+  role?: Prisma.StringFilter<"Funcionario"> | string
+  mustChangePassword?: Prisma.BoolFilter<"Funcionario"> | boolean
+  ativo?: Prisma.BoolFilter<"Funcionario"> | boolean
   sessoes?: Prisma.SessaoListRelationFilter
   requisicoes?: Prisma.RequisicaoListRelationFilter
+  auditorias?: Prisma.AuditoriaListRelationFilter
 }
 
 export type FuncionarioOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
+  login?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrder
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  ativo?: Prisma.SortOrder
   sessoes?: Prisma.SessaoOrderByRelationAggregateInput
   requisicoes?: Prisma.RequisicaoOrderByRelationAggregateInput
+  auditorias?: Prisma.AuditoriaOrderByRelationAggregateInput
   _relevance?: Prisma.FuncionarioOrderByRelevanceInput
 }
 
 export type FuncionarioWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  login?: string
   email?: string
   cracha?: string
   AND?: Prisma.FuncionarioWhereInput | Prisma.FuncionarioWhereInput[]
@@ -250,17 +289,25 @@ export type FuncionarioWhereUniqueInput = Prisma.AtLeast<{
   nome?: Prisma.StringFilter<"Funcionario"> | string
   senha?: Prisma.StringFilter<"Funcionario"> | string
   cargo?: Prisma.StringFilter<"Funcionario"> | string
+  role?: Prisma.StringFilter<"Funcionario"> | string
+  mustChangePassword?: Prisma.BoolFilter<"Funcionario"> | boolean
+  ativo?: Prisma.BoolFilter<"Funcionario"> | boolean
   sessoes?: Prisma.SessaoListRelationFilter
   requisicoes?: Prisma.RequisicaoListRelationFilter
-}, "id" | "email" | "cracha">
+  auditorias?: Prisma.AuditoriaListRelationFilter
+}, "id" | "login" | "email" | "cracha">
 
 export type FuncionarioOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
+  login?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrder
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  ativo?: Prisma.SortOrder
   _count?: Prisma.FuncionarioCountOrderByAggregateInput
   _avg?: Prisma.FuncionarioAvgOrderByAggregateInput
   _max?: Prisma.FuncionarioMaxOrderByAggregateInput
@@ -274,78 +321,114 @@ export type FuncionarioScalarWhereWithAggregatesInput = {
   NOT?: Prisma.FuncionarioScalarWhereWithAggregatesInput | Prisma.FuncionarioScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Funcionario"> | number
   nome?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
+  login?: Prisma.StringNullableWithAggregatesFilter<"Funcionario"> | string | null
   email?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
   senha?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
   cargo?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
   cracha?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
+  role?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
+  mustChangePassword?: Prisma.BoolWithAggregatesFilter<"Funcionario"> | boolean
+  ativo?: Prisma.BoolWithAggregatesFilter<"Funcionario"> | boolean
 }
 
 export type FuncionarioCreateInput = {
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
   requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
 }
 
 export type FuncionarioUncheckedCreateInput = {
   id?: number
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
   requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
 }
 
 export type FuncionarioUpdateInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
   requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
   requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
 }
 
 export type FuncionarioCreateManyInput = {
   id?: number
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
 }
 
 export type FuncionarioUpdateManyMutationInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type FuncionarioUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type FuncionarioOrderByRelevanceInput = {
@@ -357,10 +440,14 @@ export type FuncionarioOrderByRelevanceInput = {
 export type FuncionarioCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
+  login?: Prisma.SortOrder
   email?: Prisma.SortOrder
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  ativo?: Prisma.SortOrder
 }
 
 export type FuncionarioAvgOrderByAggregateInput = {
@@ -370,19 +457,27 @@ export type FuncionarioAvgOrderByAggregateInput = {
 export type FuncionarioMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
+  login?: Prisma.SortOrder
   email?: Prisma.SortOrder
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  ativo?: Prisma.SortOrder
 }
 
 export type FuncionarioMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
+  login?: Prisma.SortOrder
   email?: Prisma.SortOrder
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  ativo?: Prisma.SortOrder
 }
 
 export type FuncionarioSumOrderByAggregateInput = {
@@ -396,6 +491,14 @@ export type FuncionarioScalarRelationFilter = {
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -434,23 +537,47 @@ export type FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutRequisicoesInput, Prisma.FuncionarioUpdateWithoutRequisicoesInput>, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesInput>
 }
 
+export type FuncionarioCreateNestedOneWithoutAuditoriasInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedCreateWithoutAuditoriasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutAuditoriasInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutAuditoriasNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedCreateWithoutAuditoriasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutAuditoriasInput
+  upsert?: Prisma.FuncionarioUpsertWithoutAuditoriasInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutAuditoriasInput, Prisma.FuncionarioUpdateWithoutAuditoriasInput>, Prisma.FuncionarioUncheckedUpdateWithoutAuditoriasInput>
+}
+
 export type FuncionarioCreateWithoutSessoesInput = {
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
   requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
 }
 
 export type FuncionarioUncheckedCreateWithoutSessoesInput = {
   id?: number
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
   requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
 }
 
 export type FuncionarioCreateOrConnectWithoutSessoesInput = {
@@ -471,40 +598,60 @@ export type FuncionarioUpdateToOneWithWhereWithoutSessoesInput = {
 
 export type FuncionarioUpdateWithoutSessoesInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateWithoutSessoesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
 }
 
 export type FuncionarioCreateWithoutRequisicoesInput = {
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
 }
 
 export type FuncionarioUncheckedCreateWithoutRequisicoesInput = {
   id?: number
   nome: string
+  login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
 }
 
 export type FuncionarioCreateOrConnectWithoutRequisicoesInput = {
@@ -525,21 +672,105 @@ export type FuncionarioUpdateToOneWithWhereWithoutRequisicoesInput = {
 
 export type FuncionarioUpdateWithoutRequisicoesInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+}
+
+export type FuncionarioCreateWithoutAuditoriasInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+}
+
+export type FuncionarioUncheckedCreateWithoutAuditoriasInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+}
+
+export type FuncionarioCreateOrConnectWithoutAuditoriasInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedCreateWithoutAuditoriasInput>
+}
+
+export type FuncionarioUpsertWithoutAuditoriasInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedUpdateWithoutAuditoriasInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedCreateWithoutAuditoriasInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutAuditoriasInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedUpdateWithoutAuditoriasInput>
+}
+
+export type FuncionarioUpdateWithoutAuditoriasInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutAuditoriasInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
 }
 
 
@@ -550,11 +781,13 @@ export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
 export type FuncionarioCountOutputType = {
   sessoes: number
   requisicoes: number
+  auditorias: number
 }
 
 export type FuncionarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessoes?: boolean | FuncionarioCountOutputTypeCountSessoesArgs
   requisicoes?: boolean | FuncionarioCountOutputTypeCountRequisicoesArgs
+  auditorias?: boolean | FuncionarioCountOutputTypeCountAuditoriasArgs
 }
 
 /**
@@ -581,16 +814,28 @@ export type FuncionarioCountOutputTypeCountRequisicoesArgs<ExtArgs extends runti
   where?: Prisma.RequisicaoWhereInput
 }
 
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountAuditoriasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditoriaWhereInput
+}
+
 
 export type FuncionarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   nome?: boolean
+  login?: boolean
   email?: boolean
   senha?: boolean
   cargo?: boolean
   cracha?: boolean
+  role?: boolean
+  mustChangePassword?: boolean
+  ativo?: boolean
   sessoes?: boolean | Prisma.Funcionario$sessoesArgs<ExtArgs>
   requisicoes?: boolean | Prisma.Funcionario$requisicoesArgs<ExtArgs>
+  auditorias?: boolean | Prisma.Funcionario$auditoriasArgs<ExtArgs>
   _count?: boolean | Prisma.FuncionarioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["funcionario"]>
 
@@ -599,16 +844,21 @@ export type FuncionarioSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 export type FuncionarioSelectScalar = {
   id?: boolean
   nome?: boolean
+  login?: boolean
   email?: boolean
   senha?: boolean
   cargo?: boolean
   cracha?: boolean
+  role?: boolean
+  mustChangePassword?: boolean
+  ativo?: boolean
 }
 
-export type FuncionarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "email" | "senha" | "cargo" | "cracha", ExtArgs["result"]["funcionario"]>
+export type FuncionarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "login" | "email" | "senha" | "cargo" | "cracha" | "role" | "mustChangePassword" | "ativo", ExtArgs["result"]["funcionario"]>
 export type FuncionarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessoes?: boolean | Prisma.Funcionario$sessoesArgs<ExtArgs>
   requisicoes?: boolean | Prisma.Funcionario$requisicoesArgs<ExtArgs>
+  auditorias?: boolean | Prisma.Funcionario$auditoriasArgs<ExtArgs>
   _count?: boolean | Prisma.FuncionarioCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -617,14 +867,19 @@ export type $FuncionarioPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     sessoes: Prisma.$SessaoPayload<ExtArgs>[]
     requisicoes: Prisma.$RequisicaoPayload<ExtArgs>[]
+    auditorias: Prisma.$AuditoriaPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     nome: string
+    login: string | null
     email: string
     senha: string
     cargo: string
     cracha: string
+    role: string
+    mustChangePassword: boolean
+    ativo: boolean
   }, ExtArgs["result"]["funcionario"]>
   composites: {}
 }
@@ -967,6 +1222,7 @@ export interface Prisma__FuncionarioClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sessoes<T extends Prisma.Funcionario$sessoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$sessoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requisicoes<T extends Prisma.Funcionario$requisicoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$requisicoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  auditorias<T extends Prisma.Funcionario$auditoriasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$auditoriasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditoriaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -998,10 +1254,14 @@ export interface Prisma__FuncionarioClient<T, Null = never, ExtArgs extends runt
 export interface FuncionarioFieldRefs {
   readonly id: Prisma.FieldRef<"Funcionario", 'Int'>
   readonly nome: Prisma.FieldRef<"Funcionario", 'String'>
+  readonly login: Prisma.FieldRef<"Funcionario", 'String'>
   readonly email: Prisma.FieldRef<"Funcionario", 'String'>
   readonly senha: Prisma.FieldRef<"Funcionario", 'String'>
   readonly cargo: Prisma.FieldRef<"Funcionario", 'String'>
   readonly cracha: Prisma.FieldRef<"Funcionario", 'String'>
+  readonly role: Prisma.FieldRef<"Funcionario", 'String'>
+  readonly mustChangePassword: Prisma.FieldRef<"Funcionario", 'Boolean'>
+  readonly ativo: Prisma.FieldRef<"Funcionario", 'Boolean'>
 }
     
 
@@ -1395,6 +1655,30 @@ export type Funcionario$requisicoesArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.RequisicaoScalarFieldEnum | Prisma.RequisicaoScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.auditorias
+ */
+export type Funcionario$auditoriasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Auditoria
+   */
+  select?: Prisma.AuditoriaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Auditoria
+   */
+  omit?: Prisma.AuditoriaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditoriaInclude<ExtArgs> | null
+  where?: Prisma.AuditoriaWhereInput
+  orderBy?: Prisma.AuditoriaOrderByWithRelationInput | Prisma.AuditoriaOrderByWithRelationInput[]
+  cursor?: Prisma.AuditoriaWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditoriaScalarFieldEnum | Prisma.AuditoriaScalarFieldEnum[]
 }
 
 /**

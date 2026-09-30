@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { sessionCookieName } from "@/lib/auth";
+import { isSameOrigin } from "@/lib/security";
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookieName)?.value;
 
