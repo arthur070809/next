@@ -37,13 +37,33 @@ export async function POST(request: Request) {
       );
     }
 
-    const requisicao = await prisma.requisicao.create({
-      data: {
-        item,
-        quantidade,
-        observacao: observacao || null,
-        funcionarioId: funcionario.id,
-      },
+    const requisicao = await prisma.$transaction(async (transaction) => {
+      const estoqueItem = await transaction.estoqueItem.findFirst({
+        where: { nome: item, ativo: true },
+      });
+
+      let atendePeloDeposito = false;
+
+      if (estoqueItem) {
+        const reserva = await transaction.depositoItem.updateMany({
+          where: {
+            estoqueItemId: estoqueItem.id,
+            quantidade: { gte: quantidade },
+          },
+          data: { quantidade: { decrement: quantidade } },
+        });
+        atendePeloDeposito = reserva.count === 1;
+      }
+
+      return transaction.requisicao.create({
+        data: {
+          item,
+          quantidade,
+          observacao: observacao || null,
+          origem: atendePeloDeposito ? "DEPOSITO" : "ESTOQUE",
+          funcionarioId: funcionario.id,
+        },
+      });
     });
 
     return NextResponse.json({ requisicao }, { status: 201 });

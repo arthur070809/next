@@ -7,22 +7,28 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const codigoCracha = typeof body?.codigoCracha === "string" ? body.codigoCracha.trim().toUpperCase() : "";
+    const identificador = typeof body?.identificador === "string"
+      ? body.identificador.trim()
+      : typeof body?.codigoCracha === "string"
+        ? body.codigoCracha.trim()
+        : "";
     const senha = typeof body?.senha === "string" ? body.senha : "";
 
-    if (!codigoCracha || !senha) {
+    if (!identificador || !senha) {
       return NextResponse.json(
-        { error: "Código do crachá e senha são obrigatórios." },
+        { error: "E-mail/crachá e senha são obrigatórios." },
         { status: 400 }
       );
     }
 
+    const email = identificador.toLowerCase();
+    const cracha = identificador.toUpperCase();
     const funcionario = await prisma.funcionario.findUnique({
-      where: { cracha: codigoCracha },
+      where: email.includes("@") ? { email } : { cracha },
     });
 
     if (!funcionario || !(await bcrypt.compare(senha, funcionario.senha))) {
-      return NextResponse.json({ error: "Crachá ou senha incorretos." }, { status: 401 });
+      return NextResponse.json({ error: "E-mail/crachá ou senha incorretos." }, { status: 401 });
     }
 
     const token = randomBytes(32).toString("hex");

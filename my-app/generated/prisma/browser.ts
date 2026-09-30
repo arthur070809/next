@@ -32,3 +32,13 @@ export type Sessao = Prisma.SessaoModel
  * 
  */
 export type Requisicao = Prisma.RequisicaoModel
+/**
+ * Model EstoqueItem
+ * 
+ */
+export type EstoqueItem = Prisma.EstoqueItemModel
+/**
+ * Model DepositoItem
+ * 
+ */
+export type DepositoItem = Prisma.DepositoItemModel

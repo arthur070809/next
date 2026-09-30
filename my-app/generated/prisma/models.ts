@@ -11,4 +11,6 @@
 export type * from './models/Funcionario'
 export type * from './models/Sessao'
 export type * from './models/Requisicao'
+export type * from './models/EstoqueItem'
+export type * from './models/DepositoItem'
 export type * from './commonInputTypes'
