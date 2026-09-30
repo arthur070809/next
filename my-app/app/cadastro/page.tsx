@@ -94,6 +94,7 @@ export default function CadastroPage() {
           name: form.nome.trim(),
           email: form.email.trim(),
           password: form.senha,
+          codigoCracha: form.codigoCracha,
         }),
       });
 

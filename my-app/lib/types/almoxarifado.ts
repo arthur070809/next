@@ -1,3 +1,10 @@
+export type ItemChecklist = {
+  id: string
+  nome: string
+  quantidade: number
+  unidadeMedida: string
+}
+
 export type RequisicaoMock = {
   numeroPedido: string
   almoxarifado: "central" | "embalagens" | "materia-prima" | "importados"
@@ -9,9 +16,22 @@ export type RequisicaoMock = {
   data: string // ISO
   codigoTratamento: string
   prioridade: "padrao" | "prioridade"
-  status: "pendente" | "em_separacao" | "pronto" | "retirado" | "assumida" | "anulado"
+  status: "pendente" | "em_separacao" | "pronto" | "retirado" | "assumida" | "concluida" | "anulado"
   anuladoPorCracha?: string
   anuladoAt?: string
   assumidaPorCracha?: string
   assumidaAt?: string
+  solicitante?: string
+  itens?: ItemChecklist[]
+}
+
+export type EventoHistorico = {
+  id: string
+  requisicaoId: string
+  numeroPedido: string
+  evento: "assumida" | "devolvida" | "finalizada" | "cancelada"
+  codigoCracha: string
+  descricaoMotivo: string | null
+  timestamp: string
+  itensFinalizados?: Array<{ nome: string; separado: boolean; motivo?: string }>
 }

@@ -2,7 +2,7 @@ export type RequisicaoItemPayload = {
   itemNome: string
   setor: "setor1" | "setor2" | "setor3"
   quantidade: number
-  unidadeMedida: "un" | "dz" | "ct"
+  unidadeMedida: "UN" | "DZ" | "CT"
   descricao: string
   prioridade: "padrao" | "prioridade"
 }

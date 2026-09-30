@@ -2,11 +2,12 @@
 
 import React from "react"
 
-export default function FiltrosRequisicoes({ filters, setFilters, items }: { filters: { almoxarifado?: string; item?: string; date?: string }; setFilters: (s: any) => void; items: string[] }) {
+export default function FiltrosRequisicoes({ filters, setFilters, items }: { filters: { almoxarifado?: string; item?: string; date?: string }; setFilters: (s: { almoxarifado?: string; item?: string; date?: string }) => void; items: string[] }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-      <div className="flex flex-col lg:flex-row gap-3">
-        <select value={filters.almoxarifado || ""} onChange={(e) => setFilters({ ...filters, almoxarifado: e.target.value || undefined })} className="rounded-lg border px-3 py-2">
+    <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-3"><h2 className="font-semibold text-slate-900">Filtros</h2><p className="mt-1 text-sm text-slate-500">Encontre uma requisição por almoxarifado, item ou data.</p></div>
+      <div className="flex flex-col gap-3 lg:flex-row">
+        <select aria-label="Filtrar por almoxarifado" value={filters.almoxarifado || ""} onChange={(e) => setFilters({ ...filters, almoxarifado: e.target.value || undefined })} className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-blue-100">
           <option value="">Todos os almoxarifados</option>
           <option value="central">Central</option>
           <option value="embalagens">Embalagens</option>
@@ -14,17 +15,17 @@ export default function FiltrosRequisicoes({ filters, setFilters, items }: { fil
           <option value="importados">Produtos importados</option>
         </select>
 
-        <input placeholder="Buscar item" value={filters.item || ""} onChange={(e) => setFilters({ ...filters, item: e.target.value || undefined })} className="rounded-lg border px-3 py-2 flex-1" list="itens-list" />
+        <input aria-label="Buscar item" placeholder="Buscar item" value={filters.item || ""} onChange={(e) => setFilters({ ...filters, item: e.target.value || undefined })} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-blue-100" list="itens-list" />
         <datalist id="itens-list">
           {items.map((it) => (
             <option key={it} value={it} />
           ))}
         </datalist>
 
-        <input type="date" value={filters.date || ""} onChange={(e) => setFilters({ ...filters, date: e.target.value || undefined })} className="rounded-lg border px-3 py-2" />
+        <input aria-label="Filtrar por data" type="date" value={filters.date || ""} onChange={(e) => setFilters({ ...filters, date: e.target.value || undefined })} className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-blue-100" />
 
-        <button onClick={() => setFilters({})} className="bg-slate-100 px-4 py-2 rounded-lg">Limpar</button>
+        <button onClick={() => setFilters({})} className="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200">Limpar filtros</button>
       </div>
-    </div>
+    </section>
   )
 }

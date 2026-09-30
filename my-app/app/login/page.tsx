@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type LoginFormData = {
 	codigoCracha: string;
@@ -38,6 +39,7 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
 }
 
 export default function LoginPage() {
+	const router = useRouter();
 	const [form, setForm] = useState<LoginFormData>(initialForm);
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [submitError, setSubmitError] = useState("");
@@ -69,10 +71,13 @@ export default function LoginPage() {
 		setSubmitError("");
 
 		try {
-			// Conectar credentials à rota de autenticação quando a API estiver disponível.
-			void credentials;
-		} catch {
-			setSubmitError("Setor, crachá ou senha incorretos");
+			const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(credentials) });
+			const data = await response.json();
+			if (!response.ok) throw new Error(data.error || "Crachá ou senha incorretos.");
+			localStorage.setItem("marcon-user", JSON.stringify(data.user));
+			router.push("/requisicao");
+		} catch (error) {
+			setSubmitError(error instanceof Error ? error.message : "Não foi possível entrar.");
 		} finally {
 			setIsLoading(false);
 		}
