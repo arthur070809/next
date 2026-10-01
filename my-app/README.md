@@ -62,3 +62,40 @@ Packaging count and quantity per package must be positive integers no greater th
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Autenticacao por aparelho e rosto
+
+Usuarios do almoxarifado passam por senha, aparelho confiavel/WebAuthn e, depois, desafio facial emitido pelo servidor. A sessao somente e criada por `app/api/auth/login/face/verify/route.ts`; nenhum resultado de comparacao enviado pelo navegador e aceito.
+
+O servico facial e externo ao Next.js e deve expor `POST /v1/enroll`, recebendo `{ "captures": [data-uri, ...] }` e retornando `{ "embeddings": [[...], ...] }`, e `POST /v1/verify`, retornando somente `{ "livenessPassed": boolean, "matched": boolean }`. Use HTTPS entre os servicos, `FACE_SERVICE_TOKEN`, validacao de tipo/tamanho/dimensoes e memoria volatil para imagens.
+
+O fornecedor deve confirmar licenca comercial do modelo e fornecer PAD/liveness adequado. Pesos do InsightFace/ArcFace nao devem ser tratados como liberados para uso comercial sem verificacao da licenca. O backend falha fechado quando `FACE_SERVICE_URL` ou a chave de embeddings nao estao configuradas.
+
+### Migration e rollback
+
+Antes de aplicar em producao, faca backup do MySQL e valide a migration em uma copia. A partir de `next/my-app`:
+
+```powershell
+npx prisma migrate status
+npx prisma migrate deploy
+npx prisma generate
+```
+
+A migration `20261001140000_add_face_authentication` cria templates criptografados, desafios e tentativas. O rollback recomendado e restaurar o backup. Em janela de manutencao, apos confirmar impacto, as tabelas podem ser removidas com `DROP TABLE face_auth_attempts, liveness_challenges, face_templates`.
+
+### Operacao segura e LGPD
+
+Gere `FACE_EMBEDDING_ENCRYPTION_KEY` com 32 bytes aleatorios, armazene-a em Secret Manager/KMS e nunca a versione. Para rotacionar, mantenha a chave antiga somente durante a migracao, recripte todos os templates, valide a contagem e remova a antiga. O limiar `0.42` e ponto de partida, nao garantia: FAR/FRR precisam ser medidos pelo fornecedor no ambiente real.
+
+A finalidade e autenticar funcionarios do almoxarifado. O dado sensivel e o embedding facial; fotos nao sao armazenadas. Templates ficam cifrados no MySQL, com acesso restrito, retencao enquanto o acesso for necessario e exclusao no desligamento ou revogacao. O termo deve registrar consentimento especifico, versao, data, coletor, finalidade, prazo e direito de revogacao. Riscos principais: falsos positivos/negativos, deepfake, falha de camera e comprometimento da chave. Controles: aparelho confiavel, WebAuthn, desafio ativo, nonce, rate limit, bloqueio, auditoria sem biometria e acesso emergencial auditado. RH/juridico deve aprovar a base legal e o RIPD antes da ativacao.
+
+### Validacao manual
+
+1. Admin cria um aparelho, mostra o codigo de uso unico e conclui o pareamento no celular.
+2. Admin coleta 3 a 5 amostras com consentimento, frente/giro/iluminacao adequada; capturas escuras, borradas, cortadas ou com varios rostos devem ser rejeitadas pelo servico.
+3. Usuario entra com cracha e senha, confirma o aparelho, executa o desafio facial e chega ao Almoxarifado.
+4. Repita com foto de foto, outra pessoa, nonce expirado/reutilizado e aparelho revogado; todos devem falhar com mensagem generica.
+5. Admin concede acesso emergencial com justificativa e valide uso unico/expiracao.
+6. Desative o usuario e confirme exclusao dos templates, desafios e sessoes; usuario comum recebe 403 nas rotas administrativas e visitante 401.
+
+Pendencias de producao: validar PAD certificado contra deepfakes, medir FAR/FRR com dados reais, manter contingencia quando a camera falhar e manter TOTP habilitado para o admin. WebAuthn local e vinculo do aparelho, nao prova de identidade facial.

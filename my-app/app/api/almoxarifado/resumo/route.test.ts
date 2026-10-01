@@ -5,7 +5,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     estoqueItem: { count: vi.fn() },
     requisicao: { count: vi.fn() },
-    depositoItem: { count: vi.fn() },
+    saldoDeposito: { count: vi.fn() },
+    movimentacaoDeposito: { aggregate: vi.fn() },
   },
 }));
 
@@ -19,7 +20,8 @@ describe("GET /api/almoxarifado/resumo", () => {
     vi.mocked(getAuthenticatedFuncionario).mockResolvedValue({ id: 7 } as Awaited<ReturnType<typeof getAuthenticatedFuncionario>>);
     vi.mocked(prisma.estoqueItem.count).mockResolvedValueOnce(12).mockResolvedValueOnce(2);
     vi.mocked(prisma.requisicao.count).mockResolvedValue(3);
-    vi.mocked(prisma.depositoItem.count).mockResolvedValue(4);
+    vi.mocked(prisma.saldoDeposito.count).mockResolvedValue(4);
+    vi.mocked(prisma.movimentacaoDeposito.aggregate).mockResolvedValue({ _sum: { quantidade: 13 } } as never);
   });
 
   it("returns only aggregate counts from the authenticated database scope", async () => {
@@ -31,6 +33,7 @@ describe("GET /api/almoxarifado/resumo", () => {
       materiaisSemEstoque: 2,
       requisicoesPendentes: 3,
       itensComSobras: 4,
+      sobrasHoje: 13,
     } });
     expect(prisma.requisicao.count).toHaveBeenCalledWith({ where: { funcionarioId: 7, status: "PENDENTE" } });
   });

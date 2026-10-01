@@ -1,29 +1,42 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { isSameOrigin } from "@/lib/security";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-export async function PATCH(request: Request) {
+export async function GET(request: Request) {
   try {
-    if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-    if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
-    const body = await request.json();
-    const estoqueItemId = typeof body?.estoqueItemId === "string" ? body.estoqueItemId : "";
-    const quantidade = Number(body?.quantidade);
-
-    if (!estoqueItemId || !Number.isInteger(quantidade) || quantidade < 0) {
-      return NextResponse.json({ error: "Item ou quantidade do depósito inválida." }, { status: 400 });
-    }
-
-    const deposito = await prisma.depositoItem.upsert({
-      where: { estoqueItemId },
-      create: { estoqueItemId, quantidade },
-      update: { quantidade },
+    const funcionario = await getAuthenticatedFuncionario();
+    if (!funcionario) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const params = new URL(request.url).searchParams;
+    const busca = params.get("q")?.trim() ?? "";
+    const mostrarZerados = params.get("zerados") === "true";
+    const itens = await prisma.estoqueItem.findMany({
+      where: {
+        ativo: true,
+        ...(busca ? { OR: [
+          { nome: { contains: busca } },
+          { categoria: { contains: busca } },
+          { codigo: { contains: busca } },
+        ] } : {}),
+        ...(!mostrarZerados && !busca ? { deposito: { is: { quantidade: { gt: 0 } } } } : {}),
+      },
+      orderBy: [{ nome: "asc" }],
+      include: {
+        deposito: { select: { quantidade: true, atualizadoEm: true } },
+        movimentacoesDeposito: { orderBy: { criadoEm: "desc" }, take: 1, select: { criadoEm: true } },
+      },
     });
-
-    return NextResponse.json({ deposito });
+    return NextResponse.json({ itens: itens.map((item) => ({
+      id: item.id,
+      nome: item.nome,
+      codigo: item.codigo,
+      categoria: item.categoria,
+      quantidade: item.deposito?.quantidade ?? 0,
+      ultimaMovimentacaoEm: item.movimentacoesDeposito[0]?.criadoEm ?? null,
+    })) });
   } catch (error) {
-    console.error("Erro ao atualizar depósito:", error);
-    return NextResponse.json({ error: "Não foi possível atualizar o depósito." }, { status: 500 });
+    const errorId = randomUUID();
+    console.error("Falha ao carregar saldos do depósito", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
+    return NextResponse.json({ error: "Não foi possível carregar o depósito.", errorId }, { status: 500 });
   }
 }

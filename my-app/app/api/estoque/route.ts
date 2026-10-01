@@ -40,9 +40,13 @@ export async function GET() {
     const itens = await prisma.estoqueItem.findMany({
       where: { ativo: true },
       orderBy: [{ categoria: "asc" }, { nome: "asc" }],
+      include: { deposito: { select: { quantidade: true } } },
     });
 
-    return respostaJson({ itens });
+    return respostaJson({ itens: itens.map(({ deposito, ...item }) => ({
+      ...item,
+      quantidadeDeposito: deposito?.quantidade ?? 0,
+    })) });
   } catch (error) {
     return respostaErroInterno(error, "carregar");
   }
