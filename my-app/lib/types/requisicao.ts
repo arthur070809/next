@@ -1,14 +1,28 @@
 export type RequisicaoItemPayload = {
-  itemNome: string
+  itemId: string
   setor: "setor1" | "setor2" | "setor3"
   quantidade: number
-  unidadeMedida: "UN" | "DZ" | "CT"
+  unidadeMedida: string
   descricao: string
   prioridade: "padrao" | "prioridade"
 }
 
 export type RequisicaoPayload = {
-  solicitanteId: number
   itens: RequisicaoItemPayload[]
-  createdAt: string // ISO timestamp da requisição
+}
+
+export type RequisicaoAtendida = {
+  id: string
+  numero: number
+  item: string
+  quantidade: number
+  qtdDevolvida: number
+  status: string
+  origem: "DEPOSITO" | "ESTOQUE" | null
+  setor: string | null
+  unidadeMedida: string | null
+  prioridade: string | null
+  createdAt: string
+  funcionario: { nome: string }
+  estoqueItem: { codigo: string | null } | null
 }

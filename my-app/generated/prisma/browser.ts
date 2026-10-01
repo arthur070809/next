@@ -38,12 +38,77 @@ export type Requisicao = Prisma.RequisicaoModel
  */
 export type EstoqueItem = Prisma.EstoqueItemModel
 /**
- * Model DepositoItem
+ * Model SaldoDeposito
  * 
  */
-export type DepositoItem = Prisma.DepositoItemModel
+export type SaldoDeposito = Prisma.SaldoDepositoModel
+/**
+ * Model MovimentacaoDeposito
+ * 
+ */
+export type MovimentacaoDeposito = Prisma.MovimentacaoDepositoModel
 /**
  * Model Auditoria
  * 
  */
 export type Auditoria = Prisma.AuditoriaModel
+/**
+ * Model TrustedDevice
+ * 
+ */
+export type TrustedDevice = Prisma.TrustedDeviceModel
+/**
+ * Model DevicePairing
+ * 
+ */
+export type DevicePairing = Prisma.DevicePairingModel
+/**
+ * Model WebAuthnCredential
+ * 
+ */
+export type WebAuthnCredential = Prisma.WebAuthnCredentialModel
+/**
+ * Model AuthChallenge
+ * 
+ */
+export type AuthChallenge = Prisma.AuthChallengeModel
+/**
+ * Model AdminTotpCredential
+ * 
+ */
+export type AdminTotpCredential = Prisma.AdminTotpCredentialModel
+/**
+ * Model EmergencyAccessGrant
+ * 
+ */
+export type EmergencyAccessGrant = Prisma.EmergencyAccessGrantModel
+/**
+ * Model FaceTemplate
+ * 
+ */
+export type FaceTemplate = Prisma.FaceTemplateModel
+/**
+ * Model LivenessChallenge
+ * 
+ */
+export type LivenessChallenge = Prisma.LivenessChallengeModel
+/**
+ * Model FaceAuthAttempt
+ * 
+ */
+export type FaceAuthAttempt = Prisma.FaceAuthAttemptModel
+/**
+ * Model FaceEnrollmentSession
+ * 
+ */
+export type FaceEnrollmentSession = Prisma.FaceEnrollmentSessionModel
+/**
+ * Model FaceEnrollmentAttempt
+ * 
+ */
+export type FaceEnrollmentAttempt = Prisma.FaceEnrollmentAttemptModel
+/**
+ * Model SecurityAuditEvent
+ * 
+ */
+export type SecurityAuditEvent = Prisma.SecurityAuditEventModel

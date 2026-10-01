@@ -55,8 +55,21 @@ export const ModelName = {
   Sessao: 'Sessao',
   Requisicao: 'Requisicao',
   EstoqueItem: 'EstoqueItem',
-  DepositoItem: 'DepositoItem',
-  Auditoria: 'Auditoria'
+  SaldoDeposito: 'SaldoDeposito',
+  MovimentacaoDeposito: 'MovimentacaoDeposito',
+  Auditoria: 'Auditoria',
+  TrustedDevice: 'TrustedDevice',
+  DevicePairing: 'DevicePairing',
+  WebAuthnCredential: 'WebAuthnCredential',
+  AuthChallenge: 'AuthChallenge',
+  AdminTotpCredential: 'AdminTotpCredential',
+  EmergencyAccessGrant: 'EmergencyAccessGrant',
+  FaceTemplate: 'FaceTemplate',
+  LivenessChallenge: 'LivenessChallenge',
+  FaceAuthAttempt: 'FaceAuthAttempt',
+  FaceEnrollmentSession: 'FaceEnrollmentSession',
+  FaceEnrollmentAttempt: 'FaceEnrollmentAttempt',
+  SecurityAuditEvent: 'SecurityAuditEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -96,6 +109,7 @@ export const SessaoScalarFieldEnum = {
   token: 'token',
   expiresAt: 'expiresAt',
   accessArea: 'accessArea',
+  trustedDeviceId: 'trustedDeviceId',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt'
 } as const
@@ -105,11 +119,20 @@ export type SessaoScalarFieldEnum = (typeof SessaoScalarFieldEnum)[keyof typeof 
 
 export const RequisicaoScalarFieldEnum = {
   id: 'id',
+  numero: 'numero',
   item: 'item',
+  estoqueItemId: 'estoqueItemId',
   quantidade: 'quantidade',
+  qtdDevolvida: 'qtdDevolvida',
   observacao: 'observacao',
+  setor: 'setor',
+  unidadeMedida: 'unidadeMedida',
+  prioridade: 'prioridade',
   status: 'status',
   origem: 'origem',
+  origemLegada: 'origemLegada',
+  idempotencyKey: 'idempotencyKey',
+  grupoIdempotencia: 'grupoIdempotencia',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -126,6 +149,13 @@ export const EstoqueItemScalarFieldEnum = {
   quantidade: 'quantidade',
   tipoUnidade: 'tipoUnidade',
   quantidadePorEmbalagem: 'quantidadePorEmbalagem',
+  tipoItem: 'tipoItem',
+  codigo: 'codigo',
+  filial: 'filial',
+  grupoErp: 'grupoErp',
+  pontoPedido: 'pontoPedido',
+  estoqueSeguranca: 'estoqueSeguranca',
+  bloqueadoCompra: 'bloqueadoCompra',
   ultimaEntradaEmbalagens: 'ultimaEntradaEmbalagens',
   ativo: 'ativo',
   createdAt: 'createdAt',
@@ -135,15 +165,32 @@ export const EstoqueItemScalarFieldEnum = {
 export type EstoqueItemScalarFieldEnum = (typeof EstoqueItemScalarFieldEnum)[keyof typeof EstoqueItemScalarFieldEnum]
 
 
-export const DepositoItemScalarFieldEnum = {
+export const SaldoDepositoScalarFieldEnum = {
   id: 'id',
-  estoqueItemId: 'estoqueItemId',
+  itemId: 'itemId',
   quantidade: 'quantidade',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
 } as const
 
-export type DepositoItemScalarFieldEnum = (typeof DepositoItemScalarFieldEnum)[keyof typeof DepositoItemScalarFieldEnum]
+export type SaldoDepositoScalarFieldEnum = (typeof SaldoDepositoScalarFieldEnum)[keyof typeof SaldoDepositoScalarFieldEnum]
+
+
+export const MovimentacaoDepositoScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  tipo: 'tipo',
+  quantidade: 'quantidade',
+  saldoAntes: 'saldoAntes',
+  saldoDepois: 'saldoDepois',
+  requisicaoId: 'requisicaoId',
+  usuarioId: 'usuarioId',
+  motivo: 'motivo',
+  idempotencyKey: 'idempotencyKey',
+  criadoEm: 'criadoEm'
+} as const
+
+export type MovimentacaoDepositoScalarFieldEnum = (typeof MovimentacaoDepositoScalarFieldEnum)[keyof typeof MovimentacaoDepositoScalarFieldEnum]
 
 
 export const AuditoriaScalarFieldEnum = {
@@ -155,6 +202,182 @@ export const AuditoriaScalarFieldEnum = {
 } as const
 
 export type AuditoriaScalarFieldEnum = (typeof AuditoriaScalarFieldEnum)[keyof typeof AuditoriaScalarFieldEnum]
+
+
+export const TrustedDeviceScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  tokenHash: 'tokenHash',
+  criadoEm: 'criadoEm',
+  pareadoEm: 'pareadoEm',
+  ultimoAcessoEm: 'ultimoAcessoEm',
+  revogadoEm: 'revogadoEm'
+} as const
+
+export type TrustedDeviceScalarFieldEnum = (typeof TrustedDeviceScalarFieldEnum)[keyof typeof TrustedDeviceScalarFieldEnum]
+
+
+export const DevicePairingScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  trustedDeviceId: 'trustedDeviceId',
+  funcionarioId: 'funcionarioId',
+  criadoPorId: 'criadoPorId',
+  expiraEm: 'expiraEm',
+  challenge: 'challenge',
+  challengeExpiraEm: 'challengeExpiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type DevicePairingScalarFieldEnum = (typeof DevicePairingScalarFieldEnum)[keyof typeof DevicePairingScalarFieldEnum]
+
+
+export const WebAuthnCredentialScalarFieldEnum = {
+  id: 'id',
+  credentialId: 'credentialId',
+  publicKey: 'publicKey',
+  counter: 'counter',
+  transports: 'transports',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  consentVersion: 'consentVersion',
+  consentAt: 'consentAt',
+  createdById: 'createdById',
+  criadoEm: 'criadoEm',
+  ultimoUsoEm: 'ultimoUsoEm',
+  revogadoEm: 'revogadoEm'
+} as const
+
+export type WebAuthnCredentialScalarFieldEnum = (typeof WebAuthnCredentialScalarFieldEnum)[keyof typeof WebAuthnCredentialScalarFieldEnum]
+
+
+export const AuthChallengeScalarFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  challenge: 'challenge',
+  preAuthTokenHash: 'preAuthTokenHash',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash',
+  expiraEm: 'expiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type AuthChallengeScalarFieldEnum = (typeof AuthChallengeScalarFieldEnum)[keyof typeof AuthChallengeScalarFieldEnum]
+
+
+export const AdminTotpCredentialScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  secretCiphertext: 'secretCiphertext',
+  secretIv: 'secretIv',
+  secretTag: 'secretTag',
+  enabledAt: 'enabledAt',
+  lastVerifiedStep: 'lastVerifiedStep',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type AdminTotpCredentialScalarFieldEnum = (typeof AdminTotpCredentialScalarFieldEnum)[keyof typeof AdminTotpCredentialScalarFieldEnum]
+
+
+export const EmergencyAccessGrantScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  criadoPorId: 'criadoPorId',
+  justificativa: 'justificativa',
+  expiraEm: 'expiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type EmergencyAccessGrantScalarFieldEnum = (typeof EmergencyAccessGrantScalarFieldEnum)[keyof typeof EmergencyAccessGrantScalarFieldEnum]
+
+
+export const FaceTemplateScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  embeddingEncrypted: 'embeddingEncrypted',
+  iv: 'iv',
+  tag: 'tag',
+  consentVersion: 'consentVersion',
+  consentAt: 'consentAt',
+  criadoPorId: 'criadoPorId',
+  criadoEm: 'criadoEm',
+  revogadoEm: 'revogadoEm'
+} as const
+
+export type FaceTemplateScalarFieldEnum = (typeof FaceTemplateScalarFieldEnum)[keyof typeof FaceTemplateScalarFieldEnum]
+
+
+export const LivenessChallengeScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  tipo: 'tipo',
+  nonceHash: 'nonceHash',
+  expiraEm: 'expiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type LivenessChallengeScalarFieldEnum = (typeof LivenessChallengeScalarFieldEnum)[keyof typeof LivenessChallengeScalarFieldEnum]
+
+
+export const FaceAuthAttemptScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  resultado: 'resultado',
+  ipHash: 'ipHash',
+  criadoEm: 'criadoEm'
+} as const
+
+export type FaceAuthAttemptScalarFieldEnum = (typeof FaceAuthAttemptScalarFieldEnum)[keyof typeof FaceAuthAttemptScalarFieldEnum]
+
+
+export const FaceEnrollmentSessionScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  adminId: 'adminId',
+  funcionarioId: 'funcionarioId',
+  criadoEm: 'criadoEm',
+  ultimaAtividade: 'ultimaAtividade',
+  expiraEm: 'expiraEm',
+  tetoEm: 'tetoEm',
+  usadoEm: 'usadoEm'
+} as const
+
+export type FaceEnrollmentSessionScalarFieldEnum = (typeof FaceEnrollmentSessionScalarFieldEnum)[keyof typeof FaceEnrollmentSessionScalarFieldEnum]
+
+
+export const FaceEnrollmentAttemptScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  funcionarioId: 'funcionarioId',
+  resultado: 'resultado',
+  criadoEm: 'criadoEm'
+} as const
+
+export type FaceEnrollmentAttemptScalarFieldEnum = (typeof FaceEnrollmentAttemptScalarFieldEnum)[keyof typeof FaceEnrollmentAttemptScalarFieldEnum]
+
+
+export const SecurityAuditEventScalarFieldEnum = {
+  id: 'id',
+  acao: 'acao',
+  resultado: 'resultado',
+  funcionarioId: 'funcionarioId',
+  atorId: 'atorId',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash',
+  detalhe: 'detalhe',
+  criadoEm: 'criadoEm'
+} as const
+
+export type SecurityAuditEventScalarFieldEnum = (typeof SecurityAuditEventScalarFieldEnum)[keyof typeof SecurityAuditEventScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -189,7 +412,8 @@ export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRel
 export const SessaoOrderByRelevanceFieldEnum = {
   id: 'id',
   token: 'token',
-  accessArea: 'accessArea'
+  accessArea: 'accessArea',
+  trustedDeviceId: 'trustedDeviceId'
 } as const
 
 export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFieldEnum)[keyof typeof SessaoOrderByRelevanceFieldEnum]
@@ -198,9 +422,15 @@ export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFiel
 export const RequisicaoOrderByRelevanceFieldEnum = {
   id: 'id',
   item: 'item',
+  estoqueItemId: 'estoqueItemId',
   observacao: 'observacao',
+  setor: 'setor',
+  unidadeMedida: 'unidadeMedida',
+  prioridade: 'prioridade',
   status: 'status',
-  origem: 'origem'
+  origemLegada: 'origemLegada',
+  idempotencyKey: 'idempotencyKey',
+  grupoIdempotencia: 'grupoIdempotencia'
 } as const
 
 export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
@@ -211,18 +441,32 @@ export const EstoqueItemOrderByRelevanceFieldEnum = {
   nome: 'nome',
   categoria: 'categoria',
   unidade: 'unidade',
-  tipoUnidade: 'tipoUnidade'
+  tipoUnidade: 'tipoUnidade',
+  codigo: 'codigo',
+  filial: 'filial',
+  grupoErp: 'grupoErp'
 } as const
 
 export type EstoqueItemOrderByRelevanceFieldEnum = (typeof EstoqueItemOrderByRelevanceFieldEnum)[keyof typeof EstoqueItemOrderByRelevanceFieldEnum]
 
 
-export const DepositoItemOrderByRelevanceFieldEnum = {
+export const SaldoDepositoOrderByRelevanceFieldEnum = {
   id: 'id',
-  estoqueItemId: 'estoqueItemId'
+  itemId: 'itemId'
 } as const
 
-export type DepositoItemOrderByRelevanceFieldEnum = (typeof DepositoItemOrderByRelevanceFieldEnum)[keyof typeof DepositoItemOrderByRelevanceFieldEnum]
+export type SaldoDepositoOrderByRelevanceFieldEnum = (typeof SaldoDepositoOrderByRelevanceFieldEnum)[keyof typeof SaldoDepositoOrderByRelevanceFieldEnum]
+
+
+export const MovimentacaoDepositoOrderByRelevanceFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  requisicaoId: 'requisicaoId',
+  motivo: 'motivo',
+  idempotencyKey: 'idempotencyKey'
+} as const
+
+export type MovimentacaoDepositoOrderByRelevanceFieldEnum = (typeof MovimentacaoDepositoOrderByRelevanceFieldEnum)[keyof typeof MovimentacaoDepositoOrderByRelevanceFieldEnum]
 
 
 export const AuditoriaOrderByRelevanceFieldEnum = {
@@ -231,4 +475,118 @@ export const AuditoriaOrderByRelevanceFieldEnum = {
 } as const
 
 export type AuditoriaOrderByRelevanceFieldEnum = (typeof AuditoriaOrderByRelevanceFieldEnum)[keyof typeof AuditoriaOrderByRelevanceFieldEnum]
+
+
+export const TrustedDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  tokenHash: 'tokenHash'
+} as const
+
+export type TrustedDeviceOrderByRelevanceFieldEnum = (typeof TrustedDeviceOrderByRelevanceFieldEnum)[keyof typeof TrustedDeviceOrderByRelevanceFieldEnum]
+
+
+export const DevicePairingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  trustedDeviceId: 'trustedDeviceId',
+  challenge: 'challenge'
+} as const
+
+export type DevicePairingOrderByRelevanceFieldEnum = (typeof DevicePairingOrderByRelevanceFieldEnum)[keyof typeof DevicePairingOrderByRelevanceFieldEnum]
+
+
+export const WebAuthnCredentialOrderByRelevanceFieldEnum = {
+  id: 'id',
+  credentialId: 'credentialId',
+  transports: 'transports',
+  trustedDeviceId: 'trustedDeviceId',
+  consentVersion: 'consentVersion'
+} as const
+
+export type WebAuthnCredentialOrderByRelevanceFieldEnum = (typeof WebAuthnCredentialOrderByRelevanceFieldEnum)[keyof typeof WebAuthnCredentialOrderByRelevanceFieldEnum]
+
+
+export const AuthChallengeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  challenge: 'challenge',
+  preAuthTokenHash: 'preAuthTokenHash',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash'
+} as const
+
+export type AuthChallengeOrderByRelevanceFieldEnum = (typeof AuthChallengeOrderByRelevanceFieldEnum)[keyof typeof AuthChallengeOrderByRelevanceFieldEnum]
+
+
+export const AdminTotpCredentialOrderByRelevanceFieldEnum = {
+  id: 'id'
+} as const
+
+export type AdminTotpCredentialOrderByRelevanceFieldEnum = (typeof AdminTotpCredentialOrderByRelevanceFieldEnum)[keyof typeof AdminTotpCredentialOrderByRelevanceFieldEnum]
+
+
+export const EmergencyAccessGrantOrderByRelevanceFieldEnum = {
+  id: 'id',
+  trustedDeviceId: 'trustedDeviceId',
+  justificativa: 'justificativa'
+} as const
+
+export type EmergencyAccessGrantOrderByRelevanceFieldEnum = (typeof EmergencyAccessGrantOrderByRelevanceFieldEnum)[keyof typeof EmergencyAccessGrantOrderByRelevanceFieldEnum]
+
+
+export const FaceTemplateOrderByRelevanceFieldEnum = {
+  id: 'id',
+  consentVersion: 'consentVersion'
+} as const
+
+export type FaceTemplateOrderByRelevanceFieldEnum = (typeof FaceTemplateOrderByRelevanceFieldEnum)[keyof typeof FaceTemplateOrderByRelevanceFieldEnum]
+
+
+export const LivenessChallengeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  trustedDeviceId: 'trustedDeviceId',
+  tipo: 'tipo',
+  nonceHash: 'nonceHash'
+} as const
+
+export type LivenessChallengeOrderByRelevanceFieldEnum = (typeof LivenessChallengeOrderByRelevanceFieldEnum)[keyof typeof LivenessChallengeOrderByRelevanceFieldEnum]
+
+
+export const FaceAuthAttemptOrderByRelevanceFieldEnum = {
+  id: 'id',
+  trustedDeviceId: 'trustedDeviceId',
+  resultado: 'resultado',
+  ipHash: 'ipHash'
+} as const
+
+export type FaceAuthAttemptOrderByRelevanceFieldEnum = (typeof FaceAuthAttemptOrderByRelevanceFieldEnum)[keyof typeof FaceAuthAttemptOrderByRelevanceFieldEnum]
+
+
+export const FaceEnrollmentSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash'
+} as const
+
+export type FaceEnrollmentSessionOrderByRelevanceFieldEnum = (typeof FaceEnrollmentSessionOrderByRelevanceFieldEnum)[keyof typeof FaceEnrollmentSessionOrderByRelevanceFieldEnum]
+
+
+export const FaceEnrollmentAttemptOrderByRelevanceFieldEnum = {
+  id: 'id',
+  resultado: 'resultado'
+} as const
+
+export type FaceEnrollmentAttemptOrderByRelevanceFieldEnum = (typeof FaceEnrollmentAttemptOrderByRelevanceFieldEnum)[keyof typeof FaceEnrollmentAttemptOrderByRelevanceFieldEnum]
+
+
+export const SecurityAuditEventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  acao: 'acao',
+  resultado: 'resultado',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash',
+  detalhe: 'detalhe'
+} as const
+
+export type SecurityAuditEventOrderByRelevanceFieldEnum = (typeof SecurityAuditEventOrderByRelevanceFieldEnum)[keyof typeof SecurityAuditEventOrderByRelevanceFieldEnum]
 

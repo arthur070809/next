@@ -11,13 +11,18 @@ export async function getAuthenticatedSession() {
 
   const session = await prisma.sessao.findUnique({
     where: { token },
-    include: { funcionario: true },
+    include: { funcionario: true, trustedDevice: true },
   });
 
   if (!session) return null;
 
   if (session.expiresAt <= new Date()) {
     await prisma.sessao.delete({ where: { id: session.id } });
+    return null;
+  }
+
+  if (session.trustedDeviceId && (!session.trustedDevice || session.trustedDevice.revogadoEm)) {
+    await prisma.sessao.deleteMany({ where: { id: session.id } });
     return null;
   }
 

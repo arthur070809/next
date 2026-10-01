@@ -258,7 +258,26 @@ export type FuncionarioWhereInput = {
   ativo?: Prisma.BoolFilter<"Funcionario"> | boolean
   sessoes?: Prisma.SessaoListRelationFilter
   requisicoes?: Prisma.RequisicaoListRelationFilter
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoListRelationFilter
   auditorias?: Prisma.AuditoriaListRelationFilter
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialListRelationFilter
+  credenciaisCriadas?: Prisma.WebAuthnCredentialListRelationFilter
+  pareamentosCriados?: Prisma.DevicePairingListRelationFilter
+  pareamentosFuncionario?: Prisma.DevicePairingListRelationFilter
+  desafiosAutenticacao?: Prisma.AuthChallengeListRelationFilter
+  desafiosVivacidade?: Prisma.LivenessChallengeListRelationFilter
+  templatesFaciais?: Prisma.FaceTemplateListRelationFilter
+  templatesFaciaisCriados?: Prisma.FaceTemplateListRelationFilter
+  tentativasFaciais?: Prisma.FaceAuthAttemptListRelationFilter
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionListRelationFilter
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionListRelationFilter
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptListRelationFilter
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptListRelationFilter
+  adminTotp?: Prisma.XOR<Prisma.AdminTotpCredentialNullableScalarRelationFilter, Prisma.AdminTotpCredentialWhereInput> | null
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventListRelationFilter
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventListRelationFilter
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantListRelationFilter
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantListRelationFilter
 }
 
 export type FuncionarioOrderByWithRelationInput = {
@@ -274,7 +293,26 @@ export type FuncionarioOrderByWithRelationInput = {
   ativo?: Prisma.SortOrder
   sessoes?: Prisma.SessaoOrderByRelationAggregateInput
   requisicoes?: Prisma.RequisicaoOrderByRelationAggregateInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoOrderByRelationAggregateInput
   auditorias?: Prisma.AuditoriaOrderByRelationAggregateInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialOrderByRelationAggregateInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialOrderByRelationAggregateInput
+  pareamentosCriados?: Prisma.DevicePairingOrderByRelationAggregateInput
+  pareamentosFuncionario?: Prisma.DevicePairingOrderByRelationAggregateInput
+  desafiosAutenticacao?: Prisma.AuthChallengeOrderByRelationAggregateInput
+  desafiosVivacidade?: Prisma.LivenessChallengeOrderByRelationAggregateInput
+  templatesFaciais?: Prisma.FaceTemplateOrderByRelationAggregateInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateOrderByRelationAggregateInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptOrderByRelationAggregateInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionOrderByRelationAggregateInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionOrderByRelationAggregateInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptOrderByRelationAggregateInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptOrderByRelationAggregateInput
+  adminTotp?: Prisma.AdminTotpCredentialOrderByWithRelationInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventOrderByRelationAggregateInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventOrderByRelationAggregateInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantOrderByRelationAggregateInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantOrderByRelationAggregateInput
   _relevance?: Prisma.FuncionarioOrderByRelevanceInput
 }
 
@@ -294,7 +332,26 @@ export type FuncionarioWhereUniqueInput = Prisma.AtLeast<{
   ativo?: Prisma.BoolFilter<"Funcionario"> | boolean
   sessoes?: Prisma.SessaoListRelationFilter
   requisicoes?: Prisma.RequisicaoListRelationFilter
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoListRelationFilter
   auditorias?: Prisma.AuditoriaListRelationFilter
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialListRelationFilter
+  credenciaisCriadas?: Prisma.WebAuthnCredentialListRelationFilter
+  pareamentosCriados?: Prisma.DevicePairingListRelationFilter
+  pareamentosFuncionario?: Prisma.DevicePairingListRelationFilter
+  desafiosAutenticacao?: Prisma.AuthChallengeListRelationFilter
+  desafiosVivacidade?: Prisma.LivenessChallengeListRelationFilter
+  templatesFaciais?: Prisma.FaceTemplateListRelationFilter
+  templatesFaciaisCriados?: Prisma.FaceTemplateListRelationFilter
+  tentativasFaciais?: Prisma.FaceAuthAttemptListRelationFilter
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionListRelationFilter
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionListRelationFilter
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptListRelationFilter
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptListRelationFilter
+  adminTotp?: Prisma.XOR<Prisma.AdminTotpCredentialNullableScalarRelationFilter, Prisma.AdminTotpCredentialWhereInput> | null
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventListRelationFilter
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventListRelationFilter
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantListRelationFilter
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantListRelationFilter
 }, "id" | "login" | "email" | "cracha">
 
 export type FuncionarioOrderByWithAggregationInput = {
@@ -343,7 +400,26 @@ export type FuncionarioCreateInput = {
   ativo?: boolean
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
   requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioUncheckedCreateInput = {
@@ -359,7 +435,26 @@ export type FuncionarioUncheckedCreateInput = {
   ativo?: boolean
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
   requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioUpdateInput = {
@@ -374,7 +469,26 @@ export type FuncionarioUpdateInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
   requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateInput = {
@@ -390,7 +504,26 @@ export type FuncionarioUncheckedUpdateInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
   requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioCreateManyInput = {
@@ -489,6 +622,11 @@ export type FuncionarioScalarRelationFilter = {
   isNot?: Prisma.FuncionarioWhereInput
 }
 
+export type FuncionarioNullableScalarRelationFilter = {
+  is?: Prisma.FuncionarioWhereInput | null
+  isNot?: Prisma.FuncionarioWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -537,6 +675,20 @@ export type FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutRequisicoesInput, Prisma.FuncionarioUpdateWithoutRequisicoesInput>, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesInput>
 }
 
+export type FuncionarioCreateNestedOneWithoutMovimentacoesDepositoInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentacoesDepositoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutMovimentacoesDepositoNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentacoesDepositoInput
+  upsert?: Prisma.FuncionarioUpsertWithoutMovimentacoesDepositoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUpdateWithoutMovimentacoesDepositoInput>, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput>
+}
+
 export type FuncionarioCreateNestedOneWithoutAuditoriasInput = {
   create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutAuditoriasInput, Prisma.FuncionarioUncheckedCreateWithoutAuditoriasInput>
   connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutAuditoriasInput
@@ -551,6 +703,262 @@ export type FuncionarioUpdateOneRequiredWithoutAuditoriasNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutAuditoriasInput, Prisma.FuncionarioUpdateWithoutAuditoriasInput>, Prisma.FuncionarioUncheckedUpdateWithoutAuditoriasInput>
 }
 
+export type FuncionarioCreateNestedOneWithoutPareamentosFuncionarioInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosFuncionarioInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutPareamentosFuncionarioInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutPareamentosCriadosInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosCriadosInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutPareamentosCriadosInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutPareamentosFuncionarioNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosFuncionarioInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutPareamentosFuncionarioInput
+  upsert?: Prisma.FuncionarioUpsertWithoutPareamentosFuncionarioInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUpdateWithoutPareamentosFuncionarioInput>, Prisma.FuncionarioUncheckedUpdateWithoutPareamentosFuncionarioInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutPareamentosCriadosNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosCriadosInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutPareamentosCriadosInput
+  upsert?: Prisma.FuncionarioUpsertWithoutPareamentosCriadosInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutPareamentosCriadosInput, Prisma.FuncionarioUpdateWithoutPareamentosCriadosInput>, Prisma.FuncionarioUncheckedUpdateWithoutPareamentosCriadosInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutCredenciaisWebAuthnInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisWebAuthnInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutCredenciaisWebAuthnInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutCredenciaisCriadasInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisCriadasInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisCriadasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutCredenciaisCriadasInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutCredenciaisWebAuthnNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisWebAuthnInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutCredenciaisWebAuthnInput
+  upsert?: Prisma.FuncionarioUpsertWithoutCredenciaisWebAuthnInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUpdateWithoutCredenciaisWebAuthnInput>, Prisma.FuncionarioUncheckedUpdateWithoutCredenciaisWebAuthnInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutCredenciaisCriadasNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisCriadasInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisCriadasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutCredenciaisCriadasInput
+  upsert?: Prisma.FuncionarioUpsertWithoutCredenciaisCriadasInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutCredenciaisCriadasInput, Prisma.FuncionarioUpdateWithoutCredenciaisCriadasInput>, Prisma.FuncionarioUncheckedUpdateWithoutCredenciaisCriadasInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutDesafiosAutenticacaoInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosAutenticacaoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutDesafiosAutenticacaoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutDesafiosAutenticacaoNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosAutenticacaoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutDesafiosAutenticacaoInput
+  upsert?: Prisma.FuncionarioUpsertWithoutDesafiosAutenticacaoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUpdateWithoutDesafiosAutenticacaoInput>, Prisma.FuncionarioUncheckedUpdateWithoutDesafiosAutenticacaoInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutAdminTotpInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutAdminTotpInput, Prisma.FuncionarioUncheckedCreateWithoutAdminTotpInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutAdminTotpInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutAdminTotpNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutAdminTotpInput, Prisma.FuncionarioUncheckedCreateWithoutAdminTotpInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutAdminTotpInput
+  upsert?: Prisma.FuncionarioUpsertWithoutAdminTotpInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutAdminTotpInput, Prisma.FuncionarioUpdateWithoutAdminTotpInput>, Prisma.FuncionarioUncheckedUpdateWithoutAdminTotpInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutGrantsEmergenciaComoAlvoInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutGrantsEmergenciaComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutGrantsEmergenciaCriadosInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaCriadosInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutGrantsEmergenciaCriadosInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutGrantsEmergenciaComoAlvoNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutGrantsEmergenciaComoAlvoInput
+  upsert?: Prisma.FuncionarioUpsertWithoutGrantsEmergenciaComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUpdateWithoutGrantsEmergenciaComoAlvoInput>, Prisma.FuncionarioUncheckedUpdateWithoutGrantsEmergenciaComoAlvoInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutGrantsEmergenciaCriadosNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaCriadosInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutGrantsEmergenciaCriadosInput
+  upsert?: Prisma.FuncionarioUpsertWithoutGrantsEmergenciaCriadosInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUpdateWithoutGrantsEmergenciaCriadosInput>, Prisma.FuncionarioUncheckedUpdateWithoutGrantsEmergenciaCriadosInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutTemplatesFaciaisInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTemplatesFaciaisInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutTemplatesFaciaisCriadosInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisCriadosInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTemplatesFaciaisCriadosInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutTemplatesFaciaisNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTemplatesFaciaisInput
+  upsert?: Prisma.FuncionarioUpsertWithoutTemplatesFaciaisInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutTemplatesFaciaisInput, Prisma.FuncionarioUpdateWithoutTemplatesFaciaisInput>, Prisma.FuncionarioUncheckedUpdateWithoutTemplatesFaciaisInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutTemplatesFaciaisCriadosNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisCriadosInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTemplatesFaciaisCriadosInput
+  upsert?: Prisma.FuncionarioUpsertWithoutTemplatesFaciaisCriadosInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUpdateWithoutTemplatesFaciaisCriadosInput>, Prisma.FuncionarioUncheckedUpdateWithoutTemplatesFaciaisCriadosInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutDesafiosVivacidadeInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosVivacidadeInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutDesafiosVivacidadeInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutDesafiosVivacidadeNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosVivacidadeInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutDesafiosVivacidadeInput
+  upsert?: Prisma.FuncionarioUpsertWithoutDesafiosVivacidadeInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUpdateWithoutDesafiosVivacidadeInput>, Prisma.FuncionarioUncheckedUpdateWithoutDesafiosVivacidadeInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutTentativasFaciaisInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasFaciaisInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTentativasFaciaisInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutTentativasFaciaisNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasFaciaisInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTentativasFaciaisInput
+  upsert?: Prisma.FuncionarioUpsertWithoutTentativasFaciaisInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutTentativasFaciaisInput, Prisma.FuncionarioUpdateWithoutTentativasFaciaisInput>, Prisma.FuncionarioUncheckedUpdateWithoutTentativasFaciaisInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutSessoesCadastroFacialComoAdminInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAdminInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutSessoesCadastroFacialComoAdminInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutSessoesCadastroFacialComoAlvoInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutSessoesCadastroFacialComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutSessoesCadastroFacialComoAdminNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAdminInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutSessoesCadastroFacialComoAdminInput
+  upsert?: Prisma.FuncionarioUpsertWithoutSessoesCadastroFacialComoAdminInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUpdateWithoutSessoesCadastroFacialComoAdminInput>, Prisma.FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAdminInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutSessoesCadastroFacialComoAlvoNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutSessoesCadastroFacialComoAlvoInput
+  upsert?: Prisma.FuncionarioUpsertWithoutSessoesCadastroFacialComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUpdateWithoutSessoesCadastroFacialComoAlvoInput>, Prisma.FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAlvoInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutTentativasCadastroFacialComoAdminInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAdminInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTentativasCadastroFacialComoAdminInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutTentativasCadastroFacialComoAlvoInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTentativasCadastroFacialComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutTentativasCadastroFacialComoAdminNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAdminInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTentativasCadastroFacialComoAdminInput
+  upsert?: Prisma.FuncionarioUpsertWithoutTentativasCadastroFacialComoAdminInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUpdateWithoutTentativasCadastroFacialComoAdminInput>, Prisma.FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAdminInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutTentativasCadastroFacialComoAlvoNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutTentativasCadastroFacialComoAlvoInput
+  upsert?: Prisma.FuncionarioUpsertWithoutTentativasCadastroFacialComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUpdateWithoutTentativasCadastroFacialComoAlvoInput>, Prisma.FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAlvoInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutEventosSegurancaComoAlvoInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutEventosSegurancaComoAlvoInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutEventosSegurancaComoAtorInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAtorInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutEventosSegurancaComoAtorInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneWithoutEventosSegurancaComoAlvoNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAlvoInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutEventosSegurancaComoAlvoInput
+  upsert?: Prisma.FuncionarioUpsertWithoutEventosSegurancaComoAlvoInput
+  disconnect?: Prisma.FuncionarioWhereInput | boolean
+  delete?: Prisma.FuncionarioWhereInput | boolean
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUpdateWithoutEventosSegurancaComoAlvoInput>, Prisma.FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAlvoInput>
+}
+
+export type FuncionarioUpdateOneWithoutEventosSegurancaComoAtorNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAtorInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutEventosSegurancaComoAtorInput
+  upsert?: Prisma.FuncionarioUpsertWithoutEventosSegurancaComoAtorInput
+  disconnect?: Prisma.FuncionarioWhereInput | boolean
+  delete?: Prisma.FuncionarioWhereInput | boolean
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUpdateWithoutEventosSegurancaComoAtorInput>, Prisma.FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAtorInput>
+}
+
 export type FuncionarioCreateWithoutSessoesInput = {
   nome: string
   login?: string | null
@@ -562,7 +970,26 @@ export type FuncionarioCreateWithoutSessoesInput = {
   mustChangePassword?: boolean
   ativo?: boolean
   requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioUncheckedCreateWithoutSessoesInput = {
@@ -577,7 +1004,26 @@ export type FuncionarioUncheckedCreateWithoutSessoesInput = {
   mustChangePassword?: boolean
   ativo?: boolean
   requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioCreateOrConnectWithoutSessoesInput = {
@@ -607,7 +1053,26 @@ export type FuncionarioUpdateWithoutSessoesInput = {
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateWithoutSessoesInput = {
@@ -622,7 +1087,26 @@ export type FuncionarioUncheckedUpdateWithoutSessoesInput = {
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioCreateWithoutRequisicoesInput = {
@@ -636,7 +1120,26 @@ export type FuncionarioCreateWithoutRequisicoesInput = {
   mustChangePassword?: boolean
   ativo?: boolean
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioUncheckedCreateWithoutRequisicoesInput = {
@@ -651,7 +1154,26 @@ export type FuncionarioUncheckedCreateWithoutRequisicoesInput = {
   mustChangePassword?: boolean
   ativo?: boolean
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioCreateOrConnectWithoutRequisicoesInput = {
@@ -681,7 +1203,26 @@ export type FuncionarioUpdateWithoutRequisicoesInput = {
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
@@ -696,7 +1237,176 @@ export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutMovimentacoesDepositoInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutMovimentacoesDepositoInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
+}
+
+export type FuncionarioUpsertWithoutMovimentacoesDepositoInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutMovimentacoesDepositoInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput>
+}
+
+export type FuncionarioUpdateWithoutMovimentacoesDepositoInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioCreateWithoutAuditoriasInput = {
@@ -711,6 +1421,25 @@ export type FuncionarioCreateWithoutAuditoriasInput = {
   ativo?: boolean
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
   requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioUncheckedCreateWithoutAuditoriasInput = {
@@ -726,6 +1455,25 @@ export type FuncionarioUncheckedCreateWithoutAuditoriasInput = {
   ativo?: boolean
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
   requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
 }
 
 export type FuncionarioCreateOrConnectWithoutAuditoriasInput = {
@@ -756,6 +1504,25 @@ export type FuncionarioUpdateWithoutAuditoriasInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
   requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
 }
 
 export type FuncionarioUncheckedUpdateWithoutAuditoriasInput = {
@@ -771,6 +1538,2725 @@ export type FuncionarioUncheckedUpdateWithoutAuditoriasInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
   requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutPareamentosFuncionarioInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutPareamentosFuncionarioInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutPareamentosFuncionarioInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosFuncionarioInput>
+}
+
+export type FuncionarioCreateWithoutPareamentosCriadosInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutPareamentosCriadosInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutPareamentosCriadosInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosCriadosInput>
+}
+
+export type FuncionarioUpsertWithoutPareamentosFuncionarioInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUncheckedUpdateWithoutPareamentosFuncionarioInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosFuncionarioInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutPareamentosFuncionarioInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutPareamentosFuncionarioInput, Prisma.FuncionarioUncheckedUpdateWithoutPareamentosFuncionarioInput>
+}
+
+export type FuncionarioUpdateWithoutPareamentosFuncionarioInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutPareamentosFuncionarioInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutPareamentosCriadosInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutPareamentosCriadosInput, Prisma.FuncionarioUncheckedUpdateWithoutPareamentosCriadosInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutPareamentosCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutPareamentosCriadosInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutPareamentosCriadosInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutPareamentosCriadosInput, Prisma.FuncionarioUncheckedUpdateWithoutPareamentosCriadosInput>
+}
+
+export type FuncionarioUpdateWithoutPareamentosCriadosInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutPareamentosCriadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutCredenciaisWebAuthnInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutCredenciaisWebAuthnInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutCredenciaisWebAuthnInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisWebAuthnInput>
+}
+
+export type FuncionarioCreateWithoutCredenciaisCriadasInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutCredenciaisCriadasInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutCredenciaisCriadasInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisCriadasInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisCriadasInput>
+}
+
+export type FuncionarioUpsertWithoutCredenciaisWebAuthnInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUncheckedUpdateWithoutCredenciaisWebAuthnInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisWebAuthnInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutCredenciaisWebAuthnInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutCredenciaisWebAuthnInput, Prisma.FuncionarioUncheckedUpdateWithoutCredenciaisWebAuthnInput>
+}
+
+export type FuncionarioUpdateWithoutCredenciaisWebAuthnInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutCredenciaisWebAuthnInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutCredenciaisCriadasInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutCredenciaisCriadasInput, Prisma.FuncionarioUncheckedUpdateWithoutCredenciaisCriadasInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutCredenciaisCriadasInput, Prisma.FuncionarioUncheckedCreateWithoutCredenciaisCriadasInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutCredenciaisCriadasInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutCredenciaisCriadasInput, Prisma.FuncionarioUncheckedUpdateWithoutCredenciaisCriadasInput>
+}
+
+export type FuncionarioUpdateWithoutCredenciaisCriadasInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutCredenciaisCriadasInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutDesafiosAutenticacaoInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutDesafiosAutenticacaoInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutDesafiosAutenticacaoInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosAutenticacaoInput>
+}
+
+export type FuncionarioUpsertWithoutDesafiosAutenticacaoInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUncheckedUpdateWithoutDesafiosAutenticacaoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosAutenticacaoInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutDesafiosAutenticacaoInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutDesafiosAutenticacaoInput, Prisma.FuncionarioUncheckedUpdateWithoutDesafiosAutenticacaoInput>
+}
+
+export type FuncionarioUpdateWithoutDesafiosAutenticacaoInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutDesafiosAutenticacaoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutAdminTotpInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutAdminTotpInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutAdminTotpInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutAdminTotpInput, Prisma.FuncionarioUncheckedCreateWithoutAdminTotpInput>
+}
+
+export type FuncionarioUpsertWithoutAdminTotpInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutAdminTotpInput, Prisma.FuncionarioUncheckedUpdateWithoutAdminTotpInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutAdminTotpInput, Prisma.FuncionarioUncheckedCreateWithoutAdminTotpInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutAdminTotpInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutAdminTotpInput, Prisma.FuncionarioUncheckedUpdateWithoutAdminTotpInput>
+}
+
+export type FuncionarioUpdateWithoutAdminTotpInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutAdminTotpInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutGrantsEmergenciaComoAlvoInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutGrantsEmergenciaComoAlvoInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutGrantsEmergenciaComoAlvoInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaComoAlvoInput>
+}
+
+export type FuncionarioCreateWithoutGrantsEmergenciaCriadosInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+}
+
+export type FuncionarioUncheckedCreateWithoutGrantsEmergenciaCriadosInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+}
+
+export type FuncionarioCreateOrConnectWithoutGrantsEmergenciaCriadosInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaCriadosInput>
+}
+
+export type FuncionarioUpsertWithoutGrantsEmergenciaComoAlvoInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutGrantsEmergenciaComoAlvoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaComoAlvoInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutGrantsEmergenciaComoAlvoInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutGrantsEmergenciaComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutGrantsEmergenciaComoAlvoInput>
+}
+
+export type FuncionarioUpdateWithoutGrantsEmergenciaComoAlvoInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutGrantsEmergenciaComoAlvoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutGrantsEmergenciaCriadosInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUncheckedUpdateWithoutGrantsEmergenciaCriadosInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutGrantsEmergenciaCriadosInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutGrantsEmergenciaCriadosInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutGrantsEmergenciaCriadosInput, Prisma.FuncionarioUncheckedUpdateWithoutGrantsEmergenciaCriadosInput>
+}
+
+export type FuncionarioUpdateWithoutGrantsEmergenciaCriadosInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutGrantsEmergenciaCriadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+}
+
+export type FuncionarioCreateWithoutTemplatesFaciaisInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutTemplatesFaciaisInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutTemplatesFaciaisInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisInput>
+}
+
+export type FuncionarioCreateWithoutTemplatesFaciaisCriadosInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutTemplatesFaciaisCriadosInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutTemplatesFaciaisCriadosInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisCriadosInput>
+}
+
+export type FuncionarioUpsertWithoutTemplatesFaciaisInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTemplatesFaciaisInput, Prisma.FuncionarioUncheckedUpdateWithoutTemplatesFaciaisInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutTemplatesFaciaisInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTemplatesFaciaisInput, Prisma.FuncionarioUncheckedUpdateWithoutTemplatesFaciaisInput>
+}
+
+export type FuncionarioUpdateWithoutTemplatesFaciaisInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutTemplatesFaciaisInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutTemplatesFaciaisCriadosInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUncheckedUpdateWithoutTemplatesFaciaisCriadosInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUncheckedCreateWithoutTemplatesFaciaisCriadosInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutTemplatesFaciaisCriadosInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTemplatesFaciaisCriadosInput, Prisma.FuncionarioUncheckedUpdateWithoutTemplatesFaciaisCriadosInput>
+}
+
+export type FuncionarioUpdateWithoutTemplatesFaciaisCriadosInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutTemplatesFaciaisCriadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutDesafiosVivacidadeInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutDesafiosVivacidadeInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutDesafiosVivacidadeInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosVivacidadeInput>
+}
+
+export type FuncionarioUpsertWithoutDesafiosVivacidadeInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUncheckedUpdateWithoutDesafiosVivacidadeInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUncheckedCreateWithoutDesafiosVivacidadeInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutDesafiosVivacidadeInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutDesafiosVivacidadeInput, Prisma.FuncionarioUncheckedUpdateWithoutDesafiosVivacidadeInput>
+}
+
+export type FuncionarioUpdateWithoutDesafiosVivacidadeInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutDesafiosVivacidadeInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutTentativasFaciaisInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutTentativasFaciaisInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutTentativasFaciaisInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasFaciaisInput>
+}
+
+export type FuncionarioUpsertWithoutTentativasFaciaisInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTentativasFaciaisInput, Prisma.FuncionarioUncheckedUpdateWithoutTentativasFaciaisInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasFaciaisInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasFaciaisInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutTentativasFaciaisInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTentativasFaciaisInput, Prisma.FuncionarioUncheckedUpdateWithoutTentativasFaciaisInput>
+}
+
+export type FuncionarioUpdateWithoutTentativasFaciaisInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutTentativasFaciaisInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutSessoesCadastroFacialComoAdminInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAdminInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutSessoesCadastroFacialComoAdminInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAdminInput>
+}
+
+export type FuncionarioCreateWithoutSessoesCadastroFacialComoAlvoInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAlvoInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutSessoesCadastroFacialComoAlvoInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAlvoInput>
+}
+
+export type FuncionarioUpsertWithoutSessoesCadastroFacialComoAdminInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAdminInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAdminInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutSessoesCadastroFacialComoAdminInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutSessoesCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAdminInput>
+}
+
+export type FuncionarioUpdateWithoutSessoesCadastroFacialComoAdminInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAdminInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutSessoesCadastroFacialComoAlvoInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAlvoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAlvoInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutSessoesCadastroFacialComoAlvoInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutSessoesCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAlvoInput>
+}
+
+export type FuncionarioUpdateWithoutSessoesCadastroFacialComoAlvoInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAlvoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutTentativasCadastroFacialComoAdminInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAdminInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutTentativasCadastroFacialComoAdminInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAdminInput>
+}
+
+export type FuncionarioCreateWithoutTentativasCadastroFacialComoAlvoInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAlvoInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutTentativasCadastroFacialComoAlvoInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAlvoInput>
+}
+
+export type FuncionarioUpsertWithoutTentativasCadastroFacialComoAdminInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAdminInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAdminInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutTentativasCadastroFacialComoAdminInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTentativasCadastroFacialComoAdminInput, Prisma.FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAdminInput>
+}
+
+export type FuncionarioUpdateWithoutTentativasCadastroFacialComoAdminInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAdminInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutTentativasCadastroFacialComoAlvoInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAlvoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAlvoInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutTentativasCadastroFacialComoAlvoInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutTentativasCadastroFacialComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAlvoInput>
+}
+
+export type FuncionarioUpdateWithoutTentativasCadastroFacialComoAlvoInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAlvoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutEventosSegurancaComoAlvoInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutEventosSegurancaComoAlvoInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutEventosSegurancaComoAlvoInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAlvoInput>
+}
+
+export type FuncionarioCreateWithoutEventosSegurancaComoAtorInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutEventosSegurancaComoAtorInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  role?: string
+  mustChangePassword?: boolean
+  ativo?: boolean
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutEventosSegurancaComoAtorInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAtorInput>
+}
+
+export type FuncionarioUpsertWithoutEventosSegurancaComoAlvoInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAlvoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAlvoInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutEventosSegurancaComoAlvoInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutEventosSegurancaComoAlvoInput, Prisma.FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAlvoInput>
+}
+
+export type FuncionarioUpdateWithoutEventosSegurancaComoAlvoInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAlvoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutEventosSegurancaComoAtorInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAtorInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUncheckedCreateWithoutEventosSegurancaComoAtorInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutEventosSegurancaComoAtorInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutEventosSegurancaComoAtorInput, Prisma.FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAtorInput>
+}
+
+export type FuncionarioUpdateWithoutEventosSegurancaComoAtorInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAtorInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
 }
 
 
@@ -781,13 +4267,49 @@ export type FuncionarioUncheckedUpdateWithoutAuditoriasInput = {
 export type FuncionarioCountOutputType = {
   sessoes: number
   requisicoes: number
+  movimentacoesDeposito: number
   auditorias: number
+  credenciaisWebAuthn: number
+  credenciaisCriadas: number
+  pareamentosCriados: number
+  pareamentosFuncionario: number
+  desafiosAutenticacao: number
+  desafiosVivacidade: number
+  templatesFaciais: number
+  templatesFaciaisCriados: number
+  tentativasFaciais: number
+  sessoesCadastroFacialComoAdmin: number
+  sessoesCadastroFacialComoAlvo: number
+  tentativasCadastroFacialComoAdmin: number
+  tentativasCadastroFacialComoAlvo: number
+  eventosSegurancaComoAtor: number
+  eventosSegurancaComoAlvo: number
+  grantsEmergenciaComoAlvo: number
+  grantsEmergenciaCriados: number
 }
 
 export type FuncionarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessoes?: boolean | FuncionarioCountOutputTypeCountSessoesArgs
   requisicoes?: boolean | FuncionarioCountOutputTypeCountRequisicoesArgs
+  movimentacoesDeposito?: boolean | FuncionarioCountOutputTypeCountMovimentacoesDepositoArgs
   auditorias?: boolean | FuncionarioCountOutputTypeCountAuditoriasArgs
+  credenciaisWebAuthn?: boolean | FuncionarioCountOutputTypeCountCredenciaisWebAuthnArgs
+  credenciaisCriadas?: boolean | FuncionarioCountOutputTypeCountCredenciaisCriadasArgs
+  pareamentosCriados?: boolean | FuncionarioCountOutputTypeCountPareamentosCriadosArgs
+  pareamentosFuncionario?: boolean | FuncionarioCountOutputTypeCountPareamentosFuncionarioArgs
+  desafiosAutenticacao?: boolean | FuncionarioCountOutputTypeCountDesafiosAutenticacaoArgs
+  desafiosVivacidade?: boolean | FuncionarioCountOutputTypeCountDesafiosVivacidadeArgs
+  templatesFaciais?: boolean | FuncionarioCountOutputTypeCountTemplatesFaciaisArgs
+  templatesFaciaisCriados?: boolean | FuncionarioCountOutputTypeCountTemplatesFaciaisCriadosArgs
+  tentativasFaciais?: boolean | FuncionarioCountOutputTypeCountTentativasFaciaisArgs
+  sessoesCadastroFacialComoAdmin?: boolean | FuncionarioCountOutputTypeCountSessoesCadastroFacialComoAdminArgs
+  sessoesCadastroFacialComoAlvo?: boolean | FuncionarioCountOutputTypeCountSessoesCadastroFacialComoAlvoArgs
+  tentativasCadastroFacialComoAdmin?: boolean | FuncionarioCountOutputTypeCountTentativasCadastroFacialComoAdminArgs
+  tentativasCadastroFacialComoAlvo?: boolean | FuncionarioCountOutputTypeCountTentativasCadastroFacialComoAlvoArgs
+  eventosSegurancaComoAtor?: boolean | FuncionarioCountOutputTypeCountEventosSegurancaComoAtorArgs
+  eventosSegurancaComoAlvo?: boolean | FuncionarioCountOutputTypeCountEventosSegurancaComoAlvoArgs
+  grantsEmergenciaComoAlvo?: boolean | FuncionarioCountOutputTypeCountGrantsEmergenciaComoAlvoArgs
+  grantsEmergenciaCriados?: boolean | FuncionarioCountOutputTypeCountGrantsEmergenciaCriadosArgs
 }
 
 /**
@@ -817,8 +4339,134 @@ export type FuncionarioCountOutputTypeCountRequisicoesArgs<ExtArgs extends runti
 /**
  * FuncionarioCountOutputType without action
  */
+export type FuncionarioCountOutputTypeCountMovimentacoesDepositoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentacaoDepositoWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
 export type FuncionarioCountOutputTypeCountAuditoriasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AuditoriaWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountCredenciaisWebAuthnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WebAuthnCredentialWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountCredenciaisCriadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WebAuthnCredentialWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountPareamentosCriadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DevicePairingWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountPareamentosFuncionarioArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DevicePairingWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountDesafiosAutenticacaoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuthChallengeWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountDesafiosVivacidadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LivenessChallengeWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountTemplatesFaciaisArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceTemplateWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountTemplatesFaciaisCriadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceTemplateWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountTentativasFaciaisArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceAuthAttemptWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountSessoesCadastroFacialComoAdminArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceEnrollmentSessionWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountSessoesCadastroFacialComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceEnrollmentSessionWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountTentativasCadastroFacialComoAdminArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceEnrollmentAttemptWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountTentativasCadastroFacialComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FaceEnrollmentAttemptWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountEventosSegurancaComoAtorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SecurityAuditEventWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountEventosSegurancaComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SecurityAuditEventWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountGrantsEmergenciaComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmergencyAccessGrantWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountGrantsEmergenciaCriadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmergencyAccessGrantWhereInput
 }
 
 
@@ -835,7 +4483,26 @@ export type FuncionarioSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   ativo?: boolean
   sessoes?: boolean | Prisma.Funcionario$sessoesArgs<ExtArgs>
   requisicoes?: boolean | Prisma.Funcionario$requisicoesArgs<ExtArgs>
+  movimentacoesDeposito?: boolean | Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs>
   auditorias?: boolean | Prisma.Funcionario$auditoriasArgs<ExtArgs>
+  credenciaisWebAuthn?: boolean | Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs>
+  credenciaisCriadas?: boolean | Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs>
+  pareamentosCriados?: boolean | Prisma.Funcionario$pareamentosCriadosArgs<ExtArgs>
+  pareamentosFuncionario?: boolean | Prisma.Funcionario$pareamentosFuncionarioArgs<ExtArgs>
+  desafiosAutenticacao?: boolean | Prisma.Funcionario$desafiosAutenticacaoArgs<ExtArgs>
+  desafiosVivacidade?: boolean | Prisma.Funcionario$desafiosVivacidadeArgs<ExtArgs>
+  templatesFaciais?: boolean | Prisma.Funcionario$templatesFaciaisArgs<ExtArgs>
+  templatesFaciaisCriados?: boolean | Prisma.Funcionario$templatesFaciaisCriadosArgs<ExtArgs>
+  tentativasFaciais?: boolean | Prisma.Funcionario$tentativasFaciaisArgs<ExtArgs>
+  sessoesCadastroFacialComoAdmin?: boolean | Prisma.Funcionario$sessoesCadastroFacialComoAdminArgs<ExtArgs>
+  sessoesCadastroFacialComoAlvo?: boolean | Prisma.Funcionario$sessoesCadastroFacialComoAlvoArgs<ExtArgs>
+  tentativasCadastroFacialComoAdmin?: boolean | Prisma.Funcionario$tentativasCadastroFacialComoAdminArgs<ExtArgs>
+  tentativasCadastroFacialComoAlvo?: boolean | Prisma.Funcionario$tentativasCadastroFacialComoAlvoArgs<ExtArgs>
+  adminTotp?: boolean | Prisma.Funcionario$adminTotpArgs<ExtArgs>
+  eventosSegurancaComoAtor?: boolean | Prisma.Funcionario$eventosSegurancaComoAtorArgs<ExtArgs>
+  eventosSegurancaComoAlvo?: boolean | Prisma.Funcionario$eventosSegurancaComoAlvoArgs<ExtArgs>
+  grantsEmergenciaComoAlvo?: boolean | Prisma.Funcionario$grantsEmergenciaComoAlvoArgs<ExtArgs>
+  grantsEmergenciaCriados?: boolean | Prisma.Funcionario$grantsEmergenciaCriadosArgs<ExtArgs>
   _count?: boolean | Prisma.FuncionarioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["funcionario"]>
 
@@ -858,7 +4525,26 @@ export type FuncionarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type FuncionarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessoes?: boolean | Prisma.Funcionario$sessoesArgs<ExtArgs>
   requisicoes?: boolean | Prisma.Funcionario$requisicoesArgs<ExtArgs>
+  movimentacoesDeposito?: boolean | Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs>
   auditorias?: boolean | Prisma.Funcionario$auditoriasArgs<ExtArgs>
+  credenciaisWebAuthn?: boolean | Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs>
+  credenciaisCriadas?: boolean | Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs>
+  pareamentosCriados?: boolean | Prisma.Funcionario$pareamentosCriadosArgs<ExtArgs>
+  pareamentosFuncionario?: boolean | Prisma.Funcionario$pareamentosFuncionarioArgs<ExtArgs>
+  desafiosAutenticacao?: boolean | Prisma.Funcionario$desafiosAutenticacaoArgs<ExtArgs>
+  desafiosVivacidade?: boolean | Prisma.Funcionario$desafiosVivacidadeArgs<ExtArgs>
+  templatesFaciais?: boolean | Prisma.Funcionario$templatesFaciaisArgs<ExtArgs>
+  templatesFaciaisCriados?: boolean | Prisma.Funcionario$templatesFaciaisCriadosArgs<ExtArgs>
+  tentativasFaciais?: boolean | Prisma.Funcionario$tentativasFaciaisArgs<ExtArgs>
+  sessoesCadastroFacialComoAdmin?: boolean | Prisma.Funcionario$sessoesCadastroFacialComoAdminArgs<ExtArgs>
+  sessoesCadastroFacialComoAlvo?: boolean | Prisma.Funcionario$sessoesCadastroFacialComoAlvoArgs<ExtArgs>
+  tentativasCadastroFacialComoAdmin?: boolean | Prisma.Funcionario$tentativasCadastroFacialComoAdminArgs<ExtArgs>
+  tentativasCadastroFacialComoAlvo?: boolean | Prisma.Funcionario$tentativasCadastroFacialComoAlvoArgs<ExtArgs>
+  adminTotp?: boolean | Prisma.Funcionario$adminTotpArgs<ExtArgs>
+  eventosSegurancaComoAtor?: boolean | Prisma.Funcionario$eventosSegurancaComoAtorArgs<ExtArgs>
+  eventosSegurancaComoAlvo?: boolean | Prisma.Funcionario$eventosSegurancaComoAlvoArgs<ExtArgs>
+  grantsEmergenciaComoAlvo?: boolean | Prisma.Funcionario$grantsEmergenciaComoAlvoArgs<ExtArgs>
+  grantsEmergenciaCriados?: boolean | Prisma.Funcionario$grantsEmergenciaCriadosArgs<ExtArgs>
   _count?: boolean | Prisma.FuncionarioCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -867,7 +4553,26 @@ export type $FuncionarioPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     sessoes: Prisma.$SessaoPayload<ExtArgs>[]
     requisicoes: Prisma.$RequisicaoPayload<ExtArgs>[]
+    movimentacoesDeposito: Prisma.$MovimentacaoDepositoPayload<ExtArgs>[]
     auditorias: Prisma.$AuditoriaPayload<ExtArgs>[]
+    credenciaisWebAuthn: Prisma.$WebAuthnCredentialPayload<ExtArgs>[]
+    credenciaisCriadas: Prisma.$WebAuthnCredentialPayload<ExtArgs>[]
+    pareamentosCriados: Prisma.$DevicePairingPayload<ExtArgs>[]
+    pareamentosFuncionario: Prisma.$DevicePairingPayload<ExtArgs>[]
+    desafiosAutenticacao: Prisma.$AuthChallengePayload<ExtArgs>[]
+    desafiosVivacidade: Prisma.$LivenessChallengePayload<ExtArgs>[]
+    templatesFaciais: Prisma.$FaceTemplatePayload<ExtArgs>[]
+    templatesFaciaisCriados: Prisma.$FaceTemplatePayload<ExtArgs>[]
+    tentativasFaciais: Prisma.$FaceAuthAttemptPayload<ExtArgs>[]
+    sessoesCadastroFacialComoAdmin: Prisma.$FaceEnrollmentSessionPayload<ExtArgs>[]
+    sessoesCadastroFacialComoAlvo: Prisma.$FaceEnrollmentSessionPayload<ExtArgs>[]
+    tentativasCadastroFacialComoAdmin: Prisma.$FaceEnrollmentAttemptPayload<ExtArgs>[]
+    tentativasCadastroFacialComoAlvo: Prisma.$FaceEnrollmentAttemptPayload<ExtArgs>[]
+    adminTotp: Prisma.$AdminTotpCredentialPayload<ExtArgs> | null
+    eventosSegurancaComoAtor: Prisma.$SecurityAuditEventPayload<ExtArgs>[]
+    eventosSegurancaComoAlvo: Prisma.$SecurityAuditEventPayload<ExtArgs>[]
+    grantsEmergenciaComoAlvo: Prisma.$EmergencyAccessGrantPayload<ExtArgs>[]
+    grantsEmergenciaCriados: Prisma.$EmergencyAccessGrantPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1222,7 +4927,26 @@ export interface Prisma__FuncionarioClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sessoes<T extends Prisma.Funcionario$sessoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$sessoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requisicoes<T extends Prisma.Funcionario$requisicoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$requisicoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentacoesDeposito<T extends Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentacaoDepositoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditorias<T extends Prisma.Funcionario$auditoriasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$auditoriasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditoriaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  credenciaisWebAuthn<T extends Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WebAuthnCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  credenciaisCriadas<T extends Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WebAuthnCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pareamentosCriados<T extends Prisma.Funcionario$pareamentosCriadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$pareamentosCriadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DevicePairingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pareamentosFuncionario<T extends Prisma.Funcionario$pareamentosFuncionarioArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$pareamentosFuncionarioArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DevicePairingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  desafiosAutenticacao<T extends Prisma.Funcionario$desafiosAutenticacaoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$desafiosAutenticacaoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuthChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  desafiosVivacidade<T extends Prisma.Funcionario$desafiosVivacidadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$desafiosVivacidadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivenessChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  templatesFaciais<T extends Prisma.Funcionario$templatesFaciaisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$templatesFaciaisArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  templatesFaciaisCriados<T extends Prisma.Funcionario$templatesFaciaisCriadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$templatesFaciaisCriadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tentativasFaciais<T extends Prisma.Funcionario$tentativasFaciaisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$tentativasFaciaisArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceAuthAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sessoesCadastroFacialComoAdmin<T extends Prisma.Funcionario$sessoesCadastroFacialComoAdminArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$sessoesCadastroFacialComoAdminArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceEnrollmentSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sessoesCadastroFacialComoAlvo<T extends Prisma.Funcionario$sessoesCadastroFacialComoAlvoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$sessoesCadastroFacialComoAlvoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceEnrollmentSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tentativasCadastroFacialComoAdmin<T extends Prisma.Funcionario$tentativasCadastroFacialComoAdminArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$tentativasCadastroFacialComoAdminArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceEnrollmentAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tentativasCadastroFacialComoAlvo<T extends Prisma.Funcionario$tentativasCadastroFacialComoAlvoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$tentativasCadastroFacialComoAlvoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FaceEnrollmentAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  adminTotp<T extends Prisma.Funcionario$adminTotpArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$adminTotpArgs<ExtArgs>>): Prisma.Prisma__AdminTotpCredentialClient<runtime.Types.Result.GetResult<Prisma.$AdminTotpCredentialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  eventosSegurancaComoAtor<T extends Prisma.Funcionario$eventosSegurancaComoAtorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$eventosSegurancaComoAtorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SecurityAuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  eventosSegurancaComoAlvo<T extends Prisma.Funcionario$eventosSegurancaComoAlvoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$eventosSegurancaComoAlvoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SecurityAuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  grantsEmergenciaComoAlvo<T extends Prisma.Funcionario$grantsEmergenciaComoAlvoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$grantsEmergenciaComoAlvoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmergencyAccessGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  grantsEmergenciaCriados<T extends Prisma.Funcionario$grantsEmergenciaCriadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$grantsEmergenciaCriadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmergencyAccessGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1658,6 +5382,30 @@ export type Funcionario$requisicoesArgs<ExtArgs extends runtime.Types.Extensions
 }
 
 /**
+ * Funcionario.movimentacoesDeposito
+ */
+export type Funcionario$movimentacoesDepositoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimentacaoDeposito
+   */
+  select?: Prisma.MovimentacaoDepositoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimentacaoDeposito
+   */
+  omit?: Prisma.MovimentacaoDepositoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentacaoDepositoInclude<ExtArgs> | null
+  where?: Prisma.MovimentacaoDepositoWhereInput
+  orderBy?: Prisma.MovimentacaoDepositoOrderByWithRelationInput | Prisma.MovimentacaoDepositoOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentacaoDepositoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentacaoDepositoScalarFieldEnum | Prisma.MovimentacaoDepositoScalarFieldEnum[]
+}
+
+/**
  * Funcionario.auditorias
  */
 export type Funcionario$auditoriasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1679,6 +5427,433 @@ export type Funcionario$auditoriasArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.AuditoriaScalarFieldEnum | Prisma.AuditoriaScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.credenciaisWebAuthn
+ */
+export type Funcionario$credenciaisWebAuthnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WebAuthnCredential
+   */
+  select?: Prisma.WebAuthnCredentialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WebAuthnCredential
+   */
+  omit?: Prisma.WebAuthnCredentialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebAuthnCredentialInclude<ExtArgs> | null
+  where?: Prisma.WebAuthnCredentialWhereInput
+  orderBy?: Prisma.WebAuthnCredentialOrderByWithRelationInput | Prisma.WebAuthnCredentialOrderByWithRelationInput[]
+  cursor?: Prisma.WebAuthnCredentialWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WebAuthnCredentialScalarFieldEnum | Prisma.WebAuthnCredentialScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.credenciaisCriadas
+ */
+export type Funcionario$credenciaisCriadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WebAuthnCredential
+   */
+  select?: Prisma.WebAuthnCredentialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WebAuthnCredential
+   */
+  omit?: Prisma.WebAuthnCredentialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebAuthnCredentialInclude<ExtArgs> | null
+  where?: Prisma.WebAuthnCredentialWhereInput
+  orderBy?: Prisma.WebAuthnCredentialOrderByWithRelationInput | Prisma.WebAuthnCredentialOrderByWithRelationInput[]
+  cursor?: Prisma.WebAuthnCredentialWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WebAuthnCredentialScalarFieldEnum | Prisma.WebAuthnCredentialScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.pareamentosCriados
+ */
+export type Funcionario$pareamentosCriadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DevicePairing
+   */
+  select?: Prisma.DevicePairingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DevicePairing
+   */
+  omit?: Prisma.DevicePairingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DevicePairingInclude<ExtArgs> | null
+  where?: Prisma.DevicePairingWhereInput
+  orderBy?: Prisma.DevicePairingOrderByWithRelationInput | Prisma.DevicePairingOrderByWithRelationInput[]
+  cursor?: Prisma.DevicePairingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DevicePairingScalarFieldEnum | Prisma.DevicePairingScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.pareamentosFuncionario
+ */
+export type Funcionario$pareamentosFuncionarioArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DevicePairing
+   */
+  select?: Prisma.DevicePairingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DevicePairing
+   */
+  omit?: Prisma.DevicePairingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DevicePairingInclude<ExtArgs> | null
+  where?: Prisma.DevicePairingWhereInput
+  orderBy?: Prisma.DevicePairingOrderByWithRelationInput | Prisma.DevicePairingOrderByWithRelationInput[]
+  cursor?: Prisma.DevicePairingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DevicePairingScalarFieldEnum | Prisma.DevicePairingScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.desafiosAutenticacao
+ */
+export type Funcionario$desafiosAutenticacaoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AuthChallenge
+   */
+  select?: Prisma.AuthChallengeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AuthChallenge
+   */
+  omit?: Prisma.AuthChallengeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuthChallengeInclude<ExtArgs> | null
+  where?: Prisma.AuthChallengeWhereInput
+  orderBy?: Prisma.AuthChallengeOrderByWithRelationInput | Prisma.AuthChallengeOrderByWithRelationInput[]
+  cursor?: Prisma.AuthChallengeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuthChallengeScalarFieldEnum | Prisma.AuthChallengeScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.desafiosVivacidade
+ */
+export type Funcionario$desafiosVivacidadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LivenessChallenge
+   */
+  select?: Prisma.LivenessChallengeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LivenessChallenge
+   */
+  omit?: Prisma.LivenessChallengeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LivenessChallengeInclude<ExtArgs> | null
+  where?: Prisma.LivenessChallengeWhereInput
+  orderBy?: Prisma.LivenessChallengeOrderByWithRelationInput | Prisma.LivenessChallengeOrderByWithRelationInput[]
+  cursor?: Prisma.LivenessChallengeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LivenessChallengeScalarFieldEnum | Prisma.LivenessChallengeScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.templatesFaciais
+ */
+export type Funcionario$templatesFaciaisArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceTemplate
+   */
+  select?: Prisma.FaceTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceTemplate
+   */
+  omit?: Prisma.FaceTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceTemplateInclude<ExtArgs> | null
+  where?: Prisma.FaceTemplateWhereInput
+  orderBy?: Prisma.FaceTemplateOrderByWithRelationInput | Prisma.FaceTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.FaceTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceTemplateScalarFieldEnum | Prisma.FaceTemplateScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.templatesFaciaisCriados
+ */
+export type Funcionario$templatesFaciaisCriadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceTemplate
+   */
+  select?: Prisma.FaceTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceTemplate
+   */
+  omit?: Prisma.FaceTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceTemplateInclude<ExtArgs> | null
+  where?: Prisma.FaceTemplateWhereInput
+  orderBy?: Prisma.FaceTemplateOrderByWithRelationInput | Prisma.FaceTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.FaceTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceTemplateScalarFieldEnum | Prisma.FaceTemplateScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.tentativasFaciais
+ */
+export type Funcionario$tentativasFaciaisArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceAuthAttempt
+   */
+  select?: Prisma.FaceAuthAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceAuthAttempt
+   */
+  omit?: Prisma.FaceAuthAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceAuthAttemptInclude<ExtArgs> | null
+  where?: Prisma.FaceAuthAttemptWhereInput
+  orderBy?: Prisma.FaceAuthAttemptOrderByWithRelationInput | Prisma.FaceAuthAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.FaceAuthAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceAuthAttemptScalarFieldEnum | Prisma.FaceAuthAttemptScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.sessoesCadastroFacialComoAdmin
+ */
+export type Funcionario$sessoesCadastroFacialComoAdminArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceEnrollmentSession
+   */
+  select?: Prisma.FaceEnrollmentSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceEnrollmentSession
+   */
+  omit?: Prisma.FaceEnrollmentSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceEnrollmentSessionInclude<ExtArgs> | null
+  where?: Prisma.FaceEnrollmentSessionWhereInput
+  orderBy?: Prisma.FaceEnrollmentSessionOrderByWithRelationInput | Prisma.FaceEnrollmentSessionOrderByWithRelationInput[]
+  cursor?: Prisma.FaceEnrollmentSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceEnrollmentSessionScalarFieldEnum | Prisma.FaceEnrollmentSessionScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.sessoesCadastroFacialComoAlvo
+ */
+export type Funcionario$sessoesCadastroFacialComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceEnrollmentSession
+   */
+  select?: Prisma.FaceEnrollmentSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceEnrollmentSession
+   */
+  omit?: Prisma.FaceEnrollmentSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceEnrollmentSessionInclude<ExtArgs> | null
+  where?: Prisma.FaceEnrollmentSessionWhereInput
+  orderBy?: Prisma.FaceEnrollmentSessionOrderByWithRelationInput | Prisma.FaceEnrollmentSessionOrderByWithRelationInput[]
+  cursor?: Prisma.FaceEnrollmentSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceEnrollmentSessionScalarFieldEnum | Prisma.FaceEnrollmentSessionScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.tentativasCadastroFacialComoAdmin
+ */
+export type Funcionario$tentativasCadastroFacialComoAdminArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceEnrollmentAttempt
+   */
+  select?: Prisma.FaceEnrollmentAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceEnrollmentAttempt
+   */
+  omit?: Prisma.FaceEnrollmentAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceEnrollmentAttemptInclude<ExtArgs> | null
+  where?: Prisma.FaceEnrollmentAttemptWhereInput
+  orderBy?: Prisma.FaceEnrollmentAttemptOrderByWithRelationInput | Prisma.FaceEnrollmentAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.FaceEnrollmentAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceEnrollmentAttemptScalarFieldEnum | Prisma.FaceEnrollmentAttemptScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.tentativasCadastroFacialComoAlvo
+ */
+export type Funcionario$tentativasCadastroFacialComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FaceEnrollmentAttempt
+   */
+  select?: Prisma.FaceEnrollmentAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FaceEnrollmentAttempt
+   */
+  omit?: Prisma.FaceEnrollmentAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FaceEnrollmentAttemptInclude<ExtArgs> | null
+  where?: Prisma.FaceEnrollmentAttemptWhereInput
+  orderBy?: Prisma.FaceEnrollmentAttemptOrderByWithRelationInput | Prisma.FaceEnrollmentAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.FaceEnrollmentAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FaceEnrollmentAttemptScalarFieldEnum | Prisma.FaceEnrollmentAttemptScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.adminTotp
+ */
+export type Funcionario$adminTotpArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AdminTotpCredential
+   */
+  select?: Prisma.AdminTotpCredentialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AdminTotpCredential
+   */
+  omit?: Prisma.AdminTotpCredentialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminTotpCredentialInclude<ExtArgs> | null
+  where?: Prisma.AdminTotpCredentialWhereInput
+}
+
+/**
+ * Funcionario.eventosSegurancaComoAtor
+ */
+export type Funcionario$eventosSegurancaComoAtorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SecurityAuditEvent
+   */
+  select?: Prisma.SecurityAuditEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SecurityAuditEvent
+   */
+  omit?: Prisma.SecurityAuditEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SecurityAuditEventInclude<ExtArgs> | null
+  where?: Prisma.SecurityAuditEventWhereInput
+  orderBy?: Prisma.SecurityAuditEventOrderByWithRelationInput | Prisma.SecurityAuditEventOrderByWithRelationInput[]
+  cursor?: Prisma.SecurityAuditEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SecurityAuditEventScalarFieldEnum | Prisma.SecurityAuditEventScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.eventosSegurancaComoAlvo
+ */
+export type Funcionario$eventosSegurancaComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SecurityAuditEvent
+   */
+  select?: Prisma.SecurityAuditEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SecurityAuditEvent
+   */
+  omit?: Prisma.SecurityAuditEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SecurityAuditEventInclude<ExtArgs> | null
+  where?: Prisma.SecurityAuditEventWhereInput
+  orderBy?: Prisma.SecurityAuditEventOrderByWithRelationInput | Prisma.SecurityAuditEventOrderByWithRelationInput[]
+  cursor?: Prisma.SecurityAuditEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SecurityAuditEventScalarFieldEnum | Prisma.SecurityAuditEventScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.grantsEmergenciaComoAlvo
+ */
+export type Funcionario$grantsEmergenciaComoAlvoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmergencyAccessGrant
+   */
+  select?: Prisma.EmergencyAccessGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmergencyAccessGrant
+   */
+  omit?: Prisma.EmergencyAccessGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmergencyAccessGrantInclude<ExtArgs> | null
+  where?: Prisma.EmergencyAccessGrantWhereInput
+  orderBy?: Prisma.EmergencyAccessGrantOrderByWithRelationInput | Prisma.EmergencyAccessGrantOrderByWithRelationInput[]
+  cursor?: Prisma.EmergencyAccessGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmergencyAccessGrantScalarFieldEnum | Prisma.EmergencyAccessGrantScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.grantsEmergenciaCriados
+ */
+export type Funcionario$grantsEmergenciaCriadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmergencyAccessGrant
+   */
+  select?: Prisma.EmergencyAccessGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmergencyAccessGrant
+   */
+  omit?: Prisma.EmergencyAccessGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmergencyAccessGrantInclude<ExtArgs> | null
+  where?: Prisma.EmergencyAccessGrantWhereInput
+  orderBy?: Prisma.EmergencyAccessGrantOrderByWithRelationInput | Prisma.EmergencyAccessGrantOrderByWithRelationInput[]
+  cursor?: Prisma.EmergencyAccessGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmergencyAccessGrantScalarFieldEnum | Prisma.EmergencyAccessGrantScalarFieldEnum[]
 }
 
 /**

@@ -9,13 +9,15 @@ type Resumo = {
   materiaisSemEstoque: number;
   requisicoesPendentes: number;
   itensComSobras: number;
+  sobrasHoje: number;
 };
 
 const cards: Array<{ key: keyof Resumo; label: string; detail: string }> = [
   { key: "materiaisAtivos", label: "Materiais ativos", detail: "Itens cadastrados no estoque" },
   { key: "materiaisSemEstoque", label: "Sem estoque", detail: "Materiais ativos com saldo zero" },
   { key: "requisicoesPendentes", label: "Requisições pendentes", detail: "Pedidos enviados por você" },
-  { key: "itensComSobras", label: "Itens com sobras", detail: "Materiais disponíveis no depósito" },
+  { key: "itensComSobras", label: "Itens no depósito", detail: "Materiais com saldo disponível" },
+  { key: "sobrasHoje", label: "Sobras registradas hoje", detail: "Unidades devolvidas ao depósito" },
 ];
 
 export default function WarehouseHome({ userName, badge }: { userName: string; badge: string }) {

@@ -1,0 +1,3 @@
+export const faceConsentVersion = "facial-verification-v1";
+
+export const faceConsentText = "O cadastro facial será usado apenas para autenticar o acesso do funcionário ao almoxarifado. As imagens são processadas em memória; somente o template matemático cifrado é mantido. O cadastro pode ser removido pelo administrador, conforme a política de retenção e os direitos aplicáveis. Este texto deve ser revisado pelo jurídico da empresa.";

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { getAuthenticatedFuncionario, sessionCookieName } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, isSameOrigin, validatePassword } from "@/lib/security";
 
@@ -15,8 +15,14 @@ export async function POST(request: Request) {
     if (!(await bcrypt.compare(senhaAtual, funcionario.senha)) || !validatePassword(novaSenha)) {
       return NextResponse.json({ error: "Senha atual ou nova senha inválida." }, { status: 400 });
     }
-    await prisma.funcionario.update({ where: { id: funcionario.id }, data: { senha: await hashPassword(novaSenha), mustChangePassword: false } });
-    return NextResponse.json({ message: "Senha alterada com sucesso." });
+    const passwordHash = await hashPassword(novaSenha);
+    await prisma.$transaction(async (transaction) => {
+      await transaction.funcionario.update({ where: { id: funcionario.id }, data: { senha: passwordHash, mustChangePassword: false } });
+      await transaction.sessao.deleteMany({ where: { funcionarioId: funcionario.id } });
+    });
+    const response = NextResponse.json({ message: "Senha alterada. Entre novamente com sua nova senha." });
+    response.cookies.set(sessionCookieName, "", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 0 });
+    return response;
   } catch {
     return NextResponse.json({ error: "Não foi possível alterar a senha." }, { status: 400 });
   }
