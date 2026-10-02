@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { areEnrollmentEmbeddingsConsistent, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentDuplicateDistance, FaceEnrollmentVerificationError, faceConsentVersion } from "@/lib/face";
+import { areEnrollmentEmbeddingsConsistent, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentDuplicateDistance, FaceEnrollmentRuntimeError, FaceEnrollmentVerificationError, faceConsentVersion, filterConsistentFaceEmbeddings, getFaceEnrollmentConsistencyThreshold, isFaceValidationLocalMode } from "@/lib/face";
 import { faceEnrollmentAttemptLimit, getFaceEnrollmentLimit, recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 import { createFaceEnrollmentSession, findFaceEnrollmentSession, renewFaceEnrollmentSession } from "@/lib/face-enrollment-session";
 import { prisma } from "@/lib/prisma";
@@ -71,10 +71,25 @@ export async function POST(request: Request) {
       }
       throw error;
     }
-    if (!areEnrollmentEmbeddingsConsistent(embeddings)) {
+    const consistencyThreshold = getFaceEnrollmentConsistencyThreshold();
+    const pairDistances = [] as Array<{ first: number; second: number; distance: number }>;
+    for (let index = 0; index < embeddings.length; index += 1) {
+      for (let otherIndex = index + 1; otherIndex < embeddings.length; otherIndex += 1) {
+        const distance = faceEmbeddingDistance(embeddings[index], embeddings[otherIndex]);
+        pairDistances.push({ first: index, second: otherIndex, distance });
+      }
+    }
+    console.info("[face-enroll] consistency-check", { threshold: consistencyThreshold, pairDistances, mode: process.env.FACE_VALIDATION_MODE ?? "default" });
+    const filteredEmbeddings = filterConsistentFaceEmbeddings(embeddings, consistencyThreshold);
+    if (filteredEmbeddings.length < 3) {
+      if (isFaceValidationLocalMode()) {
+        console.warn("[face-enroll] consistency-failure-local-mode", { threshold: consistencyThreshold, pairDistances, kept: filteredEmbeddings.length });
+        return apiError(422, "FACE_INCONSISTENT_SAMPLES", "As capturas ficaram diferentes. Tente novamente.");
+      }
       const failure = await recordFaceEnrollmentFailure(auth.funcionario.id, employee.id);
       return apiError(failure.count >= faceEnrollmentAttemptLimit ? 429 : 422, failure.count >= faceEnrollmentAttemptLimit ? "FACE_ENROLLMENT_RATE_LIMITED" : "FACE_INCONSISTENT_SAMPLES", failure.count >= faceEnrollmentAttemptLimit ? "Muitas tentativas. Aguarde e tente novamente." : "As capturas ficaram diferentes. Tente novamente.", undefined, failure.count >= faceEnrollmentAttemptLimit ? { "Retry-After": String(failure.retryAfterSeconds) } : undefined);
     }
+    embeddings.splice(0, embeddings.length, ...filteredEmbeddings);
     const otherTemplates = await prisma.faceTemplate.findMany({ where: { funcionarioId: { not: employee.id }, revogadoEm: null }, select: { embeddingEncrypted: true, iv: true, tag: true, funcionario: { select: { nome: true } } } });
     for (const template of otherTemplates) {
       if (embeddings.some((embedding) => faceEmbeddingDistance(embedding, decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag)) <= faceEnrollmentDuplicateDistance)) {
@@ -106,8 +121,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Biometria cadastrada com sucesso.", code: "FACE_ENROLLMENT_CREATED", samples: embeddings.length }, { status: 201 });
   } catch (error) {
     const errorId = randomUUID();
-    console.error("Falha no cadastro facial", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
-    return apiError(500, "FACE_ENROLLMENT_SAVE_FAILED", "Não foi possível concluir o cadastro. Tente novamente.", errorId);
+    const code = error instanceof FaceEnrollmentRuntimeError ? error.code : "ENROLLMENT_UNAVAILABLE";
+    console.error("[face-enroll]", code, { errorId, errorName: error instanceof Error ? error.name : "UnknownError", message: error instanceof Error ? error.message : "Unknown error" });
+    return apiError(code === "FACE_SERVICE_NOT_CONFIGURED" || code === "FACE_ENCRYPTION_NOT_CONFIGURED" || code === "FACE_SERVICE_UNAVAILABLE" ? 503 : 500, code, code === "FACE_SERVICE_NOT_CONFIGURED" || code === "FACE_SERVICE_UNAVAILABLE" ? "O serviço de validação facial está indisponível." : "Não foi possível concluir o cadastro. Tente novamente.", errorId);
   }
 }
 
