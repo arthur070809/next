@@ -1,3 +1,9 @@
+// ============================================================
+// Schema Marcon Almoxarifado — Novo modelo unificado
+// Banco alvo: TiDB Cloud Starter (MySQL 8.5 compatível)
+// Charset: utf8mb4 | Collation: utf8mb4_unicode_ci
+// ============================================================
+
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -8,109 +14,321 @@ datasource db {
   provider = "mysql"
 }
 
+// ============================================================
+// ENUMS
+// ============================================================
+
+/// Papéis únicos — substitui role String "user"/"admin" (Prisma) e
+/// "operador"/"almoxarife"/"admin" (SQL antigo).
+/// USUARIO   = operador da linha (antes "user" / "operador")
+/// OPERADOR  = operador com acesso expandido a relatórios
+/// ALMOXARIFE= separa e atende requisições
+/// ADMIN     = administrador do sistema
+enum PapelFuncionario {
+  USUARIO
+  OPERADOR
+  ALMOXARIFE
+  ADMIN
+
+  @@map("papel_funcionario")
+}
+
+/// Tipo de item no catálogo de materiais
 enum TipoItem {
   COMPONENTE
   CONSUMIVEL
   MATERIA_PRIMA
   EMBALAGEM
+
+  @@map("tipo_item")
 }
 
-model Funcionario {
-  id                 Int           @id @default(autoincrement())
-  nome               String        @db.VarChar(100)
-  login              String?       @unique(map: "login") @db.VarChar(50)
-  email              String        @unique(map: "email") @db.VarChar(100)
-  senha              String        @db.VarChar(255)
-  cargo              String        @db.VarChar(50)
-  cracha             String        @unique(map: "cracha") @db.VarChar(20)
-  role               String        @default("user") @db.VarChar(20)
-  mustChangePassword Boolean       @default(false)
-  ativo              Boolean       @default(true)
-  sessoes            Sessao[]
-  requisicoes        Requisicao[]
-  auditorias         Auditoria[]   @relation("AuditoriaAutor")
+/// Status de uma Requisição de material
+/// Preserva todos os estados usados pela interface e pelos tipos lib/types/*:
+///   pendente, assumida, concluída, anulada
+/// Adicionado: CANCELADA (alias de anulada gerado externamente) mapeada como ANULADA
+enum StatusRequisicao {
+  PENDENTE
+  ASSUMIDA
+  CONCLUIDA
+  ANULADA
 
+  @@map("status_requisicao")
+}
+
+/// Status individual de um item dentro de uma requisição
+enum StatusItemRequisicao {
+  PENDENTE
+  ASSUMIDO
+  SEPARADO
+  NAO_SEPARADO
+  ANULADO
+
+  @@map("status_item_requisicao")
+}
+
+/// Prioridade de uma requisição
+enum Prioridade {
+  PADRAO
+  PRIORITARIO
+
+  @@map("prioridade")
+}
+
+/// Tipo de movimentação de estoque (append-only)
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
+  RESERVA
+  LIBERACAO_RESERVA
+  AJUSTE
+
+  @@map("tipo_movimentacao")
+}
+
+// ============================================================
+// FUNCIONÁRIO (pessoas — unifica usuarios + funcionarios)
+// ============================================================
+
+model Funcionario {
+  id                 Int                @id @default(autoincrement())
+  nome               String             @db.VarChar(100) @map("nome")
+  login              String?            @unique(map: "uq_funcionarios_login") @db.VarChar(50) @map("login")
+  email              String             @unique(map: "uq_funcionarios_email") @db.VarChar(100) @map("email")
+  senha              String             @db.VarChar(255) @map("senha")
+  cargo              String             @db.VarChar(50) @map("cargo")
+  cracha             String             @unique(map: "uq_funcionarios_cracha") @db.VarChar(20) @map("cracha")
+  papel              PapelFuncionario   @default(USUARIO) @map("papel")
+  mustChangePassword Boolean            @default(false) @map("must_change_password")
+  ativo              Boolean            @default(true) @map("ativo")
+  criadoEm           DateTime           @default(now()) @map("criado_em")
+  atualizadoEm       DateTime           @updatedAt @map("atualizado_em")
+
+  sessoes            Sessao[]
+  requisicoesSolicitadas Requisicao[]   @relation("Solicitante")
+  requisicoesAtendidas   Requisicao[]   @relation("Atendente")
+  movimentacoes      Movimentacao[]
+  auditorias         Auditoria[]        @relation("AuditoriaAutor")
+
+  @@index([papel])
+  @@index([ativo])
   @@map("funcionarios")
 }
 
+// ============================================================
+// SESSÃO
+// ============================================================
+
 model Sessao {
   id            String      @id @default(uuid())
-  token         String      @unique
-  expiresAt     DateTime
-  accessArea    String?     @db.VarChar(30)
-  funcionarioId Int
+  token         String      @unique @map("token") @db.VarChar(64)
+  expiresAt     DateTime    @map("expires_at")
+  accessArea    String?     @db.VarChar(30) @map("access_area")
+  funcionarioId Int         @map("funcionario_id")
   funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  createdAt     DateTime    @default(now())
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   @@index([funcionarioId])
   @@index([expiresAt])
+  @@map("sessoes")
 }
 
-model Requisicao {
-  id            String      @id @default(uuid())
-  item          String
-  quantidade    Int
-  observacao    String?     @db.Text
-  status        String      @default("PENDENTE")
-  origem        String      @default("ESTOQUE")
-  funcionarioId Int
-  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+// ============================================================
+// CATÁLOGO DE ITEM
+// Item = catálogo (o quê existe, atributos do material)
+// SaldoEstoque = saldo por local (quanto tem onde)
+// ============================================================
 
-  @@index([funcionarioId])
-  @@index([status])
-}
+/// Catálogo de materiais — campos descritivos, independentes do local
+model Item {
+  id                     String   @id @default(uuid()) @map("id") @db.VarChar(36)
+  nome                   String   @db.VarChar(120) @map("nome")
+  categoria              String   @db.VarChar(80) @map("categoria")
+  unidade                String   @default("unidades") @db.VarChar(30) @map("unidade")
+  tipoUnidade            String   @default("unidade") @db.VarChar(20) @map("tipo_unidade")
+  quantidadePorEmbalagem Int      @default(1) @map("quantidade_por_embalagem")
+  tipoItem               TipoItem @default(CONSUMIVEL) @map("tipo_item")
+  codigo                 String?  @db.VarChar(50) @map("codigo")
+  // Filial: NULL significa item sem filial específica (válido; unique NULL != NULL no MySQL/TiDB).
+  // Decisão: mantida, comportamento documentado em DECISOES.md.
+  filial                 String?  @db.VarChar(20) @map("filial")
+  grupoErp               String?  @db.VarChar(80) @map("grupo_erp")
+  pontoPedido            Int      @default(0) @map("ponto_pedido")
+  estoqueSeguranca       Int      @default(0) @map("estoque_seguranca")
+  bloqueadoCompra        Boolean  @default(false) @map("bloqueado_compra")
+  ultimaEntradaEmbalagens Int?    @map("ultima_entrada_embalagens")
+  ativo                  Boolean  @default(true) @map("ativo")
+  criadoEm               DateTime @default(now()) @map("criado_em")
+  atualizadoEm           DateTime @updatedAt @map("atualizado_em")
 
-model EstoqueItem {
-  id                      String        @id @default(uuid())
-  nome                    String        @db.VarChar(120)
-  categoria               String        @db.VarChar(80)
-  unidade                 String        @default("unidade") @db.VarChar(30)
-  quantidade              Int           @default(0)
-  tipoUnidade             String        @default("unidade") @db.VarChar(20)
-  quantidadePorEmbalagem  Int           @default(1)
-  tipoItem                TipoItem      @default(CONSUMIVEL)
-  codigo                  String?       @db.VarChar(50)
-  filial                  String?       @db.VarChar(20)
-  grupoErp                String?       @db.VarChar(80)
-  pontoPedido             Int           @default(0)
-  estoqueSeguranca        Int           @default(0)
-  bloqueadoCompra         Boolean       @default(false)
-  ultimaEntradaEmbalagens Int?
-  ativo                   Boolean       @default(true)
-  deposito                DepositoItem?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  saldos                 SaldoEstoque[]
+  itensRequisicao        RequisicaoItem[]
 
+  @@unique([filial, codigo], map: "uq_itens_filial_codigo")
   @@index([categoria])
   @@index([ativo])
-  @@unique([filial, codigo], map: "estoque_itens_filial_codigo_key")
-  @@map("estoque_itens")
+  @@index([codigo])
+  @@map("itens")
 }
 
-model DepositoItem {
-  id            String      @id @default(uuid())
-  estoqueItemId String      @unique
-  quantidade    Int         @default(0)
-  estoqueItem   EstoqueItem @relation(fields: [estoqueItemId], references: [id], onDelete: Cascade)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+/// Local de armazenamento (ex.: "estoque", "deposito", "materia-prima", "importados")
+model LocalEstoque {
+  id          String   @id @default(uuid()) @map("id") @db.VarChar(36)
+  nome        String   @db.VarChar(80) @map("nome")
+  slug        String   @unique(map: "uq_locais_estoque_slug") @db.VarChar(40) @map("slug")
+  descricao   String?  @db.VarChar(255) @map("descricao")
+  ativo       Boolean  @default(true) @map("ativo")
+  criadoEm   DateTime @default(now()) @map("criado_em")
 
-  @@index([quantidade])
-  @@map("deposito_itens")
+  saldos      SaldoEstoque[]
+  itensRequisicao RequisicaoItem[]
+
+  @@index([ativo])
+  @@map("locais_estoque")
 }
+
+/// Saldo de um item em um local — projeção atualizada via Movimentacao
+/// Invariantes de banco: quantidade >= 0, reservada >= 0, reservada <= quantidade
+model SaldoEstoque {
+  id           String       @id @default(uuid()) @map("id") @db.VarChar(36)
+  itemId       String       @map("item_id") @db.VarChar(36)
+  localId      String       @map("local_id") @db.VarChar(36)
+  /// Saldo físico total (peças/unidades base)
+  quantidade   Int          @default(0) @map("quantidade")
+  /// Quantidade reservada (requisições pendentes/assumidas ainda não separadas)
+  reservada    Int          @default(0) @map("reservada")
+  criadoEm    DateTime     @default(now()) @map("criado_em")
+  atualizadoEm DateTime    @updatedAt @map("atualizado_em")
+
+  item         Item         @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  local        LocalEstoque @relation(fields: [localId], references: [id], onDelete: Restrict)
+  movimentacoes Movimentacao[]
+
+  @@unique([itemId, localId], map: "uq_saldo_item_local")
+  @@index([itemId])
+  @@index([localId])
+  @@map("saldos_estoque")
+}
+
+// ============================================================
+// SEQUÊNCIA — número legível de requisição (REQ-XXXXXX)
+// Tabela de contador atualizado atomicamente dentro da transação
+// de criação. Evita saltos do AUTO_INCREMENT no TiDB.
+// ============================================================
+
+model SequenciaRequisicao {
+  id         Int @id @default(1)
+  proximo    Int @default(1) @map("proximo")
+
+  @@map("sequencia_requisicao")
+}
+
+// ============================================================
+// REQUISIÇÃO
+// ============================================================
+
+/// Cabeçalho de uma requisição multi-item
+model Requisicao {
+  id            String             @id @default(uuid()) @map("id") @db.VarChar(36)
+  /// Número legível: REQ-000123 (gerado pela tabela sequencia_requisicao)
+  numeroPedido  String             @unique(map: "uq_requisicoes_numero_pedido") @db.VarChar(20) @map("numero_pedido")
+  status        StatusRequisicao   @default(PENDENTE) @map("status")
+  prioridade    Prioridade         @default(PADRAO) @map("prioridade")
+  observacao    String?            @db.Text @map("observacao")
+  solicitanteId Int                @map("solicitante_id")
+  atendenteId   Int?               @map("atendente_id")
+  criadoEm     DateTime           @default(now()) @map("criado_em")
+  assumidaEm   DateTime?          @map("assumida_em")
+  concluidaEm  DateTime?          @map("concluida_em")
+  anuladaEm    DateTime?          @map("anulada_em")
+  atualizadoEm DateTime           @updatedAt @map("atualizado_em")
+
+  solicitante   Funcionario        @relation("Solicitante", fields: [solicitanteId], references: [id], onDelete: Restrict)
+  atendente     Funcionario?       @relation("Atendente", fields: [atendenteId], references: [id], onDelete: SetNull)
+  itens         RequisicaoItem[]
+  movimentacoes Movimentacao[]
+
+  @@index([solicitanteId])
+  @@index([atendenteId])
+  @@index([status])
+  @@index([prioridade])
+  @@index([criadoEm])
+  @@map("requisicoes")
+}
+
+/// Item individual dentro de uma requisição
+model RequisicaoItem {
+  id              String                @id @default(uuid()) @map("id") @db.VarChar(36)
+  requisicaoId    String                @map("requisicao_id") @db.VarChar(36)
+  itemId          String                @map("item_id") @db.VarChar(36)
+  localId         String                @map("local_id") @db.VarChar(36)
+  quantidade      Int                   @map("quantidade")
+  unidadeMedida   String                @default("UN") @db.VarChar(10) @map("unidade_medida")
+  descricao       String?               @db.VarChar(500) @map("descricao")
+  status          StatusItemRequisicao  @default(PENDENTE) @map("status")
+  separado        Boolean?              @map("separado")
+  motivoNaoAtendido String?             @db.VarChar(500) @map("motivo_nao_atendido")
+  resolvidoEm     DateTime?             @map("resolvido_em")
+
+  requisicao      Requisicao            @relation(fields: [requisicaoId], references: [id], onDelete: Cascade)
+  item            Item                  @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  local           LocalEstoque          @relation(fields: [localId], references: [id], onDelete: Restrict)
+  movimentacoes   Movimentacao[]
+
+  @@index([requisicaoId])
+  @@index([itemId])
+  @@index([status])
+  @@map("requisicao_itens")
+}
+
+// ============================================================
+// MOVIMENTAÇÃO — append-only, nunca atualizar/apagar
+// Toda mudança de saldo gera uma linha aqui.
+// ============================================================
+
+model Movimentacao {
+  id              String            @id @default(uuid()) @map("id") @db.VarChar(36)
+  tipo            TipoMovimentacao  @map("tipo")
+  quantidade      Int               @map("quantidade")
+  saldoApos       Int               @map("saldo_apos")
+  reservadaApos   Int               @map("reservada_apos")
+  /// Funcionário responsável pela operação (almoxarife ou sistema)
+  funcionarioId   Int               @map("funcionario_id")
+  saldoEstoqueId  String            @map("saldo_estoque_id") @db.VarChar(36)
+  requisicaoId    String?           @map("requisicao_id") @db.VarChar(36)
+  requisicaoItemId String?          @map("requisicao_item_id") @db.VarChar(36)
+  observacao      String?           @db.VarChar(500) @map("observacao")
+  criadoEm        DateTime          @default(now()) @map("criado_em")
+
+  funcionario     Funcionario       @relation(fields: [funcionarioId], references: [id], onDelete: Restrict)
+  saldoEstoque    SaldoEstoque      @relation(fields: [saldoEstoqueId], references: [id], onDelete: Restrict)
+  requisicao      Requisicao?       @relation(fields: [requisicaoId], references: [id], onDelete: SetNull)
+  requisicaoItem  RequisicaoItem?   @relation(fields: [requisicaoItemId], references: [id], onDelete: SetNull)
+
+  @@index([saldoEstoqueId])
+  @@index([requisicaoId])
+  @@index([funcionarioId])
+  @@index([tipo])
+  @@index([criadoEm])
+  @@map("movimentacoes")
+}
+
+// ============================================================
+// AUDITORIA — ações administrativas
+// ============================================================
 
 model Auditoria {
-  id        String      @id @default(uuid())
-  acao      String      @db.VarChar(50)
-  alvoId    Int
-  autorId   Int
-  createdAt DateTime    @default(now())
+  id        String      @id @default(uuid()) @map("id") @db.VarChar(36)
+  acao      String      @db.VarChar(50) @map("acao")
+  /// ID do alvo (Funcionario.id ou outro recurso)
+  alvoId    Int         @map("alvo_id")
+  autorId   Int         @map("autor_id")
+  detalhes  String?     @db.VarChar(500) @map("detalhes")
+  criadoEm  DateTime    @default(now()) @map("criado_em")
   autor     Funcionario @relation("AuditoriaAutor", fields: [autorId], references: [id], onDelete: Restrict)
 
   @@index([alvoId])
   @@index([autorId])
-  @@index([createdAt])
+  @@index([criadoEm])
   @@map("auditorias")
 }
