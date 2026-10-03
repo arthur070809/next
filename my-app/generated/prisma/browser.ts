@@ -28,25 +28,40 @@ export type Funcionario = Prisma.FuncionarioModel
  */
 export type Sessao = Prisma.SessaoModel
 /**
+ * Model Item
+ * 
+ */
+export type Item = Prisma.ItemModel
+/**
+ * Model LocalEstoque
+ * 
+ */
+export type LocalEstoque = Prisma.LocalEstoqueModel
+/**
+ * Model SaldoEstoque
+ * 
+ */
+export type SaldoEstoque = Prisma.SaldoEstoqueModel
+/**
+ * Model SequenciaRequisicao
+ * 
+ */
+export type SequenciaRequisicao = Prisma.SequenciaRequisicaoModel
+/**
  * Model Requisicao
  * 
  */
 export type Requisicao = Prisma.RequisicaoModel
 /**
- * Model EstoqueItem
+ * Model RequisicaoItem
  * 
  */
-export type EstoqueItem = Prisma.EstoqueItemModel
+export type RequisicaoItem = Prisma.RequisicaoItemModel
 /**
- * Model SaldoDeposito
+ * Model Movimentacao
  * 
  */
-export type SaldoDeposito = Prisma.SaldoDepositoModel
-/**
- * Model MovimentacaoDeposito
- * 
- */
-export type MovimentacaoDeposito = Prisma.MovimentacaoDepositoModel
+export type Movimentacao = Prisma.MovimentacaoModel
 /**
  * Model Auditoria
  * 

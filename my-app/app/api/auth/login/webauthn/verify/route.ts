@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
     const challenge = await prisma.authChallenge.findUnique({ where: { id: challengeId }, include: { funcionario: true, trustedDevice: true } });
     const now = new Date();
-    if (!challenge || challenge.tipo !== "USER_WEBAUTHN" || challenge.usadoEm || challenge.expiraEm <= now || !challenge.challenge || !challenge.trustedDeviceId || !challenge.trustedDevice || challenge.trustedDevice.revogadoEm || !challenge.funcionario.ativo || challenge.funcionario.role !== "user") return genericFailure();
+    if (!challenge || challenge.tipo !== "USER_WEBAUTHN" || challenge.usadoEm || challenge.expiraEm <= now || !challenge.challenge || !challenge.trustedDeviceId || !challenge.trustedDevice || challenge.trustedDevice.revogadoEm || !challenge.funcionario.ativo || challenge.funcionario.papel !== "ALMOXARIFE") return genericFailure();
     const factorKey = `${challenge.funcionarioId}:${challenge.trustedDeviceId}:${challenge.ipHash ?? ipHash}`;
     if (isFactorBlocked(factorKey)) return NextResponse.json({ error: "Verificação temporariamente bloqueada. Procure o administrador." }, { status: 429 });
 

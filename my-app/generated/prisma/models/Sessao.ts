@@ -456,10 +456,6 @@ export type SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput = {
   deleteMany?: Prisma.SessaoScalarWhereInput | Prisma.SessaoScalarWhereInput[]
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 export type SessaoCreateNestedManyWithoutTrustedDeviceInput = {
   create?: Prisma.XOR<Prisma.SessaoCreateWithoutTrustedDeviceInput, Prisma.SessaoUncheckedCreateWithoutTrustedDeviceInput> | Prisma.SessaoCreateWithoutTrustedDeviceInput[] | Prisma.SessaoUncheckedCreateWithoutTrustedDeviceInput[]
   connectOrCreate?: Prisma.SessaoCreateOrConnectWithoutTrustedDeviceInput | Prisma.SessaoCreateOrConnectWithoutTrustedDeviceInput[]

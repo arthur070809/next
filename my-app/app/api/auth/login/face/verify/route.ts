@@ -1,3 +1,4 @@
+import { papelParaRole } from "@/lib/auth";
 import { randomBytes, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
       include: { funcionario: true, trustedDevice: true },
     });
     const now = new Date();
-    if (!challenge || challenge.usadoEm || challenge.expiraEm <= now || challenge.nonceHash !== hashFaceNonce(nonce) || !challenge.trustedDevice || challenge.trustedDevice.revogadoEm || !challenge.funcionario.ativo || challenge.funcionario.role !== "user") return genericFailure();
+    if (!challenge || challenge.usadoEm || challenge.expiraEm <= now || challenge.nonceHash !== hashFaceNonce(nonce) || !challenge.trustedDevice || challenge.trustedDevice.revogadoEm || !challenge.funcionario.ativo || challenge.funcionario.papel !== "ALMOXARIFE") return genericFailure();
 
     const deviceToken = (await cookies()).get(trustedDeviceCookieName)?.value;
     if (!deviceToken || hashSecret(deviceToken) !== challenge.trustedDevice.tokenHash) return genericFailure();
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
     clearFactorFailures(factorKey);
 
     const response = NextResponse.json({ message: "Login realizado com sucesso.", funcionario: {
-      id: challenge.funcionario.id, nome: challenge.funcionario.nome, email: challenge.funcionario.email, cargo: challenge.funcionario.cargo, cracha: challenge.funcionario.cracha, role: challenge.funcionario.role, mustChangePassword: challenge.funcionario.mustChangePassword,
+      id: challenge.funcionario.id, nome: challenge.funcionario.nome, email: challenge.funcionario.email, cargo: challenge.funcionario.cargo, cracha: challenge.funcionario.cracha, role: papelParaRole(challenge.funcionario.papel), mustChangePassword: challenge.funcionario.mustChangePassword,
     } });
     response.cookies.set(sessionCookieName, sessionToken, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 8 * 60 * 60 });
     return response;

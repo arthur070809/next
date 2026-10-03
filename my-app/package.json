@@ -6,9 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed": "node scripts/seed-stock.cjs",
-    "seed:admin": "node scripts/seed-admin.cjs",
-    "admin:reset-password": "node scripts/reset-admin-password.cjs",
+    "seed": "tsx scripts/seed-stock.cjs",
+    "seed:admin": "tsx scripts/seed-admin.cjs",
+    "admin:reset-password": "tsx scripts/reset-admin-password.cjs",
     "test": "vitest run",
     "lint": "eslint"
   },

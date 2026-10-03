@@ -3,17 +3,22 @@ import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
-import { sessionCookieName } from "@/lib/auth";
+import { sessionCookieName, papelParaRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { clearLoginFailures, isLoginBlocked, isRateLimited, isSameOrigin, recordLoginFailure } from "@/lib/security";
 import { BADGE_PATTERN } from "@/lib/security";
 import { getClientIpHash, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
+import { PapelFuncionario } from "@/generated/prisma/client";
 
 function debugLoginFailure(portal: string, reason: string) {
   if (process.env.NODE_ENV !== "production") console.debug("[auth] login failed", { portal, reason });
 }
 
-async function createSessionResponse(funcionario: { id: number; role: string; nome: string; email: string; cargo: string; cracha: string; mustChangePassword: boolean }, portal: string, trustedDeviceId: string | null) {
+async function createSessionResponse(
+  funcionario: { id: number; papel: PapelFuncionario; nome: string; email: string; cargo: string; cracha: string; mustChangePassword: boolean },
+  portal: string,
+  trustedDeviceId: string | null,
+) {
   const token = randomBytes(32).toString("hex");
   await prisma.sessao.create({
     data: { token, funcionarioId: funcionario.id, accessArea: portal, trustedDeviceId, expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000) },
@@ -22,7 +27,8 @@ async function createSessionResponse(funcionario: { id: number; role: string; no
     message: "Login realizado com sucesso.",
     funcionario: {
       id: funcionario.id, nome: funcionario.nome, email: funcionario.email, cargo: funcionario.cargo,
-      cracha: funcionario.cracha, role: funcionario.role, mustChangePassword: funcionario.mustChangePassword,
+      cracha: funcionario.cracha, role: papelParaRole(funcionario.papel), papel: funcionario.papel,
+      mustChangePassword: funcionario.mustChangePassword,
     },
   });
   response.cookies.set(sessionCookieName, token, {
@@ -49,8 +55,10 @@ export async function POST(request: Request) {
     const email = identifier.toLowerCase();
     const cracha = identifier.toUpperCase();
     const funcionario = portal === "admin"
-      ? await prisma.funcionario.findFirst({ where: { login: email, role: "admin" } })
-      : BADGE_PATTERN.test(cracha) ? await prisma.funcionario.findFirst({ where: { cracha, role: "user" } }) : null;
+      ? await prisma.funcionario.findFirst({ where: { login: email, papel: PapelFuncionario.ADMIN } })
+      : BADGE_PATTERN.test(cracha)
+        ? await prisma.funcionario.findFirst({ where: { cracha, papel: PapelFuncionario.ALMOXARIFE } })
+        : null;
 
     if (!funcionario || !funcionario.ativo || !(await bcrypt.compare(password, funcionario.senha))) {
       debugLoginFailure(portal, !funcionario ? "not_found_or_wrong_role" : !funcionario.ativo ? "inactive" : "password_mismatch");
@@ -59,14 +67,16 @@ export async function POST(request: Request) {
     }
     clearLoginFailures(`login:${clientKey}`);
 
-    if (funcionario.role === "admin") {
+    if (funcionario.papel === PapelFuncionario.ADMIN) {
       const totp = await prisma.adminTotpCredential.findUnique({ where: { funcionarioId: funcionario.id } });
       if (totp?.enabledAt) {
         const preAuthToken = randomBytes(32).toString("base64url");
-        await prisma.authChallenge.create({ data: {
-          tipo: "ADMIN_TOTP", preAuthTokenHash: hashSecret(preAuthToken), funcionarioId: funcionario.id,
-          ipHash: getClientIpHash(request), expiraEm: new Date(Date.now() + 5 * 60 * 1000),
-        } });
+        await prisma.authChallenge.create({
+          data: {
+            tipo: "ADMIN_TOTP", preAuthTokenHash: hashSecret(preAuthToken), funcionarioId: funcionario.id,
+            ipHash: getClientIpHash(request), expiraEm: new Date(Date.now() + 5 * 60 * 1000),
+          }
+        });
         return NextResponse.json({ step: "totp", preAuthToken }, { status: 202 });
       }
       return createSessionResponse(funcionario, "admin", null);
@@ -115,10 +125,12 @@ export async function POST(request: Request) {
       userVerification: "required",
       timeout: webauthnChallengeTtlMs,
     });
-    const challenge = await prisma.authChallenge.create({ data: {
-      tipo: "USER_WEBAUTHN", challenge: options.challenge, funcionarioId: funcionario.id,
-      trustedDeviceId: device.id, ipHash, expiraEm: new Date(Date.now() + webauthnChallengeTtlMs),
-    }, select: { id: true } });
+    const challenge = await prisma.authChallenge.create({
+      data: {
+        tipo: "USER_WEBAUTHN", challenge: options.challenge, funcionarioId: funcionario.id,
+        trustedDeviceId: device.id, ipHash, expiraEm: new Date(Date.now() + webauthnChallengeTtlMs),
+      }, select: { id: true }
+    });
     await prisma.securityAuditEvent.create({ data: { acao: "WEBAUTHN_LOGIN_CHALLENGE", resultado: "success", funcionarioId: funcionario.id, trustedDeviceId: device.id, ipHash } });
     return NextResponse.json({ step: "webauthn", challengeId: challenge.id, options }, { status: 202 });
   } catch (error) {

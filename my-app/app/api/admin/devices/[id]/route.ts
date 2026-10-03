@@ -44,7 +44,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (action === "pair") {
       const funcionarioId = Number(body.funcionarioId);
       if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1) return fail("Selecione um funcionário válido.", 400);
-      const funcionario = await prisma.funcionario.findFirst({ where: { id: funcionarioId, role: "user", ativo: true }, select: { id: true } });
+      const funcionario = await prisma.funcionario.findFirst({ where: { id: funcionarioId, papel: "ALMOXARIFE", ativo: true }, select: { id: true } });
       if (!funcionario) return fail("Funcionário não encontrado ou inativo.", 404);
       const code = randomBytes(9).toString("base64url").toUpperCase();
       const expiresAt = new Date(Date.now() + pairingCodeTtlMs);
@@ -65,7 +65,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || justification.length < 10 || justification.length > 200) {
         return fail("Selecione um funcionário e informe uma justificativa de 10 a 200 caracteres.", 400);
       }
-      const funcionario = await prisma.funcionario.findFirst({ where: { id: funcionarioId, role: "user", ativo: true }, select: { id: true } });
+      const funcionario = await prisma.funcionario.findFirst({ where: { id: funcionarioId, papel: "ALMOXARIFE", ativo: true }, select: { id: true } });
       if (!funcionario) return fail("Funcionário não encontrado ou inativo.", 404);
       const expiresAt = new Date(Date.now() + emergencyGrantTtlMs);
       const grant = await prisma.$transaction(async (transaction) => {

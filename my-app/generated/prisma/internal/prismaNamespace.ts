@@ -399,10 +399,13 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Funcionario: 'Funcionario',
   Sessao: 'Sessao',
+  Item: 'Item',
+  LocalEstoque: 'LocalEstoque',
+  SaldoEstoque: 'SaldoEstoque',
+  SequenciaRequisicao: 'SequenciaRequisicao',
   Requisicao: 'Requisicao',
-  EstoqueItem: 'EstoqueItem',
-  SaldoDeposito: 'SaldoDeposito',
-  MovimentacaoDeposito: 'MovimentacaoDeposito',
+  RequisicaoItem: 'RequisicaoItem',
+  Movimentacao: 'Movimentacao',
   Auditoria: 'Auditoria',
   TrustedDevice: 'TrustedDevice',
   DevicePairing: 'DevicePairing',
@@ -431,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "funcionario" | "sessao" | "requisicao" | "estoqueItem" | "saldoDeposito" | "movimentacaoDeposito" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
+    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -567,6 +570,270 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Item: {
+      payload: Prisma.$ItemPayload<ExtArgs>
+      fields: Prisma.ItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>
+        }
+        findFirst: {
+          args: Prisma.ItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>
+        }
+        findMany: {
+          args: Prisma.ItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>[]
+        }
+        create: {
+          args: Prisma.ItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>
+        }
+        createMany: {
+          args: Prisma.ItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>
+        }
+        update: {
+          args: Prisma.ItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.ItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemPayload>
+        }
+        aggregate: {
+          args: Prisma.ItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateItem>
+        }
+        groupBy: {
+          args: Prisma.ItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    LocalEstoque: {
+      payload: Prisma.$LocalEstoquePayload<ExtArgs>
+      fields: Prisma.LocalEstoqueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LocalEstoqueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LocalEstoqueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>
+        }
+        findFirst: {
+          args: Prisma.LocalEstoqueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LocalEstoqueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>
+        }
+        findMany: {
+          args: Prisma.LocalEstoqueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>[]
+        }
+        create: {
+          args: Prisma.LocalEstoqueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>
+        }
+        createMany: {
+          args: Prisma.LocalEstoqueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.LocalEstoqueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>
+        }
+        update: {
+          args: Prisma.LocalEstoqueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>
+        }
+        deleteMany: {
+          args: Prisma.LocalEstoqueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LocalEstoqueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.LocalEstoqueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocalEstoquePayload>
+        }
+        aggregate: {
+          args: Prisma.LocalEstoqueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLocalEstoque>
+        }
+        groupBy: {
+          args: Prisma.LocalEstoqueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LocalEstoqueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LocalEstoqueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LocalEstoqueCountAggregateOutputType> | number
+        }
+      }
+    }
+    SaldoEstoque: {
+      payload: Prisma.$SaldoEstoquePayload<ExtArgs>
+      fields: Prisma.SaldoEstoqueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SaldoEstoqueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SaldoEstoqueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>
+        }
+        findFirst: {
+          args: Prisma.SaldoEstoqueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SaldoEstoqueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>
+        }
+        findMany: {
+          args: Prisma.SaldoEstoqueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>[]
+        }
+        create: {
+          args: Prisma.SaldoEstoqueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>
+        }
+        createMany: {
+          args: Prisma.SaldoEstoqueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.SaldoEstoqueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>
+        }
+        update: {
+          args: Prisma.SaldoEstoqueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>
+        }
+        deleteMany: {
+          args: Prisma.SaldoEstoqueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SaldoEstoqueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.SaldoEstoqueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoEstoquePayload>
+        }
+        aggregate: {
+          args: Prisma.SaldoEstoqueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSaldoEstoque>
+        }
+        groupBy: {
+          args: Prisma.SaldoEstoqueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SaldoEstoqueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SaldoEstoqueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SaldoEstoqueCountAggregateOutputType> | number
+        }
+      }
+    }
+    SequenciaRequisicao: {
+      payload: Prisma.$SequenciaRequisicaoPayload<ExtArgs>
+      fields: Prisma.SequenciaRequisicaoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SequenciaRequisicaoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SequenciaRequisicaoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>
+        }
+        findFirst: {
+          args: Prisma.SequenciaRequisicaoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SequenciaRequisicaoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>
+        }
+        findMany: {
+          args: Prisma.SequenciaRequisicaoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>[]
+        }
+        create: {
+          args: Prisma.SequenciaRequisicaoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>
+        }
+        createMany: {
+          args: Prisma.SequenciaRequisicaoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.SequenciaRequisicaoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>
+        }
+        update: {
+          args: Prisma.SequenciaRequisicaoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>
+        }
+        deleteMany: {
+          args: Prisma.SequenciaRequisicaoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SequenciaRequisicaoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.SequenciaRequisicaoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenciaRequisicaoPayload>
+        }
+        aggregate: {
+          args: Prisma.SequenciaRequisicaoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSequenciaRequisicao>
+        }
+        groupBy: {
+          args: Prisma.SequenciaRequisicaoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenciaRequisicaoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SequenciaRequisicaoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenciaRequisicaoCountAggregateOutputType> | number
+        }
+      }
+    }
     Requisicao: {
       payload: Prisma.$RequisicaoPayload<ExtArgs>
       fields: Prisma.RequisicaoFieldRefs
@@ -633,201 +900,135 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    EstoqueItem: {
-      payload: Prisma.$EstoqueItemPayload<ExtArgs>
-      fields: Prisma.EstoqueItemFieldRefs
+    RequisicaoItem: {
+      payload: Prisma.$RequisicaoItemPayload<ExtArgs>
+      fields: Prisma.RequisicaoItemFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.EstoqueItemFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload> | null
+          args: Prisma.RequisicaoItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.EstoqueItemFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+          args: Prisma.RequisicaoItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>
         }
         findFirst: {
-          args: Prisma.EstoqueItemFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload> | null
+          args: Prisma.RequisicaoItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.EstoqueItemFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+          args: Prisma.RequisicaoItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>
         }
         findMany: {
-          args: Prisma.EstoqueItemFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>[]
+          args: Prisma.RequisicaoItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>[]
         }
         create: {
-          args: Prisma.EstoqueItemCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+          args: Prisma.RequisicaoItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>
         }
         createMany: {
-          args: Prisma.EstoqueItemCreateManyArgs<ExtArgs>
+          args: Prisma.RequisicaoItemCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         delete: {
-          args: Prisma.EstoqueItemDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+          args: Prisma.RequisicaoItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>
         }
         update: {
-          args: Prisma.EstoqueItemUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+          args: Prisma.RequisicaoItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>
         }
         deleteMany: {
-          args: Prisma.EstoqueItemDeleteManyArgs<ExtArgs>
+          args: Prisma.RequisicaoItemDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.EstoqueItemUpdateManyArgs<ExtArgs>
+          args: Prisma.RequisicaoItemUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         upsert: {
-          args: Prisma.EstoqueItemUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EstoqueItemPayload>
+          args: Prisma.RequisicaoItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RequisicaoItemPayload>
         }
         aggregate: {
-          args: Prisma.EstoqueItemAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateEstoqueItem>
+          args: Prisma.RequisicaoItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRequisicaoItem>
         }
         groupBy: {
-          args: Prisma.EstoqueItemGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.EstoqueItemGroupByOutputType>[]
+          args: Prisma.RequisicaoItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RequisicaoItemGroupByOutputType>[]
         }
         count: {
-          args: Prisma.EstoqueItemCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.EstoqueItemCountAggregateOutputType> | number
+          args: Prisma.RequisicaoItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RequisicaoItemCountAggregateOutputType> | number
         }
       }
     }
-    SaldoDeposito: {
-      payload: Prisma.$SaldoDepositoPayload<ExtArgs>
-      fields: Prisma.SaldoDepositoFieldRefs
+    Movimentacao: {
+      payload: Prisma.$MovimentacaoPayload<ExtArgs>
+      fields: Prisma.MovimentacaoFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.SaldoDepositoFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload> | null
+          args: Prisma.MovimentacaoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.SaldoDepositoFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>
+          args: Prisma.MovimentacaoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>
         }
         findFirst: {
-          args: Prisma.SaldoDepositoFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload> | null
+          args: Prisma.MovimentacaoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.SaldoDepositoFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>
+          args: Prisma.MovimentacaoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>
         }
         findMany: {
-          args: Prisma.SaldoDepositoFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>[]
+          args: Prisma.MovimentacaoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>[]
         }
         create: {
-          args: Prisma.SaldoDepositoCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>
+          args: Prisma.MovimentacaoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>
         }
         createMany: {
-          args: Prisma.SaldoDepositoCreateManyArgs<ExtArgs>
+          args: Prisma.MovimentacaoCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         delete: {
-          args: Prisma.SaldoDepositoDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>
+          args: Prisma.MovimentacaoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>
         }
         update: {
-          args: Prisma.SaldoDepositoUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>
+          args: Prisma.MovimentacaoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>
         }
         deleteMany: {
-          args: Prisma.SaldoDepositoDeleteManyArgs<ExtArgs>
+          args: Prisma.MovimentacaoDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.SaldoDepositoUpdateManyArgs<ExtArgs>
+          args: Prisma.MovimentacaoUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         upsert: {
-          args: Prisma.SaldoDepositoUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoDepositoPayload>
+          args: Prisma.MovimentacaoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoPayload>
         }
         aggregate: {
-          args: Prisma.SaldoDepositoAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSaldoDeposito>
+          args: Prisma.MovimentacaoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMovimentacao>
         }
         groupBy: {
-          args: Prisma.SaldoDepositoGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SaldoDepositoGroupByOutputType>[]
+          args: Prisma.MovimentacaoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovimentacaoGroupByOutputType>[]
         }
         count: {
-          args: Prisma.SaldoDepositoCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SaldoDepositoCountAggregateOutputType> | number
-        }
-      }
-    }
-    MovimentacaoDeposito: {
-      payload: Prisma.$MovimentacaoDepositoPayload<ExtArgs>
-      fields: Prisma.MovimentacaoDepositoFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.MovimentacaoDepositoFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.MovimentacaoDepositoFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>
-        }
-        findFirst: {
-          args: Prisma.MovimentacaoDepositoFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.MovimentacaoDepositoFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>
-        }
-        findMany: {
-          args: Prisma.MovimentacaoDepositoFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>[]
-        }
-        create: {
-          args: Prisma.MovimentacaoDepositoCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>
-        }
-        createMany: {
-          args: Prisma.MovimentacaoDepositoCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        delete: {
-          args: Prisma.MovimentacaoDepositoDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>
-        }
-        update: {
-          args: Prisma.MovimentacaoDepositoUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>
-        }
-        deleteMany: {
-          args: Prisma.MovimentacaoDepositoDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.MovimentacaoDepositoUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        upsert: {
-          args: Prisma.MovimentacaoDepositoUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentacaoDepositoPayload>
-        }
-        aggregate: {
-          args: Prisma.MovimentacaoDepositoAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateMovimentacaoDeposito>
-        }
-        groupBy: {
-          args: Prisma.MovimentacaoDepositoGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MovimentacaoDepositoGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.MovimentacaoDepositoCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MovimentacaoDepositoCountAggregateOutputType> | number
+          args: Prisma.MovimentacaoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovimentacaoCountAggregateOutputType> | number
         }
       }
     }
@@ -1736,9 +1937,11 @@ export const FuncionarioScalarFieldEnum = {
   senha: 'senha',
   cargo: 'cargo',
   cracha: 'cracha',
-  role: 'role',
+  papel: 'papel',
   mustChangePassword: 'mustChangePassword',
-  ativo: 'ativo'
+  ativo: 'ativo',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
 } as const
 
 export type FuncionarioScalarFieldEnum = (typeof FuncionarioScalarFieldEnum)[keyof typeof FuncionarioScalarFieldEnum]
@@ -1757,36 +1960,11 @@ export const SessaoScalarFieldEnum = {
 export type SessaoScalarFieldEnum = (typeof SessaoScalarFieldEnum)[keyof typeof SessaoScalarFieldEnum]
 
 
-export const RequisicaoScalarFieldEnum = {
-  id: 'id',
-  numero: 'numero',
-  item: 'item',
-  estoqueItemId: 'estoqueItemId',
-  quantidade: 'quantidade',
-  qtdDevolvida: 'qtdDevolvida',
-  observacao: 'observacao',
-  setor: 'setor',
-  unidadeMedida: 'unidadeMedida',
-  prioridade: 'prioridade',
-  status: 'status',
-  origem: 'origem',
-  origemLegada: 'origemLegada',
-  idempotencyKey: 'idempotencyKey',
-  grupoIdempotencia: 'grupoIdempotencia',
-  funcionarioId: 'funcionarioId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type RequisicaoScalarFieldEnum = (typeof RequisicaoScalarFieldEnum)[keyof typeof RequisicaoScalarFieldEnum]
-
-
-export const EstoqueItemScalarFieldEnum = {
+export const ItemScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
   categoria: 'categoria',
   unidade: 'unidade',
-  quantidade: 'quantidade',
   tipoUnidade: 'tipoUnidade',
   quantidadePorEmbalagem: 'quantidadePorEmbalagem',
   tipoItem: 'tipoItem',
@@ -1798,39 +1976,96 @@ export const EstoqueItemScalarFieldEnum = {
   bloqueadoCompra: 'bloqueadoCompra',
   ultimaEntradaEmbalagens: 'ultimaEntradaEmbalagens',
   ativo: 'ativo',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type EstoqueItemScalarFieldEnum = (typeof EstoqueItemScalarFieldEnum)[keyof typeof EstoqueItemScalarFieldEnum]
-
-
-export const SaldoDepositoScalarFieldEnum = {
-  id: 'id',
-  itemId: 'itemId',
-  quantidade: 'quantidade',
   criadoEm: 'criadoEm',
   atualizadoEm: 'atualizadoEm'
 } as const
 
-export type SaldoDepositoScalarFieldEnum = (typeof SaldoDepositoScalarFieldEnum)[keyof typeof SaldoDepositoScalarFieldEnum]
+export type ItemScalarFieldEnum = (typeof ItemScalarFieldEnum)[keyof typeof ItemScalarFieldEnum]
 
 
-export const MovimentacaoDepositoScalarFieldEnum = {
+export const LocalEstoqueScalarFieldEnum = {
   id: 'id',
-  itemId: 'itemId',
-  tipo: 'tipo',
-  quantidade: 'quantidade',
-  saldoAntes: 'saldoAntes',
-  saldoDepois: 'saldoDepois',
-  requisicaoId: 'requisicaoId',
-  usuarioId: 'usuarioId',
-  motivo: 'motivo',
-  idempotencyKey: 'idempotencyKey',
+  nome: 'nome',
+  slug: 'slug',
+  descricao: 'descricao',
+  ativo: 'ativo',
   criadoEm: 'criadoEm'
 } as const
 
-export type MovimentacaoDepositoScalarFieldEnum = (typeof MovimentacaoDepositoScalarFieldEnum)[keyof typeof MovimentacaoDepositoScalarFieldEnum]
+export type LocalEstoqueScalarFieldEnum = (typeof LocalEstoqueScalarFieldEnum)[keyof typeof LocalEstoqueScalarFieldEnum]
+
+
+export const SaldoEstoqueScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  localId: 'localId',
+  quantidade: 'quantidade',
+  reservada: 'reservada',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type SaldoEstoqueScalarFieldEnum = (typeof SaldoEstoqueScalarFieldEnum)[keyof typeof SaldoEstoqueScalarFieldEnum]
+
+
+export const SequenciaRequisicaoScalarFieldEnum = {
+  id: 'id',
+  proximo: 'proximo'
+} as const
+
+export type SequenciaRequisicaoScalarFieldEnum = (typeof SequenciaRequisicaoScalarFieldEnum)[keyof typeof SequenciaRequisicaoScalarFieldEnum]
+
+
+export const RequisicaoScalarFieldEnum = {
+  id: 'id',
+  numeroPedido: 'numeroPedido',
+  status: 'status',
+  prioridade: 'prioridade',
+  observacao: 'observacao',
+  solicitanteId: 'solicitanteId',
+  atendenteId: 'atendenteId',
+  criadoEm: 'criadoEm',
+  assumidaEm: 'assumidaEm',
+  concluidaEm: 'concluidaEm',
+  anuladaEm: 'anuladaEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type RequisicaoScalarFieldEnum = (typeof RequisicaoScalarFieldEnum)[keyof typeof RequisicaoScalarFieldEnum]
+
+
+export const RequisicaoItemScalarFieldEnum = {
+  id: 'id',
+  requisicaoId: 'requisicaoId',
+  itemId: 'itemId',
+  localId: 'localId',
+  quantidade: 'quantidade',
+  unidadeMedida: 'unidadeMedida',
+  descricao: 'descricao',
+  status: 'status',
+  separado: 'separado',
+  motivoNaoAtendido: 'motivoNaoAtendido',
+  resolvidoEm: 'resolvidoEm'
+} as const
+
+export type RequisicaoItemScalarFieldEnum = (typeof RequisicaoItemScalarFieldEnum)[keyof typeof RequisicaoItemScalarFieldEnum]
+
+
+export const MovimentacaoScalarFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  quantidade: 'quantidade',
+  saldoApos: 'saldoApos',
+  reservadaApos: 'reservadaApos',
+  funcionarioId: 'funcionarioId',
+  saldoEstoqueId: 'saldoEstoqueId',
+  requisicaoId: 'requisicaoId',
+  requisicaoItemId: 'requisicaoItemId',
+  observacao: 'observacao',
+  criadoEm: 'criadoEm'
+} as const
+
+export type MovimentacaoScalarFieldEnum = (typeof MovimentacaoScalarFieldEnum)[keyof typeof MovimentacaoScalarFieldEnum]
 
 
 export const AuditoriaScalarFieldEnum = {
@@ -1838,7 +2073,8 @@ export const AuditoriaScalarFieldEnum = {
   acao: 'acao',
   alvoId: 'alvoId',
   autorId: 'autorId',
-  createdAt: 'createdAt'
+  detalhes: 'detalhes',
+  criadoEm: 'criadoEm'
 } as const
 
 export type AuditoriaScalarFieldEnum = (typeof AuditoriaScalarFieldEnum)[keyof typeof AuditoriaScalarFieldEnum]
@@ -2042,8 +2278,7 @@ export const FuncionarioOrderByRelevanceFieldEnum = {
   email: 'email',
   senha: 'senha',
   cargo: 'cargo',
-  cracha: 'cracha',
-  role: 'role'
+  cracha: 'cracha'
 } as const
 
 export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRelevanceFieldEnum)[keyof typeof FuncionarioOrderByRelevanceFieldEnum]
@@ -2059,24 +2294,7 @@ export const SessaoOrderByRelevanceFieldEnum = {
 export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFieldEnum)[keyof typeof SessaoOrderByRelevanceFieldEnum]
 
 
-export const RequisicaoOrderByRelevanceFieldEnum = {
-  id: 'id',
-  item: 'item',
-  estoqueItemId: 'estoqueItemId',
-  observacao: 'observacao',
-  setor: 'setor',
-  unidadeMedida: 'unidadeMedida',
-  prioridade: 'prioridade',
-  status: 'status',
-  origemLegada: 'origemLegada',
-  idempotencyKey: 'idempotencyKey',
-  grupoIdempotencia: 'grupoIdempotencia'
-} as const
-
-export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
-
-
-export const EstoqueItemOrderByRelevanceFieldEnum = {
+export const ItemOrderByRelevanceFieldEnum = {
   id: 'id',
   nome: 'nome',
   categoria: 'categoria',
@@ -2087,31 +2305,65 @@ export const EstoqueItemOrderByRelevanceFieldEnum = {
   grupoErp: 'grupoErp'
 } as const
 
-export type EstoqueItemOrderByRelevanceFieldEnum = (typeof EstoqueItemOrderByRelevanceFieldEnum)[keyof typeof EstoqueItemOrderByRelevanceFieldEnum]
+export type ItemOrderByRelevanceFieldEnum = (typeof ItemOrderByRelevanceFieldEnum)[keyof typeof ItemOrderByRelevanceFieldEnum]
 
 
-export const SaldoDepositoOrderByRelevanceFieldEnum = {
+export const LocalEstoqueOrderByRelevanceFieldEnum = {
   id: 'id',
-  itemId: 'itemId'
+  nome: 'nome',
+  slug: 'slug',
+  descricao: 'descricao'
 } as const
 
-export type SaldoDepositoOrderByRelevanceFieldEnum = (typeof SaldoDepositoOrderByRelevanceFieldEnum)[keyof typeof SaldoDepositoOrderByRelevanceFieldEnum]
+export type LocalEstoqueOrderByRelevanceFieldEnum = (typeof LocalEstoqueOrderByRelevanceFieldEnum)[keyof typeof LocalEstoqueOrderByRelevanceFieldEnum]
 
 
-export const MovimentacaoDepositoOrderByRelevanceFieldEnum = {
+export const SaldoEstoqueOrderByRelevanceFieldEnum = {
   id: 'id',
   itemId: 'itemId',
-  requisicaoId: 'requisicaoId',
-  motivo: 'motivo',
-  idempotencyKey: 'idempotencyKey'
+  localId: 'localId'
 } as const
 
-export type MovimentacaoDepositoOrderByRelevanceFieldEnum = (typeof MovimentacaoDepositoOrderByRelevanceFieldEnum)[keyof typeof MovimentacaoDepositoOrderByRelevanceFieldEnum]
+export type SaldoEstoqueOrderByRelevanceFieldEnum = (typeof SaldoEstoqueOrderByRelevanceFieldEnum)[keyof typeof SaldoEstoqueOrderByRelevanceFieldEnum]
+
+
+export const RequisicaoOrderByRelevanceFieldEnum = {
+  id: 'id',
+  numeroPedido: 'numeroPedido',
+  observacao: 'observacao'
+} as const
+
+export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
+
+
+export const RequisicaoItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  requisicaoId: 'requisicaoId',
+  itemId: 'itemId',
+  localId: 'localId',
+  unidadeMedida: 'unidadeMedida',
+  descricao: 'descricao',
+  motivoNaoAtendido: 'motivoNaoAtendido'
+} as const
+
+export type RequisicaoItemOrderByRelevanceFieldEnum = (typeof RequisicaoItemOrderByRelevanceFieldEnum)[keyof typeof RequisicaoItemOrderByRelevanceFieldEnum]
+
+
+export const MovimentacaoOrderByRelevanceFieldEnum = {
+  id: 'id',
+  saldoEstoqueId: 'saldoEstoqueId',
+  requisicaoId: 'requisicaoId',
+  requisicaoItemId: 'requisicaoItemId',
+  observacao: 'observacao'
+} as const
+
+export type MovimentacaoOrderByRelevanceFieldEnum = (typeof MovimentacaoOrderByRelevanceFieldEnum)[keyof typeof MovimentacaoOrderByRelevanceFieldEnum]
 
 
 export const AuditoriaOrderByRelevanceFieldEnum = {
   id: 'id',
-  acao: 'acao'
+  acao: 'acao',
+  detalhes: 'detalhes'
 } as const
 
 export type AuditoriaOrderByRelevanceFieldEnum = (typeof AuditoriaOrderByRelevanceFieldEnum)[keyof typeof AuditoriaOrderByRelevanceFieldEnum]
@@ -2252,6 +2504,13 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
+ * Reference to a field of type 'PapelFuncionario'
+ */
+export type EnumPapelFuncionarioFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PapelFuncionario'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -2266,13 +2525,6 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
- * Reference to a field of type 'OrigemRequisicao'
- */
-export type EnumOrigemRequisicaoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrigemRequisicao'>
-    
-
-
-/**
  * Reference to a field of type 'TipoItem'
  */
 export type EnumTipoItemFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoItem'>
@@ -2280,9 +2532,30 @@ export type EnumTipoItemFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'TipoMovimentacaoDeposito'
+ * Reference to a field of type 'StatusRequisicao'
  */
-export type EnumTipoMovimentacaoDepositoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoMovimentacaoDeposito'>
+export type EnumStatusRequisicaoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusRequisicao'>
+    
+
+
+/**
+ * Reference to a field of type 'Prioridade'
+ */
+export type EnumPrioridadeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Prioridade'>
+    
+
+
+/**
+ * Reference to a field of type 'StatusItemRequisicao'
+ */
+export type EnumStatusItemRequisicaoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusItemRequisicao'>
+    
+
+
+/**
+ * Reference to a field of type 'TipoMovimentacao'
+ */
+export type EnumTipoMovimentacaoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoMovimentacao'>
     
 
 
@@ -2459,10 +2732,13 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   funcionario?: Prisma.FuncionarioOmit
   sessao?: Prisma.SessaoOmit
+  item?: Prisma.ItemOmit
+  localEstoque?: Prisma.LocalEstoqueOmit
+  saldoEstoque?: Prisma.SaldoEstoqueOmit
+  sequenciaRequisicao?: Prisma.SequenciaRequisicaoOmit
   requisicao?: Prisma.RequisicaoOmit
-  estoqueItem?: Prisma.EstoqueItemOmit
-  saldoDeposito?: Prisma.SaldoDepositoOmit
-  movimentacaoDeposito?: Prisma.MovimentacaoDepositoOmit
+  requisicaoItem?: Prisma.RequisicaoItemOmit
+  movimentacao?: Prisma.MovimentacaoOmit
   auditoria?: Prisma.AuditoriaOmit
   trustedDevice?: Prisma.TrustedDeviceOmit
   devicePairing?: Prisma.DevicePairingOmit

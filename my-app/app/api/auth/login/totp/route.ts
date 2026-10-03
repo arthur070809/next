@@ -1,3 +1,4 @@
+import { papelParaRole } from "@/lib/auth";
 import { randomBytes, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { sessionCookieName } from "@/lib/auth";
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       include: { funcionario: true },
     });
     const now = new Date();
-    if (!challenge || challenge.tipo !== "ADMIN_TOTP" || challenge.usadoEm || challenge.expiraEm <= now || challenge.ipHash !== ipHash || !challenge.funcionario.ativo || challenge.funcionario.role !== "admin") return failed();
+    if (!challenge || challenge.tipo !== "ADMIN_TOTP" || challenge.usadoEm || challenge.expiraEm <= now || challenge.ipHash !== ipHash || !challenge.funcionario.ativo || challenge.funcionario.papel !== "ADMIN") return failed();
     const factorKey = `admin:${challenge.funcionarioId}:${challenge.ipHash}`;
     if (isFactorBlocked(factorKey)) return NextResponse.json({ error: "Verificação temporariamente bloqueada." }, { status: 429 });
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     const funcionario = challenge.funcionario;
     const response = NextResponse.json({
       message: "Login realizado com sucesso.",
-      funcionario: { id: funcionario.id, nome: funcionario.nome, email: funcionario.email, cargo: funcionario.cargo, cracha: funcionario.cracha, role: funcionario.role, mustChangePassword: funcionario.mustChangePassword },
+      funcionario: { id: funcionario.id, nome: funcionario.nome, email: funcionario.email, cargo: funcionario.cargo, cracha: funcionario.cracha, role: papelParaRole(funcionario.papel), mustChangePassword: funcionario.mustChangePassword },
     });
     response.cookies.set(sessionCookieName, sessionToken, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 8 * 60 * 60 });
     return response;
