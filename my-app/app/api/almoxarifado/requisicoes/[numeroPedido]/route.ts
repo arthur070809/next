@@ -26,7 +26,7 @@ type ActionBody = {
   itens?: CompletionItem[];
 };
 type RouteContext = { params: Promise<{ numeroPedido: string }> };
-const scanAuditAction = "REQUISICAO_ITEM_CONFERIDO_QR";
+const scanAuditAction = "REQUISICAO_ITEM_CONFERIDO";
 
 const badRequest = (message: string, status = 400) =>
   NextResponse.json({ error: message }, { status });
@@ -85,7 +85,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
           unidadeMedida: item.unidadeMedida,
           quantidadeSolicitada: item.quantidade,
           status: item.status,
-          conferido: checkedIds.has(item.id),
+          conferido: checkedIds.has(item.id) || item.status === StatusItemRequisicao.SEPARADO,
         })),
       },
     });
@@ -165,6 +165,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
             id: item.id,
             itemId: item.itemId,
             conferido: checkedIds.has(item.id),
+            disponivel:
+              item.status === StatusItemRequisicao.ASSUMIDO ||
+              item.status === StatusItemRequisicao.PENDENTE,
           })),
         });
 
@@ -182,7 +185,11 @@ export async function PATCH(request: Request, { params }: RouteContext) {
             message: "Este item já foi conferido.",
             itemId: result.item.id,
             conferido: true,
+            jaConferido: true,
           }, { status: 200 });
+        }
+        if (result.tipo === "item-resolvido") {
+          return badRequest("Este item já foi resolvido e não pode ser conferido novamente.", 409);
         }
         if (result.tipo !== "encontrado") return badRequest("Não foi possível conferir este item.", 409);
         if (body.requisicaoItemId && body.requisicaoItemId !== result.item.id) {
@@ -203,6 +210,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           itemId: result.item.id,
           produto: { codigo: result.produto.codigo, nome: result.produto.nome },
           conferido: true,
+          jaConferido: false,
         });
       });
     }

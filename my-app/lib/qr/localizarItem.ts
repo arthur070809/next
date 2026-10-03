@@ -10,6 +10,7 @@ export type ItemDaRequisicao = {
   id: string;
   itemId: string;
   conferido: boolean;
+  disponivel?: boolean;
 };
 
 export type ResultadoLocalizacao =
@@ -17,6 +18,7 @@ export type ResultadoLocalizacao =
   | { tipo: "requisicao-inativa" }
   | { tipo: "produto-inexistente" }
   | { tipo: "fora-da-requisicao"; produto: ProdutoEtiquetado }
+  | { tipo: "item-resolvido"; item: ItemDaRequisicao; produto: ProdutoEtiquetado }
   | { tipo: "ja-conferido"; item: ItemDaRequisicao; produto: ProdutoEtiquetado }
   | { tipo: "encontrado"; item: ItemDaRequisicao; produto: ProdutoEtiquetado };
 
@@ -45,5 +47,6 @@ export function localizarItemDaEtiqueta(params: {
   const produto = produtos.find((candidate) => candidate.id === item.itemId);
   if (!produto) return { tipo: "produto-inexistente" };
   if (item.conferido) return { tipo: "ja-conferido", item, produto };
+  if (item.disponivel === false) return { tipo: "item-resolvido", item, produto };
   return { tipo: "encontrado", item, produto };
 }

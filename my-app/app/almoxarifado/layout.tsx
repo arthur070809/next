@@ -9,8 +9,15 @@ export default async function AlmoxarifadoLayout({ children }: { children: React
 
   if (!funcionario) redirect("/login");
   if (requiresPasswordChange(funcionario)) redirect("/alterar-senha?next=/almoxarifado");
-  if (funcionario.papel === PapelFuncionario.ADMIN) redirect("/admin");
-  if (funcionario.papel !== PapelFuncionario.ALMOXARIFE) forbidden();
+  if (
+    funcionario.papel !== PapelFuncionario.ADMIN &&
+    funcionario.papel !== PapelFuncionario.ALMOXARIFE
+  ) forbidden();
 
-  return <PortalShell userName={funcionario.nome || funcionario.cracha} role="almoxarifado">{children}</PortalShell>;
+  return <PortalShell
+    userName={funcionario.nome || funcionario.cracha}
+    role={funcionario.papel === PapelFuncionario.ADMIN ? "admin" : "almoxarifado"}
+  >
+    {children}
+  </PortalShell>;
 }

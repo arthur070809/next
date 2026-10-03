@@ -23,6 +23,13 @@ describe("localizarItemDaEtiqueta", () => {
     }).tipo).toBe("ja-conferido");
   });
 
+  it("não confere novamente um item resolvido por outro estado", () => {
+    expect(localizarItemDaEtiqueta({
+      ...base,
+      itens: [{ ...item, disponivel: false }],
+    }).tipo).toBe("item-resolvido");
+  });
+
   it("informa quando o produto existe mas não pertence à requisição", () => {
     expect(localizarItemDaEtiqueta({ ...base, itens: [] })).toEqual({
       tipo: "fora-da-requisicao",

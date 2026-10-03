@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 
@@ -47,9 +48,9 @@ export default function RequisicoesQueuePage() {
     {erro && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erro}</p>}
     {carregando ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">Carregando requisições…</p> : filtradas.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">Nenhuma requisição encontrada.</p> : <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{["Nº", "Item", "Qtd.", "Prioridade", "Status", "Solicitante", "Data"].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr></thead>
+        <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{["Nº", "Item", "Qtd.", "Prioridade", "Status", "Solicitante", "Data", "Checklist"].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr></thead>
         <tbody>{filtradas.map((request) => <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-          <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td><td className="px-4 py-3">{request.itens?.length ? <ul className="space-y-1">{request.itens.map((item) => <li key={item.id} className="font-medium text-slate-800">{item.nome} · {item.quantidade} {item.unidadeMedida}</li>)}</ul> : <span className="font-medium text-slate-800">{request.item} · {request.quantidade} {request.unidadeMedida}</span>}</td><td className="px-4 py-3">{request.prioridade === "prioridade" ? "Prioritária" : "Padrão"}</td><td className="px-4 py-3">{request.status === "pendente" ? "Aguardando" : "Em atendimento"}</td><td className="px-4 py-3">{request.solicitante ?? "—"}</td><td className="px-4 py-3 whitespace-nowrap">{new Date(request.data).toLocaleString("pt-BR")}</td>
+          <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td><td className="px-4 py-3">{request.itens?.length ? <ul className="space-y-1">{request.itens.map((item) => <li key={item.id} className="font-medium text-slate-800">{item.nome} · {item.quantidade} {item.unidadeMedida}</li>)}</ul> : <span className="font-medium text-slate-800">{request.item} · {request.quantidade} {request.unidadeMedida}</span>}</td><td className="px-4 py-3">{request.prioridade === "prioridade" ? "Prioritária" : "Padrão"}</td><td className="px-4 py-3">{request.status === "pendente" ? "Aguardando" : "Em atendimento"}</td><td className="px-4 py-3">{request.solicitante ?? "—"}</td><td className="px-4 py-3 whitespace-nowrap">{new Date(request.data).toLocaleString("pt-BR")}</td><td className="px-4 py-3">{request.status === "assumida" ? <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="font-semibold text-royal hover:underline">Abrir checklist</Link> : <span className="text-slate-400">Aguardando responsável</span>}</td>
         </tr>)}</tbody>
       </table>
     </div>}

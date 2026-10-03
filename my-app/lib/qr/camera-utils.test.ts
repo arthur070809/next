@@ -29,6 +29,15 @@ describe("camera scanner helpers", () => {
     expect(cameraErrorMessage(new DOMException("", "SecurityError"))).toContain("HTTPS");
   });
 
+  it.each(["NotAllowedError", "NotFoundError"] as const)(
+    "propagates getUserMedia failure %s for a clear user-facing message",
+    async (name) => {
+      const getUserMedia = vi.fn().mockRejectedValue(new DOMException("", name));
+      await expect(requestScannerStream({ getUserMedia }, true)).rejects.toHaveProperty("name", name);
+      expect(cameraErrorMessage(new DOMException("", name))).toBeTruthy();
+    },
+  );
+
   it("does not request a stream when the media API is missing", async () => {
     await expect(requestScannerStream(undefined, true)).rejects.toHaveProperty("name", "NotFoundError");
   });
