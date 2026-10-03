@@ -124,6 +124,7 @@ export async function criarRequisicao(params: {
   }>;
   prioridade?: "padrao" | "prioridade";
   observacao?: string;
+  movimentacaoObservacao?: string;
 }) {
   return prisma.$transaction(async (tx) => {
     // Valida e reserva cada item atomicamente sem ler-depois-escrever
@@ -195,7 +196,7 @@ export async function criarRequisicao(params: {
             saldoEstoqueId: saldo.id,
             requisicaoId: requisicao.id,
             requisicaoItemId: ri.id,
-            observacao: `Reserva para ${requisicao.numeroPedido}`,
+            observacao: params.movimentacaoObservacao ?? `Reserva para ${requisicao.numeroPedido}`,
           },
         });
       }
