@@ -9,6 +9,7 @@ import {
 } from "@/lib/requisicoes-db";
 import { localizarItemDaEtiqueta } from "@/lib/qr/localizarItem";
 import { normalizarCodigoEtiqueta, parseEtiqueta } from "@/lib/qr/parseEtiqueta";
+import { resolveClaimResult } from "@/lib/request-claim";
 import {
   PapelFuncionario,
   StatusRequisicao,
@@ -107,6 +108,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const body = (await request.json()) as ActionBody;
     const action = body.action;
+    if (!["assumir", "devolver", "anular", "finalizar", "conferir-item"].includes(action ?? "")) {
+      return badRequest("Ação inválida.");
+    }
+    if (
+      action !== "conferir-item" &&
+      sessaoFuncionario.papel !== PapelFuncionario.ALMOXARIFE &&
+      sessaoFuncionario.papel !== PapelFuncionario.ADMIN
+    ) {
+      return badRequest("Acesso negado.", 403);
+    }
+
     if (action === "conferir-item") {
       return await prisma.$transaction(async (tx) => {
         const actor = await tx.funcionario.findFirst({
@@ -218,8 +230,74 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const badge = body.codigoCracha?.trim();
 
     if (!badge) return badRequest("Informe o código do crachá.");
-    if (!["assumir", "devolver", "anular", "finalizar"].includes(action ?? "")) {
-      return badRequest("Ação inválida.");
+    if (action === "assumir") {
+      const claim = await prisma.$transaction(async (tx) => {
+        const actor = await tx.funcionario.findFirst({
+          where: { cracha: badge, ativo: true },
+          select: { id: true, nome: true, papel: true },
+        });
+        if (
+          !actor ||
+          actor.id !== sessaoFuncionario.id ||
+          (actor.papel !== PapelFuncionario.ALMOXARIFE &&
+            actor.papel !== PapelFuncionario.ADMIN)
+        ) {
+          return { type: "forbidden" as const };
+        }
+
+        const assumidaEm = new Date();
+        const result = await tx.requisicao.updateMany({
+          where: { numeroPedido, status: StatusRequisicao.PENDENTE },
+          data: {
+            status: StatusRequisicao.ASSUMIDA,
+            atendenteId: actor.id,
+            assumidaEm,
+          },
+        });
+        if (result.count !== 1) return { type: "not-claimed" as const };
+
+        await tx.requisicaoItem.updateMany({
+          where: { requisicao: { numeroPedido }, status: StatusItemRequisicao.PENDENTE },
+          data: { status: StatusItemRequisicao.ASSUMIDO },
+        });
+        await tx.auditoria.create({
+          data: {
+            acao: "REQUISICAO_ASSUMIDA",
+            alvoId: actor.id,
+            autorId: actor.id,
+            detalhes: `Requisição ${numeroPedido} assumida em ${assumidaEm.toISOString()}`,
+          },
+        });
+        return { type: "claimed" as const };
+      });
+
+      if (claim.type === "forbidden") return badRequest("Crachá inválido para esta sessão.", 403);
+      if (claim.type === "claimed") {
+        return NextResponse.json({ message: "Requisição assumida.", numeroPedido });
+      }
+
+      const latest = await prisma.requisicao.findUnique({
+        where: { numeroPedido },
+        select: {
+          status: true,
+          atendente: { select: { nome: true } },
+        },
+      });
+      const resolution = resolveClaimResult(0, latest ? {
+        status: latest.status,
+        attendantName: latest.atendente?.nome ?? null,
+      } : null);
+      if (resolution.type === "not-found") return badRequest("Requisição não encontrada.", 404);
+      if (resolution.type === "not-available") {
+        return badRequest("A requisição não está mais disponível para assumir. Atualize a fila.", 409);
+      }
+      if (resolution.type !== "already-claimed") {
+        return badRequest("Não foi possível assumir a requisição. Atualize a fila e tente novamente.", 409);
+      }
+      return NextResponse.json({
+        error: `Requisição já assumida por ${resolution.attendantName ?? "outro almoxarife"}.`,
+        assumidaPor: resolution.attendantName,
+      }, { status: 409 });
     }
     if (action === "anular" && !body.descricaoMotivo?.trim()) {
       return badRequest("Informe o motivo da anulação.");
@@ -251,9 +329,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
       // 3. Valida transições de status
       const allowed =
-        action === "assumir"
-          ? requisicao.status === StatusRequisicao.PENDENTE
-          : action === "devolver" || action === "finalizar"
+        action === "devolver" || action === "finalizar"
           ? requisicao.status === StatusRequisicao.ASSUMIDA
           : requisicao.status === StatusRequisicao.PENDENTE ||
             requisicao.status === StatusRequisicao.ASSUMIDA; // anular
@@ -266,34 +342,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       // 4. Executa a ação
-      let event: "assumida" | "devolvida" | "finalizada" | "cancelada";
+      let event: "devolvida" | "finalizada" | "cancelada";
 
-      if (action === "assumir") {
-        await tx.requisicao.update({
-          where: { id: requisicao.id },
-          data: {
-            status: StatusRequisicao.ASSUMIDA,
-            atendenteId: actor.id,
-            assumidaEm: new Date(),
-          },
-        });
-
-        await tx.requisicaoItem.updateMany({
-          where: { requisicaoId: requisicao.id, status: StatusItemRequisicao.PENDENTE },
-          data: { status: StatusItemRequisicao.ASSUMIDO },
-        });
-
-        await tx.auditoria.create({
-          data: {
-            acao: "REQUISICAO_ASSUMIDA",
-            alvoId: actor.id,
-            autorId: actor.id,
-            detalhes: `Requisição ${numeroPedido} assumida`,
-          },
-        });
-
-        event = "assumida";
-      } else if (action === "devolver") {
+      if (action === "devolver") {
         await tx.requisicao.update({
           where: { id: requisicao.id },
           data: {
