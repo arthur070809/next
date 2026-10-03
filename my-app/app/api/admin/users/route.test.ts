@@ -35,7 +35,10 @@ vi.mock("@/lib/prisma", () => ({
     auditoria: { create: vi.fn() },
   },
 }));
-vi.mock("@/lib/auth", () => ({ requireAdmin: vi.fn() }));
+vi.mock("@/lib/auth", () => ({
+  requireAdmin: vi.fn(),
+  papelParaRole: vi.fn((papel: string) => papel.toLowerCase()),
+}));
 vi.mock("@/lib/prisma", () => ({ prisma: {
   $transaction: vi.fn(),
   funcionario: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn(), count: vi.fn() },

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const transactionMock = {
-  estoqueItem: { findUnique: vi.fn() },
-  saldoDeposito: { findUnique: vi.fn(), upsert: vi.fn() },
-  movimentacaoDeposito: { create: vi.fn() },
+  item: { findUnique: vi.fn() },
+  localEstoque: { upsert: vi.fn() },
+  saldoEstoque: { findUnique: vi.fn(), upsert: vi.fn() },
+  movimentacao: { create: vi.fn() },
 };
 const adminMock = vi.fn();
 
@@ -27,9 +28,10 @@ describe("POST /api/deposito/ajuste", () => {
     vi.clearAllMocks();
     adminMock.mockResolvedValue({ funcionario: { id: 4 }, status: 200 });
     vi.mocked(prisma.$transaction).mockImplementation(((callback: (transaction: typeof transactionMock) => Promise<unknown>) => callback(transactionMock)) as never);
-    transactionMock.estoqueItem.findUnique.mockResolvedValue({ id: "item-1", ativo: true });
-    transactionMock.saldoDeposito.findUnique.mockResolvedValue({ quantidade: 10 });
-    transactionMock.saldoDeposito.upsert.mockResolvedValue({ quantidade: 6 });
+    transactionMock.item.findUnique.mockResolvedValue({ id: "item-1", ativo: true });
+    transactionMock.localEstoque.upsert.mockResolvedValue({ id: "deposito-id" });
+    transactionMock.saldoEstoque.findUnique.mockResolvedValue({ quantidade: 10, reservada: 0 });
+    transactionMock.saldoEstoque.upsert.mockResolvedValue({ id: "saldo-id", quantidade: 6, reservada: 0 });
   });
 
   it("returns 401 without authentication and 403 for a non-admin", async () => {
@@ -48,11 +50,21 @@ describe("POST /api/deposito/ajuste", () => {
     const response = await POST(request({ itemId: "item-1", quantidade: 6, motivo: "Contagem física" }));
 
     expect(response.status).toBe(200);
-    expect(transactionMock.saldoDeposito.upsert).toHaveBeenCalledWith({
-      where: { itemId: "item-1" }, create: { itemId: "item-1", quantidade: 6 }, update: { quantidade: 6 },
+    expect(transactionMock.saldoEstoque.upsert).toHaveBeenCalledWith({
+      where: { itemId_localId: { itemId: "item-1", localId: "deposito-id" } },
+      create: { itemId: "item-1", localId: "deposito-id", quantidade: 6, reservada: 0 },
+      update: { quantidade: 6 },
     });
-    expect(transactionMock.movimentacaoDeposito.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ tipo: "AJUSTE", quantidade: 4, saldoAntes: 10, saldoDepois: 6, usuarioId: 4, motivo: "Contagem física" }),
+    expect(transactionMock.movimentacao.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        tipo: "AJUSTE",
+        quantidade: 4,
+        saldoApos: 6,
+        reservadaApos: 0,
+        funcionarioId: 4,
+        saldoEstoqueId: "saldo-id",
+        observacao: expect.stringContaining("Motivo: Contagem física"),
+      }),
     }));
   });
 });
