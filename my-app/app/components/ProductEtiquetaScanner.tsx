@@ -60,7 +60,11 @@ export default function ProductEtiquetaScanner({
         const capabilities = track?.getCapabilities?.() as MediaTrackCapabilities & { torch?: boolean; focusMode?: string[] } | undefined;
         setTorchSupported(Boolean(capabilities?.torch));
         if (capabilities?.focusMode?.includes("continuous")) {
-          await track.applyConstraints({ advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet] });
+          try {
+            await track.applyConstraints({ advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet] });
+          } catch {
+            setFeedback("Foco contínuo indisponível. Aproxime a etiqueta até o QR ficar nítido.");
+          }
         }
         if (!videoRef.current) return;
         videoRef.current.srcObject = stream;
