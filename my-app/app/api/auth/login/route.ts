@@ -103,6 +103,15 @@ export async function POST(request: Request) {
     }
 
     if (loginRequiresFace(funcionario.papel)) {
+      const faceTemplateCount = await prisma.faceTemplate.count({
+        where: { funcionarioId: funcionario.id, revogadoEm: null },
+      });
+      if (faceTemplateCount === 0) {
+        return NextResponse.json(
+          { error: "O administrador precisa cadastrar a biometria facial ou habilitar o TOTP antes de entrar." },
+          { status: 503 },
+        );
+      }
       return NextResponse.json(await createLoginFaceChallenge(funcionario.id, ipHash), { status: 202 });
     }
 

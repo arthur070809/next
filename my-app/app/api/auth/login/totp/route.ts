@@ -96,7 +96,12 @@ export async function POST(request: Request) {
     clearFactorFailures(factorKey);
 
     if (loginRequiresFace(challenge.funcionario.papel)) {
-      return NextResponse.json(await createLoginFaceChallenge(challenge.funcionarioId, ipHash), { status: 202 });
+      const faceTemplateCount = await prisma.faceTemplate.count({
+        where: { funcionarioId: challenge.funcionarioId, revogadoEm: null },
+      });
+      if (faceTemplateCount > 0) {
+        return NextResponse.json(await createLoginFaceChallenge(challenge.funcionarioId, ipHash), { status: 202 });
+      }
     }
     await clearBadgeLoginFailures(challenge.funcionario.cracha);
     const session = await createLoginSessionResponse(challenge.funcionario, getLoginAccessArea(challenge.funcionario.papel));

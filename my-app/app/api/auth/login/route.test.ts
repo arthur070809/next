@@ -9,6 +9,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: {
   webAuthnCredential: { findMany: vi.fn() },
   emergencyAccessGrant: { findFirst: vi.fn() },
   authChallenge: { create: vi.fn() },
+  faceTemplate: { count: vi.fn() },
   securityAuditEvent: { create: vi.fn() },
   loginAttemptBucket: { findFirst: vi.fn(), deleteMany: vi.fn() },
   $executeRaw: vi.fn(),
@@ -63,6 +64,7 @@ describe("login by badge code", () => {
     vi.mocked(prisma.webAuthnCredential.findMany).mockResolvedValue([]);
     vi.mocked(prisma.emergencyAccessGrant.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(1);
     vi.mocked(prisma.$executeRaw).mockResolvedValue(1);
     vi.mocked(prisma.authChallenge.create).mockResolvedValue({ id: "face-challenge" } as never);
     vi.mocked(prisma.loginAttemptBucket.deleteMany).mockResolvedValue({ count: 0 } as never);
@@ -105,6 +107,35 @@ describe("login by badge code", () => {
     expect(response.status).toBe(202);
     expect(data.step).toBe("face");
     expect(typeof data.loginToken).toBe("string");
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("fails closed for an admin without a face template or TOTP", async () => {
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
+
+    const response = await POST(request("1000"));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({
+      error: expect.stringContaining("habilitar o TOTP"),
+    });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+    expect(prisma.authChallenge.create).not.toHaveBeenCalled();
+  });
+
+  it("routes an admin without a face template to configured TOTP", async () => {
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
+    vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue({ enabledAt: new Date() } as never);
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
+
+    const response = await POST(request("1000"));
+    const data = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(data.step).toBe("totp");
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
