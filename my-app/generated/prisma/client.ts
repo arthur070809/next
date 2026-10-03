@@ -106,7 +106,7 @@ export type DevicePairing = Prisma.DevicePairingModel
 export type WebAuthnCredential = Prisma.WebAuthnCredentialModel
 /**
  * Model AuthChallenge
- * 
+ *
  */
 export type AuthChallenge = Prisma.AuthChallengeModel
 /**

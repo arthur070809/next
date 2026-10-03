@@ -16,9 +16,24 @@ export async function hashPassword(password: string) {
 }
 
 export function isSameOrigin(request: Request) {
+  const requestUrl = new URL(request.url);
+  const host = request.headers.get("host");
+  if (host && host.toLowerCase() !== requestUrl.host.toLowerCase()) return false;
   const origin = request.headers.get("origin");
-  if (!origin) return true;
-  return origin === new URL(request.url).origin;
+  if (origin) {
+    try {
+      return new URL(origin).origin === requestUrl.origin;
+    } catch {
+      return false;
+    }
+  }
+  const referer = request.headers.get("referer");
+  if (!referer || !host) return false;
+  try {
+    return new URL(referer).origin === requestUrl.origin;
+  } catch {
+    return false;
+  }
 }
 
 const attempts = new Map<string, { count: number; resetAt: number }>();

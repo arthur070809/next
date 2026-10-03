@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { papelParaRole, sessionCookieName } from "@/lib/auth";
@@ -6,7 +6,7 @@ import { createFaceNonce, hashFaceNonce } from "@/lib/face";
 import { prisma } from "@/lib/prisma";
 import { hashSecret } from "@/lib/webauthn";
 
-const facialProfiles = [PapelFuncionario.ADMIN] as const;
+const PERFIS_COM_FACIAL = [PapelFuncionario.ADMIN] as const;
 const loginFaceChallengeTtlMs = 60 * 1000;
 let disabledWarningShown = false;
 
@@ -73,39 +73,41 @@ export function verifyLoginFaceState(token: string): LoginFaceState | null {
 export function loginRequiresFace(papel: PapelFuncionario) {
   if (process.env.LOGIN_FACIAL_OBRIGATORIO === "false") {
     if (!disabledWarningShown) {
-      console.warn("[auth] Login facial está temporariamente desativado por LOGIN_FACIAL_OBRIGATORIO=false.");
+      const production = process.env.NODE_ENV === "production";
+      console.warn(production
+        ? "[auth] LOGIN_FACIAL_OBRIGATORIO=false foi ignorado em produção; a exigência facial permanece ativa."
+        : "[auth] Login facial está temporariamente desativado por LOGIN_FACIAL_OBRIGATORIO=false.");
       disabledWarningShown = true;
     }
-    return false;
+    if (process.env.NODE_ENV !== "production") return false;
   }
-  return facialProfiles.some((profile) => profile === papel);
+  return PERFIS_COM_FACIAL.some((profile) => profile === papel);
 }
 
 export async function createLoginFaceChallenge(funcionarioId: number, ipHash: string) {
   const nonce = createFaceNonce();
   const challenge = ["piscar", "virar_esquerda", "sorrir"][randomBytes(1)[0] % 3];
   const expiresAt = new Date(Date.now() + loginFaceChallengeTtlMs);
-  const created = await prisma.authChallenge.create({
-    data: {
-      tipo: "LOGIN_FACE",
-      challenge,
-      funcionarioId,
-      ipHash,
-      expiraEm: expiresAt,
-    },
-    select: { id: true },
-  });
+  const challengeId = randomUUID();
   const state: LoginFaceState = {
-    challengeId: created.id,
+    challengeId,
     funcionarioId,
     expiresAt: expiresAt.getTime(),
     nonceHash: hashFaceNonce(nonce),
     challenge,
   };
   const loginToken = encodeState(state);
-  await prisma.authChallenge.update({
-    where: { id: created.id },
-    data: { preAuthTokenHash: hashSecret(loginToken) },
+  const created = await prisma.authChallenge.create({
+    data: {
+      id: challengeId,
+      tipo: "LOGIN_FACE",
+      challenge,
+      funcionarioId,
+      ipHash,
+      preAuthTokenHash: hashSecret(loginToken),
+      expiraEm: expiresAt,
+    },
+    select: { id: true },
   });
   return {
     step: "face" as const,
@@ -123,26 +125,51 @@ export async function createLoginSessionResponse(
   trustedDeviceId: string | null = null,
 ) {
   const token = randomBytes(32).toString("hex");
-  await prisma.sessao.create({
-    data: {
-      token,
-      funcionarioId: funcionario.id,
-      accessArea,
-      trustedDeviceId,
-      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000),
-    },
-  });
+  const currentEmployee = await prisma.$transaction(async (transaction) => {
+    const current = await transaction.funcionario.findFirst({
+      where: { id: funcionario.id, ativo: true, papel: funcionario.papel },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cargo: true,
+        cracha: true,
+        papel: true,
+        mustChangePassword: true,
+      },
+    });
+    if (!current) return null;
+    await transaction.sessao.create({
+      data: {
+        token,
+        funcionarioId: current.id,
+        accessArea,
+        trustedDeviceId,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000),
+      },
+    });
+    return current;
+  }, { isolationLevel: "Serializable" });
+  if (!currentEmployee) return null;
+
+  return createLoginSessionSuccessResponse(currentEmployee, token);
+}
+
+export function createLoginSessionSuccessResponse(
+  currentEmployee: LoginEmployee,
+  token: string,
+) {
   const response = NextResponse.json({
     message: "Login realizado com sucesso.",
     funcionario: {
-      id: funcionario.id,
-      nome: funcionario.nome,
-      email: funcionario.email,
-      cargo: funcionario.cargo,
-      cracha: funcionario.cracha,
-      role: papelParaRole(funcionario.papel),
-      papel: funcionario.papel,
-      mustChangePassword: funcionario.mustChangePassword,
+      id: currentEmployee.id,
+      nome: currentEmployee.nome,
+      email: currentEmployee.email,
+      cargo: currentEmployee.cargo,
+      cracha: currentEmployee.cracha,
+      role: papelParaRole(currentEmployee.papel),
+      papel: currentEmployee.papel,
+      mustChangePassword: currentEmployee.mustChangePassword,
     },
   });
   response.cookies.set(sessionCookieName, token, {

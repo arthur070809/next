@@ -2,11 +2,17 @@ import { randomInt, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { verifyAuthenticationResponse, type AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
-import { isLoginTemporarilyBlocked, recordLoginFailure } from "@/lib/login-attempts";
+import {
+  getLoginBlockRetryAfter,
+  getLoginClientIpHash,
+  isLoginAttemptStorageUnavailable,
+  loginAttemptStorageUnavailableResponse,
+  recordLoginFailure,
+} from "@/lib/login-attempts";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, isSameOrigin } from "@/lib/security";
 import { isFactorBlocked, recordFactorFailure } from "@/lib/security-attempts";
-import { getClientIpHash, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName } from "@/lib/webauthn";
+import { getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName } from "@/lib/webauthn";
 import { createFaceNonce, hashFaceNonce, livenessChallengeTtlMs } from "@/lib/face";
 
 const genericFailure = () => NextResponse.json({ error: "Não foi possível verificar o acesso. Tente novamente ou procure o administrador." }, { status: 401 });
@@ -14,8 +20,13 @@ const genericFailure = () => NextResponse.json({ error: "Não foi possível veri
 export async function POST(request: Request) {
   try {
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
-    const ipHash = getClientIpHash(request);
-    if (isRateLimited(`webauthn-verify:${ipHash}`, 12, 15 * 60 * 1000)) return NextResponse.json({ error: "Muitas tentativas. Tente novamente mais tarde." }, { status: 429 });
+    const ipHash = getLoginClientIpHash(request);
+    if (isRateLimited(`webauthn-verify:${ipHash}`, 12, 15 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
+    }
     if (Number(request.headers.get("content-length") ?? 0) > 65_536) return genericFailure();
     let body: Record<string, unknown>;
     try { body = await request.json(); } catch { return genericFailure(); }
@@ -25,11 +36,20 @@ export async function POST(request: Request) {
     const challenge = await prisma.authChallenge.findUnique({ where: { id: challengeId }, include: { funcionario: true, trustedDevice: true } });
     const now = new Date();
     if (!challenge || challenge.tipo !== "USER_WEBAUTHN" || challenge.usadoEm || challenge.expiraEm <= now || !challenge.challenge || !challenge.trustedDeviceId || !challenge.trustedDevice || challenge.trustedDevice.revogadoEm || !challenge.funcionario.ativo || challenge.funcionario.papel !== "ALMOXARIFE") return genericFailure();
-    if (await isLoginTemporarilyBlocked(challenge.funcionario.cracha, ipHash)) {
-      return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 15 minutos." }, { status: 429 });
+    const retryAfter = await getLoginBlockRetryAfter(challenge.funcionario.cracha, ipHash);
+    if (retryAfter !== null) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
     }
     const factorKey = `${challenge.funcionarioId}:${challenge.trustedDeviceId}:${challenge.ipHash ?? ipHash}`;
-    if (isFactorBlocked(factorKey)) return NextResponse.json({ error: "Verificação temporariamente bloqueada. Procure o administrador." }, { status: 429 });
+    if (isFactorBlocked(factorKey)) {
+      return NextResponse.json(
+        { error: "Verificação temporariamente bloqueada. Procure o administrador." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
+    }
 
     const deviceToken = (await cookies()).get(trustedDeviceCookieName)?.value;
     if (!deviceToken || hashSecret(deviceToken) !== challenge.trustedDevice.tokenHash) {
@@ -86,6 +106,11 @@ export async function POST(request: Request) {
 
     const verifiedAt = new Date();
     const accepted = await prisma.$transaction(async (transaction) => {
+      const currentEmployee = await transaction.funcionario.findFirst({
+        where: { id: challenge.funcionarioId, ativo: true, papel: "ALMOXARIFE" },
+        select: { id: true },
+      });
+      if (!currentEmployee) return false;
       const usedChallenge = await transaction.authChallenge.updateMany({ where: { id: challenge.id, usadoEm: null, expiraEm: { gt: verifiedAt }, challenge: challenge.challenge, trustedDeviceId: challenge.trustedDeviceId }, data: { usadoEm: verifiedAt } });
       if (usedChallenge.count !== 1) return false;
       const credentialUpdated = await transaction.webAuthnCredential.updateMany({ where: { id: storedCredential.id, revogadoEm: null, counter: storedCredential.counter }, data: { counter: BigInt(verification.authenticationInfo.newCounter), ultimoUsoEm: verifiedAt } });
@@ -127,6 +152,7 @@ export async function POST(request: Request) {
       expiresAt: livenessChallenge.expiraEm,
     });
   } catch (error) {
+    if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
     const errorId = randomUUID();
     console.error("Falha na verificação WebAuthn", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return NextResponse.json({ error: "Não foi possível verificar o acesso.", errorId }, { status: 500 });

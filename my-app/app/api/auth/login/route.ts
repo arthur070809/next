@@ -4,10 +4,18 @@ import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
-import { clearBadgeLoginFailures, isLoginTemporarilyBlocked, recordLoginFailure } from "@/lib/login-attempts";
+import {
+  clearBadgeLoginFailures,
+  getLoginBlockRetryAfter,
+  getLoginClientIpHash,
+  isLoginAttemptStorageUnavailable,
+  loginAttemptStorageUnavailableResponse,
+  normalizeLoginCode,
+  recordLoginFailure,
+} from "@/lib/login-attempts";
 import { createLoginFaceChallenge, createLoginSessionResponse, getLoginAccessArea, loginRequiresFace } from "@/lib/login-flow";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { createSecret, getClientIpHash, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
+import { createSecret, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
 
 const invalidCode = () => NextResponse.json({ error: "Código inválido." }, { status: 401 });
 const minInvalidResponseMs = 200;
@@ -19,25 +27,49 @@ async function invalidCodeResponse(startedAt: number, badge: string, ipHash: str
   return invalidCode();
 }
 
+async function readLimitedJson(request: Request): Promise<Record<string, unknown> | null> {
+  if (Number(request.headers.get("content-length") ?? 0) > 8192) return null;
+  if (!request.body) return {};
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 8192) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    const parsed: unknown = JSON.parse(Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), size).toString("utf8"));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   const startedAt = Date.now();
+  const ipHash = getLoginClientIpHash(request);
   try {
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
-    if (Number(request.headers.get("content-length") ?? 0) > 8192) return invalidCodeResponse(startedAt, "", getClientIpHash(request));
-
-    let body: Record<string, unknown>;
-    try {
-      body = await request.json() as Record<string, unknown>;
-    } catch {
-      return invalidCodeResponse(startedAt, "", getClientIpHash(request));
-    }
+    const body = await readLimitedJson(request);
+    if (!body) return invalidCodeResponse(startedAt, "", ipHash);
     const suppliedCode = typeof body.codigoCracha === "string" ? body.codigoCracha : "";
-    const badge = suppliedCode.toUpperCase().slice(0, 20);
-    const validCode = suppliedCode === suppliedCode.trim() && /^[A-Z0-9-]{1,20}$/.test(badge);
-    const ipHash = getClientIpHash(request);
+    const badge = normalizeLoginCode(suppliedCode);
+    const validCode = /^\d{4,10}$/.test(badge);
 
-    if (await isLoginTemporarilyBlocked(badge, ipHash)) {
-      return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 15 minutos." }, { status: 429 });
+    const retryAfter = await getLoginBlockRetryAfter(badge, ipHash);
+    if (retryAfter !== null) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
     }
 
     const lookupCode = validCode ? badge : "__INVALID_BADGE__";
@@ -104,8 +136,9 @@ export async function POST(request: Request) {
           return true;
         });
         if (consumed) {
-          await clearBadgeLoginFailures(badge, ipHash);
-          return createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel), device.id);
+          await clearBadgeLoginFailures(badge);
+          const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel), device.id);
+          return session ?? invalidCode();
         }
       }
 
@@ -137,9 +170,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ step: "webauthn", challengeId: challenge.id, options }, { status: 202 });
     }
 
-    await clearBadgeLoginFailures(badge, ipHash);
-    return createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));
+    await clearBadgeLoginFailures(badge);
+    const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));
+    return session ?? invalidCode();
   } catch (error) {
+    if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
     const errorId = randomUUID();
     console.error("Falha no login", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return NextResponse.json({ error: "Não foi possível concluir o login.", errorId }, { status: 500 });

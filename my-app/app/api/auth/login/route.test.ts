@@ -3,13 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/prisma", () => ({ prisma: {
   funcionario: { findFirst: vi.fn() },
   sessao: { create: vi.fn() },
+  $transaction: vi.fn(),
   adminTotpCredential: { findUnique: vi.fn() },
   trustedDevice: { findUnique: vi.fn() },
   webAuthnCredential: { findMany: vi.fn() },
   emergencyAccessGrant: { findFirst: vi.fn() },
-  authChallenge: { create: vi.fn(), update: vi.fn() },
+  authChallenge: { create: vi.fn() },
   securityAuditEvent: { create: vi.fn() },
-  loginAttemptBucket: { findFirst: vi.fn(), findUnique: vi.fn(), upsert: vi.fn(), updateMany: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
+  loginAttemptBucket: { findFirst: vi.fn(), deleteMany: vi.fn() },
+  $executeRaw: vi.fn(),
 } }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })) }));
 
@@ -55,15 +57,15 @@ describe("login by badge code", () => {
     process.env.LOGIN_FACIAL_OBRIGATORIO = "false";
     process.env.LOGIN_CHALLENGE_SECRET = "test-login-secret-that-is-at-least-32-characters";
     vi.mocked(prisma.sessao.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.$transaction).mockImplementation(((callback: (transaction: typeof prisma) => Promise<unknown>) => callback(prisma)) as never);
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue(null);
     vi.mocked(prisma.webAuthnCredential.findMany).mockResolvedValue([]);
     vi.mocked(prisma.emergencyAccessGrant.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue(null);
-    vi.mocked(prisma.loginAttemptBucket.updateMany).mockResolvedValue({ count: 0 } as never);
-    vi.mocked(prisma.loginAttemptBucket.upsert).mockResolvedValue({ failures: 1 } as never);
-    vi.mocked(prisma.loginAttemptBucket.findUnique).mockResolvedValue({ failures: 1 } as never);
+    vi.mocked(prisma.$executeRaw).mockResolvedValue(1);
     vi.mocked(prisma.authChallenge.create).mockResolvedValue({ id: "face-challenge" } as never);
-    vi.mocked(prisma.authChallenge.update).mockResolvedValue({} as never);
+    vi.mocked(prisma.loginAttemptBucket.deleteMany).mockResolvedValue({ count: 0 } as never);
   });
 
   it("finds the employee by badge, discovers the role, and creates an admin session", async () => {
@@ -128,11 +130,43 @@ describe("login by badge code", () => {
   });
 
   it("blocks a badge or IP with an active persistent lock", async () => {
-    vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue({ keyHash: "blocked" } as never);
+    vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue({ blockedUntil: new Date(Date.now() + 60_000) } as never);
 
     const response = await POST(request("1000"));
 
     expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBeTruthy();
     expect(prisma.funcionario.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("normalizes full-width badge digits before both lookup and failure accounting", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(null);
+
+    const response = await POST(request(" １２３４ "));
+
+    expect(response.status).toBe(401);
+    expect(prisma.funcionario.findFirst).toHaveBeenCalledWith({ where: { cracha: "1234" } });
+    expect(prisma.$executeRaw).toHaveBeenCalledTimes(2);
+  });
+
+  it("fails closed with a controlled 503 when the required throttling table is absent", async () => {
+    vi.mocked(prisma.loginAttemptBucket.findFirst).mockRejectedValue({ code: "P2021" });
+
+    const response = await POST(request("1234"));
+
+    expect(response.status).toBe(503);
+    expect((await response.json()).error).toContain("temporariamente indisponível");
+    expect(prisma.funcionario.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("does not create a session if the employee becomes inactive during login", async () => {
+    vi.mocked(prisma.funcionario.findFirst)
+      .mockResolvedValueOnce(operator as never)
+      .mockResolvedValueOnce(null);
+
+    const response = await POST(request("2000"));
+
+    expect(response.status).toBe(401);
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 });

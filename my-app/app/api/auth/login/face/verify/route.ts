@@ -1,15 +1,21 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { sessionCookieName, papelParaRole } from "@/lib/auth";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { decryptEmbedding, faceAttemptLimit, hashFaceNonce, verifyFaceCapture } from "@/lib/face";
-import { clearBadgeLoginFailures, isLoginTemporarilyBlocked, recordLoginFailure } from "@/lib/login-attempts";
-import { createLoginSessionResponse, getLoginAccessArea, verifyLoginFaceState } from "@/lib/login-flow";
+import {
+  clearBadgeLoginFailures,
+  getLoginBlockRetryAfter,
+  getLoginClientIpHash,
+  isLoginAttemptStorageUnavailable,
+  loginAttemptStorageUnavailableResponse,
+  recordLoginFailure,
+} from "@/lib/login-attempts";
+import { createLoginSessionSuccessResponse, getLoginAccessArea, verifyLoginFaceState } from "@/lib/login-flow";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, isSameOrigin } from "@/lib/security";
 import { clearFactorFailures, isFactorBlocked, recordFactorFailure } from "@/lib/security-attempts";
-import { getClientIpHash, hashSecret, trustedDeviceCookieName } from "@/lib/webauthn";
+import { hashSecret, trustedDeviceCookieName } from "@/lib/webauthn";
 
 const genericFailure = () => NextResponse.json({ error: "Não foi possível verificar o acesso. Tente novamente ou procure o administrador." }, { status: 401 });
 
@@ -29,15 +35,22 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
     !challenge.funcionario.ativo ||
     challenge.funcionario.papel !== PapelFuncionario.ALMOXARIFE
   ) return genericFailure();
-  if (await isLoginTemporarilyBlocked(challenge.funcionario.cracha, ipHash)) {
-    return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 15 minutos." }, { status: 429 });
+  const retryAfter = await getLoginBlockRetryAfter(challenge.funcionario.cracha, ipHash);
+  if (retryAfter !== null) {
+    return NextResponse.json(
+      { error: "Muitas tentativas. Tente novamente mais tarde." },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
   }
 
   const deviceToken = (await cookies()).get(trustedDeviceCookieName)?.value;
   if (!deviceToken || hashSecret(deviceToken) !== challenge.trustedDevice.tokenHash) return genericFailure();
   const factorKey = `${challenge.funcionarioId}:${challenge.trustedDeviceId}:${ipHash}`;
   if (isFactorBlocked(factorKey)) {
-    return NextResponse.json({ error: "Verificação temporariamente bloqueada. Procure o administrador." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Verificação temporariamente bloqueada. Procure o administrador." },
+      { status: 429, headers: { "Retry-After": "900" } },
+    );
   }
 
   const templates = await prisma.faceTemplate.findMany({
@@ -83,11 +96,19 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
       : genericFailure();
   }
 
+  const completedAt = new Date();
   const sessionToken = randomBytes(32).toString("hex");
   const accepted = await prisma.$transaction(async (transaction) => {
+    const currentEmployee = await transaction.funcionario.findFirst({
+      where: { id: challenge.funcionarioId, ativo: true, papel: PapelFuncionario.ALMOXARIFE },
+      select: {
+        id: true, nome: true, email: true, cargo: true, cracha: true, papel: true, mustChangePassword: true,
+      },
+    });
+    if (!currentEmployee) return false;
     const consumed = await transaction.livenessChallenge.updateMany({
-      where: { id: challenge.id, usadoEm: null, expiraEm: { gt: now }, nonceHash: hashFaceNonce(nonce) },
-      data: { usadoEm: now },
+      where: { id: challenge.id, usadoEm: null, expiraEm: { gt: completedAt }, nonceHash: hashFaceNonce(nonce) },
+      data: { usadoEm: completedAt },
     });
     if (consumed.count !== 1) return false;
     await transaction.sessao.create({
@@ -96,12 +117,12 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
         funcionarioId: challenge.funcionarioId,
         accessArea: "almoxarifado",
         trustedDeviceId: challenge.trustedDeviceId,
-        expiresAt: new Date(now.getTime() + 8 * 60 * 60 * 1000),
+        expiresAt: new Date(completedAt.getTime() + 8 * 60 * 60 * 1000),
       },
     });
     await transaction.trustedDevice.update({
       where: { id: challenge.trustedDeviceId, revogadoEm: null },
-      data: { ultimoAcessoEm: now },
+      data: { ultimoAcessoEm: completedAt },
     });
     await transaction.faceAuthAttempt.create({
       data: { funcionarioId: challenge.funcionarioId, trustedDeviceId: challenge.trustedDeviceId, resultado: "success", ipHash },
@@ -109,42 +130,25 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
     await transaction.securityAuditEvent.create({
       data: { acao: "FACE_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, trustedDeviceId: challenge.trustedDeviceId, ipHash },
     });
-    return true;
+    return currentEmployee;
   }, { isolationLevel: "Serializable" });
-  if (!accepted) return genericFailure();
+  if (!accepted || challenge.expiraEm <= completedAt) return genericFailure();
 
   clearFactorFailures(factorKey);
-  await clearBadgeLoginFailures(challenge.funcionario.cracha, ipHash);
-  const funcionario = challenge.funcionario;
-  const response = NextResponse.json({
-    message: "Login realizado com sucesso.",
-    funcionario: {
-      id: funcionario.id,
-      nome: funcionario.nome,
-      email: funcionario.email,
-      cargo: funcionario.cargo,
-      cracha: funcionario.cracha,
-      role: papelParaRole(funcionario.papel),
-      mustChangePassword: funcionario.mustChangePassword,
-    },
-  });
-  response.cookies.set(sessionCookieName, sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 8 * 60 * 60,
-  });
-  return response;
+  await clearBadgeLoginFailures(challenge.funcionario.cracha);
+  return createLoginSessionSuccessResponse(accepted, sessionToken);
 }
 
 export async function POST(request: Request) {
   try {
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     if (Number(request.headers.get("content-length") ?? 0) > 4 * 1024 * 1024) return genericFailure();
-    const ipHash = getClientIpHash(request);
+    const ipHash = getLoginClientIpHash(request);
     if (isRateLimited(`face-verify:${ipHash}`, 9, 15 * 60 * 1000)) {
-      return NextResponse.json({ error: "Muitas tentativas. Tente novamente mais tarde." }, { status: 429 });
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
     }
     let body: Record<string, unknown>;
     try {
@@ -180,17 +184,20 @@ export async function POST(request: Request) {
       (challenge.funcionario.papel !== PapelFuncionario.ADMIN && challenge.funcionario.papel !== PapelFuncionario.OPERADOR)
     ) return genericFailure();
 
-    if (await isLoginTemporarilyBlocked(challenge.funcionario.cracha, ipHash)) {
-      return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 15 minutos." }, { status: 429 });
+    const retryAfter = await getLoginBlockRetryAfter(challenge.funcionario.cracha, ipHash);
+    if (retryAfter !== null) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
     }
     const factorKey = `login-face:${challenge.funcionarioId}:${ipHash}`;
-    if (isFactorBlocked(factorKey)) return NextResponse.json({ error: "Verificação temporariamente bloqueada. Tente novamente mais tarde." }, { status: 429 });
-
-    const consumed = await prisma.authChallenge.updateMany({
-      where: { id: challenge.id, tipo: "LOGIN_FACE", usadoEm: null, expiraEm: { gt: now }, preAuthTokenHash: hashSecret(loginToken) },
-      data: { usadoEm: now },
-    });
-    if (consumed.count !== 1) return genericFailure();
+    if (isFactorBlocked(factorKey)) {
+      return NextResponse.json(
+        { error: "Verificação temporariamente bloqueada. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
+    }
 
     const templates = await prisma.faceTemplate.findMany({
       where: { funcionarioId: challenge.funcionarioId, revogadoEm: null },
@@ -210,6 +217,12 @@ export async function POST(request: Request) {
     }
 
     if (!matched) {
+      const failedAt = new Date();
+      const consumed = await prisma.authChallenge.updateMany({
+        where: { id: challenge.id, tipo: "LOGIN_FACE", usadoEm: null, expiraEm: { gt: failedAt }, preAuthTokenHash: hashSecret(loginToken) },
+        data: { usadoEm: failedAt },
+      });
+      if (consumed.count !== 1) return genericFailure();
       const failureCount = recordFactorFailure(factorKey);
       await recordLoginFailure(challenge.funcionario.cracha, ipHash);
       await prisma.securityAuditEvent.create({
@@ -220,13 +233,48 @@ export async function POST(request: Request) {
         : genericFailure();
     }
 
-    await prisma.securityAuditEvent.create({
-      data: { acao: "FACE_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, ipHash },
-    });
+    const completedAt = new Date();
+    if (state.expiresAt <= completedAt.getTime()) return genericFailure();
+    const sessionToken = randomBytes(32).toString("hex");
+    const accepted = await prisma.$transaction(async (transaction) => {
+      const currentEmployee = await transaction.funcionario.findFirst({
+        where: { id: challenge.funcionarioId, ativo: true, papel: challenge.funcionario.papel },
+        select: {
+          id: true, nome: true, email: true, cargo: true, cracha: true, papel: true, mustChangePassword: true,
+        },
+      });
+      if (!currentEmployee) return null;
+      const consumed = await transaction.authChallenge.updateMany({
+        where: {
+          id: challenge.id,
+          tipo: "LOGIN_FACE",
+          usadoEm: null,
+          expiraEm: { gt: completedAt },
+          preAuthTokenHash: hashSecret(loginToken),
+        },
+        data: { usadoEm: completedAt },
+      });
+      if (consumed.count !== 1) return null;
+      await transaction.sessao.create({
+        data: {
+          token: sessionToken,
+          funcionarioId: challenge.funcionarioId,
+          accessArea: getLoginAccessArea(currentEmployee.papel),
+          expiresAt: new Date(completedAt.getTime() + 8 * 60 * 60 * 1000),
+        },
+      });
+      await transaction.securityAuditEvent.create({
+        data: { acao: "FACE_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, ipHash },
+      });
+      return currentEmployee;
+    }, { isolationLevel: "Serializable" });
+    if (!accepted) return genericFailure();
+
     clearFactorFailures(factorKey);
-    await clearBadgeLoginFailures(challenge.funcionario.cracha, ipHash);
-    return createLoginSessionResponse(challenge.funcionario, getLoginAccessArea(challenge.funcionario.papel));
+    await clearBadgeLoginFailures(challenge.funcionario.cracha);
+    return createLoginSessionSuccessResponse(accepted, sessionToken);
   } catch (error) {
+    if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
     const errorId = randomUUID();
     console.error("Falha na verificação facial do login", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return NextResponse.json({ error: "Não foi possível verificar o acesso.", errorId }, { status: 500 });

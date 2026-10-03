@@ -412,6 +412,7 @@ model LoginAttemptBucket {
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   @@index([blockedUntil])
+  @@index([windowStartedAt, blockedUntil])
   @@map("login_attempt_buckets")
 }
 

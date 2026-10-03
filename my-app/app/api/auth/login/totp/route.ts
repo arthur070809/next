@@ -2,12 +2,19 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, isSameOrigin } from "@/lib/security";
-import { clearBadgeLoginFailures, isLoginTemporarilyBlocked, recordLoginFailure } from "@/lib/login-attempts";
+import {
+  clearBadgeLoginFailures,
+  getLoginBlockRetryAfter,
+  getLoginClientIpHash,
+  isLoginAttemptStorageUnavailable,
+  loginAttemptStorageUnavailableResponse,
+  recordLoginFailure,
+} from "@/lib/login-attempts";
 import { createLoginFaceChallenge, createLoginSessionResponse, getLoginAccessArea, loginRequiresFace } from "@/lib/login-flow";
 import { decryptSecuritySecret } from "@/lib/security-crypto";
 import { clearFactorFailures, isFactorBlocked, recordFactorFailure } from "@/lib/security-attempts";
 import { verifyTotp } from "@/lib/totp";
-import { getClientIpHash, hashSecret } from "@/lib/webauthn";
+import { hashSecret } from "@/lib/webauthn";
 import { PapelFuncionario } from "@/generated/prisma/client";
 
 const failed = () => NextResponse.json({ error: "Não foi possível verificar o código. Tente novamente." }, { status: 401 });
@@ -15,9 +22,12 @@ const failed = () => NextResponse.json({ error: "Não foi possível verificar o 
 export async function POST(request: Request) {
   try {
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
-    const ipHash = getClientIpHash(request);
+    const ipHash = getLoginClientIpHash(request);
     if (isRateLimited(`admin-totp:${ipHash}`, 10, 15 * 60 * 1000)) {
-      return NextResponse.json({ error: "Muitas tentativas. Tente novamente mais tarde." }, { status: 429 });
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
     }
     const body = await request.json().catch(() => ({})) as Record<string, unknown>;
     const preAuthToken = typeof body.preAuthToken === "string" ? body.preAuthToken : "";
@@ -30,11 +40,20 @@ export async function POST(request: Request) {
     });
     const now = new Date();
     if (!challenge || challenge.tipo !== "ADMIN_TOTP" || challenge.usadoEm || challenge.expiraEm <= now || challenge.ipHash !== ipHash || !challenge.funcionario.ativo || challenge.funcionario.papel !== PapelFuncionario.ADMIN) return failed();
-    if (await isLoginTemporarilyBlocked(challenge.funcionario.cracha, ipHash)) {
-      return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 15 minutos." }, { status: 429 });
+    const retryAfter = await getLoginBlockRetryAfter(challenge.funcionario.cracha, ipHash);
+    if (retryAfter !== null) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
     }
     const factorKey = `admin:${challenge.funcionarioId}:${challenge.ipHash}`;
-    if (isFactorBlocked(factorKey)) return NextResponse.json({ error: "Verificação temporariamente bloqueada." }, { status: 429 });
+    if (isFactorBlocked(factorKey)) {
+      return NextResponse.json(
+        { error: "Verificação temporariamente bloqueada." },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
+    }
 
     const totp = await prisma.adminTotpCredential.findUnique({ where: { funcionarioId: challenge.funcionarioId } });
     if (!totp?.enabledAt) return failed();
@@ -49,6 +68,11 @@ export async function POST(request: Request) {
 
     const completedAt = new Date();
     const accepted = await prisma.$transaction(async (transaction) => {
+      const currentEmployee = await transaction.funcionario.findFirst({
+        where: { id: challenge.funcionarioId, ativo: true, papel: PapelFuncionario.ADMIN },
+        select: { id: true },
+      });
+      if (!currentEmployee) return false;
       const usedChallenge = await transaction.authChallenge.updateMany({
         where: { id: challenge.id, usadoEm: null, expiraEm: { gt: completedAt } },
         data: { usadoEm: completedAt },
@@ -74,9 +98,11 @@ export async function POST(request: Request) {
     if (loginRequiresFace(challenge.funcionario.papel)) {
       return NextResponse.json(await createLoginFaceChallenge(challenge.funcionarioId, ipHash), { status: 202 });
     }
-    await clearBadgeLoginFailures(challenge.funcionario.cracha, ipHash);
-    return createLoginSessionResponse(challenge.funcionario, getLoginAccessArea(challenge.funcionario.papel));
+    await clearBadgeLoginFailures(challenge.funcionario.cracha);
+    const session = await createLoginSessionResponse(challenge.funcionario, getLoginAccessArea(challenge.funcionario.papel));
+    return session ?? failed();
   } catch (error) {
+    if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
     const errorId = randomUUID();
     console.error("Falha ao validar TOTP do admin", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return NextResponse.json({ error: "Não foi possível verificar o código.", errorId }, { status: 500 });
