@@ -560,9 +560,6 @@ export type $AuditoriaPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     acao: string
-    /**
-     * ID do alvo (Funcionario.id ou outro recurso)
-     */
     alvoId: number
     autorId: number
     detalhes: string | null

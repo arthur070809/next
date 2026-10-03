@@ -1187,9 +1187,6 @@ export type $MovimentacaoPayload<ExtArgs extends runtime.Types.Extensions.Intern
     quantidade: number
     saldoApos: number
     reservadaApos: number
-    /**
-     * Funcionário responsável pela operação (almoxarife ou sistema)
-     */
     funcionarioId: number
     saldoEstoqueId: string
     requisicaoId: string | null

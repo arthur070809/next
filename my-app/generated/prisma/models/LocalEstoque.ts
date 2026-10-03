@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model LocalEstoque
- * Local de armazenamento (ex.: "estoque", "deposito", "materia-prima", "importados")
+ * 
  */
 export type LocalEstoqueModel = runtime.Types.Result.DefaultSelection<Prisma.$LocalEstoquePayload>
 

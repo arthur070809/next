@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Requisicao
- * Cabeçalho de uma requisição multi-item
+ * 
  */
 export type RequisicaoModel = runtime.Types.Result.DefaultSelection<Prisma.$RequisicaoPayload>
 
@@ -1190,9 +1190,6 @@ export type $RequisicaoPayload<ExtArgs extends runtime.Types.Extensions.Internal
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    /**
-     * Número legível: REQ-000123 (gerado pela tabela sequencia_requisicao)
-     */
     numeroPedido: string
     status: $Enums.StatusRequisicao
     prioridade: $Enums.Prioridade

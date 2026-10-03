@@ -12,6 +12,9 @@ const adminMenu = [
   { href: "/admin/estoque", label: "Estoque", icon: "▦" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
   { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
+  { href: "/admin/dispositivos", label: "Aparelhos", icon: "▣" },
+  { href: "/admin/biometria", label: "Biometria facial", icon: "◌" },
+  { href: "/admin/seguranca", label: "Segurança", icon: "⌑" },
 ];
 
 const warehouseMenu = [

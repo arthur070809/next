@@ -1,0 +1,82 @@
+.entryDialog {
+  width: min(100%, 34rem);
+  max-height: min(90dvh, 48rem);
+  overflow-y: auto;
+}
+
+.entryForm {
+  display: grid;
+  gap: 1rem;
+}
+
+.entryField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.entryField input,
+.entryField select,
+.entryField textarea {
+  min-height: 2.75rem;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  color: #0f172a;
+  background: #fff;
+}
+
+.entryField input:focus-visible,
+.entryField select:focus-visible,
+.entryField textarea:focus-visible {
+  outline: 2px solid #4169e1;
+  outline-offset: 2px;
+}
+
+.entrySummary {
+  border-left: 3px solid #059669;
+  background: #ecfdf5;
+  padding: 0.75rem;
+  color: #065f46;
+}
+
+.manualMovement {
+  border-left: 4px solid #059669;
+  background: #f0fdf4;
+  padding-left: 0.75rem;
+}
+
+.entryCombobox {
+  position: relative;
+}
+
+.entryOptionList {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  left: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #fff;
+  box-shadow: 0 8px 20px rgb(15 23 42 / 12%);
+}
+
+.entryOption {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+}
+
+.entryOption small {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.entryOptionActive,
+.entryOption:hover {
+  background: #eff6ff;
+}

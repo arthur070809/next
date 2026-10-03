@@ -406,7 +406,19 @@ export const ModelName = {
   Requisicao: 'Requisicao',
   RequisicaoItem: 'RequisicaoItem',
   Movimentacao: 'Movimentacao',
-  Auditoria: 'Auditoria'
+  Auditoria: 'Auditoria',
+  TrustedDevice: 'TrustedDevice',
+  DevicePairing: 'DevicePairing',
+  WebAuthnCredential: 'WebAuthnCredential',
+  AuthChallenge: 'AuthChallenge',
+  AdminTotpCredential: 'AdminTotpCredential',
+  EmergencyAccessGrant: 'EmergencyAccessGrant',
+  FaceTemplate: 'FaceTemplate',
+  LivenessChallenge: 'LivenessChallenge',
+  FaceAuthAttempt: 'FaceAuthAttempt',
+  FaceEnrollmentSession: 'FaceEnrollmentSession',
+  FaceEnrollmentAttempt: 'FaceEnrollmentAttempt',
+  SecurityAuditEvent: 'SecurityAuditEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -422,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "auditoria"
+    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1086,6 +1098,798 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TrustedDevice: {
+      payload: Prisma.$TrustedDevicePayload<ExtArgs>
+      fields: Prisma.TrustedDeviceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrustedDeviceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrustedDeviceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        findFirst: {
+          args: Prisma.TrustedDeviceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrustedDeviceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        findMany: {
+          args: Prisma.TrustedDeviceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>[]
+        }
+        create: {
+          args: Prisma.TrustedDeviceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        createMany: {
+          args: Prisma.TrustedDeviceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.TrustedDeviceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        update: {
+          args: Prisma.TrustedDeviceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        deleteMany: {
+          args: Prisma.TrustedDeviceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrustedDeviceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.TrustedDeviceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        aggregate: {
+          args: Prisma.TrustedDeviceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrustedDevice>
+        }
+        groupBy: {
+          args: Prisma.TrustedDeviceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrustedDeviceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrustedDeviceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrustedDeviceCountAggregateOutputType> | number
+        }
+      }
+    }
+    DevicePairing: {
+      payload: Prisma.$DevicePairingPayload<ExtArgs>
+      fields: Prisma.DevicePairingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DevicePairingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DevicePairingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>
+        }
+        findFirst: {
+          args: Prisma.DevicePairingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DevicePairingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>
+        }
+        findMany: {
+          args: Prisma.DevicePairingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>[]
+        }
+        create: {
+          args: Prisma.DevicePairingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>
+        }
+        createMany: {
+          args: Prisma.DevicePairingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.DevicePairingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>
+        }
+        update: {
+          args: Prisma.DevicePairingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>
+        }
+        deleteMany: {
+          args: Prisma.DevicePairingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DevicePairingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.DevicePairingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DevicePairingPayload>
+        }
+        aggregate: {
+          args: Prisma.DevicePairingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDevicePairing>
+        }
+        groupBy: {
+          args: Prisma.DevicePairingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DevicePairingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DevicePairingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DevicePairingCountAggregateOutputType> | number
+        }
+      }
+    }
+    WebAuthnCredential: {
+      payload: Prisma.$WebAuthnCredentialPayload<ExtArgs>
+      fields: Prisma.WebAuthnCredentialFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WebAuthnCredentialFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WebAuthnCredentialFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>
+        }
+        findFirst: {
+          args: Prisma.WebAuthnCredentialFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WebAuthnCredentialFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>
+        }
+        findMany: {
+          args: Prisma.WebAuthnCredentialFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>[]
+        }
+        create: {
+          args: Prisma.WebAuthnCredentialCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>
+        }
+        createMany: {
+          args: Prisma.WebAuthnCredentialCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.WebAuthnCredentialDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>
+        }
+        update: {
+          args: Prisma.WebAuthnCredentialUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>
+        }
+        deleteMany: {
+          args: Prisma.WebAuthnCredentialDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WebAuthnCredentialUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.WebAuthnCredentialUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WebAuthnCredentialPayload>
+        }
+        aggregate: {
+          args: Prisma.WebAuthnCredentialAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWebAuthnCredential>
+        }
+        groupBy: {
+          args: Prisma.WebAuthnCredentialGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WebAuthnCredentialGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WebAuthnCredentialCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WebAuthnCredentialCountAggregateOutputType> | number
+        }
+      }
+    }
+    AuthChallenge: {
+      payload: Prisma.$AuthChallengePayload<ExtArgs>
+      fields: Prisma.AuthChallengeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuthChallengeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuthChallengeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>
+        }
+        findFirst: {
+          args: Prisma.AuthChallengeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuthChallengeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>
+        }
+        findMany: {
+          args: Prisma.AuthChallengeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>[]
+        }
+        create: {
+          args: Prisma.AuthChallengeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>
+        }
+        createMany: {
+          args: Prisma.AuthChallengeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AuthChallengeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>
+        }
+        update: {
+          args: Prisma.AuthChallengeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>
+        }
+        deleteMany: {
+          args: Prisma.AuthChallengeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuthChallengeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AuthChallengeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthChallengePayload>
+        }
+        aggregate: {
+          args: Prisma.AuthChallengeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuthChallenge>
+        }
+        groupBy: {
+          args: Prisma.AuthChallengeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuthChallengeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuthChallengeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuthChallengeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AdminTotpCredential: {
+      payload: Prisma.$AdminTotpCredentialPayload<ExtArgs>
+      fields: Prisma.AdminTotpCredentialFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AdminTotpCredentialFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AdminTotpCredentialFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>
+        }
+        findFirst: {
+          args: Prisma.AdminTotpCredentialFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AdminTotpCredentialFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>
+        }
+        findMany: {
+          args: Prisma.AdminTotpCredentialFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>[]
+        }
+        create: {
+          args: Prisma.AdminTotpCredentialCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>
+        }
+        createMany: {
+          args: Prisma.AdminTotpCredentialCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AdminTotpCredentialDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>
+        }
+        update: {
+          args: Prisma.AdminTotpCredentialUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>
+        }
+        deleteMany: {
+          args: Prisma.AdminTotpCredentialDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AdminTotpCredentialUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AdminTotpCredentialUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminTotpCredentialPayload>
+        }
+        aggregate: {
+          args: Prisma.AdminTotpCredentialAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAdminTotpCredential>
+        }
+        groupBy: {
+          args: Prisma.AdminTotpCredentialGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdminTotpCredentialGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AdminTotpCredentialCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdminTotpCredentialCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmergencyAccessGrant: {
+      payload: Prisma.$EmergencyAccessGrantPayload<ExtArgs>
+      fields: Prisma.EmergencyAccessGrantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmergencyAccessGrantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmergencyAccessGrantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>
+        }
+        findFirst: {
+          args: Prisma.EmergencyAccessGrantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmergencyAccessGrantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>
+        }
+        findMany: {
+          args: Prisma.EmergencyAccessGrantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>[]
+        }
+        create: {
+          args: Prisma.EmergencyAccessGrantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>
+        }
+        createMany: {
+          args: Prisma.EmergencyAccessGrantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmergencyAccessGrantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>
+        }
+        update: {
+          args: Prisma.EmergencyAccessGrantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmergencyAccessGrantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmergencyAccessGrantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmergencyAccessGrantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmergencyAccessGrantPayload>
+        }
+        aggregate: {
+          args: Prisma.EmergencyAccessGrantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmergencyAccessGrant>
+        }
+        groupBy: {
+          args: Prisma.EmergencyAccessGrantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmergencyAccessGrantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmergencyAccessGrantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmergencyAccessGrantCountAggregateOutputType> | number
+        }
+      }
+    }
+    FaceTemplate: {
+      payload: Prisma.$FaceTemplatePayload<ExtArgs>
+      fields: Prisma.FaceTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FaceTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FaceTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.FaceTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FaceTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.FaceTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.FaceTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.FaceTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.FaceTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>
+        }
+        update: {
+          args: Prisma.FaceTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.FaceTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FaceTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.FaceTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.FaceTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFaceTemplate>
+        }
+        groupBy: {
+          args: Prisma.FaceTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FaceTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
+    LivenessChallenge: {
+      payload: Prisma.$LivenessChallengePayload<ExtArgs>
+      fields: Prisma.LivenessChallengeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LivenessChallengeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LivenessChallengeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>
+        }
+        findFirst: {
+          args: Prisma.LivenessChallengeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LivenessChallengeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>
+        }
+        findMany: {
+          args: Prisma.LivenessChallengeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>[]
+        }
+        create: {
+          args: Prisma.LivenessChallengeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>
+        }
+        createMany: {
+          args: Prisma.LivenessChallengeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.LivenessChallengeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>
+        }
+        update: {
+          args: Prisma.LivenessChallengeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>
+        }
+        deleteMany: {
+          args: Prisma.LivenessChallengeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LivenessChallengeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.LivenessChallengeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LivenessChallengePayload>
+        }
+        aggregate: {
+          args: Prisma.LivenessChallengeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLivenessChallenge>
+        }
+        groupBy: {
+          args: Prisma.LivenessChallengeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LivenessChallengeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LivenessChallengeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LivenessChallengeCountAggregateOutputType> | number
+        }
+      }
+    }
+    FaceAuthAttempt: {
+      payload: Prisma.$FaceAuthAttemptPayload<ExtArgs>
+      fields: Prisma.FaceAuthAttemptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FaceAuthAttemptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FaceAuthAttemptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>
+        }
+        findFirst: {
+          args: Prisma.FaceAuthAttemptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FaceAuthAttemptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>
+        }
+        findMany: {
+          args: Prisma.FaceAuthAttemptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>[]
+        }
+        create: {
+          args: Prisma.FaceAuthAttemptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>
+        }
+        createMany: {
+          args: Prisma.FaceAuthAttemptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.FaceAuthAttemptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>
+        }
+        update: {
+          args: Prisma.FaceAuthAttemptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>
+        }
+        deleteMany: {
+          args: Prisma.FaceAuthAttemptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FaceAuthAttemptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.FaceAuthAttemptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceAuthAttemptPayload>
+        }
+        aggregate: {
+          args: Prisma.FaceAuthAttemptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFaceAuthAttempt>
+        }
+        groupBy: {
+          args: Prisma.FaceAuthAttemptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceAuthAttemptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FaceAuthAttemptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceAuthAttemptCountAggregateOutputType> | number
+        }
+      }
+    }
+    FaceEnrollmentSession: {
+      payload: Prisma.$FaceEnrollmentSessionPayload<ExtArgs>
+      fields: Prisma.FaceEnrollmentSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FaceEnrollmentSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FaceEnrollmentSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.FaceEnrollmentSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FaceEnrollmentSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>
+        }
+        findMany: {
+          args: Prisma.FaceEnrollmentSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>[]
+        }
+        create: {
+          args: Prisma.FaceEnrollmentSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>
+        }
+        createMany: {
+          args: Prisma.FaceEnrollmentSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.FaceEnrollmentSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>
+        }
+        update: {
+          args: Prisma.FaceEnrollmentSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.FaceEnrollmentSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FaceEnrollmentSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.FaceEnrollmentSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.FaceEnrollmentSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFaceEnrollmentSession>
+        }
+        groupBy: {
+          args: Prisma.FaceEnrollmentSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceEnrollmentSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FaceEnrollmentSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceEnrollmentSessionCountAggregateOutputType> | number
+        }
+      }
+    }
+    FaceEnrollmentAttempt: {
+      payload: Prisma.$FaceEnrollmentAttemptPayload<ExtArgs>
+      fields: Prisma.FaceEnrollmentAttemptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FaceEnrollmentAttemptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FaceEnrollmentAttemptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>
+        }
+        findFirst: {
+          args: Prisma.FaceEnrollmentAttemptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FaceEnrollmentAttemptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>
+        }
+        findMany: {
+          args: Prisma.FaceEnrollmentAttemptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>[]
+        }
+        create: {
+          args: Prisma.FaceEnrollmentAttemptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>
+        }
+        createMany: {
+          args: Prisma.FaceEnrollmentAttemptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.FaceEnrollmentAttemptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>
+        }
+        update: {
+          args: Prisma.FaceEnrollmentAttemptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>
+        }
+        deleteMany: {
+          args: Prisma.FaceEnrollmentAttemptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FaceEnrollmentAttemptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.FaceEnrollmentAttemptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FaceEnrollmentAttemptPayload>
+        }
+        aggregate: {
+          args: Prisma.FaceEnrollmentAttemptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFaceEnrollmentAttempt>
+        }
+        groupBy: {
+          args: Prisma.FaceEnrollmentAttemptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceEnrollmentAttemptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FaceEnrollmentAttemptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FaceEnrollmentAttemptCountAggregateOutputType> | number
+        }
+      }
+    }
+    SecurityAuditEvent: {
+      payload: Prisma.$SecurityAuditEventPayload<ExtArgs>
+      fields: Prisma.SecurityAuditEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SecurityAuditEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SecurityAuditEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>
+        }
+        findFirst: {
+          args: Prisma.SecurityAuditEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SecurityAuditEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>
+        }
+        findMany: {
+          args: Prisma.SecurityAuditEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>[]
+        }
+        create: {
+          args: Prisma.SecurityAuditEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>
+        }
+        createMany: {
+          args: Prisma.SecurityAuditEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.SecurityAuditEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>
+        }
+        update: {
+          args: Prisma.SecurityAuditEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.SecurityAuditEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SecurityAuditEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.SecurityAuditEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityAuditEventPayload>
+        }
+        aggregate: {
+          args: Prisma.SecurityAuditEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSecurityAuditEvent>
+        }
+        groupBy: {
+          args: Prisma.SecurityAuditEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SecurityAuditEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SecurityAuditEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SecurityAuditEventCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1148,6 +1952,7 @@ export const SessaoScalarFieldEnum = {
   token: 'token',
   expiresAt: 'expiresAt',
   accessArea: 'accessArea',
+  trustedDeviceId: 'trustedDeviceId',
   funcionarioId: 'funcionarioId',
   createdAt: 'createdAt'
 } as const
@@ -1275,6 +2080,182 @@ export const AuditoriaScalarFieldEnum = {
 export type AuditoriaScalarFieldEnum = (typeof AuditoriaScalarFieldEnum)[keyof typeof AuditoriaScalarFieldEnum]
 
 
+export const TrustedDeviceScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  tokenHash: 'tokenHash',
+  criadoEm: 'criadoEm',
+  pareadoEm: 'pareadoEm',
+  ultimoAcessoEm: 'ultimoAcessoEm',
+  revogadoEm: 'revogadoEm'
+} as const
+
+export type TrustedDeviceScalarFieldEnum = (typeof TrustedDeviceScalarFieldEnum)[keyof typeof TrustedDeviceScalarFieldEnum]
+
+
+export const DevicePairingScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  trustedDeviceId: 'trustedDeviceId',
+  funcionarioId: 'funcionarioId',
+  criadoPorId: 'criadoPorId',
+  expiraEm: 'expiraEm',
+  challenge: 'challenge',
+  challengeExpiraEm: 'challengeExpiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type DevicePairingScalarFieldEnum = (typeof DevicePairingScalarFieldEnum)[keyof typeof DevicePairingScalarFieldEnum]
+
+
+export const WebAuthnCredentialScalarFieldEnum = {
+  id: 'id',
+  credentialId: 'credentialId',
+  publicKey: 'publicKey',
+  counter: 'counter',
+  transports: 'transports',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  consentVersion: 'consentVersion',
+  consentAt: 'consentAt',
+  createdById: 'createdById',
+  criadoEm: 'criadoEm',
+  ultimoUsoEm: 'ultimoUsoEm',
+  revogadoEm: 'revogadoEm'
+} as const
+
+export type WebAuthnCredentialScalarFieldEnum = (typeof WebAuthnCredentialScalarFieldEnum)[keyof typeof WebAuthnCredentialScalarFieldEnum]
+
+
+export const AuthChallengeScalarFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  challenge: 'challenge',
+  preAuthTokenHash: 'preAuthTokenHash',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash',
+  expiraEm: 'expiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type AuthChallengeScalarFieldEnum = (typeof AuthChallengeScalarFieldEnum)[keyof typeof AuthChallengeScalarFieldEnum]
+
+
+export const AdminTotpCredentialScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  secretCiphertext: 'secretCiphertext',
+  secretIv: 'secretIv',
+  secretTag: 'secretTag',
+  enabledAt: 'enabledAt',
+  lastVerifiedStep: 'lastVerifiedStep',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type AdminTotpCredentialScalarFieldEnum = (typeof AdminTotpCredentialScalarFieldEnum)[keyof typeof AdminTotpCredentialScalarFieldEnum]
+
+
+export const EmergencyAccessGrantScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  criadoPorId: 'criadoPorId',
+  justificativa: 'justificativa',
+  expiraEm: 'expiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type EmergencyAccessGrantScalarFieldEnum = (typeof EmergencyAccessGrantScalarFieldEnum)[keyof typeof EmergencyAccessGrantScalarFieldEnum]
+
+
+export const FaceTemplateScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  embeddingEncrypted: 'embeddingEncrypted',
+  iv: 'iv',
+  tag: 'tag',
+  consentVersion: 'consentVersion',
+  consentAt: 'consentAt',
+  criadoPorId: 'criadoPorId',
+  criadoEm: 'criadoEm',
+  revogadoEm: 'revogadoEm'
+} as const
+
+export type FaceTemplateScalarFieldEnum = (typeof FaceTemplateScalarFieldEnum)[keyof typeof FaceTemplateScalarFieldEnum]
+
+
+export const LivenessChallengeScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  tipo: 'tipo',
+  nonceHash: 'nonceHash',
+  expiraEm: 'expiraEm',
+  usadoEm: 'usadoEm',
+  criadoEm: 'criadoEm'
+} as const
+
+export type LivenessChallengeScalarFieldEnum = (typeof LivenessChallengeScalarFieldEnum)[keyof typeof LivenessChallengeScalarFieldEnum]
+
+
+export const FaceAuthAttemptScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  trustedDeviceId: 'trustedDeviceId',
+  resultado: 'resultado',
+  ipHash: 'ipHash',
+  criadoEm: 'criadoEm'
+} as const
+
+export type FaceAuthAttemptScalarFieldEnum = (typeof FaceAuthAttemptScalarFieldEnum)[keyof typeof FaceAuthAttemptScalarFieldEnum]
+
+
+export const FaceEnrollmentSessionScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  adminId: 'adminId',
+  funcionarioId: 'funcionarioId',
+  criadoEm: 'criadoEm',
+  ultimaAtividade: 'ultimaAtividade',
+  expiraEm: 'expiraEm',
+  tetoEm: 'tetoEm',
+  usadoEm: 'usadoEm'
+} as const
+
+export type FaceEnrollmentSessionScalarFieldEnum = (typeof FaceEnrollmentSessionScalarFieldEnum)[keyof typeof FaceEnrollmentSessionScalarFieldEnum]
+
+
+export const FaceEnrollmentAttemptScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  funcionarioId: 'funcionarioId',
+  resultado: 'resultado',
+  criadoEm: 'criadoEm'
+} as const
+
+export type FaceEnrollmentAttemptScalarFieldEnum = (typeof FaceEnrollmentAttemptScalarFieldEnum)[keyof typeof FaceEnrollmentAttemptScalarFieldEnum]
+
+
+export const SecurityAuditEventScalarFieldEnum = {
+  id: 'id',
+  acao: 'acao',
+  resultado: 'resultado',
+  funcionarioId: 'funcionarioId',
+  atorId: 'atorId',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash',
+  detalhe: 'detalhe',
+  criadoEm: 'criadoEm'
+} as const
+
+export type SecurityAuditEventScalarFieldEnum = (typeof SecurityAuditEventScalarFieldEnum)[keyof typeof SecurityAuditEventScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1306,7 +2287,8 @@ export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRel
 export const SessaoOrderByRelevanceFieldEnum = {
   id: 'id',
   token: 'token',
-  accessArea: 'accessArea'
+  accessArea: 'accessArea',
+  trustedDeviceId: 'trustedDeviceId'
 } as const
 
 export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFieldEnum)[keyof typeof SessaoOrderByRelevanceFieldEnum]
@@ -1387,6 +2369,120 @@ export const AuditoriaOrderByRelevanceFieldEnum = {
 export type AuditoriaOrderByRelevanceFieldEnum = (typeof AuditoriaOrderByRelevanceFieldEnum)[keyof typeof AuditoriaOrderByRelevanceFieldEnum]
 
 
+export const TrustedDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  tokenHash: 'tokenHash'
+} as const
+
+export type TrustedDeviceOrderByRelevanceFieldEnum = (typeof TrustedDeviceOrderByRelevanceFieldEnum)[keyof typeof TrustedDeviceOrderByRelevanceFieldEnum]
+
+
+export const DevicePairingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  trustedDeviceId: 'trustedDeviceId',
+  challenge: 'challenge'
+} as const
+
+export type DevicePairingOrderByRelevanceFieldEnum = (typeof DevicePairingOrderByRelevanceFieldEnum)[keyof typeof DevicePairingOrderByRelevanceFieldEnum]
+
+
+export const WebAuthnCredentialOrderByRelevanceFieldEnum = {
+  id: 'id',
+  credentialId: 'credentialId',
+  transports: 'transports',
+  trustedDeviceId: 'trustedDeviceId',
+  consentVersion: 'consentVersion'
+} as const
+
+export type WebAuthnCredentialOrderByRelevanceFieldEnum = (typeof WebAuthnCredentialOrderByRelevanceFieldEnum)[keyof typeof WebAuthnCredentialOrderByRelevanceFieldEnum]
+
+
+export const AuthChallengeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  challenge: 'challenge',
+  preAuthTokenHash: 'preAuthTokenHash',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash'
+} as const
+
+export type AuthChallengeOrderByRelevanceFieldEnum = (typeof AuthChallengeOrderByRelevanceFieldEnum)[keyof typeof AuthChallengeOrderByRelevanceFieldEnum]
+
+
+export const AdminTotpCredentialOrderByRelevanceFieldEnum = {
+  id: 'id'
+} as const
+
+export type AdminTotpCredentialOrderByRelevanceFieldEnum = (typeof AdminTotpCredentialOrderByRelevanceFieldEnum)[keyof typeof AdminTotpCredentialOrderByRelevanceFieldEnum]
+
+
+export const EmergencyAccessGrantOrderByRelevanceFieldEnum = {
+  id: 'id',
+  trustedDeviceId: 'trustedDeviceId',
+  justificativa: 'justificativa'
+} as const
+
+export type EmergencyAccessGrantOrderByRelevanceFieldEnum = (typeof EmergencyAccessGrantOrderByRelevanceFieldEnum)[keyof typeof EmergencyAccessGrantOrderByRelevanceFieldEnum]
+
+
+export const FaceTemplateOrderByRelevanceFieldEnum = {
+  id: 'id',
+  consentVersion: 'consentVersion'
+} as const
+
+export type FaceTemplateOrderByRelevanceFieldEnum = (typeof FaceTemplateOrderByRelevanceFieldEnum)[keyof typeof FaceTemplateOrderByRelevanceFieldEnum]
+
+
+export const LivenessChallengeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  trustedDeviceId: 'trustedDeviceId',
+  tipo: 'tipo',
+  nonceHash: 'nonceHash'
+} as const
+
+export type LivenessChallengeOrderByRelevanceFieldEnum = (typeof LivenessChallengeOrderByRelevanceFieldEnum)[keyof typeof LivenessChallengeOrderByRelevanceFieldEnum]
+
+
+export const FaceAuthAttemptOrderByRelevanceFieldEnum = {
+  id: 'id',
+  trustedDeviceId: 'trustedDeviceId',
+  resultado: 'resultado',
+  ipHash: 'ipHash'
+} as const
+
+export type FaceAuthAttemptOrderByRelevanceFieldEnum = (typeof FaceAuthAttemptOrderByRelevanceFieldEnum)[keyof typeof FaceAuthAttemptOrderByRelevanceFieldEnum]
+
+
+export const FaceEnrollmentSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash'
+} as const
+
+export type FaceEnrollmentSessionOrderByRelevanceFieldEnum = (typeof FaceEnrollmentSessionOrderByRelevanceFieldEnum)[keyof typeof FaceEnrollmentSessionOrderByRelevanceFieldEnum]
+
+
+export const FaceEnrollmentAttemptOrderByRelevanceFieldEnum = {
+  id: 'id',
+  resultado: 'resultado'
+} as const
+
+export type FaceEnrollmentAttemptOrderByRelevanceFieldEnum = (typeof FaceEnrollmentAttemptOrderByRelevanceFieldEnum)[keyof typeof FaceEnrollmentAttemptOrderByRelevanceFieldEnum]
+
+
+export const SecurityAuditEventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  acao: 'acao',
+  resultado: 'resultado',
+  trustedDeviceId: 'trustedDeviceId',
+  ipHash: 'ipHash',
+  detalhe: 'detalhe'
+} as const
+
+export type SecurityAuditEventOrderByRelevanceFieldEnum = (typeof SecurityAuditEventOrderByRelevanceFieldEnum)[keyof typeof SecurityAuditEventOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -1460,6 +2556,20 @@ export type EnumStatusItemRequisicaoFieldRefInput<$PrismaModel> = FieldRefInputT
  * Reference to a field of type 'TipoMovimentacao'
  */
 export type EnumTipoMovimentacaoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoMovimentacao'>
+    
+
+
+/**
+ * Reference to a field of type 'Bytes'
+ */
+export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+    
+
+
+/**
+ * Reference to a field of type 'BigInt'
+ */
+export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
     
 
 
@@ -1630,6 +2740,18 @@ export type GlobalOmitConfig = {
   requisicaoItem?: Prisma.RequisicaoItemOmit
   movimentacao?: Prisma.MovimentacaoOmit
   auditoria?: Prisma.AuditoriaOmit
+  trustedDevice?: Prisma.TrustedDeviceOmit
+  devicePairing?: Prisma.DevicePairingOmit
+  webAuthnCredential?: Prisma.WebAuthnCredentialOmit
+  authChallenge?: Prisma.AuthChallengeOmit
+  adminTotpCredential?: Prisma.AdminTotpCredentialOmit
+  emergencyAccessGrant?: Prisma.EmergencyAccessGrantOmit
+  faceTemplate?: Prisma.FaceTemplateOmit
+  livenessChallenge?: Prisma.LivenessChallengeOmit
+  faceAuthAttempt?: Prisma.FaceAuthAttemptOmit
+  faceEnrollmentSession?: Prisma.FaceEnrollmentSessionOmit
+  faceEnrollmentAttempt?: Prisma.FaceEnrollmentAttemptOmit
+  securityAuditEvent?: Prisma.SecurityAuditEventOmit
 }
 
 /* Types for Logging */

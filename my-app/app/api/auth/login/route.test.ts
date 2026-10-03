@@ -1,12 +1,17 @@
 import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    funcionario: { findFirst: vi.fn() },
-    sessao: { create: vi.fn() },
-  },
-}));
+vi.mock("@/lib/prisma", () => ({ prisma: {
+  funcionario: { findFirst: vi.fn() },
+  sessao: { create: vi.fn() },
+  adminTotpCredential: { findUnique: vi.fn() },
+  trustedDevice: { findUnique: vi.fn() },
+  webAuthnCredential: { findMany: vi.fn() },
+  emergencyAccessGrant: { findFirst: vi.fn() },
+  authChallenge: { create: vi.fn() },
+  securityAuditEvent: { create: vi.fn() },
+} }));
+vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })) }));
 
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
@@ -50,6 +55,9 @@ describe("login by portal", () => {
     admin.senha = await bcrypt.hash("Senha123", 4);
     almoxarife.senha = await bcrypt.hash("Senha123", 4);
     vi.mocked(prisma.sessao.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue(null);
+    vi.mocked(prisma.webAuthnCredential.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.emergencyAccessGrant.findFirst).mockResolvedValue(null);
   });
 
   it("authenticates admin only through the admin portal", async () => {
@@ -66,16 +74,22 @@ describe("login by portal", () => {
     );
   });
 
-  it("authenticates employees only by badge through the warehouse portal", async () => {
+  it("does not authenticate an employee without an approved device and second factor", async () => {
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(almoxarife as never);
     const response = await POST(request("almoxarifado", "1234"));
-    expect(response.status).toBe(200);
-    expect(prisma.funcionario.findFirst).toHaveBeenCalledWith({
-      where: {
-        cracha: "1234",
-        papel: { in: [PapelFuncionario.ALMOXARIFE, PapelFuncionario.ADMIN] },
-      },
-    });
+    expect(response.status).toBe(401);
+    expect(prisma.funcionario.findFirst).toHaveBeenCalledWith({ where: { cracha: "1234", papel: PapelFuncionario.ALMOXARIFE } });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("does not create an employee session from password alone", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(almoxarife as never);
+
+    const response = await POST(request("almoxarifado", "1234"));
+
+    expect(response.status).toBe(401);
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+    expect(response.headers.get("set-cookie")).toBeNull();
   });
 
   it("rejects cross-portal credentials with a generic error", async () => {

@@ -18,8 +18,7 @@ export default function ChangePasswordPage() {
       const response = await fetch("/api/auth/change-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível alterar a senha.");
-      const next = new URLSearchParams(window.location.search).get("next") ?? "/almoxarifado";
-      setSuccess(data.message); setTimeout(() => router.push(next), 700);
+      setSuccess(data.message); setTimeout(() => router.replace("/login"), 900);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Erro inesperado."); }
     finally { setSaving(false); }
   };

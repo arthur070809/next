@@ -14,8 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model SaldoEstoque
- * Saldo de um item em um local — projeção atualizada via Movimentacao
- * Invariantes de banco: quantidade >= 0, reservada >= 0, reservada <= quantidade
+ * 
  */
 export type SaldoEstoqueModel = runtime.Types.Result.DefaultSelection<Prisma.$SaldoEstoquePayload>
 
@@ -850,13 +849,7 @@ export type $SaldoEstoquePayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: string
     itemId: string
     localId: string
-    /**
-     * Saldo físico total (peças/unidades base)
-     */
     quantidade: number
-    /**
-     * Quantidade reservada (requisições pendentes/assumidas ainda não separadas)
-     */
     reservada: number
     criadoEm: Date
     atualizadoEm: Date

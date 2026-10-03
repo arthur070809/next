@@ -51,18 +51,17 @@ export type Funcionario = Prisma.FuncionarioModel
 export type Sessao = Prisma.SessaoModel
 /**
  * Model Item
- * Catálogo de materiais — campos descritivos, independentes do local
+ * 
  */
 export type Item = Prisma.ItemModel
 /**
  * Model LocalEstoque
- * Local de armazenamento (ex.: "estoque", "deposito", "materia-prima", "importados")
+ * 
  */
 export type LocalEstoque = Prisma.LocalEstoqueModel
 /**
  * Model SaldoEstoque
- * Saldo de um item em um local — projeção atualizada via Movimentacao
- * Invariantes de banco: quantidade >= 0, reservada >= 0, reservada <= quantidade
+ * 
  */
 export type SaldoEstoque = Prisma.SaldoEstoqueModel
 /**
@@ -72,12 +71,12 @@ export type SaldoEstoque = Prisma.SaldoEstoqueModel
 export type SequenciaRequisicao = Prisma.SequenciaRequisicaoModel
 /**
  * Model Requisicao
- * Cabeçalho de uma requisição multi-item
+ * 
  */
 export type Requisicao = Prisma.RequisicaoModel
 /**
  * Model RequisicaoItem
- * Item individual dentro de uma requisição
+ * 
  */
 export type RequisicaoItem = Prisma.RequisicaoItemModel
 /**
@@ -90,3 +89,63 @@ export type Movimentacao = Prisma.MovimentacaoModel
  * 
  */
 export type Auditoria = Prisma.AuditoriaModel
+/**
+ * Model TrustedDevice
+ * 
+ */
+export type TrustedDevice = Prisma.TrustedDeviceModel
+/**
+ * Model DevicePairing
+ * 
+ */
+export type DevicePairing = Prisma.DevicePairingModel
+/**
+ * Model WebAuthnCredential
+ * 
+ */
+export type WebAuthnCredential = Prisma.WebAuthnCredentialModel
+/**
+ * Model AuthChallenge
+ * 
+ */
+export type AuthChallenge = Prisma.AuthChallengeModel
+/**
+ * Model AdminTotpCredential
+ * 
+ */
+export type AdminTotpCredential = Prisma.AdminTotpCredentialModel
+/**
+ * Model EmergencyAccessGrant
+ * 
+ */
+export type EmergencyAccessGrant = Prisma.EmergencyAccessGrantModel
+/**
+ * Model FaceTemplate
+ * 
+ */
+export type FaceTemplate = Prisma.FaceTemplateModel
+/**
+ * Model LivenessChallenge
+ * 
+ */
+export type LivenessChallenge = Prisma.LivenessChallengeModel
+/**
+ * Model FaceAuthAttempt
+ * 
+ */
+export type FaceAuthAttempt = Prisma.FaceAuthAttemptModel
+/**
+ * Model FaceEnrollmentSession
+ * 
+ */
+export type FaceEnrollmentSession = Prisma.FaceEnrollmentSessionModel
+/**
+ * Model FaceEnrollmentAttempt
+ * 
+ */
+export type FaceEnrollmentAttempt = Prisma.FaceEnrollmentAttemptModel
+/**
+ * Model SecurityAuditEvent
+ * 
+ */
+export type SecurityAuditEvent = Prisma.SecurityAuditEventModel

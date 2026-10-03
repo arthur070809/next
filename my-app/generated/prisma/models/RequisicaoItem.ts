@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model RequisicaoItem
- * Item individual dentro de uma requisição
+ * 
  */
 export type RequisicaoItemModel = runtime.Types.Result.DefaultSelection<Prisma.$RequisicaoItemPayload>
 

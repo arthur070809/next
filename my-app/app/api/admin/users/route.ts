@@ -124,8 +124,11 @@ export async function PATCH(request: Request) {
     if (action === "reset-password") {
       const senha = typeof body?.senha === "string" ? body.senha : "";
       if (!validatePassword(senha)) return NextResponse.json({ error: passwordError() }, { status: 400 });
-      await prisma.funcionario.update({ where: { id: userId }, data: { senha: await hashPassword(senha), mustChangePassword: true } });
-      await prisma.auditoria.create({ data: { acao: "SENHA_REDEFINIDA", alvoId: userId, autorId: auth.funcionario.id } });
+      await prisma.$transaction(async (transaction) => {
+        await transaction.funcionario.update({ where: { id: userId }, data: { senha: await hashPassword(senha), mustChangePassword: true } });
+        await transaction.sessao.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.auditoria.create({ data: { acao: "SENHA_REDEFINIDA", alvoId: userId, autorId: auth.funcionario!.id } });
+      });
       return NextResponse.json({ message: "Senha redefinida. A troca será exigida no próximo acesso." });
     }
 
@@ -143,8 +146,21 @@ export async function PATCH(request: Request) {
     }
 
     const ativo = body?.ativo === true;
-    await prisma.funcionario.update({ where: { id: userId }, data: { ativo } });
-    await prisma.auditoria.create({ data: { acao: ativo ? "USUARIO_ATIVADO" : "USUARIO_DESATIVADO", alvoId: userId, autorId: auth.funcionario.id } });
+    await prisma.$transaction(async (transaction) => {
+      await transaction.funcionario.update({ where: { id: userId }, data: { ativo } });
+      if (!ativo) {
+        await transaction.webAuthnCredential.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.faceTemplate.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.livenessChallenge.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.sessao.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.devicePairing.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.authChallenge.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.emergencyAccessGrant.deleteMany({ where: { funcionarioId: userId } });
+        await transaction.adminTotpCredential.deleteMany({ where: { funcionarioId: userId } });
+      }
+      await transaction.auditoria.create({ data: { acao: ativo ? "USUARIO_ATIVADO" : "USUARIO_DESATIVADO", alvoId: userId, autorId: auth.funcionario!.id } });
+      await transaction.securityAuditEvent.create({ data: { acao: ativo ? "USER_REACTIVATED" : "USER_DEACTIVATED", resultado: "success", funcionarioId: userId, atorId: auth.funcionario!.id } });
+    });
     return NextResponse.json({ message: ativo ? "Usuário reativado." : "Usuário desativado." });
   } catch (error) {
     console.error("Erro ao alterar usuário administrativo:", error instanceof Error ? error.message : "erro desconhecido");

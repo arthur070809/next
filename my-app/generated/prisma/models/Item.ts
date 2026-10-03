@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Item
- * Catálogo de materiais — campos descritivos, independentes do local
+ * 
  */
 export type ItemModel = runtime.Types.Result.DefaultSelection<Prisma.$ItemPayload>
 
