@@ -1,39 +1,55 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import type { RequisicaoAtendida } from "../../lib/types/requisicao";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 
 export default function RequisicoesQueuePage() {
-  const [requisicoes, setRequisicoes] = useState<RequisicaoAtendida[]>([]);
+  const [requisicoes, setRequisicoes] = useState<RequisicaoMock[]>([]);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [atualizacao, setAtualizacao] = useState(0);
+  const carregado = useRef(false);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/requests", { cache: "no-store" }).then(async (response) => {
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar as requisições.");
-      return data.requisicoes as RequisicaoAtendida[];
-    }).then((rows) => { if (active) setRequisicoes(rows); })
-      .catch((cause) => { if (active) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar as requisições."); })
-      .finally(() => { if (active) setCarregando(false); });
-    return () => { active = false; };
-  }, []);
+    const loadRequests = () => {
+      if (!carregado.current) setCarregando(true);
+      fetch("/api/almoxarifado/requisicoes", { cache: "no-store" }).then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar as requisições.");
+        return data.requisicoes as RequisicaoMock[];
+      }).then((rows) => {
+        if (active) {
+          setRequisicoes(rows);
+          setErro("");
+        }
+      }).catch((cause) => {
+        if (active) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar as requisições.");
+      }).finally(() => {
+        if (active) {
+          carregado.current = true;
+          setCarregando(false);
+        }
+      });
+    };
+    loadRequests();
+    const refreshTimer = window.setInterval(loadRequests, 30000);
+    return () => { active = false; window.clearInterval(refreshTimer); };
+  }, [atualizacao]);
 
   const filtradas = useMemo(() => requisicoes.filter((request) =>
-    `${request.numero} ${request.item} ${request.funcionario.nome}`.toLowerCase().includes(busca.toLowerCase())
+    `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase())
   ), [requisicoes, busca]);
 
   return <main className="mx-auto max-w-7xl p-4 sm:p-6">
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold text-[#212529]">Requisições retiradas</h1><p className="mt-1 text-sm text-slate-600">Registro de sobras por requisição.</p></div><label className="text-sm font-medium text-slate-700">Buscar<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Número, item ou solicitante" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-72" /></label></div>
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold text-[#212529]">Fila de requisições</h1><p className="mt-1 text-sm text-slate-600">Pedidos enviados pelos operadores, aguardando atendimento do almoxarifado.</p></div><div className="flex flex-wrap items-end gap-3"><label className="text-sm font-medium text-slate-700">Buscar<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Número, item ou solicitante" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-72" /></label><button type="button" onClick={() => setAtualizacao((current) => current + 1)} disabled={carregando} className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Atualizar fila</button></div></div>
     {erro && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erro}</p>}
     {carregando ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">Carregando requisições…</p> : filtradas.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">Nenhuma requisição encontrada.</p> : <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{["Nº", "Item", "Qtd.", "Origem", "Devolvido", "Solicitante", "Data", ""].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr></thead>
-        <tbody>{filtradas.map((request) => <tr key={request.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-          <td className="px-4 py-3 font-semibold text-slate-900">#{request.numero}</td><td className="px-4 py-3"><span className="font-medium text-slate-800">{request.item}</span>{request.estoqueItem?.codigo && <span className="block text-xs text-slate-500">{request.estoqueItem.codigo}</span>}</td><td className="px-4 py-3">{request.quantidade} {request.unidadeMedida}</td><td className="px-4 py-3">{request.origem === "DEPOSITO" ? "Depósito" : "Estoque"}</td><td className="px-4 py-3">{request.qtdDevolvida}</td><td className="px-4 py-3">{request.funcionario.nome}</td><td className="px-4 py-3 whitespace-nowrap">{new Date(request.createdAt).toLocaleString("pt-BR")}</td><td className="px-4 py-3"><Link href={`/almoxarifado/requisicao/${encodeURIComponent(request.id)}`} className="font-semibold text-royal hover:underline">Detalhes / sobra</Link></td>
+        <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{["Nº", "Item", "Qtd.", "Prioridade", "Status", "Solicitante", "Data"].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr></thead>
+        <tbody>{filtradas.map((request) => <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+          <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td><td className="px-4 py-3">{request.itens?.length ? <ul className="space-y-1">{request.itens.map((item) => <li key={item.id} className="font-medium text-slate-800">{item.nome} · {item.quantidade} {item.unidadeMedida}</li>)}</ul> : <span className="font-medium text-slate-800">{request.item} · {request.quantidade} {request.unidadeMedida}</span>}</td><td className="px-4 py-3">{request.prioridade === "prioridade" ? "Prioritária" : "Padrão"}</td><td className="px-4 py-3">{request.status === "pendente" ? "Aguardando" : "Em atendimento"}</td><td className="px-4 py-3">{request.solicitante ?? "—"}</td><td className="px-4 py-3 whitespace-nowrap">{new Date(request.data).toLocaleString("pt-BR")}</td>
         </tr>)}</tbody>
       </table>
     </div>}
