@@ -149,7 +149,7 @@ export async function createLoginSessionResponse(
       },
     });
     return current;
-  }, { isolationLevel: "Serializable" });
+  });
   if (!currentEmployee) return null;
 
   return createLoginSessionSuccessResponse(currentEmployee, token);

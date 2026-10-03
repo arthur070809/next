@@ -131,7 +131,7 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
       data: { acao: "FACE_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, trustedDeviceId: challenge.trustedDeviceId, ipHash },
     });
     return currentEmployee;
-  }, { isolationLevel: "Serializable" });
+  });
   if (!accepted || challenge.expiraEm <= completedAt) return genericFailure();
 
   clearFactorFailures(factorKey);
@@ -267,7 +267,7 @@ export async function POST(request: Request) {
         data: { acao: "FACE_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, ipHash },
       });
       return currentEmployee;
-    }, { isolationLevel: "Serializable" });
+    });
     if (!accepted) return genericFailure();
 
     clearFactorFailures(factorKey);

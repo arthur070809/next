@@ -19,6 +19,8 @@ vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: vi.fn(() => 
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
 import { PapelFuncionario } from "@/generated/prisma/client";
+import { getLoginClientIpHash } from "@/lib/login-attempts";
+import { recordTestLoginFailure } from "@/lib/login-test-mode";
 
 const admin = {
   id: 1,
@@ -58,10 +60,10 @@ const stockkeeper = {
   mustChangePassword: false,
 };
 
-function request(codigoCracha: string) {
+function request(codigoCracha: string, ip = "192.0.2.10") {
   return new Request("http://localhost/api/auth/login", {
     method: "POST",
-    headers: { "content-type": "application/json", origin: "http://localhost" },
+    headers: { "content-type": "application/json", origin: "http://localhost", "x-real-ip": ip },
     body: JSON.stringify({ codigoCracha }),
   });
 }
@@ -240,6 +242,23 @@ describe("login by badge code", () => {
 
     expect(response.status).toBe(429);
     expect(response.headers.get("Retry-After")).toBeTruthy();
+    expect(prisma.funcionario.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("enforces a local per-badge and per-IP lock for allowlisted test logins without the migration table", async () => {
+    process.env.LOGIN_MODO_TESTE = "true";
+    process.env.LOGIN_TESTE_CRACHAS = "2000";
+    const blockedRequest = request("2000", "192.0.2.55");
+    const ipHash = getLoginClientIpHash(blockedRequest);
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      recordTestLoginFailure("2000", ipHash);
+    }
+
+    const response = await POST(blockedRequest);
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("900");
+    expect(prisma.loginAttemptBucket.findFirst).not.toHaveBeenCalled();
     expect(prisma.funcionario.findFirst).not.toHaveBeenCalled();
   });
 

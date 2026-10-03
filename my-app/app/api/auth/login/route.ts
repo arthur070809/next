@@ -14,15 +14,22 @@ import {
   recordLoginFailure,
 } from "@/lib/login-attempts";
 import { createLoginFaceChallenge, createLoginSessionResponse, getLoginAccessArea, loginRequiresFace } from "@/lib/login-flow";
-import { isTestLoginEnabledForBadge, maskLoginTestBadge } from "@/lib/login-test-mode";
+import {
+  clearTestLoginBadgeFailures,
+  getTestLoginBlockRetryAfter,
+  isTestLoginEnabledForBadge,
+  maskLoginTestBadge,
+  recordTestLoginFailure,
+} from "@/lib/login-test-mode";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { createSecret, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
 
 const invalidCode = () => NextResponse.json({ error: "Código inválido." }, { status: 401 });
 const minInvalidResponseMs = 200;
 
-async function invalidCodeResponse(startedAt: number, badge: string, ipHash: string) {
-  await recordLoginFailure(badge, ipHash);
+async function invalidCodeResponse(startedAt: number, badge: string, ipHash: string, localTestMode: boolean) {
+  if (localTestMode) recordTestLoginFailure(badge, ipHash);
+  else await recordLoginFailure(badge, ipHash);
   const remaining = minInvalidResponseMs - (Date.now() - startedAt);
   if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
   return invalidCode();
@@ -60,12 +67,15 @@ export async function POST(request: Request) {
   try {
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     const body = await readLimitedJson(request);
-    if (!body) return invalidCodeResponse(startedAt, "", ipHash);
+    if (!body) return invalidCodeResponse(startedAt, "", ipHash, false);
     const suppliedCode = typeof body.codigoCracha === "string" ? body.codigoCracha : "";
     const badge = normalizeLoginCode(suppliedCode);
     const validCode = /^\d{4,10}$/.test(badge);
+    const testMode = isTestLoginEnabledForBadge(badge);
 
-    const retryAfter = await getLoginBlockRetryAfter(badge, ipHash);
+    const retryAfter = testMode
+      ? getTestLoginBlockRetryAfter(badge, ipHash)
+      : await getLoginBlockRetryAfter(badge, ipHash);
     if (retryAfter !== null) {
       return NextResponse.json(
         { error: "Muitas tentativas. Tente novamente mais tarde." },
@@ -83,11 +93,11 @@ export async function POST(request: Request) {
         funcionario.papel !== PapelFuncionario.ALMOXARIFE &&
         funcionario.papel !== PapelFuncionario.OPERADOR)
     ) {
-      return invalidCodeResponse(startedAt, badge, ipHash);
+      return invalidCodeResponse(startedAt, badge, ipHash, testMode);
     }
 
-    if (isTestLoginEnabledForBadge(badge)) {
-      await clearBadgeLoginFailures(badge);
+    if (testMode) {
+      clearTestLoginBadgeFailures(badge);
       const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));
       if (!session) return invalidCode();
       console.warn(`[LOGIN TESTE] Login de teste realizado para crachá ${maskLoginTestBadge(badge)}.`);
@@ -127,10 +137,10 @@ export async function POST(request: Request) {
     if (funcionario.papel === PapelFuncionario.ALMOXARIFE) {
       const cookieStore = await cookies();
       const deviceToken = cookieStore.get(trustedDeviceCookieName)?.value;
-      if (!deviceToken) return invalidCodeResponse(startedAt, badge, ipHash);
+      if (!deviceToken) return invalidCodeResponse(startedAt, badge, ipHash, false);
 
       const device = await prisma.trustedDevice.findUnique({ where: { tokenHash: hashSecret(deviceToken) } });
-      if (!device || device.revogadoEm) return invalidCodeResponse(startedAt, badge, ipHash);
+      if (!device || device.revogadoEm) return invalidCodeResponse(startedAt, badge, ipHash, false);
       const employeeDevice = await prisma.webAuthnCredential.findMany({
         where: { funcionarioId: funcionario.id, trustedDeviceId: device.id, revogadoEm: null },
         select: { credentialId: true, transports: true },
@@ -160,7 +170,7 @@ export async function POST(request: Request) {
         }
       }
 
-      if (employeeDevice.length === 0) return invalidCodeResponse(startedAt, badge, ipHash);
+      if (employeeDevice.length === 0) return invalidCodeResponse(startedAt, badge, ipHash, false);
       const relyingParty = getWebAuthnRelyingParty(request.url);
       const options = await generateAuthenticationOptions({
         rpID: relyingParty.rpID,

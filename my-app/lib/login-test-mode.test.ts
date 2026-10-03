@@ -6,10 +6,12 @@ vi.mock("@/lib/login-attempts", () => ({
 
 import {
   getTestLoginBadges,
+  getTestLoginBlockRetryAfter,
   isTestLoginEnabledForBadge,
   isTestLoginModeConfigured,
   logLoginTestModeStartup,
   maskLoginTestBadge,
+  recordTestLoginFailure,
 } from "@/lib/login-test-mode";
 
 afterEach(() => {
@@ -68,5 +70,19 @@ describe("local login test mode configuration", () => {
 
     expect(warning).toHaveBeenCalledWith(expect.stringContaining("foram ignorados"));
     expect(warning.mock.calls.flat().join(" ")).not.toContain("3333");
+  });
+
+  it("blocks after five local test-mode failures by badge and IP", () => {
+    const badge = `8${Date.now().toString().slice(-3)}`;
+    const ipHash = `unique-test-ip-${Date.now()}`;
+    const now = Date.now();
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      recordTestLoginFailure(badge, ipHash, now + attempt);
+      expect(getTestLoginBlockRetryAfter(badge, ipHash, now + attempt)).toBeNull();
+    }
+    recordTestLoginFailure(badge, ipHash, now + 4);
+
+    expect(getTestLoginBlockRetryAfter(badge, ipHash, now + 4)).toBe(900);
   });
 });

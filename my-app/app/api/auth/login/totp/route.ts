@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         data: { acao: "ADMIN_TOTP_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, ipHash },
       });
       return true;
-    }, { isolationLevel: "Serializable" });
+    });
     if (!accepted) {
       recordFactorFailure(factorKey);
       await recordLoginFailure(challenge.funcionario.cracha, ipHash);

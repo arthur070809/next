@@ -109,5 +109,7 @@ describe("login flow security", () => {
     const response = await createLoginSessionResponse(admin, "admin");
 
     expect(response).toBeNull();
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function));
   });
 });

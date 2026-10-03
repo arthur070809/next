@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       });
       await transaction.securityAuditEvent.create({ data: { acao: "WEBAUTHN_LOGIN", resultado: "success", funcionarioId: challenge.funcionarioId, trustedDeviceId: challenge.trustedDeviceId, ipHash, detalhe: "Aparelho verificado; vivacidade facial pendente." } });
       return nonce;
-    }, { isolationLevel: "Serializable" });
+    });
     if (!accepted) {
       recordFactorFailure(factorKey);
       await recordLoginFailure(challenge.funcionario.cracha, ipHash);
