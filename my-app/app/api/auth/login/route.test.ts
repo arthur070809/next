@@ -78,20 +78,32 @@ describe("login by badge code", () => {
     );
   });
 
-  it("requires a signed one-use face challenge for an operator by default", async () => {
+  it("authenticates operators without a facial challenge", async () => {
     process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
 
     const response = await POST(request("2000"));
     const data = await response.json();
 
+    expect(response.status).toBe(200);
+    expect(data.funcionario.role).toBe("operador");
+    expect(prisma.sessao.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ funcionarioId: operator.id, accessArea: "operador" }) }),
+    );
+    expect(prisma.authChallenge.create).not.toHaveBeenCalled();
+  });
+
+  it("requires the signed one-use facial challenge for admins by default", async () => {
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
+
+    const response = await POST(request("1000"));
+    const data = await response.json();
+
     expect(response.status).toBe(202);
     expect(data.step).toBe("face");
     expect(typeof data.loginToken).toBe("string");
     expect(prisma.sessao.create).not.toHaveBeenCalled();
-    expect(prisma.authChallenge.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ tipo: "LOGIN_FACE", funcionarioId: operator.id }) }),
-    );
   });
 
   it("returns one generic invalid-code response for malformed and unknown codes", async () => {

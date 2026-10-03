@@ -6,7 +6,7 @@ import { createFaceNonce, hashFaceNonce } from "@/lib/face";
 import { prisma } from "@/lib/prisma";
 import { hashSecret } from "@/lib/webauthn";
 
-const facialProfiles = [PapelFuncionario.ADMIN, PapelFuncionario.OPERADOR] as const;
+const facialProfiles = [PapelFuncionario.ADMIN] as const;
 const loginFaceChallengeTtlMs = 60 * 1000;
 let disabledWarningShown = false;
 
