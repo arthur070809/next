@@ -30,7 +30,7 @@ export default async function TrustedDevicesPage() {
         },
       },
     }),
-    prisma.funcionario.findMany({ where: { role: "user", ativo: true }, select: { id: true, nome: true, cracha: true }, orderBy: { nome: "asc" } }),
+    prisma.funcionario.findMany({ where: { papel: "ALMOXARIFE", ativo: true }, select: { id: true, nome: true, cracha: true }, orderBy: { nome: "asc" } }),
   ]);
   const limit = Number.parseInt(process.env.TRUSTED_DEVICE_LIMIT ?? "7", 10) || 7;
   return <DevicesManager initialDevices={devices} employees={employees} limit={Math.max(1, Math.min(50, limit))} />;
