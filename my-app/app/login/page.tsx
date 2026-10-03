@@ -1,7 +1,13 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getAuthenticatedFuncionario, getRoleHomePath, requiresPasswordChange } from "@/lib/auth";
+import LoginForm from "./LoginForm";
 
-import Link from "next/link";
-
-export default function LoginChoicePage() {
-  return <main className="flex min-h-screen items-center justify-center bg-slate-100 px-5 py-10"><section aria-labelledby="login-choice-title" className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"><Link href="/" className="text-sm font-semibold text-royal hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-royal">← Voltar</Link><p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-royal">Almoxarifado Marcon</p><h1 id="login-choice-title" className="mt-3 text-3xl font-bold text-slate-950">Escolha o acesso</h1><p className="mt-2 text-slate-600">Selecione a área para continuar.</p><div className="mt-8 grid gap-4 sm:grid-cols-2"><Link href="/login/almoxarifado" className="rounded-xl border-2 border-royal p-6 text-left text-royal transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"><span className="block text-lg font-bold">Almoxarifado</span><span className="mt-2 block text-sm text-slate-600">Acesse estoque e requisições.</span></Link><Link href="/login/admin" className="rounded-xl bg-royal p-6 text-left text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"><span className="block text-lg font-bold">Admin</span><span className="mt-2 block text-sm text-blue-100">Gerencie usuários e operações.</span></Link></div></section></main>;
+export default async function LoginPage() {
+  const funcionario = await getAuthenticatedFuncionario();
+  if (funcionario) {
+    const destination = getRoleHomePath(funcionario.role);
+    if (requiresPasswordChange(funcionario)) redirect(`/alterar-senha?next=${destination}`);
+    redirect(destination);
+  }
+  return <LoginForm />;
 }

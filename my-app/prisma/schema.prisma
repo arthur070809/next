@@ -404,6 +404,17 @@ model AuthChallenge {
   @@map("auth_challenges")
 }
 
+model LoginAttemptBucket {
+  keyHash         String    @id @map("key_hash") @db.VarChar(64)
+  failures        Int       @default(0)
+  windowStartedAt DateTime  @map("window_started_at")
+  blockedUntil    DateTime? @map("blocked_until")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([blockedUntil])
+  @@map("login_attempt_buckets")
+}
+
 model AdminTotpCredential {
   id               String      @id @default(uuid())
   funcionarioId    Int         @unique

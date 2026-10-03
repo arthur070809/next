@@ -65,6 +65,7 @@ export const ModelName = {
   DevicePairing: 'DevicePairing',
   WebAuthnCredential: 'WebAuthnCredential',
   AuthChallenge: 'AuthChallenge',
+  LoginAttemptBucket: 'LoginAttemptBucket',
   AdminTotpCredential: 'AdminTotpCredential',
   EmergencyAccessGrant: 'EmergencyAccessGrant',
   FaceTemplate: 'FaceTemplate',
@@ -304,6 +305,17 @@ export const AuthChallengeScalarFieldEnum = {
 } as const
 
 export type AuthChallengeScalarFieldEnum = (typeof AuthChallengeScalarFieldEnum)[keyof typeof AuthChallengeScalarFieldEnum]
+
+
+export const LoginAttemptBucketScalarFieldEnum = {
+  keyHash: 'keyHash',
+  failures: 'failures',
+  windowStartedAt: 'windowStartedAt',
+  blockedUntil: 'blockedUntil',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LoginAttemptBucketScalarFieldEnum = (typeof LoginAttemptBucketScalarFieldEnum)[keyof typeof LoginAttemptBucketScalarFieldEnum]
 
 
 export const AdminTotpCredentialScalarFieldEnum = {
@@ -571,6 +583,13 @@ export const AuthChallengeOrderByRelevanceFieldEnum = {
 } as const
 
 export type AuthChallengeOrderByRelevanceFieldEnum = (typeof AuthChallengeOrderByRelevanceFieldEnum)[keyof typeof AuthChallengeOrderByRelevanceFieldEnum]
+
+
+export const LoginAttemptBucketOrderByRelevanceFieldEnum = {
+  keyHash: 'keyHash'
+} as const
+
+export type LoginAttemptBucketOrderByRelevanceFieldEnum = (typeof LoginAttemptBucketOrderByRelevanceFieldEnum)[keyof typeof LoginAttemptBucketOrderByRelevanceFieldEnum]
 
 
 export const AdminTotpCredentialOrderByRelevanceFieldEnum = {

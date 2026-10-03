@@ -88,6 +88,12 @@ export function papelParaRole(papel: PapelFuncionario): string {
   }
 }
 
+export function getRoleHomePath(role: string) {
+  if (role === "admin") return "/admin";
+  if (role === "operador") return "/requisicao";
+  return "/almoxarifado";
+}
+
 /**
  * Mapeia a string "role" antiga para o enum PapelFuncionario.
  * Usado para backward compat durante a transição.

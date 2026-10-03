@@ -411,6 +411,7 @@ export const ModelName = {
   DevicePairing: 'DevicePairing',
   WebAuthnCredential: 'WebAuthnCredential',
   AuthChallenge: 'AuthChallenge',
+  LoginAttemptBucket: 'LoginAttemptBucket',
   AdminTotpCredential: 'AdminTotpCredential',
   EmergencyAccessGrant: 'EmergencyAccessGrant',
   FaceTemplate: 'FaceTemplate',
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
+    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "loginAttemptBucket" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1362,6 +1363,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LoginAttemptBucket: {
+      payload: Prisma.$LoginAttemptBucketPayload<ExtArgs>
+      fields: Prisma.LoginAttemptBucketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LoginAttemptBucketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LoginAttemptBucketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>
+        }
+        findFirst: {
+          args: Prisma.LoginAttemptBucketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LoginAttemptBucketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>
+        }
+        findMany: {
+          args: Prisma.LoginAttemptBucketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>[]
+        }
+        create: {
+          args: Prisma.LoginAttemptBucketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>
+        }
+        createMany: {
+          args: Prisma.LoginAttemptBucketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.LoginAttemptBucketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>
+        }
+        update: {
+          args: Prisma.LoginAttemptBucketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>
+        }
+        deleteMany: {
+          args: Prisma.LoginAttemptBucketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LoginAttemptBucketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.LoginAttemptBucketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginAttemptBucketPayload>
+        }
+        aggregate: {
+          args: Prisma.LoginAttemptBucketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLoginAttemptBucket>
+        }
+        groupBy: {
+          args: Prisma.LoginAttemptBucketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LoginAttemptBucketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LoginAttemptBucketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LoginAttemptBucketCountAggregateOutputType> | number
+        }
+      }
+    }
     AdminTotpCredential: {
       payload: Prisma.$AdminTotpCredentialPayload<ExtArgs>
       fields: Prisma.AdminTotpCredentialFieldRefs
@@ -2144,6 +2211,17 @@ export const AuthChallengeScalarFieldEnum = {
 export type AuthChallengeScalarFieldEnum = (typeof AuthChallengeScalarFieldEnum)[keyof typeof AuthChallengeScalarFieldEnum]
 
 
+export const LoginAttemptBucketScalarFieldEnum = {
+  keyHash: 'keyHash',
+  failures: 'failures',
+  windowStartedAt: 'windowStartedAt',
+  blockedUntil: 'blockedUntil',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LoginAttemptBucketScalarFieldEnum = (typeof LoginAttemptBucketScalarFieldEnum)[keyof typeof LoginAttemptBucketScalarFieldEnum]
+
+
 export const AdminTotpCredentialScalarFieldEnum = {
   id: 'id',
   funcionarioId: 'funcionarioId',
@@ -2409,6 +2487,13 @@ export const AuthChallengeOrderByRelevanceFieldEnum = {
 } as const
 
 export type AuthChallengeOrderByRelevanceFieldEnum = (typeof AuthChallengeOrderByRelevanceFieldEnum)[keyof typeof AuthChallengeOrderByRelevanceFieldEnum]
+
+
+export const LoginAttemptBucketOrderByRelevanceFieldEnum = {
+  keyHash: 'keyHash'
+} as const
+
+export type LoginAttemptBucketOrderByRelevanceFieldEnum = (typeof LoginAttemptBucketOrderByRelevanceFieldEnum)[keyof typeof LoginAttemptBucketOrderByRelevanceFieldEnum]
 
 
 export const AdminTotpCredentialOrderByRelevanceFieldEnum = {
@@ -2744,6 +2829,7 @@ export type GlobalOmitConfig = {
   devicePairing?: Prisma.DevicePairingOmit
   webAuthnCredential?: Prisma.WebAuthnCredentialOmit
   authChallenge?: Prisma.AuthChallengeOmit
+  loginAttemptBucket?: Prisma.LoginAttemptBucketOmit
   adminTotpCredential?: Prisma.AdminTotpCredentialOmit
   emergencyAccessGrant?: Prisma.EmergencyAccessGrantOmit
   faceTemplate?: Prisma.FaceTemplateOmit

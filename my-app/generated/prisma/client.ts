@@ -110,6 +110,11 @@ export type WebAuthnCredential = Prisma.WebAuthnCredentialModel
  */
 export type AuthChallenge = Prisma.AuthChallengeModel
 /**
+ * Model LoginAttemptBucket
+ *
+ */
+export type LoginAttemptBucket = Prisma.LoginAttemptBucketModel
+/**
  * Model AdminTotpCredential
  * 
  */
