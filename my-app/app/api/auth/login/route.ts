@@ -14,6 +14,7 @@ import {
   recordLoginFailure,
 } from "@/lib/login-attempts";
 import { createLoginFaceChallenge, createLoginSessionResponse, getLoginAccessArea, loginRequiresFace } from "@/lib/login-flow";
+import { isTestLoginEnabledForBadge, maskLoginTestBadge } from "@/lib/login-test-mode";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { createSecret, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
 
@@ -83,6 +84,14 @@ export async function POST(request: Request) {
         funcionario.papel !== PapelFuncionario.OPERADOR)
     ) {
       return invalidCodeResponse(startedAt, badge, ipHash);
+    }
+
+    if (isTestLoginEnabledForBadge(badge)) {
+      await clearBadgeLoginFailures(badge);
+      const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));
+      if (!session) return invalidCode();
+      console.warn(`[LOGIN TESTE] Login de teste realizado para crachá ${maskLoginTestBadge(badge)}.`);
+      return session;
     }
 
     if (funcionario.papel === PapelFuncionario.ADMIN) {

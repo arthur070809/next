@@ -2,7 +2,10 @@ import { isIP } from "node:net";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeLoginCode } from "@/lib/normalize-login-code";
 import { hashSecret } from "@/lib/webauthn";
+
+export { normalizeLoginCode } from "@/lib/normalize-login-code";
 
 export const loginAttemptLimit = 5;
 export const loginAttemptWindowMs = 15 * 60 * 1000;
@@ -43,10 +46,6 @@ export function loginAttemptStorageUnavailableResponse() {
     { error: "O login está temporariamente indisponível. Tente novamente mais tarde.", errorId },
     { status: 503 },
   );
-}
-
-export function normalizeLoginCode(value: string) {
-  return value.normalize("NFKC").trim().toUpperCase();
 }
 
 function bucketKey(scope: "badge" | "ip", value: string) {

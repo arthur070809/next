@@ -44,6 +44,20 @@ const operator = {
   mustChangePassword: false,
 };
 
+const testAdmin = { ...admin, cracha: "3333" };
+
+const stockkeeper = {
+  id: 3,
+  nome: "Almoxarife",
+  email: "stockkeeper@local.invalid",
+  cracha: "2222",
+  papel: PapelFuncionario.ALMOXARIFE,
+  senha: "unused",
+  ativo: true,
+  cargo: "almoxarife",
+  mustChangePassword: false,
+};
+
 function request(codigoCracha: string) {
   return new Request("http://localhost/api/auth/login", {
     method: "POST",
@@ -55,6 +69,10 @@ function request(codigoCracha: string) {
 describe("login by badge code", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    vi.stubEnv("NODE_ENV", "test");
+    delete process.env.LOGIN_MODO_TESTE;
+    delete process.env.LOGIN_TESTE_CRACHAS;
     process.env.LOGIN_FACIAL_OBRIGATORIO = "false";
     process.env.LOGIN_CHALLENGE_SECRET = "test-login-secret-that-is-at-least-32-characters";
     vi.mocked(prisma.sessao.create).mockResolvedValue({} as never);
@@ -95,6 +113,59 @@ describe("login by badge code", () => {
       expect.objectContaining({ data: expect.objectContaining({ funcionarioId: operator.id, accessArea: "operador" }) }),
     );
     expect(prisma.authChallenge.create).not.toHaveBeenCalled();
+  });
+
+  it("allows an explicitly allowlisted development test badge through the normal session path", async () => {
+    process.env.LOGIN_MODO_TESTE = "true";
+    process.env.LOGIN_TESTE_CRACHAS = "1111,2222,3333";
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst)
+      .mockResolvedValueOnce(testAdmin as never)
+      .mockResolvedValueOnce(testAdmin as never);
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const response = await POST(request("3333"));
+
+    expect(response.status).toBe(200);
+    expect(prisma.sessao.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ funcionarioId: testAdmin.id, accessArea: "admin" }) }),
+    );
+    expect(prisma.authChallenge.create).not.toHaveBeenCalled();
+    expect(prisma.adminTotpCredential.findUnique).not.toHaveBeenCalled();
+    expect(prisma.funcionario.findFirst).toHaveBeenCalledTimes(2);
+    expect(response.headers.get("set-cookie")).toContain("HttpOnly");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=28800");
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining("crachá **33"));
+    expect(warning.mock.calls.flat().join(" ")).not.toContain("3333");
+    warning.mockRestore();
+  });
+
+  it("does not allow the test bypass in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.LOGIN_MODO_TESTE = "true";
+    process.env.LOGIN_TESTE_CRACHAS = "3333";
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(testAdmin as never);
+
+    const response = await POST(request("3333"));
+    const data = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(data.step).toBe("face");
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("does not allow a badge outside the development test allowlist to bypass normal checks", async () => {
+    process.env.LOGIN_MODO_TESTE = "true";
+    process.env.LOGIN_TESTE_CRACHAS = "1111,3333";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(stockkeeper as never);
+
+    const response = await POST(request("2222"));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+    expect(prisma.trustedDevice.findUnique).not.toHaveBeenCalled();
   });
 
   it("requires the signed one-use facial challenge for admins by default", async () => {
@@ -160,7 +231,9 @@ describe("login by badge code", () => {
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
-  it("blocks a badge or IP with an active persistent lock", async () => {
+  it("keeps the persistent attempt lock active even for allowlisted test badges", async () => {
+    process.env.LOGIN_MODO_TESTE = "true";
+    process.env.LOGIN_TESTE_CRACHAS = "2000";
     vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue({ blockedUntil: new Date(Date.now() + 60_000) } as never);
 
     const response = await POST(request("1000"));
