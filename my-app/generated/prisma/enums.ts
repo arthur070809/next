@@ -9,7 +9,61 @@
 * 🟢 You can import this file directly.
 */
 
+export const PapelFuncionario = {
+  USUARIO: 'USUARIO',
+  OPERADOR: 'OPERADOR',
+  ALMOXARIFE: 'ALMOXARIFE',
+  ADMIN: 'ADMIN'
+} as const
+
+export type PapelFuncionario = (typeof PapelFuncionario)[keyof typeof PapelFuncionario]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const TipoItem = {
+  COMPONENTE: 'COMPONENTE',
+  CONSUMIVEL: 'CONSUMIVEL',
+  MATERIA_PRIMA: 'MATERIA_PRIMA',
+  EMBALAGEM: 'EMBALAGEM'
+} as const
+
+export type TipoItem = (typeof TipoItem)[keyof typeof TipoItem]
+
+
+export const StatusRequisicao = {
+  PENDENTE: 'PENDENTE',
+  ASSUMIDA: 'ASSUMIDA',
+  CONCLUIDA: 'CONCLUIDA',
+  ANULADA: 'ANULADA'
+} as const
+
+export type StatusRequisicao = (typeof StatusRequisicao)[keyof typeof StatusRequisicao]
+
+
+export const StatusItemRequisicao = {
+  PENDENTE: 'PENDENTE',
+  ASSUMIDO: 'ASSUMIDO',
+  SEPARADO: 'SEPARADO',
+  NAO_SEPARADO: 'NAO_SEPARADO',
+  ANULADO: 'ANULADO'
+} as const
+
+export type StatusItemRequisicao = (typeof StatusItemRequisicao)[keyof typeof StatusItemRequisicao]
+
+
+export const Prioridade = {
+  PADRAO: 'PADRAO',
+  PRIORITARIO: 'PRIORITARIO'
+} as const
+
+export type Prioridade = (typeof Prioridade)[keyof typeof Prioridade]
+
+
+export const TipoMovimentacao = {
+  ENTRADA: 'ENTRADA',
+  SAIDA: 'SAIDA',
+  RESERVA: 'RESERVA',
+  LIBERACAO_RESERVA: 'LIBERACAO_RESERVA',
+  AJUSTE: 'AJUSTE'
+} as const
+
+export type TipoMovimentacao = (typeof TipoMovimentacao)[keyof typeof TipoMovimentacao]

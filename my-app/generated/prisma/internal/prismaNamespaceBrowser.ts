@@ -53,9 +53,13 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Funcionario: 'Funcionario',
   Sessao: 'Sessao',
+  Item: 'Item',
+  LocalEstoque: 'LocalEstoque',
+  SaldoEstoque: 'SaldoEstoque',
+  SequenciaRequisicao: 'SequenciaRequisicao',
   Requisicao: 'Requisicao',
-  EstoqueItem: 'EstoqueItem',
-  DepositoItem: 'DepositoItem',
+  RequisicaoItem: 'RequisicaoItem',
+  Movimentacao: 'Movimentacao',
   Auditoria: 'Auditoria'
 } as const
 
@@ -83,9 +87,11 @@ export const FuncionarioScalarFieldEnum = {
   senha: 'senha',
   cargo: 'cargo',
   cracha: 'cracha',
-  role: 'role',
+  papel: 'papel',
   mustChangePassword: 'mustChangePassword',
-  ativo: 'ativo'
+  ativo: 'ativo',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
 } as const
 
 export type FuncionarioScalarFieldEnum = (typeof FuncionarioScalarFieldEnum)[keyof typeof FuncionarioScalarFieldEnum]
@@ -103,47 +109,112 @@ export const SessaoScalarFieldEnum = {
 export type SessaoScalarFieldEnum = (typeof SessaoScalarFieldEnum)[keyof typeof SessaoScalarFieldEnum]
 
 
+export const ItemScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  categoria: 'categoria',
+  unidade: 'unidade',
+  tipoUnidade: 'tipoUnidade',
+  quantidadePorEmbalagem: 'quantidadePorEmbalagem',
+  tipoItem: 'tipoItem',
+  codigo: 'codigo',
+  filial: 'filial',
+  grupoErp: 'grupoErp',
+  pontoPedido: 'pontoPedido',
+  estoqueSeguranca: 'estoqueSeguranca',
+  bloqueadoCompra: 'bloqueadoCompra',
+  ultimaEntradaEmbalagens: 'ultimaEntradaEmbalagens',
+  ativo: 'ativo',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type ItemScalarFieldEnum = (typeof ItemScalarFieldEnum)[keyof typeof ItemScalarFieldEnum]
+
+
+export const LocalEstoqueScalarFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  slug: 'slug',
+  descricao: 'descricao',
+  ativo: 'ativo',
+  criadoEm: 'criadoEm'
+} as const
+
+export type LocalEstoqueScalarFieldEnum = (typeof LocalEstoqueScalarFieldEnum)[keyof typeof LocalEstoqueScalarFieldEnum]
+
+
+export const SaldoEstoqueScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  localId: 'localId',
+  quantidade: 'quantidade',
+  reservada: 'reservada',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type SaldoEstoqueScalarFieldEnum = (typeof SaldoEstoqueScalarFieldEnum)[keyof typeof SaldoEstoqueScalarFieldEnum]
+
+
+export const SequenciaRequisicaoScalarFieldEnum = {
+  id: 'id',
+  proximo: 'proximo'
+} as const
+
+export type SequenciaRequisicaoScalarFieldEnum = (typeof SequenciaRequisicaoScalarFieldEnum)[keyof typeof SequenciaRequisicaoScalarFieldEnum]
+
+
 export const RequisicaoScalarFieldEnum = {
   id: 'id',
-  item: 'item',
-  quantidade: 'quantidade',
-  observacao: 'observacao',
+  numeroPedido: 'numeroPedido',
   status: 'status',
-  origem: 'origem',
-  funcionarioId: 'funcionarioId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  prioridade: 'prioridade',
+  observacao: 'observacao',
+  solicitanteId: 'solicitanteId',
+  atendenteId: 'atendenteId',
+  criadoEm: 'criadoEm',
+  assumidaEm: 'assumidaEm',
+  concluidaEm: 'concluidaEm',
+  anuladaEm: 'anuladaEm',
+  atualizadoEm: 'atualizadoEm'
 } as const
 
 export type RequisicaoScalarFieldEnum = (typeof RequisicaoScalarFieldEnum)[keyof typeof RequisicaoScalarFieldEnum]
 
 
-export const EstoqueItemScalarFieldEnum = {
+export const RequisicaoItemScalarFieldEnum = {
   id: 'id',
-  nome: 'nome',
-  categoria: 'categoria',
-  unidade: 'unidade',
+  requisicaoId: 'requisicaoId',
+  itemId: 'itemId',
+  localId: 'localId',
   quantidade: 'quantidade',
-  tipoUnidade: 'tipoUnidade',
-  quantidadePorEmbalagem: 'quantidadePorEmbalagem',
-  ultimaEntradaEmbalagens: 'ultimaEntradaEmbalagens',
-  ativo: 'ativo',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  unidadeMedida: 'unidadeMedida',
+  descricao: 'descricao',
+  status: 'status',
+  separado: 'separado',
+  motivoNaoAtendido: 'motivoNaoAtendido',
+  resolvidoEm: 'resolvidoEm'
 } as const
 
-export type EstoqueItemScalarFieldEnum = (typeof EstoqueItemScalarFieldEnum)[keyof typeof EstoqueItemScalarFieldEnum]
+export type RequisicaoItemScalarFieldEnum = (typeof RequisicaoItemScalarFieldEnum)[keyof typeof RequisicaoItemScalarFieldEnum]
 
 
-export const DepositoItemScalarFieldEnum = {
+export const MovimentacaoScalarFieldEnum = {
   id: 'id',
-  estoqueItemId: 'estoqueItemId',
+  tipo: 'tipo',
   quantidade: 'quantidade',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  saldoApos: 'saldoApos',
+  reservadaApos: 'reservadaApos',
+  funcionarioId: 'funcionarioId',
+  saldoEstoqueId: 'saldoEstoqueId',
+  requisicaoId: 'requisicaoId',
+  requisicaoItemId: 'requisicaoItemId',
+  observacao: 'observacao',
+  criadoEm: 'criadoEm'
 } as const
 
-export type DepositoItemScalarFieldEnum = (typeof DepositoItemScalarFieldEnum)[keyof typeof DepositoItemScalarFieldEnum]
+export type MovimentacaoScalarFieldEnum = (typeof MovimentacaoScalarFieldEnum)[keyof typeof MovimentacaoScalarFieldEnum]
 
 
 export const AuditoriaScalarFieldEnum = {
@@ -151,7 +222,8 @@ export const AuditoriaScalarFieldEnum = {
   acao: 'acao',
   alvoId: 'alvoId',
   autorId: 'autorId',
-  createdAt: 'createdAt'
+  detalhes: 'detalhes',
+  criadoEm: 'criadoEm'
 } as const
 
 export type AuditoriaScalarFieldEnum = (typeof AuditoriaScalarFieldEnum)[keyof typeof AuditoriaScalarFieldEnum]
@@ -179,8 +251,7 @@ export const FuncionarioOrderByRelevanceFieldEnum = {
   email: 'email',
   senha: 'senha',
   cargo: 'cargo',
-  cracha: 'cracha',
-  role: 'role'
+  cracha: 'cracha'
 } as const
 
 export type FuncionarioOrderByRelevanceFieldEnum = (typeof FuncionarioOrderByRelevanceFieldEnum)[keyof typeof FuncionarioOrderByRelevanceFieldEnum]
@@ -195,39 +266,76 @@ export const SessaoOrderByRelevanceFieldEnum = {
 export type SessaoOrderByRelevanceFieldEnum = (typeof SessaoOrderByRelevanceFieldEnum)[keyof typeof SessaoOrderByRelevanceFieldEnum]
 
 
+export const ItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  categoria: 'categoria',
+  unidade: 'unidade',
+  tipoUnidade: 'tipoUnidade',
+  codigo: 'codigo',
+  filial: 'filial',
+  grupoErp: 'grupoErp'
+} as const
+
+export type ItemOrderByRelevanceFieldEnum = (typeof ItemOrderByRelevanceFieldEnum)[keyof typeof ItemOrderByRelevanceFieldEnum]
+
+
+export const LocalEstoqueOrderByRelevanceFieldEnum = {
+  id: 'id',
+  nome: 'nome',
+  slug: 'slug',
+  descricao: 'descricao'
+} as const
+
+export type LocalEstoqueOrderByRelevanceFieldEnum = (typeof LocalEstoqueOrderByRelevanceFieldEnum)[keyof typeof LocalEstoqueOrderByRelevanceFieldEnum]
+
+
+export const SaldoEstoqueOrderByRelevanceFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  localId: 'localId'
+} as const
+
+export type SaldoEstoqueOrderByRelevanceFieldEnum = (typeof SaldoEstoqueOrderByRelevanceFieldEnum)[keyof typeof SaldoEstoqueOrderByRelevanceFieldEnum]
+
+
 export const RequisicaoOrderByRelevanceFieldEnum = {
   id: 'id',
-  item: 'item',
-  observacao: 'observacao',
-  status: 'status',
-  origem: 'origem'
+  numeroPedido: 'numeroPedido',
+  observacao: 'observacao'
 } as const
 
 export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
 
 
-export const EstoqueItemOrderByRelevanceFieldEnum = {
+export const RequisicaoItemOrderByRelevanceFieldEnum = {
   id: 'id',
-  nome: 'nome',
-  categoria: 'categoria',
-  unidade: 'unidade',
-  tipoUnidade: 'tipoUnidade'
+  requisicaoId: 'requisicaoId',
+  itemId: 'itemId',
+  localId: 'localId',
+  unidadeMedida: 'unidadeMedida',
+  descricao: 'descricao',
+  motivoNaoAtendido: 'motivoNaoAtendido'
 } as const
 
-export type EstoqueItemOrderByRelevanceFieldEnum = (typeof EstoqueItemOrderByRelevanceFieldEnum)[keyof typeof EstoqueItemOrderByRelevanceFieldEnum]
+export type RequisicaoItemOrderByRelevanceFieldEnum = (typeof RequisicaoItemOrderByRelevanceFieldEnum)[keyof typeof RequisicaoItemOrderByRelevanceFieldEnum]
 
 
-export const DepositoItemOrderByRelevanceFieldEnum = {
+export const MovimentacaoOrderByRelevanceFieldEnum = {
   id: 'id',
-  estoqueItemId: 'estoqueItemId'
+  saldoEstoqueId: 'saldoEstoqueId',
+  requisicaoId: 'requisicaoId',
+  requisicaoItemId: 'requisicaoItemId',
+  observacao: 'observacao'
 } as const
 
-export type DepositoItemOrderByRelevanceFieldEnum = (typeof DepositoItemOrderByRelevanceFieldEnum)[keyof typeof DepositoItemOrderByRelevanceFieldEnum]
+export type MovimentacaoOrderByRelevanceFieldEnum = (typeof MovimentacaoOrderByRelevanceFieldEnum)[keyof typeof MovimentacaoOrderByRelevanceFieldEnum]
 
 
 export const AuditoriaOrderByRelevanceFieldEnum = {
   id: 'id',
-  acao: 'acao'
+  acao: 'acao',
+  detalhes: 'detalhes'
 } as const
 
 export type AuditoriaOrderByRelevanceFieldEnum = (typeof AuditoriaOrderByRelevanceFieldEnum)[keyof typeof AuditoriaOrderByRelevanceFieldEnum]

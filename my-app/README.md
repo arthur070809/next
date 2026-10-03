@@ -1,64 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Almoxarifado Marcon
 
-## Getting Started
+Sistema de gestão de almoxarifado industrial desenvolvido com **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Prisma 7.10** com `@prisma/adapter-mariadb` e banco de dados **TiDB Cloud Starter** (MySQL 8.5 compatível, região AWS `sa-east-1`).
 
-### MySQL
+---
 
-O projeto usa somente MySQL para persistir usuários, catálogo, requisições e histórico. O driver utilizado no servidor é `mysql2`.
+## 🚀 Arquitetura & Tecnologias
 
-1. Crie as tabelas e carregue os 20 itens iniciais usando MySQL 8.0.16 ou superior. No cliente `mysql`, execute:
+- **Next.js 16 (App Router) & React 19:** Server Components, Server Actions e rotas de API com validação estrita.
+- **Prisma 7.10 & @prisma/adapter-mariadb:** Modelagem relacional tipada com pool de conexões otimizado para TiDB Serverless.
+- **TiDB Cloud Starter v8.5.x:** Banco distribuído MySQL-compatível com charset `utf8mb4` e collation `utf8mb4_unicode_ci`.
+- **Vitest 3:** Testes unitários de rotas e testes de integração de concorrência com o banco real.
 
-   ```powershell
-   SOURCE database/schema.sql;
-   ```
+---
 
-2. Copie `.env.example` para `.env.local` e informe as credenciais do seu MySQL.
-3. Registre os usuários pela página `/cadastro`. Novos cadastros recebem o perfil `operador`.
-4. Para permitir que um funcionário atenda requisições, altere seu perfil no MySQL:
+## ⚙️ Variáveis de Ambiente
 
-   ```sql
-   UPDATE usuarios SET role = 'almoxarife' WHERE codigo_cracha = 'CODIGO_DO_CRACHA';
-   ```
-
-As rotas de mutação usam transações InnoDB. A atribuição de uma requisição usa bloqueio da linha do pedido para impedir que dois almoxarifes a assumam ao mesmo tempo. Não há dados demo de requisições/histórico inseridos; esses registros passam a ser criados pelo fluxo da aplicação.
-
-O cadastro/login atual ainda não cria uma sessão segura no servidor; a tela guarda o usuário autenticado no navegador para associar novas requisições ao respectivo registro. Use sessão por cookie HttpOnly antes de expor o sistema como aplicação de produção.
-
-## Getting Started (Next.js)
-
-First, run the development server:
+Crie o arquivo `.env.local` na raiz do projeto (`my-app/`):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Conexão com TiDB Cloud Starter
+# Nota: sslaccept=strict é utilizado pelo CLI do Prisma (schema engine e migrations)
+DATABASE_URL="mysql://<USUARIO>:<SENHA>@<GATEWAY_TIDB>:4000/marcon_almoxarifado?sslaccept=strict"
+
+# Opcional: Variáveis para criação do Administrador via seed
+# ADMIN_LOGIN="admin"
+# ADMIN_PASSWORD="sua-senha-segura"
+# ADMIN_NAME="Administrador do Sistema"
+
+# Opcional: Senha padrão para os funcionários fictícios de teste
+# SEED_DEFAULT_PASSWORD="senha-para-desenvolvimento"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> **Atenção:** Nunca comite `.env*` ou `.seed-credentials.local`. O repositório está configurado no `.gitignore` para bloquear o versionamento de credenciais locais.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Configuração do Banco de Dados & Migrations
 
-## Learn More
+O projeto utiliza a estratégia **Prisma Migrate Deploy** (com `prisma7.config.ts`), dispensando o shadow database incompatível com ambientes serverless compartilhados.
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Aplicar a Migration Canônica
+```bash
+npx prisma migrate deploy --config prisma7.config.ts
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Gerar o Prisma Client
+```bash
+npx prisma generate --config prisma7.config.ts
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Stock quantity limits
+## 🗄️ Carga de Dados Inicial (Seeds Idempotentes)
 
-Packaging count and quantity per package must be positive integers no greater than 1,000,000 each. The calculated stock balance cannot exceed 2,147,483,647 (the MySQL `INT` maximum); the server calculates this total.
+Os scripts de seed foram desenvolvidos para serem 100% idempotentes (podem ser executados múltiplas vezes sem duplicar itens ou usuários):
 
-## Deploy on Vercel
+### Catálogo de Materiais e Funcionários Fictícios
+Popula ~22 itens industriais com saldos iniciais em `estoque` (Central) e `deposito`, registrando movimentações de `ENTRADA`, além de funcionários para cada papel (`ADMIN`, `ALMOXARIFE`, `OPERADOR`, `USUARIO`).
+```bash
+npm run seed
+```
+*Se `SEED_DEFAULT_PASSWORD` não for informada, senhas fortes e aleatórias serão geradas e salvas em `.seed-credentials.local`.*
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Administrador do Sistema
+Para criar ou atualizar as credenciais do administrador principal:
+```bash
+ADMIN_LOGIN="admin" ADMIN_PASSWORD="SuaSenhaForte123!" npm run seed:admin
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🧪 Testes Automatizados
+
+A suíte de testes combina testes unitários rápidos e testes de integração com transações concorrentes reais no TiDB (`marcon_almoxarifado_test`):
+
+```bash
+npm test
+```
+
+### O que os testes cobrem:
+1. **Criação com Reserva:** Reserva saldo de estoque e grava evento `RESERVA`.
+2. **Estoque Insuficiente:** Rejeição com HTTP 409 e rollback total (zero registros criados).
+3. **Concorrência Atômica:** $N$ requisições paralelas simultâneas disputando o último item (exatamente 1 vence, as demais falham de forma segura).
+4. **Separação de Itens (Baixa Real):** Desconto simultâneo de quantidade física e reservada com evento `SAIDA`.
+5. **Idempotência (Duplo Clique):** Múltiplos envios de separação não descontam saldo duas vezes.
+6. **Cancelamento & Não Atendimento:** Liberação imediata da reserva com evento `LIBERACAO_RESERVA`.
+7. **RBAC & Permissões:** Validação de acesso por papel no servidor.
+8. **Invariantes do Banco:** Garantia de que `quantidade >= 0` e `reservada <= quantidade` em todo o ciclo de vida.
+
+---
+
+## 📦 Regras de Negócio de Estoque
+
+```
+[Requisição Criada] ──> Saldo: reservada += q (Condicional atômico)
+                           │
+             ┌─────────────┴─────────────┐
+             ▼                           ▼
+      [Item Separado]            [Item Não Separado]
+             │                     ou [Cancelada]
+             ▼                           ▼
+Saldo: quantidade -= q             Saldo: reservada -= q
+       reservada -= q              (Libera reserva para outros)
+   (Movimentação SAÍDA)             (Movimentação LIBERAÇÃO)
+```
+
+- **Disponível:** $\text{disponível} = \text{quantidade} - \text{reservada}$.
+- **Sem Ler-Depois-Escrever:** Todas as atualizações utilizam `WHERE` condicional no SQL para garantir atomicidade no storage engine.
+- **Append-Only:** O saldo é uma projeção; toda mutação gera uma linha permanente em `movimentacoes`.
+
+---
+
+## 💻 Desenvolvimento Local & Build
+
+```bash
+# Rodar linter
+npm run lint
+
+# Rodar servidor de desenvolvimento
+npm run dev
+
+# Compilar build de produção
+npm run build
+```

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { sessionCookieName } from "@/lib/auth";
+import { sessionCookieName, papelParaRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { clearLoginFailures, isLoginBlocked, isRateLimited, isSameOrigin, recordLoginFailure } from "@/lib/security";
 import { BADGE_PATTERN } from "@/lib/security";
+import { PapelFuncionario } from "@/generated/prisma/client";
 
 function debugLoginFailure(portal: string, reason: string) {
   if (process.env.NODE_ENV !== "production") console.debug("[auth] login failed", { portal, reason });
@@ -40,10 +41,20 @@ export async function POST(request: Request) {
 
     const email = identificador.toLowerCase();
     const cracha = identificador.toUpperCase();
+
+    // Portal admin: login por login (email) com papel ADMIN
+    // Portal almoxarifado: login por crachá com papel ALMOXARIFE ou ADMIN
     const funcionario = portal === "admin"
-      ? await prisma.funcionario.findFirst({ where: { login: email, role: "admin" } })
+      ? await prisma.funcionario.findFirst({
+          where: { login: email, papel: PapelFuncionario.ADMIN },
+        })
       : BADGE_PATTERN.test(cracha)
-        ? await prisma.funcionario.findFirst({ where: { cracha, role: "user" } })
+        ? await prisma.funcionario.findFirst({
+            where: {
+              cracha,
+              papel: { in: [PapelFuncionario.ALMOXARIFE, PapelFuncionario.ADMIN] },
+            },
+          })
         : null;
 
     if (!funcionario || !funcionario.ativo || !(await bcrypt.compare(senha, funcionario.senha))) {
@@ -64,6 +75,9 @@ export async function POST(request: Request) {
       },
     });
 
+    // Mapeia papel para role string para compatibilidade com o front-end
+    const roleCompat = papelParaRole(funcionario.papel);
+
     const response = NextResponse.json({
       message: "Login realizado com sucesso.",
       funcionario: {
@@ -72,7 +86,9 @@ export async function POST(request: Request) {
         email: funcionario.email,
         cargo: funcionario.cargo,
         cracha: funcionario.cracha,
-        role: funcionario.role,
+        // "role" mantido para compatibilidade com o front (até migrar front)
+        role: roleCompat,
+        papel: funcionario.papel,
         mustChangePassword: funcionario.mustChangePassword,
       },
     });

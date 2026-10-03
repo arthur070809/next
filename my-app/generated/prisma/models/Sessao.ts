@@ -432,10 +432,6 @@ export type SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput = {
   deleteMany?: Prisma.SessaoScalarWhereInput | Prisma.SessaoScalarWhereInput[]
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 export type SessaoCreateWithoutFuncionarioInput = {
   id?: string
   token: string

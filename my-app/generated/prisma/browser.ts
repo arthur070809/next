@@ -28,20 +28,41 @@ export type Funcionario = Prisma.FuncionarioModel
  */
 export type Sessao = Prisma.SessaoModel
 /**
- * Model Requisicao
+ * Model Item
+ * Catálogo de materiais — campos descritivos, independentes do local
+ */
+export type Item = Prisma.ItemModel
+/**
+ * Model LocalEstoque
+ * Local de armazenamento (ex.: "estoque", "deposito", "materia-prima", "importados")
+ */
+export type LocalEstoque = Prisma.LocalEstoqueModel
+/**
+ * Model SaldoEstoque
+ * Saldo de um item em um local — projeção atualizada via Movimentacao
+ * Invariantes de banco: quantidade >= 0, reservada >= 0, reservada <= quantidade
+ */
+export type SaldoEstoque = Prisma.SaldoEstoqueModel
+/**
+ * Model SequenciaRequisicao
  * 
+ */
+export type SequenciaRequisicao = Prisma.SequenciaRequisicaoModel
+/**
+ * Model Requisicao
+ * Cabeçalho de uma requisição multi-item
  */
 export type Requisicao = Prisma.RequisicaoModel
 /**
- * Model EstoqueItem
- * 
+ * Model RequisicaoItem
+ * Item individual dentro de uma requisição
  */
-export type EstoqueItem = Prisma.EstoqueItemModel
+export type RequisicaoItem = Prisma.RequisicaoItemModel
 /**
- * Model DepositoItem
+ * Model Movimentacao
  * 
  */
-export type DepositoItem = Prisma.DepositoItemModel
+export type Movimentacao = Prisma.MovimentacaoModel
 /**
  * Model Auditoria
  * 

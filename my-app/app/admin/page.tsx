@@ -8,7 +8,7 @@ export default async function AdminPage() {
   if (!funcionario) redirect("/login");
   if (funcionario.role !== "admin") redirect("/");
   const [estoqueTotal, requisicoesPendentes, usuariosAtivos] = await Promise.all([
-    prisma.estoqueItem.count({ where: { ativo: true } }),
+    prisma.item.count({ where: { ativo: true } }),
     prisma.requisicao.count({ where: { status: "PENDENTE" } }),
     prisma.funcionario.count({ where: { ativo: true } }),
   ]);

@@ -1,11 +1,27 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@/generated/prisma/client";
-import { requireAdmin } from "@/lib/auth";
+import { Prisma, PapelFuncionario } from "@/generated/prisma/client";
+import { requireAdmin, papelParaRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { BADGE_PATTERN, hashPassword, isRateLimited, isSameOrigin, passwordError, validatePassword } from "@/lib/security";
 
 function authError(status: 401 | 403) {
   return NextResponse.json({ error: status === 401 ? "Não autenticado." : "Acesso negado." }, { status });
+}
+
+/** Formata um funcionário para a resposta da API, incluindo role compat */
+function formatFuncionario(f: {
+  id: number;
+  nome: string;
+  cracha: string;
+  cargo: string;
+  papel: PapelFuncionario;
+  ativo: boolean;
+  mustChangePassword: boolean;
+}) {
+  return {
+    ...f,
+    role: papelParaRole(f.papel), // backward compat com front-end
+  };
 }
 
 export async function GET(request: Request) {
@@ -16,20 +32,21 @@ export async function GET(request: Request) {
   const status = url.searchParams.get("status");
   const page = Math.max(1, Number(url.searchParams.get("page") ?? "1") || 1);
   const pageSize = Math.min(50, Math.max(1, Number(url.searchParams.get("pageSize") ?? "20") || 20));
-  const where = {
+  const where: Prisma.FuncionarioWhereInput = {
     ...(query ? { OR: [{ nome: { contains: query } }, { cracha: { contains: query } }] } : {}),
     ...(status === "ativo" ? { ativo: true } : status === "inativo" ? { ativo: false } : {}),
   };
-  const [funcionarios, total] = await Promise.all([
+  const [funcionariosRaw, total] = await Promise.all([
     prisma.funcionario.findMany({
       where,
       skip: (page - 1) * pageSize,
       take: pageSize,
-    select: { id: true, nome: true, cracha: true, cargo: true, role: true, ativo: true, mustChangePassword: true },
-    orderBy: { nome: "asc" },
+      select: { id: true, nome: true, cracha: true, cargo: true, papel: true, ativo: true, mustChangePassword: true },
+      orderBy: { nome: "asc" },
     }),
     prisma.funcionario.count({ where }),
   ]);
+  const funcionarios = funcionariosRaw.map(formatFuncionario);
   return NextResponse.json({ funcionarios, pagination: { page, pageSize, total } });
 }
 
@@ -47,17 +64,35 @@ export async function POST(request: Request) {
     const cracha = typeof body?.cracha === "string" ? body.cracha.trim() : "";
     const nome = typeof body?.nome === "string" ? body.nome.trim() : "";
     const senha = typeof body?.senha === "string" ? body.senha : "";
+    // papel: aceita "USUARIO", "OPERADOR", "ALMOXARIFE" ou fallback para USUARIO
+    const papelInput = typeof body?.papel === "string" ? body.papel.toUpperCase() : "USUARIO";
+    const papel = Object.values(PapelFuncionario).includes(papelInput as PapelFuncionario)
+      ? (papelInput as PapelFuncionario)
+      : PapelFuncionario.USUARIO;
+
     if (!nome || nome.length > 100 || !BADGE_PATTERN.test(cracha)) {
       return NextResponse.json({ error: "Informe nome e um crachá numérico de 4 a 10 dígitos." }, { status: 400 });
     }
     if (!validatePassword(senha)) return NextResponse.json({ error: passwordError() }, { status: 400 });
+    if (papel === PapelFuncionario.ADMIN) {
+      return NextResponse.json({ error: "Admin deve ser criado via seed:admin." }, { status: 400 });
+    }
 
-    const funcionario = await prisma.funcionario.create({
-      data: { nome, cracha, email: `${cracha}@local.invalid`, cargo: "operador", senha: await hashPassword(senha), mustChangePassword: true, ativo: true },
-      select: { id: true, nome: true, cracha: true, cargo: true, role: true, ativo: true, mustChangePassword: true },
+    const funcionarioRaw = await prisma.funcionario.create({
+      data: {
+        nome,
+        cracha,
+        email: `${cracha}@local.invalid`,
+        cargo: papel.toLowerCase(),
+        papel,
+        senha: await hashPassword(senha),
+        mustChangePassword: true,
+        ativo: true,
+      },
+      select: { id: true, nome: true, cracha: true, cargo: true, papel: true, ativo: true, mustChangePassword: true },
     });
-    await prisma.auditoria.create({ data: { acao: "USUARIO_CRIADO", alvoId: funcionario.id, autorId: auth.funcionario.id } });
-    return NextResponse.json({ funcionario }, { status: 201 });
+    await prisma.auditoria.create({ data: { acao: "USUARIO_CRIADO", alvoId: funcionarioRaw.id, autorId: auth.funcionario.id } });
+    return NextResponse.json({ funcionario: formatFuncionario(funcionarioRaw) }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ error: "Este código de crachá já está cadastrado." }, { status: 409 });
@@ -76,7 +111,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const userId = Number(body?.userId);
     const action = body?.action;
-    if (!Number.isInteger(userId) || !["reset-password", "set-active"].includes(action)) {
+    if (!Number.isInteger(userId) || !["reset-password", "set-active", "set-papel"].includes(action)) {
       return NextResponse.json({ error: "Ação administrativa inválida." }, { status: 400 });
     }
     if (action === "set-active" && userId === auth.funcionario.id && body?.ativo === false) {
@@ -92,6 +127,19 @@ export async function PATCH(request: Request) {
       await prisma.funcionario.update({ where: { id: userId }, data: { senha: await hashPassword(senha), mustChangePassword: true } });
       await prisma.auditoria.create({ data: { acao: "SENHA_REDEFINIDA", alvoId: userId, autorId: auth.funcionario.id } });
       return NextResponse.json({ message: "Senha redefinida. A troca será exigida no próximo acesso." });
+    }
+
+    if (action === "set-papel") {
+      const papelInput = typeof body?.papel === "string" ? body.papel.toUpperCase() : "";
+      if (!Object.values(PapelFuncionario).includes(papelInput as PapelFuncionario)) {
+        return NextResponse.json({ error: "Papel inválido." }, { status: 400 });
+      }
+      if (papelInput === PapelFuncionario.ADMIN) {
+        return NextResponse.json({ error: "Admin deve ser criado via seed:admin." }, { status: 400 });
+      }
+      await prisma.funcionario.update({ where: { id: userId }, data: { papel: papelInput as PapelFuncionario } });
+      await prisma.auditoria.create({ data: { acao: "PAPEL_ALTERADO", alvoId: userId, autorId: auth.funcionario.id, detalhes: papelInput } });
+      return NextResponse.json({ message: "Papel atualizado." });
     }
 
     const ativo = body?.ativo === true;

@@ -41,7 +41,8 @@ export type AuditoriaMinAggregateOutputType = {
   acao: string | null
   alvoId: number | null
   autorId: number | null
-  createdAt: Date | null
+  detalhes: string | null
+  criadoEm: Date | null
 }
 
 export type AuditoriaMaxAggregateOutputType = {
@@ -49,7 +50,8 @@ export type AuditoriaMaxAggregateOutputType = {
   acao: string | null
   alvoId: number | null
   autorId: number | null
-  createdAt: Date | null
+  detalhes: string | null
+  criadoEm: Date | null
 }
 
 export type AuditoriaCountAggregateOutputType = {
@@ -57,7 +59,8 @@ export type AuditoriaCountAggregateOutputType = {
   acao: number
   alvoId: number
   autorId: number
-  createdAt: number
+  detalhes: number
+  criadoEm: number
   _all: number
 }
 
@@ -77,7 +80,8 @@ export type AuditoriaMinAggregateInputType = {
   acao?: true
   alvoId?: true
   autorId?: true
-  createdAt?: true
+  detalhes?: true
+  criadoEm?: true
 }
 
 export type AuditoriaMaxAggregateInputType = {
@@ -85,7 +89,8 @@ export type AuditoriaMaxAggregateInputType = {
   acao?: true
   alvoId?: true
   autorId?: true
-  createdAt?: true
+  detalhes?: true
+  criadoEm?: true
 }
 
 export type AuditoriaCountAggregateInputType = {
@@ -93,7 +98,8 @@ export type AuditoriaCountAggregateInputType = {
   acao?: true
   alvoId?: true
   autorId?: true
-  createdAt?: true
+  detalhes?: true
+  criadoEm?: true
   _all?: true
 }
 
@@ -188,7 +194,8 @@ export type AuditoriaGroupByOutputType = {
   acao: string
   alvoId: number
   autorId: number
-  createdAt: Date
+  detalhes: string | null
+  criadoEm: Date
   _count: AuditoriaCountAggregateOutputType | null
   _avg: AuditoriaAvgAggregateOutputType | null
   _sum: AuditoriaSumAggregateOutputType | null
@@ -219,7 +226,8 @@ export type AuditoriaWhereInput = {
   acao?: Prisma.StringFilter<"Auditoria"> | string
   alvoId?: Prisma.IntFilter<"Auditoria"> | number
   autorId?: Prisma.IntFilter<"Auditoria"> | number
-  createdAt?: Prisma.DateTimeFilter<"Auditoria"> | Date | string
+  detalhes?: Prisma.StringNullableFilter<"Auditoria"> | string | null
+  criadoEm?: Prisma.DateTimeFilter<"Auditoria"> | Date | string
   autor?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
 }
 
@@ -228,7 +236,8 @@ export type AuditoriaOrderByWithRelationInput = {
   acao?: Prisma.SortOrder
   alvoId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  detalhes?: Prisma.SortOrderInput | Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
   autor?: Prisma.FuncionarioOrderByWithRelationInput
   _relevance?: Prisma.AuditoriaOrderByRelevanceInput
 }
@@ -241,7 +250,8 @@ export type AuditoriaWhereUniqueInput = Prisma.AtLeast<{
   acao?: Prisma.StringFilter<"Auditoria"> | string
   alvoId?: Prisma.IntFilter<"Auditoria"> | number
   autorId?: Prisma.IntFilter<"Auditoria"> | number
-  createdAt?: Prisma.DateTimeFilter<"Auditoria"> | Date | string
+  detalhes?: Prisma.StringNullableFilter<"Auditoria"> | string | null
+  criadoEm?: Prisma.DateTimeFilter<"Auditoria"> | Date | string
   autor?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
 }, "id">
 
@@ -250,7 +260,8 @@ export type AuditoriaOrderByWithAggregationInput = {
   acao?: Prisma.SortOrder
   alvoId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  detalhes?: Prisma.SortOrderInput | Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
   _count?: Prisma.AuditoriaCountOrderByAggregateInput
   _avg?: Prisma.AuditoriaAvgOrderByAggregateInput
   _max?: Prisma.AuditoriaMaxOrderByAggregateInput
@@ -266,14 +277,16 @@ export type AuditoriaScalarWhereWithAggregatesInput = {
   acao?: Prisma.StringWithAggregatesFilter<"Auditoria"> | string
   alvoId?: Prisma.IntWithAggregatesFilter<"Auditoria"> | number
   autorId?: Prisma.IntWithAggregatesFilter<"Auditoria"> | number
-  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Auditoria"> | Date | string
+  detalhes?: Prisma.StringNullableWithAggregatesFilter<"Auditoria"> | string | null
+  criadoEm?: Prisma.DateTimeWithAggregatesFilter<"Auditoria"> | Date | string
 }
 
 export type AuditoriaCreateInput = {
   id?: string
   acao: string
   alvoId: number
-  createdAt?: Date | string
+  detalhes?: string | null
+  criadoEm?: Date | string
   autor: Prisma.FuncionarioCreateNestedOneWithoutAuditoriasInput
 }
 
@@ -282,14 +295,16 @@ export type AuditoriaUncheckedCreateInput = {
   acao: string
   alvoId: number
   autorId: number
-  createdAt?: Date | string
+  detalhes?: string | null
+  criadoEm?: Date | string
 }
 
 export type AuditoriaUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autor?: Prisma.FuncionarioUpdateOneRequiredWithoutAuditoriasNestedInput
 }
 
@@ -298,7 +313,8 @@ export type AuditoriaUncheckedUpdateInput = {
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AuditoriaCreateManyInput = {
@@ -306,14 +322,16 @@ export type AuditoriaCreateManyInput = {
   acao: string
   alvoId: number
   autorId: number
-  createdAt?: Date | string
+  detalhes?: string | null
+  criadoEm?: Date | string
 }
 
 export type AuditoriaUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AuditoriaUncheckedUpdateManyInput = {
@@ -321,7 +339,8 @@ export type AuditoriaUncheckedUpdateManyInput = {
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AuditoriaListRelationFilter = {
@@ -345,7 +364,8 @@ export type AuditoriaCountOrderByAggregateInput = {
   acao?: Prisma.SortOrder
   alvoId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  detalhes?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
 }
 
 export type AuditoriaAvgOrderByAggregateInput = {
@@ -358,7 +378,8 @@ export type AuditoriaMaxOrderByAggregateInput = {
   acao?: Prisma.SortOrder
   alvoId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  detalhes?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
 }
 
 export type AuditoriaMinOrderByAggregateInput = {
@@ -366,7 +387,8 @@ export type AuditoriaMinOrderByAggregateInput = {
   acao?: Prisma.SortOrder
   alvoId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  detalhes?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
 }
 
 export type AuditoriaSumOrderByAggregateInput = {
@@ -420,14 +442,16 @@ export type AuditoriaCreateWithoutAutorInput = {
   id?: string
   acao: string
   alvoId: number
-  createdAt?: Date | string
+  detalhes?: string | null
+  criadoEm?: Date | string
 }
 
 export type AuditoriaUncheckedCreateWithoutAutorInput = {
   id?: string
   acao: string
   alvoId: number
-  createdAt?: Date | string
+  detalhes?: string | null
+  criadoEm?: Date | string
 }
 
 export type AuditoriaCreateOrConnectWithoutAutorInput = {
@@ -464,35 +488,40 @@ export type AuditoriaScalarWhereInput = {
   acao?: Prisma.StringFilter<"Auditoria"> | string
   alvoId?: Prisma.IntFilter<"Auditoria"> | number
   autorId?: Prisma.IntFilter<"Auditoria"> | number
-  createdAt?: Prisma.DateTimeFilter<"Auditoria"> | Date | string
+  detalhes?: Prisma.StringNullableFilter<"Auditoria"> | string | null
+  criadoEm?: Prisma.DateTimeFilter<"Auditoria"> | Date | string
 }
 
 export type AuditoriaCreateManyAutorInput = {
   id?: string
   acao: string
   alvoId: number
-  createdAt?: Date | string
+  detalhes?: string | null
+  criadoEm?: Date | string
 }
 
 export type AuditoriaUpdateWithoutAutorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AuditoriaUncheckedUpdateWithoutAutorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AuditoriaUncheckedUpdateManyWithoutAutorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   acao?: Prisma.StringFieldUpdateOperationsInput | string
   alvoId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  detalhes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -502,7 +531,8 @@ export type AuditoriaSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   acao?: boolean
   alvoId?: boolean
   autorId?: boolean
-  createdAt?: boolean
+  detalhes?: boolean
+  criadoEm?: boolean
   autor?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["auditoria"]>
 
@@ -513,10 +543,11 @@ export type AuditoriaSelectScalar = {
   acao?: boolean
   alvoId?: boolean
   autorId?: boolean
-  createdAt?: boolean
+  detalhes?: boolean
+  criadoEm?: boolean
 }
 
-export type AuditoriaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "acao" | "alvoId" | "autorId" | "createdAt", ExtArgs["result"]["auditoria"]>
+export type AuditoriaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "acao" | "alvoId" | "autorId" | "detalhes" | "criadoEm", ExtArgs["result"]["auditoria"]>
 export type AuditoriaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   autor?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
 }
@@ -529,9 +560,13 @@ export type $AuditoriaPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     acao: string
+    /**
+     * ID do alvo (Funcionario.id ou outro recurso)
+     */
     alvoId: number
     autorId: number
-    createdAt: Date
+    detalhes: string | null
+    criadoEm: Date
   }, ExtArgs["result"]["auditoria"]>
   composites: {}
 }
@@ -906,7 +941,8 @@ export interface AuditoriaFieldRefs {
   readonly acao: Prisma.FieldRef<"Auditoria", 'String'>
   readonly alvoId: Prisma.FieldRef<"Auditoria", 'Int'>
   readonly autorId: Prisma.FieldRef<"Auditoria", 'Int'>
-  readonly createdAt: Prisma.FieldRef<"Auditoria", 'DateTime'>
+  readonly detalhes: Prisma.FieldRef<"Auditoria", 'String'>
+  readonly criadoEm: Prisma.FieldRef<"Auditoria", 'DateTime'>
 }
     
 
