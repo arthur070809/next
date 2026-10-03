@@ -12,8 +12,14 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const requisicao = await prisma.requisicao.findUnique({
       where: { id },
       include: {
-        funcionario: { select: { nome: true } },
-        estoqueItem: { select: { id: true, codigo: true } },
+        solicitante: { select: { nome: true, cracha: true } },
+        atendente: { select: { nome: true, cracha: true } },
+        itens: {
+          include: {
+            item: { select: { id: true, nome: true, codigo: true } },
+            local: { select: { slug: true } },
+          },
+        },
       },
     });
     if (!requisicao) return NextResponse.json({ error: "Requisição não encontrada." }, { status: 404 });
