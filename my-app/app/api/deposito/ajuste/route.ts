@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
+import { TipoMovimentacao } from "@/generated/prisma/client";
+
+const LOCAL_DEPOSITO_SLUG = "deposito";
 
 export async function POST(request: Request) {
   let authorization;
@@ -33,30 +36,40 @@ export async function POST(request: Request) {
 
   try {
     const result = await prisma.$transaction(async (transaction) => {
-      const item = await transaction.estoqueItem.findUnique({ where: { id: itemId }, select: { id: true, ativo: true } });
+      const item = await transaction.item.findUnique({ where: { id: itemId }, select: { id: true, ativo: true } });
       if (!item || !item.ativo) return null;
-      const saldo = await transaction.saldoDeposito.findUnique({ where: { itemId }, select: { quantidade: true } });
-      const saldoAntes = saldo?.quantidade ?? 0;
+
+      const local = await transaction.localEstoque.upsert({
+        where: { slug: LOCAL_DEPOSITO_SLUG },
+        create: { slug: LOCAL_DEPOSITO_SLUG, nome: "Depósito", ativo: true },
+        update: {},
+      });
+
+      const saldoAtual = await transaction.saldoEstoque.findUnique({
+        where: { itemId_localId: { itemId, localId: local.id } },
+      });
+      const saldoAntes = saldoAtual?.quantidade ?? 0;
       if (saldoAntes === quantidade) return { saldoAntes, saldoDepois: quantidade, alterado: false };
 
-      await transaction.saldoDeposito.upsert({
-        where: { itemId },
-        create: { itemId, quantidade },
+      const saldo = await transaction.saldoEstoque.upsert({
+        where: { itemId_localId: { itemId, localId: local.id } },
+        create: { itemId, localId: local.id, quantidade, reservada: 0 },
         update: { quantidade },
       });
-      await transaction.movimentacaoDeposito.create({
+
+      await transaction.movimentacao.create({
         data: {
-          itemId,
-          tipo: "AJUSTE",
+          tipo: TipoMovimentacao.AJUSTE,
           quantidade: Math.abs(quantidade - saldoAntes),
-          saldoAntes,
-          saldoDepois: quantidade,
-          usuarioId: funcionario.id,
-          motivo,
+          saldoApos: saldo.quantidade,
+          reservadaApos: saldo.reservada,
+          funcionarioId: funcionario.id,
+          saldoEstoqueId: saldo.id,
+          observacao: `Ajuste depósito: ${saldoAntes} para ${quantidade}. Motivo: ${motivo}`.slice(0, 500),
         },
       });
       return { saldoAntes, saldoDepois: quantidade, alterado: true };
-    }, { isolationLevel: "Serializable" });
+    });
 
     if (!result) return NextResponse.json({ error: "Item não encontrado." }, { status: 404 });
     return NextResponse.json({ ajuste: result });
