@@ -55,6 +55,9 @@ export async function POST(request: Request) {
     if (!funcionario) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
+    if (funcionario.papel !== PapelFuncionario.OPERADOR) {
+      return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    }
 
     const body = await request.json();
 

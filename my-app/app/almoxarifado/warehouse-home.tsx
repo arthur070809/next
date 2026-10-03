@@ -15,7 +15,7 @@ type Resumo = {
 const cards: Array<{ key: keyof Resumo; label: string; detail: string }> = [
   { key: "materiaisAtivos", label: "Materiais ativos", detail: "Itens cadastrados no estoque" },
   { key: "materiaisSemEstoque", label: "Sem estoque", detail: "Materiais ativos com saldo zero" },
-  { key: "requisicoesPendentes", label: "Requisições pendentes", detail: "Pedidos enviados por você" },
+  { key: "requisicoesPendentes", label: "Requisições pendentes", detail: "Pedidos aguardando atendimento" },
   { key: "itensComSobras", label: "Itens no depósito", detail: "Materiais com saldo disponível" },
   { key: "sobrasHoje", label: "Sobras registradas hoje", detail: "Unidades devolvidas ao depósito" },
 ];
@@ -71,7 +71,10 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
 
       <section className="mt-8" aria-labelledby="warehouse-shortcuts">
         <h2 id="warehouse-shortcuts" className="text-lg font-bold text-slate-950">Ações rápidas</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Link href="/almoxarifado/requisicoes" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-royal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal">
+            <span aria-hidden="true" className="text-xl text-royal">▤</span><p className="mt-3 font-semibold text-slate-900">Fila de requisições</p><p className="mt-1 text-sm text-slate-500">Receba e acompanhe os pedidos dos operadores.</p>
+          </Link>
           <Link href="/almoxarifado/estoque" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-royal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal">
             <span aria-hidden="true" className="text-xl text-royal">▦</span><p className="mt-3 font-semibold text-slate-900">Estoque</p><p className="mt-1 text-sm text-slate-500">Consulte os materiais e seus saldos.</p>
           </Link>

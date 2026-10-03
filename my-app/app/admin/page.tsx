@@ -5,8 +5,8 @@ import AdminDashboard from "./dashboard";
 
 export default async function AdminPage() {
   const funcionario = await getAuthenticatedFuncionario();
-  if (!funcionario) redirect("/login");
-  if (funcionario.role !== "admin") redirect("/");
+  if (!funcionario) redirect("/login?callbackUrl=%2Fadmin");
+  if (funcionario.role !== "admin") redirect("/login?callbackUrl=%2Fadmin");
   const hoje = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
     year: "numeric",

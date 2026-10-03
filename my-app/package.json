@@ -8,6 +8,7 @@
     "start": "next start",
     "seed": "tsx scripts/seed-stock.cjs",
     "seed:admin": "tsx scripts/seed-admin.cjs",
+    "seed:teste": "tsx scripts/seed-teste.ts",
     "admin:reset-password": "tsx scripts/reset-admin-password.cjs",
     "test": "vitest run",
     "lint": "eslint"
