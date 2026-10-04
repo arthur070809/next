@@ -42,5 +42,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/lib/generated/prisma
+/generated/prisma
 backup_antes_migrations.sql*

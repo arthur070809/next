@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import QRCode from "qrcode";
 import { useState } from "react";
 
@@ -80,7 +81,7 @@ export default function TotpManager({ initiallyEnabled }: { initiallyEnabled: bo
     {message && <p role="status" className="mt-3 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p>}
     {!enabled && !secret && <button type="button" disabled={busy} onClick={() => void startSetup()} className="mt-4 min-h-11 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Preparando…" : "Configurar autenticador"}</button>}
     {!enabled && secret && <form onSubmit={(event) => void enableTotp(event)} className="mt-5 space-y-4">
-      <img src={qr} alt="QR code para configurar TOTP no autenticador" width={240} height={240} className="rounded-lg border border-slate-200 p-2" />
+      <Image src={qr} alt="QR code para configurar TOTP no autenticador" width={240} height={240} className="rounded-lg border border-slate-200 p-2" unoptimized />
       <p className="text-sm text-slate-700">Chave para configuração manual: <code className="break-all rounded bg-slate-100 px-2 py-1">{secret}</code></p>
       <label htmlFor="totp-setup-code" className="block text-sm font-medium text-slate-700">Código de 6 dígitos<input id="totp-setup-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))} className="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 px-3 sm:max-w-xs" /></label>
       <button type="submit" disabled={busy || code.length !== 6} className="min-h-11 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Validando…" : "Ativar TOTP"}</button>
