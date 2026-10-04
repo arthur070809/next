@@ -54,6 +54,28 @@ describe("debitarRequisicao", () => {
       }),
     );
   });
+
+  it("debita quando o pedido é exatamente igual ao físico", () => {
+    const result = debitarRequisicao(saldoInicial, saldoInicial.fisico, contexto);
+
+    expect(result.estado).toEqual({
+      fisico: 0,
+      aSeparar: saldoInicial.fisico,
+      emPosse: saldoInicial.emPosse,
+      aSepararPorRequisicao: { "req-1": saldoInicial.fisico },
+    });
+    expect(result.linhas).toHaveLength(1);
+    expect(result.linhas[0]).toMatchObject({
+      tipo: "REQUISICAO_DEBITO",
+      quantidade: saldoInicial.fisico,
+      fisicoAntes: 10,
+      fisicoDepois: 0,
+      aSepararAntes: 0,
+      aSepararDepois: 10,
+      emPosseAntes: 2,
+      emPosseDepois: 2,
+    });
+  });
 });
 
 describe("confirmarSeparacao", () => {
@@ -119,6 +141,17 @@ describe("confirmarSeparacao", () => {
     });
     expect(result.linhas).toHaveLength(1);
   });
+
+  it("não permite confirmar duas vezes a mesma alocação", () => {
+    const first = confirmarSeparacao(alocado, 4, contexto);
+    const linhasGeradas = [...first.linhas];
+    const linhasAntesDaSegundaChamada = linhasGeradas.length;
+
+    expect(() => confirmarSeparacao(first.estado, 4, contexto)).toThrowError(
+      expect.objectContaining({ codigo: "ALOCACAO_INSUFICIENTE" }),
+    );
+    expect(linhasGeradas).toHaveLength(linhasAntesDaSegundaChamada);
+  });
 });
 
 describe("cancelarRequisicao", () => {
@@ -151,7 +184,28 @@ describe("cancelarRequisicao", () => {
     const alocado = debitarRequisicao(saldoInicial, 4, contexto).estado;
     const first = cancelarRequisicao(alocado, contexto);
     const second = cancelarRequisicao(first.estado, contexto);
+
+    expect(first.linhas).toHaveLength(1);
+    expect(first.linhas[0]).toMatchObject({
+      tipo: "CANCELAMENTO_DEVOLUCAO",
+      idempotencyKey: "CANCELAMENTO_DEVOLUCAO:req-1:item-1",
+    });
     expect(second.estado).toEqual(first.estado);
     expect(second.linhas).toEqual([]);
+  });
+
+  it("não devolve novamente saldo após separação parcial", () => {
+    const alocado = debitarRequisicao(saldoInicial, 4, contexto).estado;
+    const separadoParcialmente = confirmarSeparacao(alocado, 2, {
+      ...contexto,
+      motivo: "Duas unidades não foram encontradas",
+    });
+    const antesDoCancelamento = separadoParcialmente.estado;
+    const cancelamento = cancelarRequisicao(antesDoCancelamento, contexto);
+
+    expect(cancelamento.linhas).toEqual([]);
+    expect(cancelamento.estado).toEqual(antesDoCancelamento);
+    expect(cancelamento.estado.fisico).toBe(8);
+    expect(cancelamento.estado.emPosse).toBe(4);
   });
 });
