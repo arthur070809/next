@@ -11,6 +11,7 @@
     "seed:teste": "tsx scripts/seed-teste.ts",
     "seed:requisicao": "tsx scripts/seed-requisicao-teste.ts",
     "qr:etiqueta": "tsx scripts/gerar-qr-etiqueta.ts",
+    "reservas:conferir": "tsx scripts/conferir-reservas.ts",
     "admin:reset-password": "tsx scripts/reset-admin-password.cjs",
     "test": "vitest run",
     "lint": "eslint"
