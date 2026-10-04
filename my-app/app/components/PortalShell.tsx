@@ -18,10 +18,11 @@ const adminMenu = [
 ];
 
 const warehouseMenu = [
-  { href: "/almoxarifado", label: "Início", icon: adminMenu[0].icon },
-  { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
-  { href: "/almoxarifado/estoque", label: "Estoque", icon: adminMenu[1].icon },
-  { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: adminMenu[2].icon },
+  { href: "/almoxarifado", label: "Início", icon: "⌂" },
+  { href: "/almoxarifado/requisicoes", label: "Requisições", icon: "▤" },
+  { href: "/almoxarifado/estoque", label: "Estoque", icon: "▦" },
+  { href: "/almoxarifado/deposito", label: "Depósito", icon: "◇" },
+  { href: "/historico", label: "Histórico", icon: "◫" },
 ];
 
 const operatorMenu = [
@@ -44,6 +45,7 @@ export default function PortalShell({
   const isOperator = role === "operador";
   const homeHref = isAdmin ? "/admin" : isOperator ? "/requisicao" : "/almoxarifado";
   const menu = isAdmin ? adminMenu : isOperator ? operatorMenu : warehouseMenu;
+  const roleLabel = isAdmin ? "Admin" : isOperator ? "Operador" : "Almoxarifado";
   const [logoutError, setLogoutError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -63,34 +65,138 @@ export default function PortalShell({
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950">
-      <aside className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between">
-          <Link href={homeHref} className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-200">Almoxarifado Marcon</Link>
-          <button type="button" onClick={() => setOpen(false)} className="rounded p-2 text-slate-300 focus-visible:outline-2 focus-visible:outline-white lg:hidden" aria-label="Fechar menu">×</button>
+    <div className="min-h-screen bg-slate-100 text-slate-900" data-shell>
+      <aside
+        className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform duration-200 ease-out lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <Link href={homeHref} className="flex items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-black text-white shadow-lg shadow-blue-900/30">
+              M
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200">
+              Marcon
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="rounded-lg border border-slate-700 p-2 text-slate-300 focus-visible:outline-2 focus-visible:outline-white lg:hidden"
+            aria-label="Fechar menu"
+          >
+            ×
+          </button>
         </div>
-        <nav aria-label={isAdmin ? "Navegação administrativa" : isOperator ? "Navegação do operador" : "Navegação do almoxarifado"} className="mt-10 space-y-1">
+
+        <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">Operação</p>
+          <p className="mt-2 text-sm font-semibold text-white">{roleLabel}</p>
+          <p className="mt-1 text-xs text-slate-400">{userName}</p>
+        </div>
+
+        <nav
+          aria-label={isAdmin ? "Navegação administrativa" : isOperator ? "Navegação do operador" : "Navegação do almoxarifado"}
+          className="mt-8 space-y-1"
+        >
           {menu.map((item) => {
             const active = item.href === homeHref ? pathname === item.href : pathname.startsWith(item.href);
-            return <Link key={item.href} href={item.href} onClick={() => setOpen(false)} aria-current={active ? "page" : undefined} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-white ${active ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
-              <span aria-hidden="true" className="w-5 text-center text-lg">{item.icon}</span>{item.label}
-            </Link>;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${
+                  active
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <span aria-hidden="true" className="w-5 text-center text-lg">
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            );
           })}
         </nav>
       </aside>
-      {open && <button type="button" className="fixed inset-0 z-20 bg-slate-950/50 lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu" />}
+
+      {open && (
+        <button
+          type="button"
+          className="fixed inset-0 z-20 bg-slate-950/55 lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-label="Fechar menu"
+        />
+      )}
+
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-8">
-          <button type="button" onClick={() => setOpen(true)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-royal lg:hidden" aria-label="Abrir menu" aria-expanded={open}>Menu</button>
-          <div className="hidden text-sm text-slate-500 sm:block">{isAdmin ? "Painel de administração" : isOperator ? "Área do operador" : "Área do almoxarifado"}</div>
-          <div className="ml-auto flex items-center gap-4">
-            <span className="max-w-40 truncate text-sm font-semibold text-slate-800">{userName}</span>
-            <button type="button" disabled={loggingOut} onClick={() => void logout()} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-red-300 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-60">{loggingOut ? "Saindo…" : "Sair"}</button>
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl sm:px-8">
+          <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-blue-600 lg:hidden"
+              aria-label="Abrir menu"
+              aria-expanded={open}
+            >
+              Menu
+            </button>
+
+            <div className="hidden text-sm font-medium text-slate-500 sm:block">
+              {isAdmin ? "Painel de administração" : isOperator ? "Área do operador" : "Área do almoxarifado"}
+            </div>
+
+            <div className="ml-auto flex items-center gap-3">
+              <span className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 sm:inline-flex">
+                {roleLabel}
+              </span>
+              <span className="max-w-32 truncate text-sm font-semibold text-slate-800">{userName}</span>
+              <button
+                type="button"
+                disabled={loggingOut}
+                onClick={() => void logout()}
+                className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-300 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-blue-600 disabled:cursor-wait disabled:opacity-60"
+              >
+                {loggingOut ? "Saindo…" : "Sair"}
+              </button>
+            </div>
           </div>
         </header>
-        {logoutError && <p role="alert" className="mx-4 mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-8">{logoutError}</p>}
-        <div>{children}</div>
+
+        {logoutError && (
+          <p role="alert" className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-8">
+            {logoutError}
+          </p>
+        )}
+
+        <main className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-8 lg:pb-8">
+          {children}
+        </main>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:hidden">
+        <div className="grid grid-cols-4 gap-2">
+          {menu.slice(0, 4).map((item) => {
+            const isActive = item.href === homeHref ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-semibold ${
+                  isActive ? "bg-slate-900 text-white" : "text-slate-600"
+                }`}
+              >
+                <span aria-hidden="true" className="mb-1 text-lg">
+                  {item.icon}
+                </span>
+                {item.label.replace("Fila de requisições", "Requisições").split(" ")[0]}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
