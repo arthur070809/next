@@ -141,7 +141,7 @@ export default function RessuprimentoTabela({
                 onClick={() => setPrevisualizando(item.id)}
                 className="min-h-10 rounded-md border border-slate-300 px-3 py-2 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
               >
-                Pré-visualizar sugestão
+                Aceitar sugestão (prévia)
               </button>
               {previsualizando === item.id && <p className="mt-2 max-w-52 text-xs text-slate-700">
                 Prévia: o alerta passaria a usar {item.pontoSugerido ?? "um valor ainda indisponível"}. Nada foi gravado.
