@@ -43,9 +43,12 @@ CREATE TABLE `movimentos_conta_estoque` (
 
     UNIQUE INDEX `uq_mov_conta_idempotency_key`(`idempotency_key`),
     INDEX `idx_mov_conta_item_criado`(`item_id`, `criado_em`),
+    INDEX `idx_mov_conta_local`(`local_id`),
     INDEX `idx_mov_conta_origem_criado`(`funcionario_origem_id`, `criado_em`),
     INDEX `idx_mov_conta_requisicao`(`requisicao_id`),
+    INDEX `idx_mov_conta_requisicao_item`(`requisicao_item_id`),
     INDEX `idx_mov_conta_tipo_criado`(`tipo`, `criado_em`),
+    INDEX `idx_mov_conta_executor`(`funcionario_executor_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

@@ -362,9 +362,12 @@ model MovimentoContaEstoque {
   funcionarioExecutor  Funcionario    @relation("MovimentoContaFuncionarioExecutor", fields: [funcionarioExecutorId], references: [id], onDelete: Restrict)
 
   @@index([itemId, criadoEm], map: "idx_mov_conta_item_criado")
+  @@index([localId], map: "idx_mov_conta_local")
   @@index([funcionarioOrigemId, criadoEm], map: "idx_mov_conta_origem_criado")
   @@index([requisicaoId], map: "idx_mov_conta_requisicao")
+  @@index([requisicaoItemId], map: "idx_mov_conta_requisicao_item")
   @@index([tipo, criadoEm], map: "idx_mov_conta_tipo_criado")
+  @@index([funcionarioExecutorId], map: "idx_mov_conta_executor")
   @@map("movimentos_conta_estoque")
 }
 
