@@ -29,8 +29,12 @@ export interface ItemSelecionavel {
   risco: number;
 }
 
-function validarInteiroNaoNegativo(valor: number, campo: string): void {
-  if (!Number.isSafeInteger(valor) || valor < 0 || valor > MAX_STOCK_BALANCE) {
+function validarInteiroNaoNegativo(
+  valor: number,
+  campo: string,
+  limite = MAX_STOCK_BALANCE,
+): void {
+  if (!Number.isSafeInteger(valor) || valor < 0 || valor > limite) {
     throw new RangeError(`${campo} deve ser um inteiro não negativo dentro do limite permitido.`);
   }
 }
