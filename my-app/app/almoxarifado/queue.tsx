@@ -7,6 +7,15 @@ import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 import { startVisibilityPolling } from "../../lib/visibility-polling";
 import type { PlanoViagens } from "../../lib/viagem/planejar-viagens";
+import {
+  carregarPlanoViagem,
+  viagemDemoDisponivel,
+} from "../../lib/viagem/demo-mode";
+
+const podeAtivarDemonstracao = viagemDemoDisponivel(
+  process.env.NODE_ENV,
+  process.env.NEXT_PUBLIC_VIAGEM_DEMO,
+);
 
 function formatarIdade(data: string) {
   const minutos = Math.max(0, Math.floor((Date.now() - new Date(data).getTime()) / 60000));
@@ -27,6 +36,7 @@ export default function RequisicoesQueuePage() {
   const [assumindo, setAssumindo] = useState(false);
   const [erroAcao, setErroAcao] = useState("");
   const [mostrarViagens, setMostrarViagens] = useState(false);
+  const [modoDemonstracao, setModoDemonstracao] = useState(false);
   const [planoViagens, setPlanoViagens] = useState<PlanoViagens | null>(null);
   const [carregandoViagens, setCarregandoViagens] = useState(false);
   const [erroViagens, setErroViagens] = useState("");
@@ -76,13 +86,16 @@ export default function RequisicoesQueuePage() {
       loading = true;
       setCarregandoViagens(true);
       try {
-        const response = await fetch("/api/almoxarifado/viagens", {
-          cache: "no-store",
+        const data = await carregarPlanoViagem(modoDemonstracao, async () => {
+          const response = await fetch("/api/almoxarifado/viagens", {
+            cache: "no-store",
+          });
+          const resultado = await response.json() as PlanoViagens & { error?: string };
+          if (!response.ok) {
+            throw new Error(resultado.error ?? "Não foi possível montar as viagens.");
+          }
+          return resultado;
         });
-        const data = await response.json() as PlanoViagens & { error?: string };
-        if (!response.ok) {
-          throw new Error(data.error ?? "Não foi possível montar as viagens.");
-        }
         if (active) {
           setPlanoViagens(data);
           setErroViagens("");
@@ -111,7 +124,7 @@ export default function RequisicoesQueuePage() {
       active = false;
       stopPolling();
     };
-  }, [mostrarViagens]);
+  }, [mostrarViagens, modoDemonstracao]);
 
   const filtradas = useMemo(() => requisicoes.filter((request) =>
     `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase())
@@ -152,16 +165,34 @@ export default function RequisicoesQueuePage() {
           <h2 className="text-lg font-semibold text-slate-900">Viagem única por origem</h2>
           <p className="text-sm text-slate-600">As requisições continuam sendo assumidas individualmente pelo fluxo atual.</p>
         </div>
+        {podeAtivarDemonstracao && <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-royal">
+          <input
+            type="checkbox"
+            checked={modoDemonstracao}
+            onChange={(event) => setModoDemonstracao(event.target.checked)}
+            className="size-4 accent-royal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
+          />
+          Ver com dados de demonstração
+        </label>}
         {planoViagens && <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-800" aria-live="polite">
-          {planoViagens.metricas.idasSemAgrupar} idas → {planoViagens.metricas.idasAgrupadas} idas
-          <span className="ml-2 font-normal text-slate-600">({planoViagens.metricas.idasEconomizadas} economizadas)</span>
+          Idas sem agrupar: {planoViagens.metricas.idasSemAgrupar} · Viagens agrupadas: {planoViagens.metricas.idasAgrupadas} · Economia: {planoViagens.metricas.idasEconomizadas}
         </p>}
       </div>
+      {modoDemonstracao && <p role="status" className="sticky top-0 z-10 mb-4 border-y-2 border-amber-700 bg-amber-100 px-3 py-3 text-center font-bold tracking-wide text-amber-950 shadow-sm">
+        DADOS SIMULADOS (demonstração)
+      </p>}
       {erroViagens && <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erroViagens}</p>}
       {carregandoViagens && !planoViagens ? <p role="status" className="py-6 text-center text-sm text-slate-500">Montando viagens…</p>
         : planoViagens?.viagens.length ? <div className="grid gap-4 lg:grid-cols-2">
           {planoViagens.viagens.map((viagem) => <article key={viagem.localId ?? "sem-origem"} className="rounded-lg border border-slate-200 bg-white p-4">
             <h3 className="font-semibold text-slate-900">{viagem.localNome}: {viagem.quantidadeRequisicoes} requisições, {viagem.quantidadeItens} itens</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Mais antiga: {formatarIdade(viagem.requisicoes.reduce((maisAntiga, request) =>
+                new Date(request.criadoEm).getTime() < new Date(maisAntiga).getTime()
+                  ? request.criadoEm
+                  : maisAntiga,
+              viagem.requisicoes[0]?.criadoEm ?? new Date().toISOString()))}
+            </p>
             <ul className="mt-3 space-y-3">
               {viagem.itens.map((item) => <li key={item.itemId} className="border-t border-slate-100 pt-2 text-sm">
                 <p className="font-medium text-slate-800">{item.nome} · {item.quantidadeTotal}</p>
@@ -171,6 +202,9 @@ export default function RequisicoesQueuePage() {
             <p className="mt-3 border-t border-slate-100 pt-2 text-xs text-slate-600">
               Requisições: {viagem.requisicoes.map((request) => request.numeroPedido).join(", ")}
             </p>
+            {modoDemonstracao && <p className="mt-3 text-sm text-slate-700">
+              As requisições simuladas não existem no banco e não podem ser assumidas.
+            </p>}
           </article>)}
         </div> : !erroViagens && <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhuma requisição pendente para agrupar.</p>}
     </section>}
