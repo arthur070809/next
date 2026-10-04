@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { carregarPlanoViagem, viagemDemoDisponivel } from "./demo-mode";
+import {
+  carregarPlanoViagem,
+  consultarDadosReais,
+  viagemDemoDisponivel,
+} from "./demo-mode";
 
 describe("modo de demonstração de viagens", () => {
   it("fica disponível fora de produção ou quando habilitado explicitamente", () => {
@@ -20,6 +24,18 @@ describe("modo de demonstração de viagens", () => {
       idasAgrupadas: 3,
       idasEconomizadas: 9,
     });
+  });
+
+  it("não consulta a fila nem qualquer fonte real em modo de demonstração", async () => {
+    const consultar = vi.fn().mockResolvedValue(["requisicao-real"]);
+    await expect(consultarDadosReais(true, consultar)).resolves.toBeNull();
+    expect(consultar).not.toHaveBeenCalled();
+  });
+
+  it("permite consulta à fila real fora do modo de demonstração", async () => {
+    const consultar = vi.fn().mockResolvedValue(["requisicao-real"]);
+    await expect(consultarDadosReais(false, consultar)).resolves.toEqual(["requisicao-real"]);
+    expect(consultar).toHaveBeenCalledOnce();
   });
 
   it("usa a fonte de dados real quando o modo de demonstração está desligado", async () => {

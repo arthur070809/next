@@ -10,6 +10,14 @@ export function viagemDemoDisponivel(
 
 export const planoViagemDemonstracao = planejarViagens(requisicoesDemonstracao);
 
+export async function consultarDadosReais<T>(
+  modoDemonstracao: boolean,
+  buscar: () => Promise<T>,
+): Promise<T | null> {
+  if (modoDemonstracao) return null;
+  return buscar();
+}
+
 export async function carregarPlanoViagem(
   modoDemonstracao: boolean,
   buscarPlanoReal: () => Promise<PlanoViagens>,

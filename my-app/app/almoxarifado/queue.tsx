@@ -9,6 +9,7 @@ import { startVisibilityPolling } from "../../lib/visibility-polling";
 import type { PlanoViagens } from "../../lib/viagem/planejar-viagens";
 import {
   carregarPlanoViagem,
+  consultarDadosReais,
   planoViagemDemonstracao,
   viagemDemoDisponivel,
 } from "../../lib/viagem/demo-mode";
@@ -55,16 +56,22 @@ export default function RequisicoesQueuePage() {
   useEffect(() => {
     let active = true;
     let loadingRequests = false;
+    let requestController: AbortController | null = null;
     const loadRequests = () => {
       if (!active || document.visibilityState === "hidden" || loadingRequests) return;
       loadingRequests = true;
-      if (!carregado.current) setCarregando(true);
-      fetch("/api/almoxarifado/requisicoes", { cache: "no-store" }).then(async (response) => {
+      if (!modoDemonstracao && !carregado.current) setCarregando(true);
+      void consultarDadosReais(modoDemonstracao, async () => {
+        requestController = new AbortController();
+        const response = await fetch("/api/almoxarifado/requisicoes", {
+          cache: "no-store",
+          signal: requestController.signal,
+        });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar as requisições.");
         return data.requisicoes as RequisicaoMock[];
       }).then((rows) => {
-        if (active) {
+        if (active && rows) {
           setRequisicoes(rows);
           setErro("");
         }
@@ -72,9 +79,10 @@ export default function RequisicoesQueuePage() {
         if (active) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar as requisições.");
       }).finally(() => {
         if (active) {
-          carregado.current = true;
+          if (!modoDemonstracao) carregado.current = true;
           setCarregando(false);
         }
+        requestController = null;
         loadingRequests = false;
       });
     };
@@ -82,23 +90,28 @@ export default function RequisicoesQueuePage() {
     loadRequests();
     return () => {
       active = false;
+      requestController?.abort();
       stopPolling();
     };
-  }, [atualizacao]);
+  }, [atualizacao, modoDemonstracao]);
 
   useEffect(() => {
     if (!mostrarViagens) return;
+    if (modoDemonstracao) return;
 
     let active = true;
     let loading = false;
+    let requestController: AbortController | null = null;
     const carregarViagens = async () => {
       if (!active || document.visibilityState === "hidden" || loading) return;
       loading = true;
       setCarregandoViagens(true);
       try {
         const data = await carregarPlanoViagem(modoDemonstracao, async () => {
+          requestController = new AbortController();
           const response = await fetch("/api/almoxarifado/viagens", {
             cache: "no-store",
+            signal: requestController.signal,
           });
           const resultado = await response.json() as PlanoViagens & { error?: string };
           if (!response.ok) {
@@ -120,6 +133,7 @@ export default function RequisicoesQueuePage() {
         }
       } finally {
         loading = false;
+        requestController = null;
         if (active) setCarregandoViagens(false);
       }
     };
@@ -132,6 +146,7 @@ export default function RequisicoesQueuePage() {
     void carregarViagens();
     return () => {
       active = false;
+      requestController?.abort();
       stopPolling();
     };
   }, [mostrarViagens, modoDemonstracao]);
@@ -291,7 +306,7 @@ export default function RequisicoesQueuePage() {
           <td className="px-4 py-3">{request.prioridade === "prioridade" ? "Prioritária" : "Padrão"}</td>
           <td className="px-4 py-3">{request.status === "pendente" ? "Aguardando" : "Em atendimento"}</td>
           <td className="px-4 py-3">{request.solicitante ?? "—"}</td>
-          <td className="px-4 py-3">{request.status === "pendente" ? <button type="button" onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }} className="font-semibold text-royal hover:underline">Assumir</button> : <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="font-semibold text-royal hover:underline">Abrir checklist</Link>}</td>
+          <td className="px-4 py-3">{request.status === "pendente" ? <><button type="button" disabled={modoDemonstracao} title={modoDemonstracao ? "As requisições não podem ser assumidas durante a demonstração." : undefined} onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }} className="font-semibold text-royal hover:underline disabled:cursor-not-allowed disabled:opacity-50">Assumir</button>{modoDemonstracao && <span className="ml-2 text-xs text-slate-600">Indisponível na demonstração</span>}</> : <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="font-semibold text-royal hover:underline">Abrir checklist</Link>}</td>
         </tr>)}</tbody>
       </table>
     </div>}
