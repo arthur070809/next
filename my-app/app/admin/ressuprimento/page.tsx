@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import RessuprimentoTabela from "./RessuprimentoTabela";
-import { requireAdmin } from "@/lib/auth";
+import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { autorizarRessuprimento } from "@/lib/ressuprimento/access";
 import {
   historicoRealSuficiente,
   JANELA_CONSUMO_PADRAO_DIAS,
@@ -90,9 +91,10 @@ async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoDadosRes
 }
 
 export default async function RessuprimentoPage() {
-  const resultadoAcesso = await requireAdmin();
-  if (!resultadoAcesso.funcionario) {
-    redirect(resultadoAcesso.status === 401
+  const funcionario = await getAuthenticatedFuncionario();
+  const acesso = autorizarRessuprimento(funcionario);
+  if (!acesso.allowed) {
+    redirect(acesso.status === 401
       ? "/login?callbackUrl=%2Fadmin%2Fressuprimento"
       : "/admin");
   }
