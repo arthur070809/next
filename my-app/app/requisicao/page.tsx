@@ -82,6 +82,7 @@ export default function RequisicaoPage() {
         throw new Error(data.error || "Não foi possível salvar a requisição.");
       }
       if (!data.numeroPedido) throw new Error("A requisição foi enviada, mas o servidor não retornou o número do pedido.");
+      await refreshStock();
       setResultado([{ numeroPedido: data.numeroPedido, totalItens: data.requisicao?.itens?.length ?? itens.length }]);
       setItens([]);
       setEditingIndex(null);
