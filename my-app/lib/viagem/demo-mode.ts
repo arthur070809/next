@@ -8,10 +8,12 @@ export function viagemDemoDisponivel(
   return nodeEnv !== "production" || flagPublica === "true";
 }
 
+export const planoViagemDemonstracao = planejarViagens(requisicoesDemonstracao);
+
 export async function carregarPlanoViagem(
   modoDemonstracao: boolean,
   buscarPlanoReal: () => Promise<PlanoViagens>,
 ): Promise<PlanoViagens> {
-  if (modoDemonstracao) return planejarViagens(requisicoesDemonstracao);
+  if (modoDemonstracao) return planoViagemDemonstracao;
   return buscarPlanoReal();
 }

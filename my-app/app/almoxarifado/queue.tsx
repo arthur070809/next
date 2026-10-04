@@ -9,6 +9,7 @@ import { startVisibilityPolling } from "../../lib/visibility-polling";
 import type { PlanoViagens } from "../../lib/viagem/planejar-viagens";
 import {
   carregarPlanoViagem,
+  planoViagemDemonstracao,
   viagemDemoDisponivel,
 } from "../../lib/viagem/demo-mode";
 import {
@@ -49,6 +50,7 @@ export default function RequisicoesQueuePage() {
   const [erroViagens, setErroViagens] = useState("");
   const carregado = useRef(false);
   const executorAssuncaoLote = useRef(new ExecutorAssuncaoLote());
+  const planoViagensExibido = modoDemonstracao ? planoViagemDemonstracao : planoViagens;
 
   useEffect(() => {
     let active = true;
@@ -208,18 +210,18 @@ export default function RequisicoesQueuePage() {
           />
           Ver com dados de demonstração
         </label>}
-        {planoViagens && <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-800" aria-live="polite">
-          Idas sem agrupar: {planoViagens.metricas.idasSemAgrupar} · Viagens agrupadas: {planoViagens.metricas.idasAgrupadas} · Economia: {planoViagens.metricas.idasEconomizadas}
-          {planoViagens.metricas.idasSemAgrupar === planoViagens.metricas.idasAgrupadas && <span className="ml-2 font-normal">Sem ganho com a demanda atual.</span>}
+        {planoViagensExibido && <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-800" aria-live="polite">
+          Idas sem agrupar: {planoViagensExibido.metricas.idasSemAgrupar} · Viagens agrupadas: {planoViagensExibido.metricas.idasAgrupadas} · Economia: {planoViagensExibido.metricas.idasEconomizadas}
+          {planoViagensExibido.metricas.idasSemAgrupar === planoViagensExibido.metricas.idasAgrupadas && <span className="ml-2 font-normal">Sem ganho com a demanda atual.</span>}
         </p>}
       </div>
       {modoDemonstracao && <p role="status" className="sticky top-0 z-10 mb-4 border-y-2 border-amber-700 bg-amber-100 px-3 py-3 text-center font-bold tracking-wide text-amber-950 shadow-sm">
         DADOS SIMULADOS (demonstração)
       </p>}
       {erroViagens && <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erroViagens}</p>}
-      {carregandoViagens && !planoViagens ? <p role="status" className="py-6 text-center text-sm text-slate-500">Montando viagens…</p>
-        : planoViagens?.viagens.length ? <div className="grid gap-4 lg:grid-cols-2">
-          {planoViagens.viagens.map((viagem) => <article key={viagem.localId ?? "sem-origem"} className="rounded-lg border border-slate-200 bg-white p-4">
+      {carregandoViagens && !planoViagensExibido ? <p role="status" className="py-6 text-center text-sm text-slate-500">Montando viagens…</p>
+        : planoViagensExibido?.viagens.length ? <div className="grid gap-4 lg:grid-cols-2">
+          {planoViagensExibido.viagens.map((viagem) => <article key={viagem.localId ?? "sem-origem"} className="rounded-lg border border-slate-200 bg-white p-4">
             <h3 className="font-semibold text-slate-900">{viagem.localNome}: {viagem.quantidadeRequisicoes} requisições, {viagem.quantidadeItens} itens</h3>
             <p className="mt-1 text-sm text-slate-600">
               Mais antiga: {formatarIdade(viagem.requisicoes.reduce((maisAntiga, request) =>
