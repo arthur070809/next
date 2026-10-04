@@ -112,3 +112,25 @@
 - Não foi alterado código de login, QR, facial, claim de requisição, lib/movimentacao ou next.config.
 - Os arquivos gerados em `generated/prisma` continuam sendo o único estado local visível e devem ser ignorados em commits, como já estava documentado.
 - A intenção da fase atual é reaproveitar a lógica existente de exibição e polling, sem criar persistência ou entidades novas de viagem.
+
+## FASE 1 - VIAGEM ÚNICA, DEMONSTRAÇÃO E ASSUNÇÃO EM LOTE
+- Branch: `feat/viagem-unica-demo`, criada a partir de `feat/viagem-unica`.
+- Commits:
+  - `63f2d17 feat(viagem): add deterministic demo fixture`
+  - `ea3f687 feat(viagem): add local demo mode`
+  - `23875a0 feat(viagem): claim grouped requests sequentially`
+  - `2062569 fix(viagem): isolate simulated panel data`
+- Arquivos:
+  - `my-app/lib/viagem/demo-data.ts` e `demo-data.test.ts`: fixture fixa de 6 pedidos; usa o planejador de viagens real.
+  - `my-app/lib/viagem/demo-mode.ts` e `demo-mode.test.ts`: regra de ambiente e seleção local dos dados simulados, com teste de zero chamadas à fonte real no modo demo.
+  - `my-app/lib/viagem/assumir-lote.ts` e `assumir-lote.test.ts`: processamento sequencial, resultados individuais, envio repetido do crachá e bloqueio concorrente.
+  - `my-app/app/almoxarifado/queue.tsx`: alternador/faixa, métrica explícita, idade da requisição mais antiga por cartão, ação em lote e links para checklists assumidos.
+  - `my-app/app/components/ModalAcaoRequisicao.tsx`: configuração opcional de título/descrição para reaproveitar o modal e a coleta atual de crachá.
+  - `my-app/.env.example`: documenta `NEXT_PUBLIC_VIAGEM_DEMO` sem atribuir valor.
+- Decisão conservadora: o catálogo de demo contém os quatro locais solicitados, mas as requisições usam três origens. Como o planejador cria uma viagem por local, ativar os quatro produziria no mínimo quatro viagens e contrariaria a métrica requerida de duas ou três. A fixture efetivamente fixa 12 idas sem agrupamento, 3 viagens e economia de 9.
+- Validação:
+  - `npx tsc --noEmit`: passou.
+  - `npm run lint`: 0 erros; permanecem os 3 avisos preexistentes em `FaceEnrollmentManager.tsx` e `TotpManager.tsx`.
+  - `npm test -- --exclude tests/integration-tidb.test.ts`: 25 arquivos e 145 testes passaram.
+  - Build isolado com Webpack: compilação de produção passou, mas a validação Next falhou em um erro preexistente não relacionado desta fase: `.next/types/app/historico/page.ts` rejeita o export nomeado `FiltrosHistorico` de `app/historico/page.ts`. `tsc --noEmit` independente passou. Não alterei esse arquivo não relacionado.
+- Não validado em banco nem em ambiente móvel/produção. Nenhuma chamada ao banco foi feita. A fila normal continua atualizando os pedidos reais; o modo demo não consulta o endpoint de viagens e não invoca nenhuma ação de assumir para dados simulados. A regra do build foi definida com `NEXT_PUBLIC_VIAGEM_DEMO === "true"` em produção.
