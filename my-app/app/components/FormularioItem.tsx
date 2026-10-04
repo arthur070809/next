@@ -1,9 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PriorityBadge from "./PriorityBadge";
 
-type CatalogItem = { id: string; nome: string; unidade: string; quantidade: number; quantidadeDeposito: number };
+export type CatalogItem = {
+  itemId: string;
+  nome: string;
+  unidade: string;
+  quantidadeDeposito: number;
+  fisico: number;
+  reservado: number;
+  livre: number;
+  pontoPedido: number;
+};
 export type ItemFormData = {
   itemId: string;
   itemNome: string;
@@ -14,6 +23,7 @@ export type ItemFormData = {
   prioridade: "padrao" | "prioridade";
   saldoDepositoPrevio: number;
   saldoEstoquePrevio: number;
+  saldoLivrePrevio: number;
 };
 
 const emptyForm: ItemFormData = {
@@ -26,38 +36,31 @@ const emptyForm: ItemFormData = {
   prioridade: "padrao",
   saldoDepositoPrevio: 0,
   saldoEstoquePrevio: 0,
+  saldoLivrePrevio: 0,
 };
 
 export default function FormularioItem({
+  catalogItems,
+  catalogError,
   onAdd,
   editingItem,
 }: {
+  catalogItems: CatalogItem[];
+  catalogError: string;
   onAdd: (item: ItemFormData) => void;
   editingItem?: ItemFormData;
 }) {
-  const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
-  const [catalogError, setCatalogError] = useState("");
   const [form, setForm] = useState<ItemFormData>(editingItem ?? emptyForm);
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/estoque", { cache: "no-store" }).then(async (response) => {
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Falha ao carregar o estoque.");
-      return data.itens as CatalogItem[];
-    }).then((items) => { if (active) setCatalogItems(items); })
-      .catch((error: unknown) => { if (active) setCatalogError(error instanceof Error ? error.message : "Falha ao carregar o catálogo."); });
-    return () => { active = false; };
-  }, []);
-
-  const selectedItem = catalogItems.find((item) => item.id === form.itemId);
+  const selectedItem = catalogItems.find((item) => item.itemId === form.itemId);
   const quantity = Number(form.quantidade);
   const validQuantity = Number.isSafeInteger(quantity) && quantity > 0;
   const previewOrigin = selectedItem && validQuantity
     ? selectedItem.quantidadeDeposito >= quantity ? "DEPOSITO" : "ESTOQUE"
     : null;
   const remainingDepositWarning = selectedItem && validQuantity && selectedItem.quantidadeDeposito > 0 && selectedItem.quantidadeDeposito < quantity;
-  const isValid = Boolean(form.itemId && validQuantity && form.descricao.trim());
+  const exceedsFreeBalance = Boolean(selectedItem && validQuantity && quantity > selectedItem.livre);
+  const isValid = Boolean(form.itemId && validQuantity && !exceedsFreeBalance && form.descricao.trim());
 
   function update<K extends keyof ItemFormData>(key: K, value: ItemFormData[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -71,21 +74,26 @@ export default function FormularioItem({
       itemNome: selectedItem.nome,
       unidadeMedida: selectedItem.unidade,
       saldoDepositoPrevio: selectedItem.quantidadeDeposito,
-      saldoEstoquePrevio: selectedItem.quantidade,
+      saldoEstoquePrevio: selectedItem.fisico,
+      saldoLivrePrevio: selectedItem.livre,
     });
     setForm(emptyForm);
   }} className="space-y-3">
     <div>
       <label htmlFor="item-requisicao" className="text-sm font-medium text-slate-800">Item do estoque</label>
       <select id="item-requisicao" required value={form.itemId} onChange={(event) => {
-        const item = catalogItems.find((entry) => entry.id === event.target.value);
-        setForm((current) => ({ ...current, itemId: item?.id ?? "", itemNome: item?.nome ?? "", unidadeMedida: item?.unidade ?? "un", saldoDepositoPrevio: item?.quantidadeDeposito ?? 0, saldoEstoquePrevio: item?.quantidade ?? 0 }));
+        const item = catalogItems.find((entry) => entry.itemId === event.target.value);
+        setForm((current) => ({ ...current, itemId: item?.itemId ?? "", itemNome: item?.nome ?? "", unidadeMedida: item?.unidade ?? "un", saldoDepositoPrevio: item?.quantidadeDeposito ?? 0, saldoEstoquePrevio: item?.fisico ?? 0, saldoLivrePrevio: item?.livre ?? 0 }));
       }} className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
         <option value="">Escolha um item...</option>
-        {catalogItems.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.quantidade} {item.unidade}</option>)}
+        {catalogItems.map((item) => <option key={item.itemId} value={item.itemId}>{item.nome} · Livre: {item.livre} {item.unidade}</option>)}
       </select>
       {catalogError && <p role="alert" className="mt-1 text-xs text-red-600">{catalogError}</p>}
     </div>
+    {selectedItem && <div aria-live="polite" className={`rounded-lg px-3 py-2 text-sm ${selectedItem.livre === 0 ? "bg-red-50 text-red-800" : selectedItem.livre < selectedItem.pontoPedido ? "bg-amber-50 text-amber-900" : "bg-slate-50 text-slate-700"}`}>
+      Físico {selectedItem.fisico} · Reservado {selectedItem.reservado} · Livre {selectedItem.livre}
+      {selectedItem.livre < selectedItem.pontoPedido && <span> · Abaixo do ponto de ressuprimento ({selectedItem.pontoPedido})</span>}
+    </div>}
 
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <label className="text-sm font-medium text-slate-800">Setor<select value={form.setor} onChange={(event) => update("setor", event.target.value as ItemFormData["setor"])} className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2"><option>Setor 1</option><option>Setor 2</option><option>Setor 3</option></select></label>
@@ -103,6 +111,10 @@ export default function FormularioItem({
       {previewOrigin === "DEPOSITO" && <p className="font-medium text-emerald-800">Será atendido pelo depósito.</p>}
       {previewOrigin === "ESTOQUE" && <p className="font-medium text-slate-700">Será atendido pelo estoque.</p>}
       {remainingDepositWarning && <p className="mt-1 text-amber-800">Depósito tem {selectedItem.quantidadeDeposito} (insuficiente para este pedido).</p>}
+      {exceedsFreeBalance && selectedItem && <div role="alert" className="text-red-800">
+        <p>Quantidade acima do saldo livre ({selectedItem.livre}). Não é possível reservar acima do disponível.</p>
+        {selectedItem.livre > 0 && <button type="button" onClick={() => update("quantidade", selectedItem.livre)} className="mt-1 font-semibold underline">Pedir só o livre ({selectedItem.livre} agora)</button>}
+      </div>}
       {!previewOrigin && <p className="text-slate-500">Escolha item e quantidade para ver a prévia.</p>}
     </div>
     <div className="flex gap-3"><button type="submit" disabled={!isValid} className="min-h-11 flex-1 rounded-lg bg-royal py-3 text-white disabled:opacity-50">Adicionar item</button><button type="button" onClick={() => setForm(emptyForm)} className="min-h-11 flex-1 rounded-lg border border-slate-300 py-3">Limpar</button></div>

@@ -2,14 +2,16 @@
 
 import React from "react"
 import PriorityBadge from "./PriorityBadge"
-import type { ItemFormData } from "./FormularioItem"
+import type { CatalogItem, ItemFormData } from "./FormularioItem"
 
 export default function ListaItensRequisicao({
   itens,
+  catalogItems,
   onEdit,
   onRemove,
 }: {
   itens: ItemFormData[]
+  catalogItems: CatalogItem[]
   onEdit: (index: number) => void
   onRemove: (index: number) => void
 }) {
@@ -35,6 +37,16 @@ export default function ListaItensRequisicao({
               <td className="py-3">
                 <div className="font-medium text-slate-800">{it.itemNome}</div>
                 <div className="text-sm text-slate-500">{it.descricao}</div>
+                {(() => {
+                  const stock = catalogItems.find((item) => item.itemId === it.itemId);
+                  if (!stock) return <div className="text-sm text-slate-500">Saldo indisponível</div>;
+                  const statusColor = stock.livre === 0
+                    ? "text-red-700"
+                    : stock.livre < stock.pontoPedido
+                      ? "text-amber-700"
+                      : "text-slate-500";
+                  return <div className={`text-sm font-medium ${statusColor}`}>Livre: {stock.livre}</div>;
+                })()}
               </td>
               <td>{it.quantidade} {it.unidadeMedida}</td>
               <td>{it.setor}</td>
