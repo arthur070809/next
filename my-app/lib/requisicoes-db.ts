@@ -11,6 +11,7 @@ import {
   StatusItemRequisicao,
   TipoMovimentacao,
 } from "@/generated/prisma/client";
+import { reservarSaldoAtomicamente } from "./stock-reservation";
 
 type TransactionClient = Omit<
   PrismaClient,
@@ -129,27 +130,26 @@ export async function criarRequisicao(params: {
   return prisma.$transaction(async (tx) => {
     // Valida e reserva cada item atomicamente sem ler-depois-escrever
     for (const itemPayload of params.itens) {
-      const updateResult = await tx.$executeRaw`
-        UPDATE saldos_estoque
-        SET reservada = reservada + ${itemPayload.quantidade}
-        WHERE item_id = ${itemPayload.itemId}
-          AND local_id = ${itemPayload.localId}
-          AND (quantidade - reservada) >= ${itemPayload.quantidade}
-      `;
-
-      if (updateResult === 0) {
-        // Busca saldo atual para mensagem de erro informativa
-        const saldo = await tx.saldoEstoque.findUnique({
-          where: { itemId_localId: { itemId: itemPayload.itemId, localId: itemPayload.localId } },
-          include: { item: { select: { nome: true } } },
-        });
-        const disponivel = saldo ? Math.max(0, saldo.quantidade - saldo.reservada) : 0;
-        const nomeItem = saldo?.item?.nome ?? itemPayload.itemId;
-        throw Object.assign(
-          new Error(`Saldo insuficiente para "${nomeItem}": disponível ${disponivel}, solicitado ${itemPayload.quantidade}`),
-          { code: "SALDO_INSUFICIENTE", itemId: itemPayload.itemId, disponivel }
-        );
-      }
+      await reservarSaldoAtomicamente({
+        itemId: itemPayload.itemId,
+        quantidade: itemPayload.quantidade,
+        atualizarSaldo: () => tx.$executeRaw`
+          UPDATE saldos_estoque
+          SET reservada = reservada + ${itemPayload.quantidade}
+          WHERE item_id = ${itemPayload.itemId}
+            AND local_id = ${itemPayload.localId}
+            AND (quantidade - reservada) >= ${itemPayload.quantidade}
+        `,
+        lerSaldo: async () => {
+          const saldo = await tx.saldoEstoque.findUnique({
+            where: { itemId_localId: { itemId: itemPayload.itemId, localId: itemPayload.localId } },
+            include: { item: { select: { nome: true } } },
+          });
+          return saldo
+            ? { fisico: saldo.quantidade, reservado: saldo.reservada, nome: saldo.item?.nome }
+            : null;
+        },
+      });
     }
 
     // Gera número de pedido

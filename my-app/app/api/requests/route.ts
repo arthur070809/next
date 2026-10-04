@@ -173,12 +173,13 @@ export async function POST(request: Request) {
         { status: 201 }
       );
     } catch (reservaError: unknown) {
-      const err = reservaError as { code?: string; message?: string; disponivel?: number };
+      const err = reservaError as { code?: string; message?: string; disponivel?: number; itemId?: string };
       if (err?.code === "SALDO_INSUFICIENTE") {
         return NextResponse.json(
           {
-            error: err.message || "Saldo disponível insuficiente para atender a requisição.",
+            error: err.message || `Saldo livre mudou: agora há ${err.disponivel ?? 0}.`,
             code: "SALDO_INSUFICIENTE",
+            itemId: err.itemId,
             disponivel: err.disponivel,
           },
           { status: 409 }
