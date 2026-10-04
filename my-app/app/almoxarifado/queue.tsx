@@ -11,6 +11,10 @@ import {
   carregarPlanoViagem,
   viagemDemoDisponivel,
 } from "../../lib/viagem/demo-mode";
+import {
+  ExecutorAssuncaoLote,
+  type ResultadoAssuncaoLote,
+} from "../../lib/viagem/assumir-lote";
 
 const podeAtivarDemonstracao = viagemDemoDisponivel(
   process.env.NODE_ENV,
@@ -33,7 +37,10 @@ export default function RequisicoesQueuePage() {
   const [erro, setErro] = useState("");
   const [atualizacao, setAtualizacao] = useState(0);
   const [requisicaoParaAssumir, setRequisicaoParaAssumir] = useState<RequisicaoMock | null>(null);
+  const [viagemParaAssumir, setViagemParaAssumir] = useState<RequisicaoMock[] | null>(null);
   const [assumindo, setAssumindo] = useState(false);
+  const [assumindoLote, setAssumindoLote] = useState(false);
+  const [resultadosLote, setResultadosLote] = useState<ResultadoAssuncaoLote[]>([]);
   const [erroAcao, setErroAcao] = useState("");
   const [mostrarViagens, setMostrarViagens] = useState(false);
   const [modoDemonstracao, setModoDemonstracao] = useState(false);
@@ -41,6 +48,7 @@ export default function RequisicoesQueuePage() {
   const [carregandoViagens, setCarregandoViagens] = useState(false);
   const [erroViagens, setErroViagens] = useState("");
   const carregado = useRef(false);
+  const executorAssuncaoLote = useRef(new ExecutorAssuncaoLote());
 
   useEffect(() => {
     let active = true;
@@ -157,6 +165,32 @@ export default function RequisicoesQueuePage() {
     }
   }
 
+  async function assumirViagem(requisicoesDaViagem: RequisicaoMock[], codigoCracha: string) {
+    setAssumindoLote(true);
+    setErroAcao("");
+    try {
+      const resultados = await executorAssuncaoLote.current.executar(
+        requisicoesDaViagem,
+        codigoCracha,
+        (requisicao, cracha) => fetch(
+          `/api/almoxarifado/requisicoes/${encodeURIComponent(requisicao.numeroPedido)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "assumir", codigoCracha: cracha }),
+          },
+        ),
+      );
+      if (resultados) {
+        setResultadosLote(resultados);
+        setViagemParaAssumir(null);
+        setAtualizacao((current) => current + 1);
+      }
+    } finally {
+      setAssumindoLote(false);
+    }
+  }
+
   return <main className="mx-auto max-w-7xl p-4 sm:p-6">
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold text-[#212529]">Fila de requisições</h1><p className="mt-1 text-sm text-slate-600">Pedidos enviados pelos operadores, aguardando atendimento do almoxarifado.</p></div><div className="flex flex-wrap items-end gap-3"><label className="text-sm font-medium text-slate-700">Buscar<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Número, item ou solicitante" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-72" /></label><button type="button" onClick={() => setMostrarViagens((show) => !show)} aria-expanded={mostrarViagens} aria-controls="painel-viagens" className="min-h-10 rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white">{mostrarViagens ? "Fechar viagens" : "Montar viagem"}</button><button type="button" onClick={() => setAtualizacao((current) => current + 1)} disabled={carregando} className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Atualizar fila</button></div></div>
     {mostrarViagens && <section id="painel-viagens" aria-label="Viagens agrupadas por local" className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -176,6 +210,7 @@ export default function RequisicoesQueuePage() {
         </label>}
         {planoViagens && <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-800" aria-live="polite">
           Idas sem agrupar: {planoViagens.metricas.idasSemAgrupar} · Viagens agrupadas: {planoViagens.metricas.idasAgrupadas} · Economia: {planoViagens.metricas.idasEconomizadas}
+          {planoViagens.metricas.idasSemAgrupar === planoViagens.metricas.idasAgrupadas && <span className="ml-2 font-normal">Sem ganho com a demanda atual.</span>}
         </p>}
       </div>
       {modoDemonstracao && <p role="status" className="sticky top-0 z-10 mb-4 border-y-2 border-amber-700 bg-amber-100 px-3 py-3 text-center font-bold tracking-wide text-amber-950 shadow-sm">
@@ -202,11 +237,45 @@ export default function RequisicoesQueuePage() {
             <p className="mt-3 border-t border-slate-100 pt-2 text-xs text-slate-600">
               Requisições: {viagem.requisicoes.map((request) => request.numeroPedido).join(", ")}
             </p>
-            {modoDemonstracao && <p className="mt-3 text-sm text-slate-700">
+            <button
+              type="button"
+              disabled={modoDemonstracao || assumindoLote}
+              title={modoDemonstracao ? "As requisições simuladas não existem no banco." : undefined}
+              onClick={() => {
+                const numeros = new Set(viagem.requisicoes.map((request) => request.numeroPedido));
+                const pendentes = requisicoes.filter((request) =>
+                  request.status === "pendente" && numeros.has(request.numeroPedido),
+                );
+                if (!pendentes.length) {
+                  setErroAcao("Nenhuma requisição desta viagem continua pendente na fila.");
+                  return;
+                }
+                setErroAcao("");
+                setResultadosLote([]);
+                setViagemParaAssumir(pendentes);
+              }}
+              className="mt-4 min-h-10 rounded-lg border border-royal px-3 py-2 text-sm font-semibold text-royal hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Assumir todas desta viagem
+            </button>
+            {modoDemonstracao && <p className="mt-2 text-sm text-slate-700">
               As requisições simuladas não existem no banco e não podem ser assumidas.
             </p>}
           </article>)}
         </div> : !erroViagens && <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhuma requisição pendente para agrupar.</p>}
+      {resultadosLote.length > 0 && <section aria-label="Resultado de assumir requisições" aria-live="polite" className="mt-5 rounded-lg border border-slate-300 bg-white p-4">
+        <h3 className="font-semibold text-slate-900">Resultado da viagem</h3>
+        <ul className="mt-2 space-y-2 text-sm">
+          {resultadosLote.map((resultado) => <li key={resultado.numeroPedido}>
+            <span className="font-medium">Pedido {resultado.numeroPedido}:</span>{" "}
+            {resultado.tipo === "assumida"
+              ? <>assumida. <Link className="font-semibold text-royal underline" href={`/almoxarifado/requisicoes/${encodeURIComponent(resultado.numeroPedido)}`}>Abrir checklist</Link></>
+              : resultado.tipo === "ja-assumida"
+                ? `já assumida por ${resultado.atendente}.`
+                : `erro: ${resultado.mensagem}`}
+          </li>)}
+        </ul>
+      </section>}
     </section>}
     {erro && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erro}</p>}
     {carregando ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">Carregando requisições…</p> : filtradas.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">Nenhuma requisição encontrada.</p> : <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -231,6 +300,15 @@ export default function RequisicoesQueuePage() {
       busy={assumindo}
       onClose={() => { if (!assumindo) setRequisicaoParaAssumir(null); }}
       onConfirm={(request, cracha) => void assumirRequisicao(request, cracha)}
+    />}
+    {viagemParaAssumir && viagemParaAssumir.length > 0 && <ModalAcaoRequisicao
+      requisicao={viagemParaAssumir[0]}
+      acao="assumir"
+      titulo="Assumir todas desta viagem"
+      descricao={`${viagemParaAssumir.length} requisições serão processadas uma por vez. O crachá será validado em cada pedido.`}
+      busy={assumindoLote}
+      onClose={() => { if (!assumindoLote) setViagemParaAssumir(null); }}
+      onConfirm={(_, cracha) => void assumirViagem(viagemParaAssumir, cracha)}
     />}
   </main>;
 }
