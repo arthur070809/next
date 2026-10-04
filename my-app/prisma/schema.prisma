@@ -98,7 +98,10 @@ model Funcionario {
   requisicoesSolicitadas Requisicao[]   @relation("Solicitante")
   requisicoesAtendidas   Requisicao[]   @relation("Atendente")
   movimentacoes          Movimentacao[]
-  auditorias             Auditoria[]    @relation("AuditoriaAutor")
+  saldosOperador          SaldoOperadorItem[]
+  movimentosContaOrigem   MovimentoContaEstoque[] @relation("MovimentoContaFuncionarioOrigem")
+  movimentosContaExecutor MovimentoContaEstoque[] @relation("MovimentoContaFuncionarioExecutor")
+  auditorias              Auditoria[]    @relation("AuditoriaAutor")
 
   // Segurança e facial (main)
   credenciaisWebAuthn               WebAuthnCredential[]
@@ -171,6 +174,8 @@ model Item {
   atualizadoEm            DateTime @updatedAt @map("atualizado_em")
 
   saldos          SaldoEstoque[]
+  saldosOperador  SaldoOperadorItem[]
+  movimentosConta MovimentoContaEstoque[]
   itensRequisicao RequisicaoItem[]
 
   @@unique([filial, codigo], map: "uq_itens_filial_codigo")
@@ -189,6 +194,8 @@ model LocalEstoque {
   criadoEm  DateTime @default(now()) @map("criado_em")
 
   saldos          SaldoEstoque[]
+  saldosOperador  SaldoOperadorItem[]
+  movimentosConta MovimentoContaEstoque[]
   itensRequisicao RequisicaoItem[]
 
   @@index([ativo])
@@ -214,6 +221,26 @@ model SaldoEstoque {
   @@map("saldos_estoque")
 }
 
+model SaldoOperadorItem {
+  id                    String   @id @default(uuid()) @db.VarChar(36) @map("id")
+  funcionarioId         Int      @map("funcionario_id")
+  itemId                String   @db.VarChar(36) @map("item_id")
+  localId               String   @db.VarChar(36) @map("local_id")
+  quantidadeASeparar    Int      @default(0) @map("quantidade_a_separar")
+  quantidadeEmPosse     Int      @default(0) @map("quantidade_em_posse")
+  criadoEm              DateTime @default(now()) @map("criado_em")
+  atualizadoEm          DateTime @default(now()) @updatedAt @map("atualizado_em")
+
+  funcionario Funcionario  @relation(fields: [funcionarioId], references: [id], onDelete: Restrict)
+  item        Item         @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  local       LocalEstoque @relation(fields: [localId], references: [id], onDelete: Restrict)
+
+  @@unique([funcionarioId, itemId, localId], map: "uq_saldo_operador_item_local")
+  @@index([itemId, localId])
+  @@index([localId])
+  @@map("saldos_operador_item")
+}
+
 model SequenciaRequisicao {
   id      Int @id @default(1)
   proximo Int @default(1) @map("proximo")
@@ -231,6 +258,7 @@ model Requisicao {
   status        StatusRequisicao @default(PENDENTE) @map("status")
   prioridade    Prioridade       @default(PADRAO) @map("prioridade")
   observacao    String?          @db.Text @map("observacao")
+  regraEstoque  String?          @db.VarChar(24) @map("regra_estoque")
   solicitanteId Int              @map("solicitante_id")
   atendenteId   Int?             @map("atendente_id")
   criadoEm      DateTime         @default(now()) @map("criado_em")
@@ -243,6 +271,7 @@ model Requisicao {
   atendente     Funcionario?     @relation("Atendente", fields: [atendenteId], references: [id], onDelete: SetNull)
   itens         RequisicaoItem[]
   movimentacoes Movimentacao[]
+  movimentosConta MovimentoContaEstoque[]
 
   @@index([solicitanteId])
   @@index([atendenteId])
@@ -269,6 +298,7 @@ model RequisicaoItem {
   item          Item           @relation(fields: [itemId], references: [id], onDelete: Restrict)
   local         LocalEstoque   @relation(fields: [localId], references: [id], onDelete: Restrict)
   movimentacoes Movimentacao[]
+  movimentosConta MovimentoContaEstoque[]
 
   @@index([requisicaoId])
   @@index([itemId])
@@ -300,6 +330,42 @@ model Movimentacao {
   @@index([tipo])
   @@index([criadoEm])
   @@map("movimentacoes")
+}
+
+model MovimentoContaEstoque {
+  id                       String   @id @default(uuid()) @db.VarChar(36) @map("id")
+  criadoEm                 DateTime @default(now()) @map("criado_em")
+  tipo                     String   @db.VarChar(32) @map("tipo")
+  itemId                   String   @db.VarChar(36) @map("item_id")
+  localId                  String   @db.VarChar(36) @map("local_id")
+  quantidade               Int      @default(0) @map("quantidade")
+  fisicoAntes              Int      @default(0) @map("fisico_antes")
+  fisicoDepois             Int      @default(0) @map("fisico_depois")
+  quantidadeASepararAntes  Int      @default(0) @map("quantidade_a_separar_antes")
+  quantidadeASepararDepois Int      @default(0) @map("quantidade_a_separar_depois")
+  quantidadeEmPosseAntes   Int      @default(0) @map("quantidade_em_posse_antes")
+  quantidadeEmPosseDepois  Int      @default(0) @map("quantidade_em_posse_depois")
+  requisicaoId             String?  @db.VarChar(36) @map("requisicao_id")
+  requisicaoItemId         String?  @db.VarChar(36) @map("requisicao_item_id")
+  funcionarioOrigemId     Int      @map("funcionario_origem_id")
+  funcionarioExecutorId   Int      @map("funcionario_executor_id")
+  origem                   String   @default("SISTEMA") @db.VarChar(16) @map("origem")
+  motivo                   String?  @db.VarChar(500) @map("motivo")
+  correlationId            String   @db.VarChar(36) @map("correlation_id")
+  idempotencyKey           String   @unique(map: "uq_mov_conta_idempotency_key") @db.VarChar(160) @map("idempotency_key")
+
+  item                 Item            @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  local                LocalEstoque    @relation(fields: [localId], references: [id], onDelete: Restrict)
+  requisicao           Requisicao?     @relation(fields: [requisicaoId], references: [id], onDelete: Restrict)
+  requisicaoItem       RequisicaoItem? @relation(fields: [requisicaoItemId], references: [id], onDelete: Restrict)
+  funcionarioOrigem    Funcionario    @relation("MovimentoContaFuncionarioOrigem", fields: [funcionarioOrigemId], references: [id], onDelete: Restrict)
+  funcionarioExecutor  Funcionario    @relation("MovimentoContaFuncionarioExecutor", fields: [funcionarioExecutorId], references: [id], onDelete: Restrict)
+
+  @@index([itemId, criadoEm], map: "idx_mov_conta_item_criado")
+  @@index([funcionarioOrigemId, criadoEm], map: "idx_mov_conta_origem_criado")
+  @@index([requisicaoId], map: "idx_mov_conta_requisicao")
+  @@index([tipo, criadoEm], map: "idx_mov_conta_tipo_criado")
+  @@map("movimentos_conta_estoque")
 }
 
 model Auditoria {
