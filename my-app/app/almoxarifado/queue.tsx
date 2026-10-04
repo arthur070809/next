@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 import { startVisibilityPolling } from "../../lib/visibility-polling";
+import type { PlanoViagens } from "../../lib/viagem/planejar-viagens";
 
 function formatarIdade(data: string) {
   const minutos = Math.max(0, Math.floor((Date.now() - new Date(data).getTime()) / 60000));
@@ -25,6 +26,10 @@ export default function RequisicoesQueuePage() {
   const [requisicaoParaAssumir, setRequisicaoParaAssumir] = useState<RequisicaoMock | null>(null);
   const [assumindo, setAssumindo] = useState(false);
   const [erroAcao, setErroAcao] = useState("");
+  const [mostrarViagens, setMostrarViagens] = useState(false);
+  const [planoViagens, setPlanoViagens] = useState<PlanoViagens | null>(null);
+  const [carregandoViagens, setCarregandoViagens] = useState(false);
+  const [erroViagens, setErroViagens] = useState("");
   const carregado = useRef(false);
 
   useEffect(() => {
@@ -61,6 +66,53 @@ export default function RequisicoesQueuePage() {
     };
   }, [atualizacao]);
 
+  useEffect(() => {
+    if (!mostrarViagens) return;
+
+    let active = true;
+    let loading = false;
+    const carregarViagens = async () => {
+      if (!active || document.visibilityState === "hidden" || loading) return;
+      loading = true;
+      setCarregandoViagens(true);
+      try {
+        const response = await fetch("/api/almoxarifado/viagens", {
+          cache: "no-store",
+        });
+        const data = await response.json() as PlanoViagens & { error?: string };
+        if (!response.ok) {
+          throw new Error(data.error ?? "Não foi possível montar as viagens.");
+        }
+        if (active) {
+          setPlanoViagens(data);
+          setErroViagens("");
+        }
+      } catch (cause) {
+        if (active) {
+          setErroViagens(
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível montar as viagens.",
+          );
+        }
+      } finally {
+        loading = false;
+        if (active) setCarregandoViagens(false);
+      }
+    };
+
+    const stopPolling = startVisibilityPolling(
+      document,
+      () => void carregarViagens(),
+      10000,
+    );
+    void carregarViagens();
+    return () => {
+      active = false;
+      stopPolling();
+    };
+  }, [mostrarViagens]);
+
   const filtradas = useMemo(() => requisicoes.filter((request) =>
     `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase())
   ), [requisicoes, busca]);
@@ -93,7 +145,35 @@ export default function RequisicoesQueuePage() {
   }
 
   return <main className="mx-auto max-w-7xl p-4 sm:p-6">
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold text-[#212529]">Fila de requisições</h1><p className="mt-1 text-sm text-slate-600">Pedidos enviados pelos operadores, aguardando atendimento do almoxarifado.</p></div><div className="flex flex-wrap items-end gap-3"><label className="text-sm font-medium text-slate-700">Buscar<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Número, item ou solicitante" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-72" /></label><button type="button" onClick={() => setAtualizacao((current) => current + 1)} disabled={carregando} className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Atualizar fila</button></div></div>
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold text-[#212529]">Fila de requisições</h1><p className="mt-1 text-sm text-slate-600">Pedidos enviados pelos operadores, aguardando atendimento do almoxarifado.</p></div><div className="flex flex-wrap items-end gap-3"><label className="text-sm font-medium text-slate-700">Buscar<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Número, item ou solicitante" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-72" /></label><button type="button" onClick={() => setMostrarViagens((show) => !show)} aria-expanded={mostrarViagens} aria-controls="painel-viagens" className="min-h-10 rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white">{mostrarViagens ? "Fechar viagens" : "Montar viagem"}</button><button type="button" onClick={() => setAtualizacao((current) => current + 1)} disabled={carregando} className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Atualizar fila</button></div></div>
+    {mostrarViagens && <section id="painel-viagens" aria-label="Viagens agrupadas por local" className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Viagem única por origem</h2>
+          <p className="text-sm text-slate-600">As requisições continuam sendo assumidas individualmente pelo fluxo atual.</p>
+        </div>
+        {planoViagens && <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-800" aria-live="polite">
+          {planoViagens.metricas.idasSemAgrupar} idas → {planoViagens.metricas.idasAgrupadas} idas
+          <span className="ml-2 font-normal text-slate-600">({planoViagens.metricas.idasEconomizadas} economizadas)</span>
+        </p>}
+      </div>
+      {erroViagens && <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erroViagens}</p>}
+      {carregandoViagens && !planoViagens ? <p role="status" className="py-6 text-center text-sm text-slate-500">Montando viagens…</p>
+        : planoViagens?.viagens.length ? <div className="grid gap-4 lg:grid-cols-2">
+          {planoViagens.viagens.map((viagem) => <article key={viagem.localId ?? "sem-origem"} className="rounded-lg border border-slate-200 bg-white p-4">
+            <h3 className="font-semibold text-slate-900">{viagem.localNome}: {viagem.quantidadeRequisicoes} requisições, {viagem.quantidadeItens} itens</h3>
+            <ul className="mt-3 space-y-3">
+              {viagem.itens.map((item) => <li key={item.itemId} className="border-t border-slate-100 pt-2 text-sm">
+                <p className="font-medium text-slate-800">{item.nome} · {item.quantidadeTotal}</p>
+                <p className="text-xs text-slate-500">{item.requisicoes.map((request) => `${request.numeroPedido} (${request.quantidade})`).join(", ")}</p>
+              </li>)}
+            </ul>
+            <p className="mt-3 border-t border-slate-100 pt-2 text-xs text-slate-600">
+              Requisições: {viagem.requisicoes.map((request) => request.numeroPedido).join(", ")}
+            </p>
+          </article>)}
+        </div> : !erroViagens && <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhuma requisição pendente para agrupar.</p>}
+    </section>}
     {erro && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erro}</p>}
     {carregando ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">Carregando requisições…</p> : filtradas.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">Nenhuma requisição encontrada.</p> : <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full min-w-[900px] border-collapse text-left text-sm">
