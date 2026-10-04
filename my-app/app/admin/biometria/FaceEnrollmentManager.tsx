@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
 import styles from "./face-enrollment.module.css";
 
@@ -109,11 +109,26 @@ export default function FaceEnrollmentManager() {
     setSession(data.session); sessionRef.current = data.session;
   }
 
-  async function renewSession() {
+  const renewSession = useCallback(async () => {
     const current = sessionRef.current; if (!current || !employeeId) return false;
     const response = await fetch("/api/admin/face-enrollment", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token }) });
     if (!response.ok) return false; const data = await response.json(); setSession({ ...current, expiraEm: data.expiraEm }); return true;
-  }
+  }, [employeeId]);
+
+  const submitEnrollment = useCallback(async function submitEnrollmentImpl(nextSamples: string[]) {
+    if (submittingRef.current || nextSamples.length < 3 || !sessionRef.current) return;
+    submittingRef.current = true; setBusy(true); setInstruction("Processando e confirmando o cadastro");
+    const current = sessionRef.current;
+    try {
+      const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: true, consentAt: new Date().toISOString(), samples: nextSamples }) });
+      const data = await response.json();
+      if (response.status === 409 && data.code === "FACE_ENROLLMENT_SESSION_EXPIRED" && await renewSession()) { submittingRef.current = false; setBusy(false); await submitEnrollmentImpl(nextSamples); return; }
+      if (response.status === 429) { setError(`${data.error} Tente novamente em ${Math.ceil(Number(response.headers.get("Retry-After") ?? 60) / 60)} minutos.`); setStage("failed"); return; }
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível concluir o cadastro.");
+      setMessage("Cadastro concluído"); setInstruction("Cadastro concluído"); setStage("success"); localStorage.removeItem("marcon-face-enrollment-session"); stopCamera(); setEmployees((currentEmployees) => currentEmployees.map((item) => item.id === Number(employeeId) ? { ...item, enrolled: true } : item));
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível concluir o cadastro."); setInstruction("Tente novamente"); setStage("failed"); }
+    finally { submittingRef.current = false; setBusy(false); }
+  }, [employeeId, renewSession]);
 
   async function startCamera() {
     if (!confirmedPerson || !consent || modelState !== "ready") return;
@@ -129,21 +144,6 @@ export default function FaceEnrollmentManager() {
   function captureFrame() {
     const video = videoRef.current; if (!video) return null;
     const canvas = document.createElement("canvas"); canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height); return canvas.toDataURL("image/jpeg", 0.86);
-  }
-
-  async function submitEnrollment(nextSamples: string[]) {
-    if (submittingRef.current || nextSamples.length < 3 || !sessionRef.current) return;
-    submittingRef.current = true; setBusy(true); setInstruction("Processando e confirmando o cadastro");
-    const current = sessionRef.current;
-    try {
-      const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: true, consentAt: new Date().toISOString(), samples: nextSamples }) });
-      const data = await response.json();
-      if (response.status === 409 && data.code === "FACE_ENROLLMENT_SESSION_EXPIRED" && await renewSession()) { submittingRef.current = false; setBusy(false); await submitEnrollment(nextSamples); return; }
-      if (response.status === 429) { setError(`${data.error} Tente novamente em ${Math.ceil(Number(response.headers.get("Retry-After") ?? 60) / 60)} minutos.`); setStage("failed"); return; }
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível concluir o cadastro.");
-      setMessage("Cadastro concluído"); setInstruction("Cadastro concluído"); setStage("success"); localStorage.removeItem("marcon-face-enrollment-session"); stopCamera(); setEmployees((currentEmployees) => currentEmployees.map((item) => item.id === Number(employeeId) ? { ...item, enrolled: true } : item));
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível concluir o cadastro."); setInstruction("Tente novamente"); setStage("failed"); }
-    finally { submittingRef.current = false; setBusy(false); }
   }
 
   useEffect(() => {
@@ -163,9 +163,9 @@ export default function FaceEnrollmentManager() {
       } catch { setInstruction("Não foi possível processar o quadro. Tente novamente"); } finally { pending = false; }
     };
     frame = requestAnimationFrame(detect); return () => { stopped = true; cancelAnimationFrame(frame); };
-  }, [cameraState, modelState, employeeId]);
+  }, [cameraState, modelState, employeeId, submitEnrollment]);
 
-  useEffect(() => { if (cameraState !== "ready") return; const timer = window.setInterval(() => { void renewSession(); }, 60_000); return () => window.clearInterval(timer); }, [cameraState, employeeId]);
+  useEffect(() => { if (cameraState !== "ready") return; const timer = window.setInterval(() => { void renewSession(); }, 60_000); return () => window.clearInterval(timer); }, [cameraState, employeeId, renewSession]);
 
   const employee = employees.find((item) => item.id === Number(employeeId)); const progress = Math.min(100, samples.length * 20);
   return <main className={styles.page}><header className={styles.header}><p className={styles.eyebrow}>Administração</p><h1>Cadastro facial presencial</h1><p>Imagens processadas em memória. Apenas o template matemático cifrado é mantido.</p></header>{(error || message) && <p role={error ? "alert" : "status"} className={error ? styles.error : styles.success}>{error || message}</p>}<section className={styles.panel} aria-busy={busy}><label className={styles.field}>Funcionário<select value={employeeId} disabled={cameraState === "ready" || busy} onChange={(event) => void selectEmployee(event.target.value)}><option value="">Selecione</option>{employees.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.cracha}{item.enrolled ? " · rosto cadastrado" : " · pendente"}</option>)}</select></label>{employee && <p className={styles.target}><strong>{employee.nome}</strong> · crachá {employee.cracha}</p>}{modelState === "loading" && <p className={styles.modelStatus}>Carregando modelos de visão...</p>}{modelState === "error" && <button type="button" onClick={() => void loadModels()}>Tentar carregar modelos</button>}<div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}><video ref={videoRef} muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" /><canvas ref={overlayRef} className={styles.overlay} aria-hidden="true" /><div className={styles.oval} aria-hidden="true" style={{ "--progress": `${progress}%` } as CSSProperties} /><p className={styles.instruction} aria-live="polite">{cameraState === "starting" ? "Pedindo permissão da câmera" : instruction}</p>{stage === "success" && <span className={styles.check} aria-label="Cadastro concluído">✓</span>}</div><label className={styles.consent}><input type="checkbox" checked={confirmedPerson} onChange={(event) => setConfirmedPerson(event.target.checked)} /><span>Confirmo que a pessoa diante da câmera é {employee?.nome ?? "o funcionário selecionado"} ({employee?.cracha ?? "crachá"}).</span></label><label className={styles.consent}><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>{faceConsentText}</span></label><div className={styles.actions}><button type="button" className={styles.primary} disabled={!employee || !confirmedPerson || !consent || modelState !== "ready" || cameraState === "starting"} onClick={() => void startCamera()}>{cameraState === "ready" ? "Reiniciar" : "Iniciar captura"}</button><button type="button" onClick={stopCamera}>Cancelar</button></div></section></main>;
