@@ -95,7 +95,7 @@ export default function FaceEnrollmentManager() {
     } catch { setModelState("error"); setInstruction("Não foi possível carregar os modelos. Tente novamente."); }
   }
 
-  useEffect(() => { const timer = window.setTimeout(() => { void loadModels(); void fetch("/api/admin/face-enrollment").then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar os funcionários."); setEmployees(data.employees ?? []); const saved = localStorage.getItem("marcon-face-enrollment-session"); if (saved) { try { const restored = JSON.parse(saved) as { employeeId: string; session: Session }; const renewed = await fetch("/api/admin/face-enrollment", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(restored.employeeId), sessionId: restored.session.id, sessionToken: restored.session.token }) }); if (renewed.ok) { const renewal = await renewed.json(); setEmployeeId(restored.employeeId); setSession({ ...restored.session, expiraEm: renewal.expiraEm }); } else localStorage.removeItem("marcon-face-enrollment-session"); } catch { localStorage.removeItem("marcon-face-enrollment-session"); } } }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar os funcionários.")); }, 0); return () => { window.clearTimeout(timer); stopCamera(); }; }, []);
+  useEffect(() => { const timer = window.setTimeout(() => { void loadModels(); void fetch("/api/admin/face-enrollment").then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar os funcionários."); setEmployees(data.employees ?? []); const saved = localStorage.getItem("marcon-face-enrollment-session"); if (saved) { try { const restored = JSON.parse(saved) as { employeeId: string; session: Session }; const renewed = await fetch("/api/admin/face-enrollment", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(restored.employeeId), sessionId: restored.session.id, sessionToken: restored.session.token }) }); if (renewed.ok) { const renewal = await renewed.json(); const nextSession = { ...restored.session, expiraEm: renewal.expiraEm }; sessionRef.current = nextSession; setEmployeeId(restored.employeeId); setSession(nextSession); } else localStorage.removeItem("marcon-face-enrollment-session"); } catch { localStorage.removeItem("marcon-face-enrollment-session"); } } }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar os funcionários.")); }, 0); return () => { window.clearTimeout(timer); stopCamera(); }; }, []);
 
   useEffect(() => { sessionRef.current = session; }, [session]);
   useEffect(() => { if (session && employeeId) localStorage.setItem("marcon-face-enrollment-session", JSON.stringify({ employeeId, session })); }, [employeeId, session]);
@@ -106,13 +106,15 @@ export default function FaceEnrollmentManager() {
     if (!value) return;
     const response = await fetch(`/api/admin/face-enrollment?funcionarioId=${encodeURIComponent(value)}`); const data = await response.json();
     if (!response.ok) { setError(data.error ?? "Não foi possível iniciar a sessão."); return; }
-    setSession(data.session); sessionRef.current = data.session;
+    const nextSession = data.session as Session;
+    sessionRef.current = nextSession;
+    setSession(nextSession);
   }
 
   const renewSession = useCallback(async () => {
     const current = sessionRef.current; if (!current || !employeeId) return false;
     const response = await fetch("/api/admin/face-enrollment", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token }) });
-    if (!response.ok) return false; const data = await response.json(); setSession({ ...current, expiraEm: data.expiraEm }); return true;
+    if (!response.ok) return false; const data = await response.json(); const nextSession = { ...current, expiraEm: data.expiraEm }; sessionRef.current = nextSession; setSession(nextSession); return true;
   }, [employeeId]);
 
   const submitEnrollment = useCallback(async function submitEnrollmentImpl(nextSamples: string[]) {
