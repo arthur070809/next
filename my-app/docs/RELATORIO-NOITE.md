@@ -134,3 +134,32 @@
   - `npm test -- --exclude tests/integration-tidb.test.ts`: 25 arquivos e 145 testes passaram.
   - Build isolado com Webpack: compilação de produção passou, mas a validação Next falhou em um erro preexistente não relacionado desta fase: `.next/types/app/historico/page.ts` rejeita o export nomeado `FiltrosHistorico` de `app/historico/page.ts`. `tsc --noEmit` independente passou. Não alterei esse arquivo não relacionado.
 - Não validado em banco nem em ambiente móvel/produção. Nenhuma chamada ao banco foi feita. A fila normal continua atualizando os pedidos reais; o modo demo não consulta o endpoint de viagens e não invoca nenhuma ação de assumir para dados simulados. A regra do build foi definida com `NEXT_PUBLIC_VIAGEM_DEMO === "true"` em produção.
+
+## FASE 2 - RESSUPRIMENTO VIVO
+### Diagnóstico de dados existentes
+- `Item.pontoPedido` (`ponto_pedido`) é o ponto de reposição configurável existente; `estoqueSeguranca` também existe. Não há campo de prazo de reposição por item.
+- `SaldoEstoque` registra `itemId`, `localId`, `quantidade` e `reservada`, com unicidade por `(itemId, localId)`. A API de estoque atual expõe `quantidade` e `reservada` separadas e calcula disponível como `quantidade - reservada`.
+- `Movimentacao` registra `tipo`, `quantidade`, `criadoEm`, `saldoApos`, `reservadaApos`, `saldoEstoqueId`, funcionário e vínculos opcionais com requisição/linha.
+- `SAIDA` é gravada quando o almoxarife separa uma linha em `lib/requisicoes-db.ts` (`separarItem`), com timestamp/quantidade e vínculo ao saldo/item. Entradas são gravadas no cadastro/entrada da API de estoque e ajustes como `AJUSTE`; reservas e liberações são tipos distintos e foram excluídas do consumo.
+- Decisão conservadora para cobertura: usar saldo livre, somando `max(0, quantidade - reservada)` em todos os locais do item, para não tratar unidades já comprometidas como cobertura disponível.
+- Fonte real é escolhida apenas se, na janela de 30 dias, houver pelo menos 5 saídas válidas e o movimento mais antigo fornecer 7 dias ou mais de alcance até hoje. Caso contrário, todos os itens usam a fixture determinística. A origem é sempre mostrada na tela.
+- Pendência de produto: adicionar `prazoReposicao` por item, coluna aditiva proposta, após decisão com Arthur e migration aprovada. Até lá `PRAZO_REPOSICAO_PADRAO_DIAS = 7` e `MARGEM_SEGURANCA_DIAS = 2`.
+
+### Implementação e validação
+- Branch: `feat/ressuprimento-vivo`, criada a partir de `feat/viagem-unica-demo`.
+- Commits:
+  - `6807c01 feat(ressuprimento): add pure coverage analysis`
+  - `d7f20ae feat(ressuprimento): add deterministic sample history`
+  - `95399fa feat(ressuprimento): add admin coverage dashboard`
+  - `143ef15 test(ressuprimento): enforce admin-only access`
+- Arquivos:
+  - `my-app/lib/ressuprimento/analise.ts`, `analise.test.ts`: consumo diário, cobertura, ponto sugerido, classe, confiança e suficiência do histórico.
+  - `my-app/lib/ressuprimento/simulado.ts`, `simulado.test.ts`: geração reproduzível por hash/LCG, com pico semanal.
+  - `my-app/app/admin/ressuprimento/page.tsx`: leitura server-side de item/saldo/movimentação; sem rota de escrita.
+  - `my-app/app/admin/ressuprimento/RessuprimentoTabela.tsx`: filtro, ordenação, tabela acessível, gráfico SVG e prévia sem persistência.
+  - `my-app/lib/ressuprimento/access.ts`, `access.test.ts`: decisão de autorização exclusiva para `admin`.
+- `npx tsc --noEmit`: passou.
+- `npm run lint`: 0 erros; permanecem somente os 3 avisos preexistentes em `FaceEnrollmentManager.tsx` e `TotpManager.tsx`.
+- `npm test -- --exclude tests/integration-tidb.test.ts`: 28 arquivos e 157 testes passaram.
+- Build isolado com Webpack: compilação de produção passou; validação Next falhou no mesmo erro preexistente de export nomeado `FiltrosHistorico` em `app/historico/page.ts` reportado na Fase 1. Nenhum arquivo dessa página foi alterado. O build completo não foi validado.
+- Não validado em banco: as consultas da página são somente leitura por construção, mas nenhuma execução da página contra TiDB foi feita. Sem confirmação dos dados, a regra real/simulada também não foi observada em produção.
