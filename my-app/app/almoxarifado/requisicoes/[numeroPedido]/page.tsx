@@ -24,9 +24,11 @@ type ChecklistRequest = {
   criadoEm: string;
   solicitante: string;
   atendente: string | null;
+  podeFinalizar: boolean;
   itens: ChecklistItem[];
 };
 
+type MotivoDivergencia = "FALTOU" | "EXCEDEU_LOTE_MINIMO" | "AVARIA";
 type CheckResponse = {
   error?: string;
   message?: string;
@@ -34,20 +36,39 @@ type CheckResponse = {
   jaConferido?: boolean;
   produto?: { codigo: string | null; nome: string };
 };
+type FinalizeResponse = {
+  error?: string;
+  resumo?: {
+    numeroPedido: string;
+    itens: Array<{
+      id: string;
+      nome: string;
+      quantidadePedida: number;
+      quantidadeSeparada: number;
+      unidadeMedida: string;
+      motivo: MotivoDivergencia | null;
+    }>;
+    movimentacoes: Array<{ id: string; tipo: string; quantidade: number; unidadeMedida: string }>;
+  };
+};
 
 export default function ChecklistRequisicaoPage() {
   const { numeroPedido } = useParams<{ numeroPedido: string }>();
   const [requisicao, setRequisicao] = useState<ChecklistRequest | null>(null);
   const [quantidadesReais, setQuantidadesReais] = useState<Record<string, string>>({});
+  const [motivosDivergencia, setMotivosDivergencia] = useState<Record<string, MotivoDivergencia | "">>({});
   const [codigoManual, setCodigoManual] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [cameraAberta, setCameraAberta] = useState(false);
   const [lerEmSequencia, setLerEmSequencia] = useState(true);
+  const [finalizando, setFinalizando] = useState(false);
+  const [finalizado, setFinalizado] = useState<NonNullable<FinalizeResponse["resumo"]> | null>(null);
   const quantidadeRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const ultimoCodigoRef = useRef<{ codigo: string; quando: number } | null>(null);
   const sequenceRef = useRef(lerEmSequencia);
+  const finalizationInFlight = useRef(false);
 
   useEffect(() => {
     sequenceRef.current = lerEmSequencia;
@@ -74,6 +95,21 @@ export default function ChecklistRequisicaoPage() {
     [requisicao],
   );
   const requisicaoAtiva = requisicao?.status === "ASSUMIDA";
+  const outcomesValidos = useMemo(() => {
+    if (!requisicao?.itens.length) return false;
+    return requisicao.itens.every((item) => {
+      if (!item.conferido) return false;
+      const raw = quantidadesReais[item.id];
+      if (raw === undefined || raw.trim() === "") return false;
+      const quantity = Number(raw);
+      if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 2_147_483_647) return false;
+      if (quantity === item.quantidadeSolicitada) return true;
+      const motive = motivosDivergencia[item.id];
+      return quantity > item.quantidadeSolicitada
+        ? motive === "EXCEDEU_LOTE_MINIMO"
+        : motive === "FALTOU" || motive === "AVARIA";
+    });
+  }, [requisicao, quantidadesReais, motivosDivergencia]);
 
   const conferirCodigo = useCallback(async (raw: string, origem: "QR" | "digitacao") => {
     setErro("");
@@ -143,11 +179,80 @@ export default function ChecklistRequisicaoPage() {
     setCodigoManual("");
   }
 
+  async function finalizarRequisicao() {
+    if (
+      finalizationInFlight.current ||
+      !requisicao ||
+      !requisicaoAtiva ||
+      !requisicao.podeFinalizar ||
+      !outcomesValidos
+    ) return;
+
+    const confirmada = window.confirm(`Confirma finalizar a requisição ${requisicao.numeroPedido}? O estoque será atualizado.`);
+    if (!confirmada) return;
+
+    finalizationInFlight.current = true;
+    setFinalizando(true);
+    setErro("");
+    try {
+      const response = await fetch(`/api/almoxarifado/requisicoes/${encodeURIComponent(numeroPedido)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "finalizar",
+          itens: requisicao.itens.map((item) => ({
+            id: item.id,
+            quantidadeSeparada: Number(quantidadesReais[item.id]),
+            ...(motivosDivergencia[item.id] ? { motivo: motivosDivergencia[item.id] } : {}),
+          })),
+        }),
+      });
+      const data = await response.json() as FinalizeResponse;
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível finalizar a requisição.");
+      if (!data.resumo) throw new Error("A requisição foi finalizada, mas o resumo não foi retornado.");
+      setFinalizado(data.resumo);
+    } catch (cause) {
+      setErro(cause instanceof Error ? cause.message : "Não foi possível finalizar a requisição.");
+    } finally {
+      finalizationInFlight.current = false;
+      setFinalizando(false);
+    }
+  }
+
   if (carregando) {
     return <main className="mx-auto max-w-4xl p-4"><p role="status" className="rounded-xl bg-white p-8 text-center text-slate-500">Carregando checklist…</p></main>;
   }
   if (!requisicao) {
     return <main className="mx-auto max-w-4xl p-4"><p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{erro || "Requisição não encontrada."}</p><Link href="/almoxarifado/requisicoes" className="mt-4 inline-block font-semibold text-royal">Voltar à fila</Link></main>;
+  }
+
+  if (finalizado) {
+    const itensSeparados = finalizado.itens.filter((item) => item.quantidadeSeparada > 0).length;
+    return <main className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
+      <section role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+        <h1 className="text-2xl font-bold text-emerald-950">Requisição finalizada</h1>
+        <p className="mt-2 text-sm text-emerald-900">Pedido {finalizado.numeroPedido} · {itensSeparados} itens com separação · {finalizado.movimentacoes.length} movimentações registradas.</p>
+      </section>
+      <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="font-semibold text-slate-900">Resumo por item</h2>
+        <ul className="mt-3 divide-y divide-slate-100">
+          {finalizado.itens.map((item) => <li key={item.id} className="py-3 text-sm">
+            <span className="font-medium">{item.nome}</span>: pedido {item.quantidadePedida} {item.unidadeMedida}, separado {item.quantidadeSeparada} {item.unidadeMedida}
+            {item.motivo && <span className="text-slate-600"> · {item.motivo.replaceAll("_", " ").toLowerCase()}</span>}
+          </li>)}
+        </ul>
+      </section>
+      <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="font-semibold text-slate-900">Movimentações geradas</h2>
+        <ul className="mt-2 space-y-1 text-sm text-slate-700">
+          {finalizado.movimentacoes.map((movement) => <li key={movement.id}>{movement.tipo === "SAIDA" ? "Saída" : "Liberação de reserva"} · {movement.quantidade} {movement.unidadeMedida}</li>)}
+        </ul>
+      </section>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/almoxarifado/requisicoes" className="rounded-lg bg-royal px-4 py-2 font-semibold text-white">Voltar à fila</Link>
+        <Link href="/historico" className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-800">Ver histórico</Link>
+      </div>
+    </main>;
   }
 
   return (
@@ -224,10 +329,41 @@ export default function ChecklistRequisicaoPage() {
                 />
               </label>
               {diverge && <p role="status" className="mt-2 text-sm font-semibold text-amber-800">Divergência: {Number(quantidadeReal) - item.quantidadeSolicitada} {item.unidadeMedida} em relação ao pedido. O valor ainda não é persistido.</p>}
+              {diverge && <label className="mt-3 block text-sm font-medium text-slate-800">Motivo da divergência
+                <select
+                  value={motivosDivergencia[item.id] ?? ""}
+                  onChange={(event) => setMotivosDivergencia((current) => ({
+                    ...current,
+                    [item.id]: event.target.value as MotivoDivergencia | "",
+                  }))}
+                  className="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 sm:max-w-sm"
+                >
+                  <option value="">Selecione o motivo</option>
+                  {Number(quantidadeReal) > item.quantidadeSolicitada
+                    ? <option value="EXCEDEU_LOTE_MINIMO">Excedeu / lote mínimo</option>
+                    : <>
+                      <option value="FALTOU">Faltou material</option>
+                      <option value="AVARIA">Avaria</option>
+                    </>}
+                </select>
+              </label>}
             </article>
           );
         })}
       </section>
+      {requisicao.podeFinalizar && <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <p className="text-sm text-slate-600">A quantidade real e os motivos serão gravados ao finalizar. As divergências serão baixadas pela quantidade efetivamente separada.</p>
+        {erro && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{erro}</p>}
+        <button
+          type="button"
+          onClick={() => void finalizarRequisicao()}
+          disabled={!requisicaoAtiva || !outcomesValidos || finalizando}
+          className="mt-4 min-h-11 rounded-lg bg-royal px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {finalizando ? "Finalizando…" : "Finalizar requisição"}
+        </button>
+        {!outcomesValidos && <p className="mt-2 text-sm text-slate-600">Confira cada item e informe uma quantidade válida; selecione o motivo quando houver divergência.</p>}
+      </section>}
       {cameraAberta && <ProductEtiquetaScanner onRead={handleCameraRead} onClose={() => setCameraAberta(false)} />}
     </main>
   );

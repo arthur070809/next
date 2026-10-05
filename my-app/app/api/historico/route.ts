@@ -26,6 +26,10 @@ export async function GET() {
         itens: {
           include: {
             item: { select: { nome: true } },
+            movimentacoes: {
+              where: { tipo: "SAIDA" },
+              select: { quantidade: true },
+            },
           },
         },
       },
@@ -65,10 +69,15 @@ export async function GET() {
           numeroPedido: req.numeroPedido,
           evento: "finalizada",
           codigoCracha: crachaAtendente,
-          descricaoMotivo: null,
+          descricaoMotivo: req.itens.map((item) => {
+            const separated = item.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0);
+            return `${item.item.nome}: pedido ${item.quantidade}, separado ${separated}${item.motivoNaoAtendido ? ` (${item.motivoNaoAtendido})` : ""}`;
+          }).join("; "),
           timestamp: req.concluidaEm.toISOString(),
           itensFinalizados: req.itens.map((it) => ({
             nome: it.item.nome,
+            quantidadePedida: it.quantidade,
+            quantidadeSeparada: it.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0),
             separado: Boolean(it.separado),
             motivo: it.motivoNaoAtendido ?? undefined,
           })),

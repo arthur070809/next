@@ -3,6 +3,7 @@ export type ItemChecklist = {
   nome: string
   quantidade: number
   unidadeMedida: string
+  setor?: "setor1" | "setor2" | "setor3"
 }
 
 export type RequisicaoMock = {
@@ -33,5 +34,5 @@ export type EventoHistorico = {
   codigoCracha: string
   descricaoMotivo: string | null
   timestamp: string
-  itensFinalizados?: Array<{ nome: string; separado: boolean; motivo?: string }>
+  itensFinalizados?: Array<{ nome: string; quantidadePedida: number; quantidadeSeparada: number; separado: boolean; motivo?: string }>
 }
