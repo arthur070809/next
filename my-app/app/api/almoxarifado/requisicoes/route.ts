@@ -1,14 +1,26 @@
-import { NextResponse } from "next/server"
-import { getAuthenticatedFuncionario } from "../../../../lib/auth"
-import { listOpenRequisitions } from "../../../../lib/requisicoes-db"
+import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { PapelFuncionario } from "@/generated/prisma/client";
+import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { listOpenRequisitions } from "@/lib/requisicoes-db";
 
 export async function GET() {
-  if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
+  const funcionario = await getAuthenticatedFuncionario();
+  if (!funcionario) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  if (
+    funcionario.papel !== PapelFuncionario.ADMIN &&
+    funcionario.papel !== PapelFuncionario.ALMOXARIFE
+  ) {
+    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+  }
+
   try {
-    const requisicoes = await listOpenRequisitions()
-    return NextResponse.json({ requisicoes })
+    const requisicoes = await listOpenRequisitions();
+    return NextResponse.json({ requisicoes });
   } catch (error) {
-    console.error("Falha ao consultar fila do MySQL:", error)
-    return NextResponse.json({ error: "Não foi possível carregar as requisições do MySQL." }, { status: 500 })
+    const errorId = randomUUID();
+    const errorName = error instanceof Error ? error.name : "UnknownError";
+    console.error("Falha ao consultar fila de requisições.", { errorId, errorName });
+    return NextResponse.json({ error: "Não foi possível carregar as requisições." }, { status: 500 });
   }
 }

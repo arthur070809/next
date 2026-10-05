@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       include: { trustedDevice: true, funcionario: true },
     });
     const now = new Date();
-    if (!pairing || pairing.usadoEm || pairing.expiraEm <= now || !pairing.funcionario.ativo || pairing.funcionario.role !== "user" || pairing.trustedDevice.revogadoEm) {
+    if (!pairing || pairing.usadoEm || pairing.expiraEm <= now || !pairing.funcionario.ativo || pairing.funcionario.papel !== "ALMOXARIFE" || pairing.trustedDevice.revogadoEm) {
       await prisma.securityAuditEvent.create({
         data: { acao: "DEVICE_PAIRING_ATTEMPT", resultado: "denied", ipHash },
       });

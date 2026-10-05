@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import styles from "./home.module.css";
+import { ActionTile, PageHeader, SummaryCard } from "../components/industrial";
 
 type Resumo = {
   materiaisAtivos: number;
@@ -12,12 +11,12 @@ type Resumo = {
   sobrasHoje: number;
 };
 
-const cards: Array<{ key: keyof Resumo; label: string; detail: string }> = [
-  { key: "materiaisAtivos", label: "Materiais ativos", detail: "Itens cadastrados no estoque" },
-  { key: "materiaisSemEstoque", label: "Sem estoque", detail: "Materiais ativos com saldo zero" },
-  { key: "requisicoesPendentes", label: "Requisições pendentes", detail: "Pedidos enviados por você" },
-  { key: "itensComSobras", label: "Itens no depósito", detail: "Materiais com saldo disponível" },
-  { key: "sobrasHoje", label: "Sobras registradas hoje", detail: "Unidades devolvidas ao depósito" },
+const cards: Array<{ key: keyof Resumo; label: string; detail: string; tone: "default" | "success" | "warning" | "danger" | "brand" }> = [
+  { key: "materiaisAtivos", label: "Materiais ativos", detail: "Itens cadastrados no estoque", tone: "brand" },
+  { key: "materiaisSemEstoque", label: "Sem estoque", detail: "Materiais ativos com saldo zero", tone: "danger" },
+  { key: "requisicoesPendentes", label: "Requisições pendentes", detail: "Pedidos aguardando atendimento", tone: "warning" },
+  { key: "itensComSobras", label: "Itens no depósito", detail: "Materiais com saldo disponível", tone: "success" },
+  { key: "sobrasHoje", label: "Sobras registradas hoje", detail: "Unidades devolvidas ao depósito", tone: "default" },
 ];
 
 export default function WarehouseHome({ userName, badge }: { userName: string; badge: string }) {
@@ -50,39 +49,55 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
   }, []);
 
   return (
-    <main className={`${styles.home} mx-auto max-w-7xl px-4 py-8 sm:px-8`}>
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-royal">Visão geral</p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-950">Olá, {primeiroNome}</h1>
-        <p className="mt-2 text-slate-600">Acompanhe o estoque e acesse suas áreas de trabalho.</p>
-      </header>
+    <div>
+      <PageHeader
+        eyebrow="Visão geral"
+        title={`Olá, ${primeiroNome}`}
+        description="Acompanhe a operação e acesse rapidamente o que exige ação no dia a dia."
+      />
 
-      {!carregando && !erro && resumo?.materiaisAtivos === 0 && <p role="status" className="mt-6 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-slate-600">O estoque está vazio no momento.</p>}
+      {!carregando && !erro && resumo?.materiaisAtivos === 0 && (
+        <p role="status" className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-slate-600">
+          O estoque está vazio no momento.
+        </p>
+      )}
 
-      <section aria-label="Resumo do almoxarifado" aria-live="polite" className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {carregando ? cards.map((card) => <div key={card.key} aria-hidden="true" className="h-32 motion-safe:animate-pulse rounded-xl border border-slate-200 bg-white p-5"><div className="h-4 w-2/3 rounded bg-slate-200" /><div className="mt-5 h-8 w-1/3 rounded bg-slate-200" /></div>)
-          : erro ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:col-span-2 xl:col-span-4">{erro}</p>
-            : cards.map((card) => <article key={card.key} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-sm font-medium text-slate-600">{card.label}</h2>
-              <p className="mt-3 text-3xl font-bold text-slate-950">{resumo?.[card.key] ?? 0}</p>
-              <p className="mt-1 text-sm text-slate-500">{card.detail}</p>
-            </article>)}
+      <section aria-label="Resumo do almoxarifado" aria-live="polite" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {carregando ? (
+          cards.map((card) => (
+            <div key={card.key} aria-hidden="true" className="h-32 animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="h-4 w-2/3 rounded bg-slate-200" />
+              <div className="mt-5 h-8 w-1/3 rounded bg-slate-200" />
+            </div>
+          ))
+        ) : erro ? (
+          <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:col-span-2 xl:col-span-5">
+            {erro}
+          </p>
+        ) : (
+          cards.map((card) => (
+            <SummaryCard
+              key={card.key}
+              label={card.label}
+              value={resumo?.[card.key] ?? 0}
+              hint={card.detail}
+              tone={card.tone}
+            />
+          ))
+        )}
       </section>
 
       <section className="mt-8" aria-labelledby="warehouse-shortcuts">
-        <h2 id="warehouse-shortcuts" className="text-lg font-bold text-slate-950">Ações rápidas</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Link href="/almoxarifado/estoque" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-royal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal">
-            <span aria-hidden="true" className="text-xl text-royal">▦</span><p className="mt-3 font-semibold text-slate-900">Estoque</p><p className="mt-1 text-sm text-slate-500">Consulte os materiais e seus saldos.</p>
-          </Link>
-          <Link href="/almoxarifado/estoque#novo-item" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-royal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal">
-            <span aria-hidden="true" className="text-xl text-royal">＋</span><p className="mt-3 font-semibold text-slate-900">Cadastrar item</p><p className="mt-1 text-sm text-slate-500">Registre uma entrada no estoque.</p>
-          </Link>
-          <Link href="/almoxarifado/deposito" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-royal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal">
-            <span aria-hidden="true" className="text-xl text-royal">◇</span><p className="mt-3 font-semibold text-slate-900">Depósito de sobras</p><p className="mt-1 text-sm text-slate-500">Acompanhe itens avulsos devolvidos.</p>
-          </Link>
+        <h2 id="warehouse-shortcuts" className="text-xl font-black tracking-tight text-slate-900">
+          Ações rápidas
+        </h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ActionTile href="/almoxarifado/requisicoes" title="Fila de requisições" description="Receba e acompanhe os pedidos dos operadores." icon="▤" tone="warning" />
+          <ActionTile href="/almoxarifado/estoque" title="Estoque" description="Consulte materiais e saldos em tempo real." icon="▦" tone="brand" />
+          <ActionTile href="/almoxarifado/estoque#novo-item" title="Cadastrar item" description="Registre uma entrada no estoque." icon="＋" tone="success" />
+          <ActionTile href="/almoxarifado/deposito" title="Depósito" description="Acompanhe itens avulsos devolvidos." icon="◇" tone="default" />
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -1,89 +1,419 @@
-import type { Pool, RowDataPacket } from "mysql2/promise"
-import { db } from "./mysql"
-import type { RequisicaoMock } from "./types/almoxarifado"
+/**
+ * Helpers de acesso a dados de requisições — reescrito para Prisma + novo schema.
+ * Preserva o formato RequisicaoMock para compatibilidade com o front-end.
+ */
+import { prisma } from "@/lib/prisma";
+import type { RequisicaoMock } from "@/lib/types/almoxarifado";
+import {
+  PrismaClient,
+  Prisma,
+  StatusRequisicao,
+  StatusItemRequisicao,
+  TipoMovimentacao,
+} from "@/generated/prisma/client";
 
-type RequisicaoRow = RowDataPacket & {
-  requisicao_id: number
-  numero_pedido: string
-  status_requisicao: RequisicaoMock["status"]
-  criada_em: Date
-  solicitante: string | null
-  assumida_por_cracha: string | null
-  assumida_em: Date | null
-  setor: string | null
-  nome_item: string | null
-  quantidade: number | null
-  unidade_medida: string | null
-  descricao: string | null
-  prioridade: "padrao" | "prioridade" | null
-  item_status: RequisicaoMock["status"] | null
-  item_id: number | null
-  almoxarifado_slug: string | null
-}
+type TransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
 
-const warehouseSlugs = ["central", "embalagens", "materia-prima", "importados"] as const
+/** Inclui relacionamentos para construir RequisicaoMock */
+const REQUISICAO_INCLUDE = {
+  solicitante: { select: { nome: true, cracha: true } },
+  atendente: { select: { nome: true, cracha: true } },
+  itens: {
+    include: {
+      item: { select: { nome: true } },
+      local: { select: { slug: true } },
+    },
+  },
+} satisfies Prisma.RequisicaoInclude;
 
-async function fetchRows(pool: Pool, where: string, params: Array<string | number | Date | null> = []) {
-  const [rows] = await pool.execute<RequisicaoRow[]>(`
-    SELECT r.id AS requisicao_id, r.numero_pedido, r.status AS status_requisicao,
-      r.criada_em, r.assumida_em, ua.codigo_cracha AS assumida_por_cracha,
-      u.nome AS solicitante, ri.id AS item_id, ri.setor, ri.quantidade,
-      ri.unidade_medida, ri.descricao, ri.prioridade, ri.status AS item_status,
-      i.nome AS nome_item, a.slug AS almoxarifado_slug
-    FROM requisicoes r
-    LEFT JOIN usuarios u ON u.id = r.solicitante_id
-    LEFT JOIN usuarios ua ON ua.id = r.assumida_por
-    LEFT JOIN requisicao_itens ri ON ri.requisicao_id = r.id
-    LEFT JOIN itens i ON i.id = ri.item_id
-    LEFT JOIN almoxarifados a ON a.id = ri.almoxarifado_id
-    ${where}
-    ORDER BY (ri.prioridade = 'prioridade') DESC, r.criada_em ASC, ri.id ASC
-  `, params)
-  const requests = new Map<number, RequisicaoMock>()
-  for (const row of rows) {
-    let request = requests.get(row.requisicao_id)
-    if (!request) {
-      request = {
-        numeroPedido: row.numero_pedido,
-        almoxarifado: warehouseSlugs.includes(row.almoxarifado_slug as (typeof warehouseSlugs)[number]) ? row.almoxarifado_slug as RequisicaoMock["almoxarifado"] : "central",
-        setor: (row.setor ?? "setor1") as RequisicaoMock["setor"],
-        item: row.nome_item ?? "Sem itens",
-        quantidade: Number(row.quantidade ?? 0),
-        unidadeMedida: (row.unidade_medida ?? "UN").toLowerCase() as RequisicaoMock["unidadeMedida"],
-        descricao: row.descricao ?? "",
-        data: new Date(row.criada_em).toISOString(),
-        codigoTratamento: "209",
-        prioridade: row.prioridade ?? "padrao",
-        status: row.status_requisicao,
-        solicitante: row.solicitante ?? "Solicitante",
-        assumidaPorCracha: row.assumida_por_cracha ?? undefined,
-        assumidaAt: row.assumida_em ? new Date(row.assumida_em).toISOString() : undefined,
-        itens: [],
-      }
-      requests.set(row.requisicao_id, request)
-    }
-    if (row.item_id !== null) {
-      const item = { id: String(row.item_id), nome: row.nome_item ?? "Item", quantidade: Number(row.quantidade ?? 0), unidadeMedida: row.unidade_medida ?? "UN" }
-      request.itens?.push(item)
-      if (request.itens?.length === 1) {
-        request.item = item.nome
-        request.quantidade = item.quantidade
-        request.unidadeMedida = item.unidadeMedida.toLowerCase() as RequisicaoMock["unidadeMedida"]
-        request.descricao = row.descricao ?? ""
-        request.setor = (row.setor ?? "setor1") as RequisicaoMock["setor"]
-        request.almoxarifado = warehouseSlugs.includes(row.almoxarifado_slug as (typeof warehouseSlugs)[number]) ? row.almoxarifado_slug as RequisicaoMock["almoxarifado"] : "central"
-      }
-      if (row.prioridade === "prioridade") request.prioridade = "prioridade"
-    }
+type RequisicaoWithRelations = Prisma.RequisicaoGetPayload<{
+  include: typeof REQUISICAO_INCLUDE;
+}>;
+
+/** Converte status do banco para string lowercase usada pelo front */
+function statusToFront(status: StatusRequisicao): RequisicaoMock["status"] {
+  switch (status) {
+    case StatusRequisicao.PENDENTE: return "pendente";
+    case StatusRequisicao.ASSUMIDA: return "assumida";
+    case StatusRequisicao.CONCLUIDA: return "concluida";
+    case StatusRequisicao.ANULADA: return "anulado";
   }
-  return [...requests.values()]
 }
 
-export function listOpenRequisitions() {
-  return fetchRows(db, "WHERE r.status IN ('pendente', 'assumida')")
+/** Monta um RequisicaoMock a partir do modelo Prisma */
+export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
+  const primeiroItem = req.itens[0];
+  const almoxarifadoSlug = primeiroItem?.local?.slug ?? "estoque";
+  const almoxarifadoFront = (["central", "embalagens", "materia-prima", "importados"] as const).find(
+    (s) => s === almoxarifadoSlug
+  ) ?? "central";
+
+  return {
+    numeroPedido: req.numeroPedido,
+    almoxarifado: almoxarifadoFront,
+    setor: "setor1", // setor não está no novo schema — valor padrão para compatibilidade
+    item: primeiroItem?.item?.nome ?? "Sem itens",
+    quantidade: primeiroItem?.quantidade ?? 0,
+    unidadeMedida: (primeiroItem?.unidadeMedida?.toLowerCase() ?? "un") as RequisicaoMock["unidadeMedida"],
+    descricao: primeiroItem?.descricao ?? "",
+    data: req.criadoEm.toISOString(),
+    codigoTratamento: "209",
+    prioridade: req.prioridade === "PRIORITARIO" ? "prioridade" : "padrao",
+    status: statusToFront(req.status),
+    solicitante: req.solicitante?.nome ?? "Solicitante",
+    assumidaPorCracha: req.atendente?.cracha ?? undefined,
+    assumidaAt: req.assumidaEm?.toISOString() ?? undefined,
+    anuladoPorCracha: undefined,
+    anuladoAt: req.anuladaEm?.toISOString() ?? undefined,
+    itens: req.itens.map((ri) => ({
+      id: ri.id,
+      nome: ri.item?.nome ?? "Item",
+      quantidade: ri.quantidade,
+      unidadeMedida: ri.unidadeMedida,
+    })),
+  };
 }
 
-export async function getRequisition(numeroPedido: string) {
-  const requests = await fetchRows(db, "WHERE r.numero_pedido = ?", [numeroPedido])
-  return requests[0] ?? null
+/** Lista requisições abertas (pendente + assumida) */
+export async function listOpenRequisitions(): Promise<RequisicaoMock[]> {
+  const requisicoes = await prisma.requisicao.findMany({
+    where: { status: { in: [StatusRequisicao.PENDENTE, StatusRequisicao.ASSUMIDA] } },
+    include: REQUISICAO_INCLUDE,
+    orderBy: [{ prioridade: "desc" }, { criadoEm: "asc" }],
+    take: 200, // limite razoável para fila de trabalho
+  });
+  return requisicoes.map(toRequisicaoMock);
+}
+
+/** Busca uma requisição pelo numeroPedido */
+export async function getRequisition(numeroPedido: string): Promise<RequisicaoMock | null> {
+  const req = await prisma.requisicao.findUnique({
+    where: { numeroPedido },
+    include: REQUISICAO_INCLUDE,
+  });
+  return req ? toRequisicaoMock(req) : null;
+}
+
+/** Gera o próximo número de requisição atomicamente (ex.: REQ-000123) */
+export async function nextNumeroPedido(tx: TransactionClient): Promise<string> {
+  // UPDATE atomico na tabela de sequência — seguro contra concorrência
+  await tx.$executeRaw`UPDATE sequencia_requisicao SET proximo = proximo + 1 WHERE id = 1`;
+  const [{ proximo }] = await tx.$queryRaw<[{ proximo: number }]>`
+    SELECT proximo FROM sequencia_requisicao WHERE id = 1
+  `;
+  const numero = proximo - 1; // o valor antes do incremento
+  return `REQ-${String(numero).padStart(6, "0")}`;
+}
+
+/**
+ * Cria uma requisição multi-item com reserva atômica de estoque.
+ * Rejeita com HTTP 409 se qualquer item não tiver saldo disponível suficiente.
+ * Tudo em uma única transação — nada é criado se algum item falhar.
+ */
+export async function criarRequisicao(params: {
+  solicitanteId: number;
+  itens: Array<{
+    itemId: string;
+    localId: string;
+    quantidade: number;
+    unidadeMedida?: string;
+    descricao?: string;
+  }>;
+  prioridade?: "padrao" | "prioridade";
+  observacao?: string;
+  movimentacaoObservacao?: string;
+}) {
+  return prisma.$transaction(async (tx) => {
+    // Valida e reserva cada item atomicamente sem ler-depois-escrever
+    for (const itemPayload of params.itens) {
+      const updateResult = await tx.$executeRaw`
+        UPDATE saldos_estoque
+        SET reservada = reservada + ${itemPayload.quantidade}
+        WHERE item_id = ${itemPayload.itemId}
+          AND local_id = ${itemPayload.localId}
+          AND (quantidade - reservada) >= ${itemPayload.quantidade}
+      `;
+
+      if (updateResult === 0) {
+        // Busca saldo atual para mensagem de erro informativa
+        const saldo = await tx.saldoEstoque.findUnique({
+          where: { itemId_localId: { itemId: itemPayload.itemId, localId: itemPayload.localId } },
+          include: { item: { select: { nome: true } } },
+        });
+        const disponivel = saldo ? Math.max(0, saldo.quantidade - saldo.reservada) : 0;
+        const nomeItem = saldo?.item?.nome ?? itemPayload.itemId;
+        throw Object.assign(
+          new Error(`Saldo insuficiente para "${nomeItem}": disponível ${disponivel}, solicitado ${itemPayload.quantidade}`),
+          { code: "SALDO_INSUFICIENTE", itemId: itemPayload.itemId, disponivel }
+        );
+      }
+    }
+
+    // Gera número de pedido
+    const numeroPedido = await nextNumeroPedido(tx);
+
+    // Cria a requisição
+    const requisicao = await tx.requisicao.create({
+      data: {
+        numeroPedido,
+        prioridade: params.prioridade === "prioridade" ? "PRIORITARIO" : "PADRAO",
+        observacao: params.observacao ?? null,
+        solicitanteId: params.solicitanteId,
+        itens: {
+          create: params.itens.map((ri) => ({
+            itemId: ri.itemId,
+            localId: ri.localId,
+            quantidade: ri.quantidade,
+            unidadeMedida: ri.unidadeMedida ?? "UN",
+            descricao: ri.descricao ?? null,
+            status: StatusItemRequisicao.PENDENTE,
+          })),
+        },
+      },
+      include: {
+        itens: { include: { item: { select: { nome: true } }, local: { select: { slug: true } } } },
+        solicitante: { select: { nome: true, cracha: true } },
+        atendente: { select: { nome: true, cracha: true } },
+      },
+    });
+
+    // Registra movimentações de RESERVA para cada item
+    for (const ri of requisicao.itens) {
+      const saldo = await tx.saldoEstoque.findUnique({
+        where: { itemId_localId: { itemId: ri.itemId, localId: ri.localId } },
+      });
+      if (saldo) {
+        await tx.movimentacao.create({
+          data: {
+            tipo: TipoMovimentacao.RESERVA,
+            quantidade: ri.quantidade,
+            saldoApos: saldo.quantidade,
+            reservadaApos: saldo.reservada,
+            funcionarioId: params.solicitanteId,
+            saldoEstoqueId: saldo.id,
+            requisicaoId: requisicao.id,
+            requisicaoItemId: ri.id,
+            observacao: params.movimentacaoObservacao ?? `Reserva para ${requisicao.numeroPedido}`,
+          },
+        });
+      }
+    }
+
+    return requisicao;
+  });
+}
+
+/**
+ * Libera a reserva de todos os itens de uma requisição (anulação/cancelamento).
+ * Registra movimentação de LIBERACAO_RESERVA.
+ */
+export async function liberarReserva(params: {
+  requisicaoId: string;
+  funcionarioId: number;
+  tx: TransactionClient;
+}) {
+  const { requisicaoId, funcionarioId, tx } = params;
+
+  const itens = await tx.requisicaoItem.findMany({
+    where: { requisicaoId, status: { in: [StatusItemRequisicao.PENDENTE, StatusItemRequisicao.ASSUMIDO] } },
+  });
+
+  for (const item of itens) {
+    const updateResult = await tx.$executeRaw`
+      UPDATE saldos_estoque
+      SET reservada = GREATEST(0, reservada - ${item.quantidade})
+      WHERE item_id = ${item.itemId}
+        AND local_id = ${item.localId}
+    `;
+    void updateResult;
+
+    const saldo = await tx.saldoEstoque.findUnique({
+      where: { itemId_localId: { itemId: item.itemId, localId: item.localId } },
+    });
+    if (saldo) {
+      await tx.movimentacao.create({
+        data: {
+          tipo: TipoMovimentacao.LIBERACAO_RESERVA,
+          quantidade: item.quantidade,
+          saldoApos: saldo.quantidade,
+          reservadaApos: saldo.reservada,
+          funcionarioId,
+          saldoEstoqueId: saldo.id,
+          requisicaoId,
+          requisicaoItemId: item.id,
+          observacao: "Liberação de reserva (anulação/devolução)",
+        },
+      });
+    }
+
+    await tx.requisicaoItem.update({
+      where: { id: item.id },
+      data: { status: StatusItemRequisicao.ANULADO, resolvidoEm: new Date() },
+    });
+  }
+}
+
+/**
+ * Realiza a baixa de estoque ao separar um item (almoxarife).
+ * Idempotente: se o item já estiver SEPARADO, não faz nada.
+ */
+export async function separarItem(params: {
+  requisicaoItemId: string;
+  funcionarioId: number;
+  tx: TransactionClient;
+}): Promise<"ok" | "already_done"> {
+  const { requisicaoItemId, funcionarioId, tx } = params;
+
+  const ri = await tx.requisicaoItem.findUnique({
+    where: { id: requisicaoItemId },
+  });
+  if (!ri) throw new Error("Item de requisição não encontrado.");
+
+  // Idempotência: já separado ou anulado — não age novamente
+  if (ri.status === StatusItemRequisicao.SEPARADO) return "already_done";
+  if (ri.status === StatusItemRequisicao.ANULADO || ri.status === StatusItemRequisicao.NAO_SEPARADO) {
+    throw new Error("Item já resolvido.");
+  }
+
+  // Baixa atômica: desconta da quantidade E da reservada simultaneamente
+  const updateResult = await tx.$executeRaw`
+    UPDATE saldos_estoque
+    SET
+      quantidade = quantidade - ${ri.quantidade},
+      reservada = GREATEST(0, reservada - ${ri.quantidade})
+    WHERE item_id = ${ri.itemId}
+      AND local_id = ${ri.localId}
+      AND quantidade >= ${ri.quantidade}
+      AND reservada >= ${ri.quantidade}
+  `;
+
+  if (updateResult === 0) {
+    // Pode ser idempotência (outra requisição separou o último item)
+    // Verifica se o saldo foi insuficiente
+    const saldo = await tx.saldoEstoque.findUnique({
+      where: { itemId_localId: { itemId: ri.itemId, localId: ri.localId } },
+    });
+    if ((saldo?.quantidade ?? 0) < ri.quantidade) {
+      throw Object.assign(
+        new Error("Saldo insuficiente para separação."),
+        { code: "SALDO_INSUFICIENTE" }
+      );
+    }
+    // Outro caso: já foi processado concorrentemente — tratar como idempotente
+    return "already_done";
+  }
+
+  const saldo = await tx.saldoEstoque.findUnique({
+    where: { itemId_localId: { itemId: ri.itemId, localId: ri.localId } },
+  });
+
+  if (saldo) {
+    await tx.movimentacao.create({
+      data: {
+        tipo: TipoMovimentacao.SAIDA,
+        quantidade: ri.quantidade,
+        saldoApos: saldo.quantidade,
+        reservadaApos: saldo.reservada,
+        funcionarioId,
+        saldoEstoqueId: saldo.id,
+        requisicaoId: ri.requisicaoId,
+        requisicaoItemId: ri.id,
+        observacao: "Saída por separação",
+      },
+    });
+  }
+
+  await tx.requisicaoItem.update({
+    where: { id: requisicaoItemId },
+    data: { status: StatusItemRequisicao.SEPARADO, separado: true, resolvidoEm: new Date() },
+  });
+
+  return "ok";
+}
+
+/**
+ * Marca item como NAO_SEPARADO e libera a reserva.
+ */
+export async function naoSepararItem(params: {
+  requisicaoItemId: string;
+  motivo: string;
+  funcionarioId: number;
+  tx: TransactionClient;
+}): Promise<"ok" | "already_done"> {
+  const { requisicaoItemId, motivo, funcionarioId, tx } = params;
+
+  const ri = await tx.requisicaoItem.findUnique({ where: { id: requisicaoItemId } });
+  if (!ri) throw new Error("Item de requisição não encontrado.");
+
+  if (ri.status === StatusItemRequisicao.NAO_SEPARADO) return "already_done";
+  if (ri.status === StatusItemRequisicao.SEPARADO || ri.status === StatusItemRequisicao.ANULADO) {
+    throw new Error("Item já resolvido.");
+  }
+
+  // Libera reserva
+  await tx.$executeRaw`
+    UPDATE saldos_estoque
+    SET reservada = GREATEST(0, reservada - ${ri.quantidade})
+    WHERE item_id = ${ri.itemId}
+      AND local_id = ${ri.localId}
+  `;
+
+  const saldo = await tx.saldoEstoque.findUnique({
+    where: { itemId_localId: { itemId: ri.itemId, localId: ri.localId } },
+  });
+
+  if (saldo) {
+    await tx.movimentacao.create({
+      data: {
+        tipo: TipoMovimentacao.LIBERACAO_RESERVA,
+        quantidade: ri.quantidade,
+        saldoApos: saldo.quantidade,
+        reservadaApos: saldo.reservada,
+        funcionarioId,
+        saldoEstoqueId: saldo.id,
+        requisicaoId: ri.requisicaoId,
+        requisicaoItemId: ri.id,
+        observacao: `Não separado: ${motivo}`,
+      },
+    });
+  }
+
+  await tx.requisicaoItem.update({
+    where: { id: requisicaoItemId },
+    data: {
+      status: StatusItemRequisicao.NAO_SEPARADO,
+      separado: false,
+      motivoNaoAtendido: motivo,
+      resolvidoEm: new Date(),
+    },
+  });
+
+  return "ok";
+}
+
+/**
+ * Verifica se todos os itens da requisição estão resolvidos e fecha a requisição.
+ */
+export async function checarEFecharRequisicao(params: {
+  requisicaoId: string;
+  tx: TransactionClient;
+}) {
+  const { requisicaoId, tx } = params;
+  const itens = await tx.requisicaoItem.findMany({ where: { requisicaoId } });
+  const todosResolvidos = itens.every(
+    (i) =>
+      i.status === StatusItemRequisicao.SEPARADO ||
+      i.status === StatusItemRequisicao.NAO_SEPARADO ||
+      i.status === StatusItemRequisicao.ANULADO
+  );
+  if (todosResolvidos) {
+    await tx.requisicao.update({
+      where: { id: requisicaoId },
+      data: { status: StatusRequisicao.CONCLUIDA, concluidaEm: new Date() },
+    });
+  }
+  return todosResolvidos;
 }

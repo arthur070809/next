@@ -39,7 +39,7 @@ export async function GET() {
         },
       }),
       prisma.funcionario.findMany({
-        where: { role: "user", ativo: true },
+        where: { papel: "ALMOXARIFE", ativo: true },
         select: { id: true, nome: true, cracha: true },
         orderBy: { nome: "asc" },
       }),
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Informe um apelido (2 a 80 caracteres) e um funcionário válido." }, { status: 400 });
     }
 
-    const employee = await prisma.funcionario.findFirst({ where: { id: employeeId, role: "user", ativo: true }, select: { id: true } });
+    const employee = await prisma.funcionario.findFirst({ where: { id: employeeId, papel: "ALMOXARIFE", ativo: true }, select: { id: true } });
     if (!employee) return NextResponse.json({ error: "Funcionário não encontrado ou inativo." }, { status: 404 });
 
     const code = newPairingCode();

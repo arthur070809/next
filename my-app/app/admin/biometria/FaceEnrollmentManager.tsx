@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
 import { advanceFaceStability, faceStabilityRequiredMs, type FaceStabilityState } from "@/lib/face-stability";
 import styles from "./face-enrollment.module.css";

@@ -27,159 +27,121 @@ export type AggregateRequisicao = {
 }
 
 export type RequisicaoAvgAggregateOutputType = {
-  numero: number | null
-  quantidade: number | null
-  qtdDevolvida: number | null
-  funcionarioId: number | null
+  solicitanteId: number | null
+  atendenteId: number | null
 }
 
 export type RequisicaoSumAggregateOutputType = {
-  numero: number | null
-  quantidade: number | null
-  qtdDevolvida: number | null
-  funcionarioId: number | null
+  solicitanteId: number | null
+  atendenteId: number | null
 }
 
 export type RequisicaoMinAggregateOutputType = {
   id: string | null
-  numero: number | null
-  item: string | null
-  estoqueItemId: string | null
-  quantidade: number | null
-  qtdDevolvida: number | null
+  numeroPedido: string | null
+  status: $Enums.StatusRequisicao | null
+  prioridade: $Enums.Prioridade | null
   observacao: string | null
-  setor: string | null
-  unidadeMedida: string | null
-  prioridade: string | null
-  status: string | null
-  origem: $Enums.OrigemRequisicao | null
-  origemLegada: string | null
-  idempotencyKey: string | null
-  grupoIdempotencia: string | null
-  funcionarioId: number | null
-  createdAt: Date | null
-  updatedAt: Date | null
+  regraEstoque: string | null
+  solicitanteId: number | null
+  atendenteId: number | null
+  criadoEm: Date | null
+  assumidaEm: Date | null
+  concluidaEm: Date | null
+  anuladaEm: Date | null
+  atualizadoEm: Date | null
 }
 
 export type RequisicaoMaxAggregateOutputType = {
   id: string | null
-  numero: number | null
-  item: string | null
-  estoqueItemId: string | null
-  quantidade: number | null
-  qtdDevolvida: number | null
+  numeroPedido: string | null
+  status: $Enums.StatusRequisicao | null
+  prioridade: $Enums.Prioridade | null
   observacao: string | null
-  setor: string | null
-  unidadeMedida: string | null
-  prioridade: string | null
-  status: string | null
-  origem: $Enums.OrigemRequisicao | null
-  origemLegada: string | null
-  idempotencyKey: string | null
-  grupoIdempotencia: string | null
-  funcionarioId: number | null
-  createdAt: Date | null
-  updatedAt: Date | null
+  regraEstoque: string | null
+  solicitanteId: number | null
+  atendenteId: number | null
+  criadoEm: Date | null
+  assumidaEm: Date | null
+  concluidaEm: Date | null
+  anuladaEm: Date | null
+  atualizadoEm: Date | null
 }
 
 export type RequisicaoCountAggregateOutputType = {
   id: number
-  numero: number
-  item: number
-  estoqueItemId: number
-  quantidade: number
-  qtdDevolvida: number
-  observacao: number
-  setor: number
-  unidadeMedida: number
-  prioridade: number
+  numeroPedido: number
   status: number
-  origem: number
-  origemLegada: number
-  idempotencyKey: number
-  grupoIdempotencia: number
-  funcionarioId: number
-  createdAt: number
-  updatedAt: number
+  prioridade: number
+  observacao: number
+  regraEstoque: number
+  solicitanteId: number
+  atendenteId: number
+  criadoEm: number
+  assumidaEm: number
+  concluidaEm: number
+  anuladaEm: number
+  atualizadoEm: number
   _all: number
 }
 
 
 export type RequisicaoAvgAggregateInputType = {
-  numero?: true
-  quantidade?: true
-  qtdDevolvida?: true
-  funcionarioId?: true
+  solicitanteId?: true
+  atendenteId?: true
 }
 
 export type RequisicaoSumAggregateInputType = {
-  numero?: true
-  quantidade?: true
-  qtdDevolvida?: true
-  funcionarioId?: true
+  solicitanteId?: true
+  atendenteId?: true
 }
 
 export type RequisicaoMinAggregateInputType = {
   id?: true
-  numero?: true
-  item?: true
-  estoqueItemId?: true
-  quantidade?: true
-  qtdDevolvida?: true
-  observacao?: true
-  setor?: true
-  unidadeMedida?: true
-  prioridade?: true
+  numeroPedido?: true
   status?: true
-  origem?: true
-  origemLegada?: true
-  idempotencyKey?: true
-  grupoIdempotencia?: true
-  funcionarioId?: true
-  createdAt?: true
-  updatedAt?: true
+  prioridade?: true
+  observacao?: true
+  regraEstoque?: true
+  solicitanteId?: true
+  atendenteId?: true
+  criadoEm?: true
+  assumidaEm?: true
+  concluidaEm?: true
+  anuladaEm?: true
+  atualizadoEm?: true
 }
 
 export type RequisicaoMaxAggregateInputType = {
   id?: true
-  numero?: true
-  item?: true
-  estoqueItemId?: true
-  quantidade?: true
-  qtdDevolvida?: true
-  observacao?: true
-  setor?: true
-  unidadeMedida?: true
-  prioridade?: true
+  numeroPedido?: true
   status?: true
-  origem?: true
-  origemLegada?: true
-  idempotencyKey?: true
-  grupoIdempotencia?: true
-  funcionarioId?: true
-  createdAt?: true
-  updatedAt?: true
+  prioridade?: true
+  observacao?: true
+  regraEstoque?: true
+  solicitanteId?: true
+  atendenteId?: true
+  criadoEm?: true
+  assumidaEm?: true
+  concluidaEm?: true
+  anuladaEm?: true
+  atualizadoEm?: true
 }
 
 export type RequisicaoCountAggregateInputType = {
   id?: true
-  numero?: true
-  item?: true
-  estoqueItemId?: true
-  quantidade?: true
-  qtdDevolvida?: true
-  observacao?: true
-  setor?: true
-  unidadeMedida?: true
-  prioridade?: true
+  numeroPedido?: true
   status?: true
-  origem?: true
-  origemLegada?: true
-  idempotencyKey?: true
-  grupoIdempotencia?: true
-  funcionarioId?: true
-  createdAt?: true
-  updatedAt?: true
+  prioridade?: true
+  observacao?: true
+  regraEstoque?: true
+  solicitanteId?: true
+  atendenteId?: true
+  criadoEm?: true
+  assumidaEm?: true
+  concluidaEm?: true
+  anuladaEm?: true
+  atualizadoEm?: true
   _all?: true
 }
 
@@ -271,23 +233,18 @@ export type RequisicaoGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 
 export type RequisicaoGroupByOutputType = {
   id: string
-  numero: number
-  item: string
-  estoqueItemId: string | null
-  quantidade: number
-  qtdDevolvida: number
+  numeroPedido: string
+  status: $Enums.StatusRequisicao
+  prioridade: $Enums.Prioridade
   observacao: string | null
-  setor: string | null
-  unidadeMedida: string | null
-  prioridade: string | null
-  status: string
-  origem: $Enums.OrigemRequisicao | null
-  origemLegada: string
-  idempotencyKey: string | null
-  grupoIdempotencia: string | null
-  funcionarioId: number
-  createdAt: Date
-  updatedAt: Date
+  regraEstoque: string | null
+  solicitanteId: number
+  atendenteId: number | null
+  criadoEm: Date
+  assumidaEm: Date | null
+  concluidaEm: Date | null
+  anuladaEm: Date | null
+  atualizadoEm: Date
   _count: RequisicaoCountAggregateOutputType | null
   _avg: RequisicaoAvgAggregateOutputType | null
   _sum: RequisicaoSumAggregateOutputType | null
@@ -315,99 +272,85 @@ export type RequisicaoWhereInput = {
   OR?: Prisma.RequisicaoWhereInput[]
   NOT?: Prisma.RequisicaoWhereInput | Prisma.RequisicaoWhereInput[]
   id?: Prisma.StringFilter<"Requisicao"> | string
-  numero?: Prisma.IntFilter<"Requisicao"> | number
-  item?: Prisma.StringFilter<"Requisicao"> | string
-  estoqueItemId?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  quantidade?: Prisma.IntFilter<"Requisicao"> | number
-  qtdDevolvida?: Prisma.IntFilter<"Requisicao"> | number
+  numeroPedido?: Prisma.StringFilter<"Requisicao"> | string
+  status?: Prisma.EnumStatusRequisicaoFilter<"Requisicao"> | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFilter<"Requisicao"> | $Enums.Prioridade
   observacao?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  setor?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  unidadeMedida?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  prioridade?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  status?: Prisma.StringFilter<"Requisicao"> | string
-  origem?: Prisma.EnumOrigemRequisicaoNullableFilter<"Requisicao"> | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFilter<"Requisicao"> | string
-  idempotencyKey?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  grupoIdempotencia?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  funcionarioId?: Prisma.IntFilter<"Requisicao"> | number
-  createdAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
-  funcionario?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
-  estoqueItem?: Prisma.XOR<Prisma.EstoqueItemNullableScalarRelationFilter, Prisma.EstoqueItemWhereInput> | null
-  movimentacoes?: Prisma.MovimentacaoDepositoListRelationFilter
+  regraEstoque?: Prisma.StringNullableFilter<"Requisicao"> | string | null
+  solicitanteId?: Prisma.IntFilter<"Requisicao"> | number
+  atendenteId?: Prisma.IntNullableFilter<"Requisicao"> | number | null
+  criadoEm?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
+  assumidaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  concluidaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  anuladaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
+  solicitante?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
+  atendente?: Prisma.XOR<Prisma.FuncionarioNullableScalarRelationFilter, Prisma.FuncionarioWhereInput> | null
+  itens?: Prisma.RequisicaoItemListRelationFilter
+  movimentacoes?: Prisma.MovimentacaoListRelationFilter
+  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
 }
 
 export type RequisicaoOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  numero?: Prisma.SortOrder
-  item?: Prisma.SortOrder
-  estoqueItemId?: Prisma.SortOrderInput | Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  observacao?: Prisma.SortOrderInput | Prisma.SortOrder
-  setor?: Prisma.SortOrderInput | Prisma.SortOrder
-  unidadeMedida?: Prisma.SortOrderInput | Prisma.SortOrder
-  prioridade?: Prisma.SortOrderInput | Prisma.SortOrder
+  numeroPedido?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  origem?: Prisma.SortOrderInput | Prisma.SortOrder
-  origemLegada?: Prisma.SortOrder
-  idempotencyKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  grupoIdempotencia?: Prisma.SortOrderInput | Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
-  funcionario?: Prisma.FuncionarioOrderByWithRelationInput
-  estoqueItem?: Prisma.EstoqueItemOrderByWithRelationInput
-  movimentacoes?: Prisma.MovimentacaoDepositoOrderByRelationAggregateInput
+  prioridade?: Prisma.SortOrder
+  observacao?: Prisma.SortOrderInput | Prisma.SortOrder
+  regraEstoque?: Prisma.SortOrderInput | Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrderInput | Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  assumidaEm?: Prisma.SortOrderInput | Prisma.SortOrder
+  concluidaEm?: Prisma.SortOrderInput | Prisma.SortOrder
+  anuladaEm?: Prisma.SortOrderInput | Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
+  solicitante?: Prisma.FuncionarioOrderByWithRelationInput
+  atendente?: Prisma.FuncionarioOrderByWithRelationInput
+  itens?: Prisma.RequisicaoItemOrderByRelationAggregateInput
+  movimentacoes?: Prisma.MovimentacaoOrderByRelationAggregateInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueOrderByRelationAggregateInput
   _relevance?: Prisma.RequisicaoOrderByRelevanceInput
 }
 
 export type RequisicaoWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  numero?: number
-  idempotencyKey?: string
+  numeroPedido?: string
   AND?: Prisma.RequisicaoWhereInput | Prisma.RequisicaoWhereInput[]
   OR?: Prisma.RequisicaoWhereInput[]
   NOT?: Prisma.RequisicaoWhereInput | Prisma.RequisicaoWhereInput[]
-  item?: Prisma.StringFilter<"Requisicao"> | string
-  estoqueItemId?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  quantidade?: Prisma.IntFilter<"Requisicao"> | number
-  qtdDevolvida?: Prisma.IntFilter<"Requisicao"> | number
+  status?: Prisma.EnumStatusRequisicaoFilter<"Requisicao"> | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFilter<"Requisicao"> | $Enums.Prioridade
   observacao?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  setor?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  unidadeMedida?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  prioridade?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  status?: Prisma.StringFilter<"Requisicao"> | string
-  origem?: Prisma.EnumOrigemRequisicaoNullableFilter<"Requisicao"> | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFilter<"Requisicao"> | string
-  grupoIdempotencia?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  funcionarioId?: Prisma.IntFilter<"Requisicao"> | number
-  createdAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
-  funcionario?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
-  estoqueItem?: Prisma.XOR<Prisma.EstoqueItemNullableScalarRelationFilter, Prisma.EstoqueItemWhereInput> | null
-  movimentacoes?: Prisma.MovimentacaoDepositoListRelationFilter
-}, "id" | "numero" | "idempotencyKey">
+  regraEstoque?: Prisma.StringNullableFilter<"Requisicao"> | string | null
+  solicitanteId?: Prisma.IntFilter<"Requisicao"> | number
+  atendenteId?: Prisma.IntNullableFilter<"Requisicao"> | number | null
+  criadoEm?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
+  assumidaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  concluidaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  anuladaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
+  solicitante?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
+  atendente?: Prisma.XOR<Prisma.FuncionarioNullableScalarRelationFilter, Prisma.FuncionarioWhereInput> | null
+  itens?: Prisma.RequisicaoItemListRelationFilter
+  movimentacoes?: Prisma.MovimentacaoListRelationFilter
+  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
+}, "id" | "numeroPedido">
 
 export type RequisicaoOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  numero?: Prisma.SortOrder
-  item?: Prisma.SortOrder
-  estoqueItemId?: Prisma.SortOrderInput | Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  observacao?: Prisma.SortOrderInput | Prisma.SortOrder
-  setor?: Prisma.SortOrderInput | Prisma.SortOrder
-  unidadeMedida?: Prisma.SortOrderInput | Prisma.SortOrder
-  prioridade?: Prisma.SortOrderInput | Prisma.SortOrder
+  numeroPedido?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  origem?: Prisma.SortOrderInput | Prisma.SortOrder
-  origemLegada?: Prisma.SortOrder
-  idempotencyKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  grupoIdempotencia?: Prisma.SortOrderInput | Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  prioridade?: Prisma.SortOrder
+  observacao?: Prisma.SortOrderInput | Prisma.SortOrder
+  regraEstoque?: Prisma.SortOrderInput | Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrderInput | Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  assumidaEm?: Prisma.SortOrderInput | Prisma.SortOrder
+  concluidaEm?: Prisma.SortOrderInput | Prisma.SortOrder
+  anuladaEm?: Prisma.SortOrderInput | Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   _count?: Prisma.RequisicaoCountOrderByAggregateInput
   _avg?: Prisma.RequisicaoAvgOrderByAggregateInput
   _max?: Prisma.RequisicaoMaxOrderByAggregateInput
@@ -420,170 +363,140 @@ export type RequisicaoScalarWhereWithAggregatesInput = {
   OR?: Prisma.RequisicaoScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RequisicaoScalarWhereWithAggregatesInput | Prisma.RequisicaoScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
-  numero?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
-  item?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
-  estoqueItemId?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  quantidade?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
-  qtdDevolvida?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
+  numeroPedido?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
+  status?: Prisma.EnumStatusRequisicaoWithAggregatesFilter<"Requisicao"> | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeWithAggregatesFilter<"Requisicao"> | $Enums.Prioridade
   observacao?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  setor?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  unidadeMedida?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  prioridade?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  status?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
-  origem?: Prisma.EnumOrigemRequisicaoNullableWithAggregatesFilter<"Requisicao"> | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringWithAggregatesFilter<"Requisicao"> | string
-  idempotencyKey?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  grupoIdempotencia?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
-  funcionarioId?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
-  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Requisicao"> | Date | string
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Requisicao"> | Date | string
+  regraEstoque?: Prisma.StringNullableWithAggregatesFilter<"Requisicao"> | string | null
+  solicitanteId?: Prisma.IntWithAggregatesFilter<"Requisicao"> | number
+  atendenteId?: Prisma.IntNullableWithAggregatesFilter<"Requisicao"> | number | null
+  criadoEm?: Prisma.DateTimeWithAggregatesFilter<"Requisicao"> | Date | string
+  assumidaEm?: Prisma.DateTimeNullableWithAggregatesFilter<"Requisicao"> | Date | string | null
+  concluidaEm?: Prisma.DateTimeNullableWithAggregatesFilter<"Requisicao"> | Date | string | null
+  anuladaEm?: Prisma.DateTimeNullableWithAggregatesFilter<"Requisicao"> | Date | string | null
+  atualizadoEm?: Prisma.DateTimeWithAggregatesFilter<"Requisicao"> | Date | string
 }
 
 export type RequisicaoCreateInput = {
   id?: string
-  numero?: number
-  item: string
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  funcionario: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesInput
-  estoqueItem?: Prisma.EstoqueItemCreateNestedOneWithoutRequisicoesInput
-  movimentacoes?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutRequisicaoInput
+  regraEstoque?: string | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  solicitante: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesSolicitadasInput
+  atendente?: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesAtendidasInput
+  itens?: Prisma.RequisicaoItemCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoInput
 }
 
 export type RequisicaoUncheckedCreateInput = {
   id?: string
-  numero?: number
-  item: string
-  estoqueItemId?: string | null
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  funcionarioId: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  movimentacoes?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutRequisicaoInput
+  regraEstoque?: string | null
+  solicitanteId: number
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  itens?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoInput
 }
 
 export type RequisicaoUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput
-  estoqueItem?: Prisma.EstoqueItemUpdateOneWithoutRequisicoesNestedInput
-  movimentacoes?: Prisma.MovimentacaoDepositoUpdateManyWithoutRequisicaoNestedInput
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  solicitante?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesSolicitadasNestedInput
+  atendente?: Prisma.FuncionarioUpdateOneWithoutRequisicoesAtendidasNestedInput
+  itens?: Prisma.RequisicaoItemUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoNestedInput
 }
 
 export type RequisicaoUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  estoqueItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  movimentacoes?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutRequisicaoNestedInput
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  itens?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoNestedInput
 }
 
 export type RequisicaoCreateManyInput = {
   id?: string
-  numero?: number
-  item: string
-  estoqueItemId?: string | null
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  funcionarioId: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  regraEstoque?: string | null
+  solicitanteId: number
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
 }
 
 export type RequisicaoUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type RequisicaoUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  estoqueItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type RequisicaoListRelationFilter = {
@@ -604,79 +517,65 @@ export type RequisicaoOrderByRelevanceInput = {
 
 export type RequisicaoCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  numero?: Prisma.SortOrder
-  item?: Prisma.SortOrder
-  estoqueItemId?: Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  observacao?: Prisma.SortOrder
-  setor?: Prisma.SortOrder
-  unidadeMedida?: Prisma.SortOrder
-  prioridade?: Prisma.SortOrder
+  numeroPedido?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  origem?: Prisma.SortOrder
-  origemLegada?: Prisma.SortOrder
-  idempotencyKey?: Prisma.SortOrder
-  grupoIdempotencia?: Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  prioridade?: Prisma.SortOrder
+  observacao?: Prisma.SortOrder
+  regraEstoque?: Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  assumidaEm?: Prisma.SortOrder
+  concluidaEm?: Prisma.SortOrder
+  anuladaEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
 }
 
 export type RequisicaoAvgOrderByAggregateInput = {
-  numero?: Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrder
 }
 
 export type RequisicaoMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  numero?: Prisma.SortOrder
-  item?: Prisma.SortOrder
-  estoqueItemId?: Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  observacao?: Prisma.SortOrder
-  setor?: Prisma.SortOrder
-  unidadeMedida?: Prisma.SortOrder
-  prioridade?: Prisma.SortOrder
+  numeroPedido?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  origem?: Prisma.SortOrder
-  origemLegada?: Prisma.SortOrder
-  idempotencyKey?: Prisma.SortOrder
-  grupoIdempotencia?: Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  prioridade?: Prisma.SortOrder
+  observacao?: Prisma.SortOrder
+  regraEstoque?: Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  assumidaEm?: Prisma.SortOrder
+  concluidaEm?: Prisma.SortOrder
+  anuladaEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
 }
 
 export type RequisicaoMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  numero?: Prisma.SortOrder
-  item?: Prisma.SortOrder
-  estoqueItemId?: Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  observacao?: Prisma.SortOrder
-  setor?: Prisma.SortOrder
-  unidadeMedida?: Prisma.SortOrder
-  prioridade?: Prisma.SortOrder
+  numeroPedido?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  origem?: Prisma.SortOrder
-  origemLegada?: Prisma.SortOrder
-  idempotencyKey?: Prisma.SortOrder
-  grupoIdempotencia?: Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  prioridade?: Prisma.SortOrder
+  observacao?: Prisma.SortOrder
+  regraEstoque?: Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  assumidaEm?: Prisma.SortOrder
+  concluidaEm?: Prisma.SortOrder
+  anuladaEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
 }
 
 export type RequisicaoSumOrderByAggregateInput = {
-  numero?: Prisma.SortOrder
-  quantidade?: Prisma.SortOrder
-  qtdDevolvida?: Prisma.SortOrder
-  funcionarioId?: Prisma.SortOrder
+  solicitanteId?: Prisma.SortOrder
+  atendenteId?: Prisma.SortOrder
+}
+
+export type RequisicaoScalarRelationFilter = {
+  is?: Prisma.RequisicaoWhereInput
+  isNot?: Prisma.RequisicaoWhereInput
 }
 
 export type RequisicaoNullableScalarRelationFilter = {
@@ -684,92 +583,114 @@ export type RequisicaoNullableScalarRelationFilter = {
   isNot?: Prisma.RequisicaoWhereInput | null
 }
 
-export type RequisicaoCreateNestedManyWithoutFuncionarioInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput> | Prisma.RequisicaoCreateWithoutFuncionarioInput[] | Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput | Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput[]
-  createMany?: Prisma.RequisicaoCreateManyFuncionarioInputEnvelope
+export type RequisicaoCreateNestedManyWithoutSolicitanteInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput> | Prisma.RequisicaoCreateWithoutSolicitanteInput[] | Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput | Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput[]
+  createMany?: Prisma.RequisicaoCreateManySolicitanteInputEnvelope
   connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
 }
 
-export type RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput> | Prisma.RequisicaoCreateWithoutFuncionarioInput[] | Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput | Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput[]
-  createMany?: Prisma.RequisicaoCreateManyFuncionarioInputEnvelope
+export type RequisicaoCreateNestedManyWithoutAtendenteInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutAtendenteInput, Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput> | Prisma.RequisicaoCreateWithoutAtendenteInput[] | Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput | Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput[]
+  createMany?: Prisma.RequisicaoCreateManyAtendenteInputEnvelope
   connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
 }
 
-export type RequisicaoUpdateManyWithoutFuncionarioNestedInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput> | Prisma.RequisicaoCreateWithoutFuncionarioInput[] | Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput | Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput[]
-  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutFuncionarioInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutFuncionarioInput[]
-  createMany?: Prisma.RequisicaoCreateManyFuncionarioInputEnvelope
+export type RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput> | Prisma.RequisicaoCreateWithoutSolicitanteInput[] | Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput | Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput[]
+  createMany?: Prisma.RequisicaoCreateManySolicitanteInputEnvelope
+  connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
+}
+
+export type RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutAtendenteInput, Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput> | Prisma.RequisicaoCreateWithoutAtendenteInput[] | Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput | Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput[]
+  createMany?: Prisma.RequisicaoCreateManyAtendenteInputEnvelope
+  connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
+}
+
+export type RequisicaoUpdateManyWithoutSolicitanteNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput> | Prisma.RequisicaoCreateWithoutSolicitanteInput[] | Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput | Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput[]
+  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutSolicitanteInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutSolicitanteInput[]
+  createMany?: Prisma.RequisicaoCreateManySolicitanteInputEnvelope
   set?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   disconnect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   delete?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
-  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutFuncionarioInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutFuncionarioInput[]
-  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutFuncionarioInput | Prisma.RequisicaoUpdateManyWithWhereWithoutFuncionarioInput[]
+  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutSolicitanteInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutSolicitanteInput[]
+  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutSolicitanteInput | Prisma.RequisicaoUpdateManyWithWhereWithoutSolicitanteInput[]
   deleteMany?: Prisma.RequisicaoScalarWhereInput | Prisma.RequisicaoScalarWhereInput[]
 }
 
-export type RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput> | Prisma.RequisicaoCreateWithoutFuncionarioInput[] | Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput | Prisma.RequisicaoCreateOrConnectWithoutFuncionarioInput[]
-  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutFuncionarioInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutFuncionarioInput[]
-  createMany?: Prisma.RequisicaoCreateManyFuncionarioInputEnvelope
+export type RequisicaoUpdateManyWithoutAtendenteNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutAtendenteInput, Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput> | Prisma.RequisicaoCreateWithoutAtendenteInput[] | Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput | Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput[]
+  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutAtendenteInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutAtendenteInput[]
+  createMany?: Prisma.RequisicaoCreateManyAtendenteInputEnvelope
   set?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   disconnect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   delete?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
-  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutFuncionarioInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutFuncionarioInput[]
-  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutFuncionarioInput | Prisma.RequisicaoUpdateManyWithWhereWithoutFuncionarioInput[]
+  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutAtendenteInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutAtendenteInput[]
+  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutAtendenteInput | Prisma.RequisicaoUpdateManyWithWhereWithoutAtendenteInput[]
   deleteMany?: Prisma.RequisicaoScalarWhereInput | Prisma.RequisicaoScalarWhereInput[]
 }
 
-export type NullableEnumOrigemRequisicaoFieldUpdateOperationsInput = {
-  set?: $Enums.OrigemRequisicao | null
-}
-
-export type RequisicaoCreateNestedManyWithoutEstoqueItemInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput> | Prisma.RequisicaoCreateWithoutEstoqueItemInput[] | Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput | Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput[]
-  createMany?: Prisma.RequisicaoCreateManyEstoqueItemInputEnvelope
-  connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
-}
-
-export type RequisicaoUncheckedCreateNestedManyWithoutEstoqueItemInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput> | Prisma.RequisicaoCreateWithoutEstoqueItemInput[] | Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput | Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput[]
-  createMany?: Prisma.RequisicaoCreateManyEstoqueItemInputEnvelope
-  connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
-}
-
-export type RequisicaoUpdateManyWithoutEstoqueItemNestedInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput> | Prisma.RequisicaoCreateWithoutEstoqueItemInput[] | Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput | Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput[]
-  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutEstoqueItemInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutEstoqueItemInput[]
-  createMany?: Prisma.RequisicaoCreateManyEstoqueItemInputEnvelope
+export type RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput> | Prisma.RequisicaoCreateWithoutSolicitanteInput[] | Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput | Prisma.RequisicaoCreateOrConnectWithoutSolicitanteInput[]
+  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutSolicitanteInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutSolicitanteInput[]
+  createMany?: Prisma.RequisicaoCreateManySolicitanteInputEnvelope
   set?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   disconnect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   delete?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
-  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutEstoqueItemInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutEstoqueItemInput[]
-  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutEstoqueItemInput | Prisma.RequisicaoUpdateManyWithWhereWithoutEstoqueItemInput[]
+  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutSolicitanteInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutSolicitanteInput[]
+  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutSolicitanteInput | Prisma.RequisicaoUpdateManyWithWhereWithoutSolicitanteInput[]
   deleteMany?: Prisma.RequisicaoScalarWhereInput | Prisma.RequisicaoScalarWhereInput[]
 }
 
-export type RequisicaoUncheckedUpdateManyWithoutEstoqueItemNestedInput = {
-  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput> | Prisma.RequisicaoCreateWithoutEstoqueItemInput[] | Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput[]
-  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput | Prisma.RequisicaoCreateOrConnectWithoutEstoqueItemInput[]
-  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutEstoqueItemInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutEstoqueItemInput[]
-  createMany?: Prisma.RequisicaoCreateManyEstoqueItemInputEnvelope
+export type RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutAtendenteInput, Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput> | Prisma.RequisicaoCreateWithoutAtendenteInput[] | Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput[]
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput | Prisma.RequisicaoCreateOrConnectWithoutAtendenteInput[]
+  upsert?: Prisma.RequisicaoUpsertWithWhereUniqueWithoutAtendenteInput | Prisma.RequisicaoUpsertWithWhereUniqueWithoutAtendenteInput[]
+  createMany?: Prisma.RequisicaoCreateManyAtendenteInputEnvelope
   set?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   disconnect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   delete?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
   connect?: Prisma.RequisicaoWhereUniqueInput | Prisma.RequisicaoWhereUniqueInput[]
-  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutEstoqueItemInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutEstoqueItemInput[]
-  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutEstoqueItemInput | Prisma.RequisicaoUpdateManyWithWhereWithoutEstoqueItemInput[]
+  update?: Prisma.RequisicaoUpdateWithWhereUniqueWithoutAtendenteInput | Prisma.RequisicaoUpdateWithWhereUniqueWithoutAtendenteInput[]
+  updateMany?: Prisma.RequisicaoUpdateManyWithWhereWithoutAtendenteInput | Prisma.RequisicaoUpdateManyWithWhereWithoutAtendenteInput[]
   deleteMany?: Prisma.RequisicaoScalarWhereInput | Prisma.RequisicaoScalarWhereInput[]
+}
+
+export type EnumStatusRequisicaoFieldUpdateOperationsInput = {
+  set?: $Enums.StatusRequisicao
+}
+
+export type EnumPrioridadeFieldUpdateOperationsInput = {
+  set?: $Enums.Prioridade
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
+export type RequisicaoCreateNestedOneWithoutItensInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutItensInput, Prisma.RequisicaoUncheckedCreateWithoutItensInput>
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutItensInput
+  connect?: Prisma.RequisicaoWhereUniqueInput
+}
+
+export type RequisicaoUpdateOneRequiredWithoutItensNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutItensInput, Prisma.RequisicaoUncheckedCreateWithoutItensInput>
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutItensInput
+  upsert?: Prisma.RequisicaoUpsertWithoutItensInput
+  connect?: Prisma.RequisicaoWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RequisicaoUpdateToOneWithWhereWithoutItensInput, Prisma.RequisicaoUpdateWithoutItensInput>, Prisma.RequisicaoUncheckedUpdateWithoutItensInput>
 }
 
 export type RequisicaoCreateNestedOneWithoutMovimentacoesInput = {
@@ -788,72 +709,128 @@ export type RequisicaoUpdateOneWithoutMovimentacoesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RequisicaoUpdateToOneWithWhereWithoutMovimentacoesInput, Prisma.RequisicaoUpdateWithoutMovimentacoesInput>, Prisma.RequisicaoUncheckedUpdateWithoutMovimentacoesInput>
 }
 
-export type RequisicaoCreateWithoutFuncionarioInput = {
-  id?: string
-  numero?: number
-  item: string
-  quantidade: number
-  qtdDevolvida?: number
-  observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  estoqueItem?: Prisma.EstoqueItemCreateNestedOneWithoutRequisicoesInput
-  movimentacoes?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutRequisicaoInput
+export type RequisicaoCreateNestedOneWithoutMovimentosContaInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutMovimentosContaInput, Prisma.RequisicaoUncheckedCreateWithoutMovimentosContaInput>
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutMovimentosContaInput
+  connect?: Prisma.RequisicaoWhereUniqueInput
 }
 
-export type RequisicaoUncheckedCreateWithoutFuncionarioInput = {
-  id?: string
-  numero?: number
-  item: string
-  estoqueItemId?: string | null
-  quantidade: number
-  qtdDevolvida?: number
-  observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  movimentacoes?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutRequisicaoInput
+export type RequisicaoUpdateOneWithoutMovimentosContaNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutMovimentosContaInput, Prisma.RequisicaoUncheckedCreateWithoutMovimentosContaInput>
+  connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutMovimentosContaInput
+  upsert?: Prisma.RequisicaoUpsertWithoutMovimentosContaInput
+  disconnect?: Prisma.RequisicaoWhereInput | boolean
+  delete?: Prisma.RequisicaoWhereInput | boolean
+  connect?: Prisma.RequisicaoWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RequisicaoUpdateToOneWithWhereWithoutMovimentosContaInput, Prisma.RequisicaoUpdateWithoutMovimentosContaInput>, Prisma.RequisicaoUncheckedUpdateWithoutMovimentosContaInput>
 }
 
-export type RequisicaoCreateOrConnectWithoutFuncionarioInput = {
+export type RequisicaoCreateWithoutSolicitanteInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  atendente?: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesAtendidasInput
+  itens?: Prisma.RequisicaoItemCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoInput
+}
+
+export type RequisicaoUncheckedCreateWithoutSolicitanteInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  itens?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoInput
+}
+
+export type RequisicaoCreateOrConnectWithoutSolicitanteInput = {
   where: Prisma.RequisicaoWhereUniqueInput
-  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput>
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput>
 }
 
-export type RequisicaoCreateManyFuncionarioInputEnvelope = {
-  data: Prisma.RequisicaoCreateManyFuncionarioInput | Prisma.RequisicaoCreateManyFuncionarioInput[]
+export type RequisicaoCreateManySolicitanteInputEnvelope = {
+  data: Prisma.RequisicaoCreateManySolicitanteInput | Prisma.RequisicaoCreateManySolicitanteInput[]
   skipDuplicates?: boolean
 }
 
-export type RequisicaoUpsertWithWhereUniqueWithoutFuncionarioInput = {
-  where: Prisma.RequisicaoWhereUniqueInput
-  update: Prisma.XOR<Prisma.RequisicaoUpdateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedUpdateWithoutFuncionarioInput>
-  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedCreateWithoutFuncionarioInput>
+export type RequisicaoCreateWithoutAtendenteInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  solicitante: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesSolicitadasInput
+  itens?: Prisma.RequisicaoItemCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoInput
 }
 
-export type RequisicaoUpdateWithWhereUniqueWithoutFuncionarioInput = {
-  where: Prisma.RequisicaoWhereUniqueInput
-  data: Prisma.XOR<Prisma.RequisicaoUpdateWithoutFuncionarioInput, Prisma.RequisicaoUncheckedUpdateWithoutFuncionarioInput>
+export type RequisicaoUncheckedCreateWithoutAtendenteInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  solicitanteId: number
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  itens?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoInput
 }
 
-export type RequisicaoUpdateManyWithWhereWithoutFuncionarioInput = {
+export type RequisicaoCreateOrConnectWithoutAtendenteInput = {
+  where: Prisma.RequisicaoWhereUniqueInput
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutAtendenteInput, Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput>
+}
+
+export type RequisicaoCreateManyAtendenteInputEnvelope = {
+  data: Prisma.RequisicaoCreateManyAtendenteInput | Prisma.RequisicaoCreateManyAtendenteInput[]
+  skipDuplicates?: boolean
+}
+
+export type RequisicaoUpsertWithWhereUniqueWithoutSolicitanteInput = {
+  where: Prisma.RequisicaoWhereUniqueInput
+  update: Prisma.XOR<Prisma.RequisicaoUpdateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedUpdateWithoutSolicitanteInput>
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedCreateWithoutSolicitanteInput>
+}
+
+export type RequisicaoUpdateWithWhereUniqueWithoutSolicitanteInput = {
+  where: Prisma.RequisicaoWhereUniqueInput
+  data: Prisma.XOR<Prisma.RequisicaoUpdateWithoutSolicitanteInput, Prisma.RequisicaoUncheckedUpdateWithoutSolicitanteInput>
+}
+
+export type RequisicaoUpdateManyWithWhereWithoutSolicitanteInput = {
   where: Prisma.RequisicaoScalarWhereInput
-  data: Prisma.XOR<Prisma.RequisicaoUpdateManyMutationInput, Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioInput>
+  data: Prisma.XOR<Prisma.RequisicaoUpdateManyMutationInput, Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteInput>
 }
 
 export type RequisicaoScalarWhereInput = {
@@ -861,133 +838,158 @@ export type RequisicaoScalarWhereInput = {
   OR?: Prisma.RequisicaoScalarWhereInput[]
   NOT?: Prisma.RequisicaoScalarWhereInput | Prisma.RequisicaoScalarWhereInput[]
   id?: Prisma.StringFilter<"Requisicao"> | string
-  numero?: Prisma.IntFilter<"Requisicao"> | number
-  item?: Prisma.StringFilter<"Requisicao"> | string
-  estoqueItemId?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  quantidade?: Prisma.IntFilter<"Requisicao"> | number
-  qtdDevolvida?: Prisma.IntFilter<"Requisicao"> | number
+  numeroPedido?: Prisma.StringFilter<"Requisicao"> | string
+  status?: Prisma.EnumStatusRequisicaoFilter<"Requisicao"> | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFilter<"Requisicao"> | $Enums.Prioridade
   observacao?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  setor?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  unidadeMedida?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  prioridade?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  status?: Prisma.StringFilter<"Requisicao"> | string
-  origem?: Prisma.EnumOrigemRequisicaoNullableFilter<"Requisicao"> | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFilter<"Requisicao"> | string
-  idempotencyKey?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  grupoIdempotencia?: Prisma.StringNullableFilter<"Requisicao"> | string | null
-  funcionarioId?: Prisma.IntFilter<"Requisicao"> | number
-  createdAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
+  regraEstoque?: Prisma.StringNullableFilter<"Requisicao"> | string | null
+  solicitanteId?: Prisma.IntFilter<"Requisicao"> | number
+  atendenteId?: Prisma.IntNullableFilter<"Requisicao"> | number | null
+  criadoEm?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
+  assumidaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  concluidaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  anuladaEm?: Prisma.DateTimeNullableFilter<"Requisicao"> | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFilter<"Requisicao"> | Date | string
 }
 
-export type RequisicaoCreateWithoutEstoqueItemInput = {
-  id?: string
-  numero?: number
-  item: string
-  quantidade: number
-  qtdDevolvida?: number
-  observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  funcionario: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesInput
-  movimentacoes?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutRequisicaoInput
-}
-
-export type RequisicaoUncheckedCreateWithoutEstoqueItemInput = {
-  id?: string
-  numero?: number
-  item: string
-  quantidade: number
-  qtdDevolvida?: number
-  observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  funcionarioId: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  movimentacoes?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutRequisicaoInput
-}
-
-export type RequisicaoCreateOrConnectWithoutEstoqueItemInput = {
+export type RequisicaoUpsertWithWhereUniqueWithoutAtendenteInput = {
   where: Prisma.RequisicaoWhereUniqueInput
-  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput>
+  update: Prisma.XOR<Prisma.RequisicaoUpdateWithoutAtendenteInput, Prisma.RequisicaoUncheckedUpdateWithoutAtendenteInput>
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutAtendenteInput, Prisma.RequisicaoUncheckedCreateWithoutAtendenteInput>
 }
 
-export type RequisicaoCreateManyEstoqueItemInputEnvelope = {
-  data: Prisma.RequisicaoCreateManyEstoqueItemInput | Prisma.RequisicaoCreateManyEstoqueItemInput[]
-  skipDuplicates?: boolean
-}
-
-export type RequisicaoUpsertWithWhereUniqueWithoutEstoqueItemInput = {
+export type RequisicaoUpdateWithWhereUniqueWithoutAtendenteInput = {
   where: Prisma.RequisicaoWhereUniqueInput
-  update: Prisma.XOR<Prisma.RequisicaoUpdateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedUpdateWithoutEstoqueItemInput>
-  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedCreateWithoutEstoqueItemInput>
+  data: Prisma.XOR<Prisma.RequisicaoUpdateWithoutAtendenteInput, Prisma.RequisicaoUncheckedUpdateWithoutAtendenteInput>
 }
 
-export type RequisicaoUpdateWithWhereUniqueWithoutEstoqueItemInput = {
-  where: Prisma.RequisicaoWhereUniqueInput
-  data: Prisma.XOR<Prisma.RequisicaoUpdateWithoutEstoqueItemInput, Prisma.RequisicaoUncheckedUpdateWithoutEstoqueItemInput>
-}
-
-export type RequisicaoUpdateManyWithWhereWithoutEstoqueItemInput = {
+export type RequisicaoUpdateManyWithWhereWithoutAtendenteInput = {
   where: Prisma.RequisicaoScalarWhereInput
-  data: Prisma.XOR<Prisma.RequisicaoUpdateManyMutationInput, Prisma.RequisicaoUncheckedUpdateManyWithoutEstoqueItemInput>
+  data: Prisma.XOR<Prisma.RequisicaoUpdateManyMutationInput, Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteInput>
+}
+
+export type RequisicaoCreateWithoutItensInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  solicitante: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesSolicitadasInput
+  atendente?: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesAtendidasInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoInput
+}
+
+export type RequisicaoUncheckedCreateWithoutItensInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  solicitanteId: number
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoInput
+}
+
+export type RequisicaoCreateOrConnectWithoutItensInput = {
+  where: Prisma.RequisicaoWhereUniqueInput
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutItensInput, Prisma.RequisicaoUncheckedCreateWithoutItensInput>
+}
+
+export type RequisicaoUpsertWithoutItensInput = {
+  update: Prisma.XOR<Prisma.RequisicaoUpdateWithoutItensInput, Prisma.RequisicaoUncheckedUpdateWithoutItensInput>
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutItensInput, Prisma.RequisicaoUncheckedCreateWithoutItensInput>
+  where?: Prisma.RequisicaoWhereInput
+}
+
+export type RequisicaoUpdateToOneWithWhereWithoutItensInput = {
+  where?: Prisma.RequisicaoWhereInput
+  data: Prisma.XOR<Prisma.RequisicaoUpdateWithoutItensInput, Prisma.RequisicaoUncheckedUpdateWithoutItensInput>
+}
+
+export type RequisicaoUpdateWithoutItensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  solicitante?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesSolicitadasNestedInput
+  atendente?: Prisma.FuncionarioUpdateOneWithoutRequisicoesAtendidasNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoUncheckedUpdateWithoutItensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoNestedInput
 }
 
 export type RequisicaoCreateWithoutMovimentacoesInput = {
   id?: string
-  numero?: number
-  item: string
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  funcionario: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesInput
-  estoqueItem?: Prisma.EstoqueItemCreateNestedOneWithoutRequisicoesInput
+  regraEstoque?: string | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  solicitante: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesSolicitadasInput
+  atendente?: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesAtendidasInput
+  itens?: Prisma.RequisicaoItemCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoInput
 }
 
 export type RequisicaoUncheckedCreateWithoutMovimentacoesInput = {
   id?: string
-  numero?: number
-  item: string
-  estoqueItemId?: string | null
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  funcionarioId: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  regraEstoque?: string | null
+  solicitanteId: number
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  itens?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoInput
 }
 
 export type RequisicaoCreateOrConnectWithoutMovimentacoesInput = {
@@ -1008,205 +1010,258 @@ export type RequisicaoUpdateToOneWithWhereWithoutMovimentacoesInput = {
 
 export type RequisicaoUpdateWithoutMovimentacoesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput
-  estoqueItem?: Prisma.EstoqueItemUpdateOneWithoutRequisicoesNestedInput
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  solicitante?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesSolicitadasNestedInput
+  atendente?: Prisma.FuncionarioUpdateOneWithoutRequisicoesAtendidasNestedInput
+  itens?: Prisma.RequisicaoItemUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoNestedInput
 }
 
 export type RequisicaoUncheckedUpdateWithoutMovimentacoesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  estoqueItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  itens?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoNestedInput
 }
 
-export type RequisicaoCreateManyFuncionarioInput = {
+export type RequisicaoCreateWithoutMovimentosContaInput = {
   id?: string
-  numero?: number
-  item: string
-  estoqueItemId?: string | null
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  regraEstoque?: string | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  solicitante: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesSolicitadasInput
+  atendente?: Prisma.FuncionarioCreateNestedOneWithoutRequisicoesAtendidasInput
+  itens?: Prisma.RequisicaoItemCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoInput
 }
 
-export type RequisicaoUpdateWithoutFuncionarioInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
-  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  estoqueItem?: Prisma.EstoqueItemUpdateOneWithoutRequisicoesNestedInput
-  movimentacoes?: Prisma.MovimentacaoDepositoUpdateManyWithoutRequisicaoNestedInput
-}
-
-export type RequisicaoUncheckedUpdateWithoutFuncionarioInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  estoqueItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
-  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  movimentacoes?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutRequisicaoNestedInput
-}
-
-export type RequisicaoUncheckedUpdateManyWithoutFuncionarioInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  estoqueItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
-  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type RequisicaoCreateManyEstoqueItemInput = {
+export type RequisicaoUncheckedCreateWithoutMovimentosContaInput = {
   id?: string
-  numero?: number
-  item: string
-  quantidade: number
-  qtdDevolvida?: number
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
   observacao?: string | null
-  setor?: string | null
-  unidadeMedida?: string | null
-  prioridade?: string | null
-  status?: string
-  origem?: $Enums.OrigemRequisicao | null
-  origemLegada?: string
-  idempotencyKey?: string | null
-  grupoIdempotencia?: string | null
-  funcionarioId: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  regraEstoque?: string | null
+  solicitanteId: number
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+  itens?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoInput
 }
 
-export type RequisicaoUpdateWithoutEstoqueItemInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
-  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput
-  movimentacoes?: Prisma.MovimentacaoDepositoUpdateManyWithoutRequisicaoNestedInput
+export type RequisicaoCreateOrConnectWithoutMovimentosContaInput = {
+  where: Prisma.RequisicaoWhereUniqueInput
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutMovimentosContaInput, Prisma.RequisicaoUncheckedCreateWithoutMovimentosContaInput>
 }
 
-export type RequisicaoUncheckedUpdateWithoutEstoqueItemInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
-  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  movimentacoes?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutRequisicaoNestedInput
+export type RequisicaoUpsertWithoutMovimentosContaInput = {
+  update: Prisma.XOR<Prisma.RequisicaoUpdateWithoutMovimentosContaInput, Prisma.RequisicaoUncheckedUpdateWithoutMovimentosContaInput>
+  create: Prisma.XOR<Prisma.RequisicaoCreateWithoutMovimentosContaInput, Prisma.RequisicaoUncheckedCreateWithoutMovimentosContaInput>
+  where?: Prisma.RequisicaoWhereInput
 }
 
-export type RequisicaoUncheckedUpdateManyWithoutEstoqueItemInput = {
+export type RequisicaoUpdateToOneWithWhereWithoutMovimentosContaInput = {
+  where?: Prisma.RequisicaoWhereInput
+  data: Prisma.XOR<Prisma.RequisicaoUpdateWithoutMovimentosContaInput, Prisma.RequisicaoUncheckedUpdateWithoutMovimentosContaInput>
+}
+
+export type RequisicaoUpdateWithoutMovimentosContaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  numero?: Prisma.IntFieldUpdateOperationsInput | number
-  item?: Prisma.StringFieldUpdateOperationsInput | string
-  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
-  qtdDevolvida?: Prisma.IntFieldUpdateOperationsInput | number
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
   observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  setor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  unidadeMedida?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  prioridade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  origem?: Prisma.NullableEnumOrigemRequisicaoFieldUpdateOperationsInput | $Enums.OrigemRequisicao | null
-  origemLegada?: Prisma.StringFieldUpdateOperationsInput | string
-  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  grupoIdempotencia?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  funcionarioId?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  solicitante?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesSolicitadasNestedInput
+  atendente?: Prisma.FuncionarioUpdateOneWithoutRequisicoesAtendidasNestedInput
+  itens?: Prisma.RequisicaoItemUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoUncheckedUpdateWithoutMovimentosContaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  itens?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoCreateManySolicitanteInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  atendenteId?: number | null
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+}
+
+export type RequisicaoCreateManyAtendenteInput = {
+  id?: string
+  numeroPedido: string
+  status?: $Enums.StatusRequisicao
+  prioridade?: $Enums.Prioridade
+  observacao?: string | null
+  regraEstoque?: string | null
+  solicitanteId: number
+  criadoEm?: Date | string
+  assumidaEm?: Date | string | null
+  concluidaEm?: Date | string | null
+  anuladaEm?: Date | string | null
+  atualizadoEm?: Date | string
+}
+
+export type RequisicaoUpdateWithoutSolicitanteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atendente?: Prisma.FuncionarioUpdateOneWithoutRequisicoesAtendidasNestedInput
+  itens?: Prisma.RequisicaoItemUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoUncheckedUpdateWithoutSolicitanteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  itens?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoUncheckedUpdateManyWithoutSolicitanteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  atendenteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RequisicaoUpdateWithoutAtendenteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  solicitante?: Prisma.FuncionarioUpdateOneRequiredWithoutRequisicoesSolicitadasNestedInput
+  itens?: Prisma.RequisicaoItemUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoUncheckedUpdateWithoutAtendenteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  itens?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoNestedInput
+}
+
+export type RequisicaoUncheckedUpdateManyWithoutAtendenteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  numeroPedido?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStatusRequisicaoFieldUpdateOperationsInput | $Enums.StatusRequisicao
+  prioridade?: Prisma.EnumPrioridadeFieldUpdateOperationsInput | $Enums.Prioridade
+  observacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regraEstoque?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  solicitanteId?: Prisma.IntFieldUpdateOperationsInput | number
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assumidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  concluidaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  anuladaEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1215,11 +1270,15 @@ export type RequisicaoUncheckedUpdateManyWithoutEstoqueItemInput = {
  */
 
 export type RequisicaoCountOutputType = {
+  itens: number
   movimentacoes: number
+  movimentosConta: number
 }
 
 export type RequisicaoCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  itens?: boolean | RequisicaoCountOutputTypeCountItensArgs
   movimentacoes?: boolean | RequisicaoCountOutputTypeCountMovimentacoesArgs
+  movimentosConta?: boolean | RequisicaoCountOutputTypeCountMovimentosContaArgs
 }
 
 /**
@@ -1235,33 +1294,44 @@ export type RequisicaoCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.E
 /**
  * RequisicaoCountOutputType without action
  */
+export type RequisicaoCountOutputTypeCountItensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RequisicaoItemWhereInput
+}
+
+/**
+ * RequisicaoCountOutputType without action
+ */
 export type RequisicaoCountOutputTypeCountMovimentacoesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.MovimentacaoDepositoWhereInput
+  where?: Prisma.MovimentacaoWhereInput
+}
+
+/**
+ * RequisicaoCountOutputType without action
+ */
+export type RequisicaoCountOutputTypeCountMovimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentoContaEstoqueWhereInput
 }
 
 
 export type RequisicaoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  numero?: boolean
-  item?: boolean
-  estoqueItemId?: boolean
-  quantidade?: boolean
-  qtdDevolvida?: boolean
-  observacao?: boolean
-  setor?: boolean
-  unidadeMedida?: boolean
-  prioridade?: boolean
+  numeroPedido?: boolean
   status?: boolean
-  origem?: boolean
-  origemLegada?: boolean
-  idempotencyKey?: boolean
-  grupoIdempotencia?: boolean
-  funcionarioId?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
-  funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
-  estoqueItem?: boolean | Prisma.Requisicao$estoqueItemArgs<ExtArgs>
+  prioridade?: boolean
+  observacao?: boolean
+  regraEstoque?: boolean
+  solicitanteId?: boolean
+  atendenteId?: boolean
+  criadoEm?: boolean
+  assumidaEm?: boolean
+  concluidaEm?: boolean
+  anuladaEm?: boolean
+  atualizadoEm?: boolean
+  solicitante?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
+  atendente?: boolean | Prisma.Requisicao$atendenteArgs<ExtArgs>
+  itens?: boolean | Prisma.Requisicao$itensArgs<ExtArgs>
   movimentacoes?: boolean | Prisma.Requisicao$movimentacoesArgs<ExtArgs>
+  movimentosConta?: boolean | Prisma.Requisicao$movimentosContaArgs<ExtArgs>
   _count?: boolean | Prisma.RequisicaoCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["requisicao"]>
 
@@ -1269,59 +1339,53 @@ export type RequisicaoSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type RequisicaoSelectScalar = {
   id?: boolean
-  numero?: boolean
-  item?: boolean
-  estoqueItemId?: boolean
-  quantidade?: boolean
-  qtdDevolvida?: boolean
-  observacao?: boolean
-  setor?: boolean
-  unidadeMedida?: boolean
-  prioridade?: boolean
+  numeroPedido?: boolean
   status?: boolean
-  origem?: boolean
-  origemLegada?: boolean
-  idempotencyKey?: boolean
-  grupoIdempotencia?: boolean
-  funcionarioId?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
+  prioridade?: boolean
+  observacao?: boolean
+  regraEstoque?: boolean
+  solicitanteId?: boolean
+  atendenteId?: boolean
+  criadoEm?: boolean
+  assumidaEm?: boolean
+  concluidaEm?: boolean
+  anuladaEm?: boolean
+  atualizadoEm?: boolean
 }
 
-export type RequisicaoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "numero" | "item" | "estoqueItemId" | "quantidade" | "qtdDevolvida" | "observacao" | "setor" | "unidadeMedida" | "prioridade" | "status" | "origem" | "origemLegada" | "idempotencyKey" | "grupoIdempotencia" | "funcionarioId" | "createdAt" | "updatedAt", ExtArgs["result"]["requisicao"]>
+export type RequisicaoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "numeroPedido" | "status" | "prioridade" | "observacao" | "regraEstoque" | "solicitanteId" | "atendenteId" | "criadoEm" | "assumidaEm" | "concluidaEm" | "anuladaEm" | "atualizadoEm", ExtArgs["result"]["requisicao"]>
 export type RequisicaoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
-  estoqueItem?: boolean | Prisma.Requisicao$estoqueItemArgs<ExtArgs>
+  solicitante?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
+  atendente?: boolean | Prisma.Requisicao$atendenteArgs<ExtArgs>
+  itens?: boolean | Prisma.Requisicao$itensArgs<ExtArgs>
   movimentacoes?: boolean | Prisma.Requisicao$movimentacoesArgs<ExtArgs>
+  movimentosConta?: boolean | Prisma.Requisicao$movimentosContaArgs<ExtArgs>
   _count?: boolean | Prisma.RequisicaoCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $RequisicaoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Requisicao"
   objects: {
-    funcionario: Prisma.$FuncionarioPayload<ExtArgs>
-    estoqueItem: Prisma.$EstoqueItemPayload<ExtArgs> | null
-    movimentacoes: Prisma.$MovimentacaoDepositoPayload<ExtArgs>[]
+    solicitante: Prisma.$FuncionarioPayload<ExtArgs>
+    atendente: Prisma.$FuncionarioPayload<ExtArgs> | null
+    itens: Prisma.$RequisicaoItemPayload<ExtArgs>[]
+    movimentacoes: Prisma.$MovimentacaoPayload<ExtArgs>[]
+    movimentosConta: Prisma.$MovimentoContaEstoquePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    numero: number
-    item: string
-    estoqueItemId: string | null
-    quantidade: number
-    qtdDevolvida: number
+    numeroPedido: string
+    status: $Enums.StatusRequisicao
+    prioridade: $Enums.Prioridade
     observacao: string | null
-    setor: string | null
-    unidadeMedida: string | null
-    prioridade: string | null
-    status: string
-    origem: $Enums.OrigemRequisicao | null
-    origemLegada: string
-    idempotencyKey: string | null
-    grupoIdempotencia: string | null
-    funcionarioId: number
-    createdAt: Date
-    updatedAt: Date
+    regraEstoque: string | null
+    solicitanteId: number
+    atendenteId: number | null
+    criadoEm: Date
+    assumidaEm: Date | null
+    concluidaEm: Date | null
+    anuladaEm: Date | null
+    atualizadoEm: Date
   }, ExtArgs["result"]["requisicao"]>
   composites: {}
 }
@@ -1662,9 +1726,11 @@ readonly fields: RequisicaoFieldRefs;
  */
 export interface Prisma__RequisicaoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  funcionario<T extends Prisma.FuncionarioDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FuncionarioDefaultArgs<ExtArgs>>): Prisma.Prisma__FuncionarioClient<runtime.Types.Result.GetResult<Prisma.$FuncionarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  estoqueItem<T extends Prisma.Requisicao$estoqueItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Requisicao$estoqueItemArgs<ExtArgs>>): Prisma.Prisma__EstoqueItemClient<runtime.Types.Result.GetResult<Prisma.$EstoqueItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  movimentacoes<T extends Prisma.Requisicao$movimentacoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Requisicao$movimentacoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentacaoDepositoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  solicitante<T extends Prisma.FuncionarioDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FuncionarioDefaultArgs<ExtArgs>>): Prisma.Prisma__FuncionarioClient<runtime.Types.Result.GetResult<Prisma.$FuncionarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  atendente<T extends Prisma.Requisicao$atendenteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Requisicao$atendenteArgs<ExtArgs>>): Prisma.Prisma__FuncionarioClient<runtime.Types.Result.GetResult<Prisma.$FuncionarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  itens<T extends Prisma.Requisicao$itensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Requisicao$itensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentacoes<T extends Prisma.Requisicao$movimentacoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Requisicao$movimentacoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentacaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentosConta<T extends Prisma.Requisicao$movimentosContaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Requisicao$movimentosContaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentoContaEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1695,23 +1761,18 @@ export interface Prisma__RequisicaoClient<T, Null = never, ExtArgs extends runti
  */
 export interface RequisicaoFieldRefs {
   readonly id: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly numero: Prisma.FieldRef<"Requisicao", 'Int'>
-  readonly item: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly estoqueItemId: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly quantidade: Prisma.FieldRef<"Requisicao", 'Int'>
-  readonly qtdDevolvida: Prisma.FieldRef<"Requisicao", 'Int'>
+  readonly numeroPedido: Prisma.FieldRef<"Requisicao", 'String'>
+  readonly status: Prisma.FieldRef<"Requisicao", 'StatusRequisicao'>
+  readonly prioridade: Prisma.FieldRef<"Requisicao", 'Prioridade'>
   readonly observacao: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly setor: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly unidadeMedida: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly prioridade: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly status: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly origem: Prisma.FieldRef<"Requisicao", 'OrigemRequisicao'>
-  readonly origemLegada: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly idempotencyKey: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly grupoIdempotencia: Prisma.FieldRef<"Requisicao", 'String'>
-  readonly funcionarioId: Prisma.FieldRef<"Requisicao", 'Int'>
-  readonly createdAt: Prisma.FieldRef<"Requisicao", 'DateTime'>
-  readonly updatedAt: Prisma.FieldRef<"Requisicao", 'DateTime'>
+  readonly regraEstoque: Prisma.FieldRef<"Requisicao", 'String'>
+  readonly solicitanteId: Prisma.FieldRef<"Requisicao", 'Int'>
+  readonly atendenteId: Prisma.FieldRef<"Requisicao", 'Int'>
+  readonly criadoEm: Prisma.FieldRef<"Requisicao", 'DateTime'>
+  readonly assumidaEm: Prisma.FieldRef<"Requisicao", 'DateTime'>
+  readonly concluidaEm: Prisma.FieldRef<"Requisicao", 'DateTime'>
+  readonly anuladaEm: Prisma.FieldRef<"Requisicao", 'DateTime'>
+  readonly atualizadoEm: Prisma.FieldRef<"Requisicao", 'DateTime'>
 }
     
 
@@ -2060,22 +2121,46 @@ export type RequisicaoDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
- * Requisicao.estoqueItem
+ * Requisicao.atendente
  */
-export type Requisicao$estoqueItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Requisicao$atendenteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the EstoqueItem
+   * Select specific fields to fetch from the Funcionario
    */
-  select?: Prisma.EstoqueItemSelect<ExtArgs> | null
+  select?: Prisma.FuncionarioSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the EstoqueItem
+   * Omit specific fields from the Funcionario
    */
-  omit?: Prisma.EstoqueItemOmit<ExtArgs> | null
+  omit?: Prisma.FuncionarioOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.EstoqueItemInclude<ExtArgs> | null
-  where?: Prisma.EstoqueItemWhereInput
+  include?: Prisma.FuncionarioInclude<ExtArgs> | null
+  where?: Prisma.FuncionarioWhereInput
+}
+
+/**
+ * Requisicao.itens
+ */
+export type Requisicao$itensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RequisicaoItem
+   */
+  select?: Prisma.RequisicaoItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RequisicaoItem
+   */
+  omit?: Prisma.RequisicaoItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RequisicaoItemInclude<ExtArgs> | null
+  where?: Prisma.RequisicaoItemWhereInput
+  orderBy?: Prisma.RequisicaoItemOrderByWithRelationInput | Prisma.RequisicaoItemOrderByWithRelationInput[]
+  cursor?: Prisma.RequisicaoItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RequisicaoItemScalarFieldEnum | Prisma.RequisicaoItemScalarFieldEnum[]
 }
 
 /**
@@ -2083,23 +2168,47 @@ export type Requisicao$estoqueItemArgs<ExtArgs extends runtime.Types.Extensions.
  */
 export type Requisicao$movimentacoesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the MovimentacaoDeposito
+   * Select specific fields to fetch from the Movimentacao
    */
-  select?: Prisma.MovimentacaoDepositoSelect<ExtArgs> | null
+  select?: Prisma.MovimentacaoSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the MovimentacaoDeposito
+   * Omit specific fields from the Movimentacao
    */
-  omit?: Prisma.MovimentacaoDepositoOmit<ExtArgs> | null
+  omit?: Prisma.MovimentacaoOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.MovimentacaoDepositoInclude<ExtArgs> | null
-  where?: Prisma.MovimentacaoDepositoWhereInput
-  orderBy?: Prisma.MovimentacaoDepositoOrderByWithRelationInput | Prisma.MovimentacaoDepositoOrderByWithRelationInput[]
-  cursor?: Prisma.MovimentacaoDepositoWhereUniqueInput
+  include?: Prisma.MovimentacaoInclude<ExtArgs> | null
+  where?: Prisma.MovimentacaoWhereInput
+  orderBy?: Prisma.MovimentacaoOrderByWithRelationInput | Prisma.MovimentacaoOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentacaoWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.MovimentacaoDepositoScalarFieldEnum | Prisma.MovimentacaoDepositoScalarFieldEnum[]
+  distinct?: Prisma.MovimentacaoScalarFieldEnum | Prisma.MovimentacaoScalarFieldEnum[]
+}
+
+/**
+ * Requisicao.movimentosConta
+ */
+export type Requisicao$movimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimentoContaEstoque
+   */
+  select?: Prisma.MovimentoContaEstoqueSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimentoContaEstoque
+   */
+  omit?: Prisma.MovimentoContaEstoqueOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentoContaEstoqueInclude<ExtArgs> | null
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+  orderBy?: Prisma.MovimentoContaEstoqueOrderByWithRelationInput | Prisma.MovimentoContaEstoqueOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentoContaEstoqueWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentoContaEstoqueScalarFieldEnum | Prisma.MovimentoContaEstoqueScalarFieldEnum[]
 }
 
 /**

@@ -1,25 +1,66 @@
-const dotenv = require("dotenv");
-dotenv.config({ path: ".env.local" });
-dotenv.config({ path: ".env" });
+/**
+ * Redefine a senha do Administrador com confirmação de segurança.
+ * Uso:
+ *   CONFIRM_ADMIN_RESET=YES ADMIN_LOGIN=admin ADMIN_PASSWORD=nova-senha npm run admin:reset-password
+ */
+const { config } = require("dotenv");
+config({ path: ".env.local" });
+config({ path: ".env" });
 
 const bcrypt = require("bcryptjs");
-const mariadb = require("mariadb");
+const { PrismaClient } = require("../generated/prisma/client");
+const { PrismaMariaDb } = require("@prisma/adapter-mariadb");
 
-async function main() {
-  if (process.env.CONFIRM_ADMIN_RESET !== "YES") throw new Error("Confirme o reset com CONFIRM_ADMIN_RESET=YES.");
-  if (process.env.NODE_ENV === "production" && process.env.ALLOW_ADMIN_PASSWORD_RESET !== "true") throw new Error("Reset bloqueado em produção. Defina ALLOW_ADMIN_PASSWORD_RESET=true explicitamente.");
-  const { DATABASE_URL, ADMIN_LOGIN, ADMIN_PASSWORD } = process.env;
-  if (!DATABASE_URL || !ADMIN_LOGIN || !ADMIN_PASSWORD) throw new Error("Defina DATABASE_URL, ADMIN_LOGIN e ADMIN_PASSWORD.");
-  if (ADMIN_LOGIN !== "admin") throw new Error("ADMIN_LOGIN deve ser admin.");
-
-  const url = new URL(DATABASE_URL);
-  const connection = await mariadb.createConnection({ host: url.hostname, port: Number(url.port) || 3306, user: decodeURIComponent(url.username), password: decodeURIComponent(url.password), database: decodeURIComponent(url.pathname.slice(1)), charset: "utf8mb4" });
-  try {
-    const hash = await bcrypt.hash(ADMIN_PASSWORD, 12);
-    const result = await connection.query("UPDATE funcionarios SET senha = ?, mustChangePassword = 0, ativo = 1, role = 'admin' WHERE login = ?", [hash, ADMIN_LOGIN]);
-    if (result.affectedRows !== 1) throw new Error("Conta admin não encontrada.");
-  } finally { await connection.end(); }
-  console.log("Senha do admin redefinida; a troca não é obrigatória para admins.");
+function getPrismaClient() {
+  const rawUrl = process.env.DATABASE_URL;
+  if (!rawUrl) throw new Error("DATABASE_URL não configurada.");
+  const u = new URL(rawUrl);
+  u.searchParams.delete("sslaccept");
+  const adapter = new PrismaMariaDb(u.toString(), {
+    connectionLimit: 1,
+    idleTimeout: 30,
+    connectTimeout: 20000,
+    acquireTimeout: 30000,
+    charset: "utf8mb4",
+    ssl: { rejectUnauthorized: false },
+  });
+  return new PrismaClient({ adapter });
 }
 
-main().catch((error) => { console.error(error.message); process.exitCode = 1; });
+async function main() {
+  if (process.env.CONFIRM_ADMIN_RESET !== "YES") {
+    throw new Error("Confirme o reset com CONFIRM_ADMIN_RESET=YES.");
+  }
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_ADMIN_PASSWORD_RESET !== "true") {
+    throw new Error("Reset bloqueado em produção. Defina ALLOW_ADMIN_PASSWORD_RESET=true explicitamente.");
+  }
+  const { ADMIN_LOGIN, ADMIN_PASSWORD } = process.env;
+  if (!ADMIN_LOGIN || !ADMIN_PASSWORD) {
+    throw new Error("Defina ADMIN_LOGIN e ADMIN_PASSWORD.");
+  }
+
+  const login = ADMIN_LOGIN.trim().toLowerCase();
+  const senhaHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
+  const prisma = getPrismaClient();
+
+  try {
+    const admin = await prisma.funcionario.update({
+      where: { login },
+      data: {
+        senha: senhaHash,
+        mustChangePassword: false,
+        ativo: true,
+      },
+    });
+    console.log(`Senha do administrador "${admin.login}" redefinida com sucesso.`);
+  } catch {
+    throw new Error(`Administrador "${login}" não encontrado.`);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+main().catch((error) => {
+  console.error("Erro ao resetar senha:", error.message);
+  process.exitCode = 1;
+});

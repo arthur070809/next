@@ -438,10 +438,6 @@ export type TrustedDeviceUpdateOneWithoutSessoesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TrustedDeviceUpdateToOneWithWhereWithoutSessoesInput, Prisma.TrustedDeviceUpdateWithoutSessoesInput>, Prisma.TrustedDeviceUncheckedUpdateWithoutSessoesInput>
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type TrustedDeviceCreateNestedOneWithoutPareamentosInput = {
   create?: Prisma.XOR<Prisma.TrustedDeviceCreateWithoutPareamentosInput, Prisma.TrustedDeviceUncheckedCreateWithoutPareamentosInput>
   connectOrCreate?: Prisma.TrustedDeviceCreateOrConnectWithoutPareamentosInput

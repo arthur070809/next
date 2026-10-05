@@ -1,3 +1,11 @@
+// ============================================================
+// Schema Marcon Almoxarifado — UNIFICADO
+// Base: branch migracao-tidb-prisma (Item / LocalEstoque / SaldoEstoque / Movimentacao)
+// Acrescenta da main (Arthur): passkeys, dispositivos, TOTP, acesso de emergência,
+// cadastro facial e auditoria de segurança.
+// Banco alvo: TiDB Cloud Starter (compatível com MySQL)
+// ============================================================
+
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -8,200 +16,328 @@ datasource db {
   provider = "mysql"
 }
 
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum PapelFuncionario {
+  USUARIO
+  OPERADOR
+  ALMOXARIFE
+  ADMIN
+
+  @@map("papel_funcionario")
+}
+
 enum TipoItem {
   COMPONENTE
   CONSUMIVEL
   MATERIA_PRIMA
   EMBALAGEM
+
+  @@map("tipo_item")
 }
 
-enum OrigemRequisicao {
-  DEPOSITO
-  ESTOQUE
+enum StatusRequisicao {
+  PENDENTE
+  ASSUMIDA
+  CONCLUIDA
+  ANULADA
+
+  @@map("status_requisicao")
 }
 
-enum TipoMovimentacaoDeposito {
-  SAIDA_REQUISICAO
-  ENTRADA_SOBRA
-  ENTRADA_MANUAL
+enum StatusItemRequisicao {
+  PENDENTE
+  ASSUMIDO
+  SEPARADO
+  NAO_SEPARADO
+  ANULADO
+
+  @@map("status_item_requisicao")
+}
+
+enum Prioridade {
+  PADRAO
+  PRIORITARIO
+
+  @@map("prioridade")
+}
+
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
+  RESERVA
+  LIBERACAO_RESERVA
   AJUSTE
+
+  @@map("tipo_movimentacao")
 }
+
+// ============================================================
+// FUNCIONÁRIO
+// (campos da branch + relações dos modelos de segurança da main)
+// ============================================================
 
 model Funcionario {
-  id                 Int           @id @default(autoincrement())
-  nome               String        @db.VarChar(100)
-  login              String?       @unique(map: "login") @db.VarChar(50)
-  email              String        @unique(map: "email") @db.VarChar(100)
-  senha              String        @db.VarChar(255)
-  cargo              String        @db.VarChar(50)
-  cracha             String        @unique(map: "cracha") @db.VarChar(20)
-  role               String        @default("user") @db.VarChar(20)
-  mustChangePassword Boolean       @default(false)
-  ativo              Boolean       @default(true)
-  sessoes            Sessao[]
-  requisicoes        Requisicao[]
-  movimentacoesDeposito MovimentacaoDeposito[]
-  auditorias         Auditoria[]   @relation("AuditoriaAutor")
-  credenciaisWebAuthn WebAuthnCredential[]
-  credenciaisCriadas WebAuthnCredential[] @relation("CredentialCreator")
-  pareamentosCriados DevicePairing[] @relation("PairingCreator")
-  pareamentosFuncionario DevicePairing[] @relation("PairingUser")
-  desafiosAutenticacao AuthChallenge[]
-  desafiosVivacidade LivenessChallenge[]
-  templatesFaciais FaceTemplate[] @relation("FaceTemplateSubject")
-  templatesFaciaisCriados FaceTemplate[] @relation("FaceTemplateCreator")
-  tentativasFaciais FaceAuthAttempt[]
-  sessoesCadastroFacialComoAdmin FaceEnrollmentSession[] @relation("FaceEnrollmentAdmin")
-  sessoesCadastroFacialComoAlvo FaceEnrollmentSession[] @relation("FaceEnrollmentSubject")
-  tentativasCadastroFacialComoAdmin FaceEnrollmentAttempt[] @relation("FaceEnrollmentAttemptAdmin")
-  tentativasCadastroFacialComoAlvo FaceEnrollmentAttempt[] @relation("FaceEnrollmentAttemptSubject")
-  adminTotp AdminTotpCredential?
-  eventosSegurancaComoAtor SecurityAuditEvent[] @relation("SecurityEventActor")
-  eventosSegurancaComoAlvo SecurityAuditEvent[] @relation("SecurityEventSubject")
-  grantsEmergenciaComoAlvo EmergencyAccessGrant[] @relation("EmergencySubject")
-  grantsEmergenciaCriados EmergencyAccessGrant[] @relation("EmergencyApprover")
+  id                 Int                @id @default(autoincrement())
+  nome               String             @db.VarChar(100) @map("nome")
+  login              String?            @unique(map: "uq_funcionarios_login") @db.VarChar(50) @map("login")
+  email              String             @unique(map: "uq_funcionarios_email") @db.VarChar(100) @map("email")
+  senha              String             @db.VarChar(255) @map("senha")
+  cargo              String             @db.VarChar(50) @map("cargo")
+  cracha             String             @unique(map: "uq_funcionarios_cracha") @db.VarChar(20) @map("cracha")
+  papel              PapelFuncionario   @default(USUARIO) @map("papel")
+  mustChangePassword Boolean            @default(false) @map("must_change_password")
+  ativo              Boolean            @default(true) @map("ativo")
+  criadoEm           DateTime           @default(now()) @map("criado_em")
+  atualizadoEm       DateTime           @updatedAt @map("atualizado_em")
 
+  // Núcleo (branch)
+  sessoes                Sessao[]
+  requisicoesSolicitadas Requisicao[]   @relation("Solicitante")
+  requisicoesAtendidas   Requisicao[]   @relation("Atendente")
+  movimentacoes          Movimentacao[]
+  auditorias             Auditoria[]    @relation("AuditoriaAutor")
+
+  // Segurança e facial (main)
+  credenciaisWebAuthn               WebAuthnCredential[]
+  credenciaisCriadas                WebAuthnCredential[]    @relation("CredentialCreator")
+  pareamentosCriados                DevicePairing[]         @relation("PairingCreator")
+  pareamentosFuncionario            DevicePairing[]         @relation("PairingUser")
+  desafiosAutenticacao              AuthChallenge[]
+  desafiosVivacidade                LivenessChallenge[]
+  templatesFaciais                  FaceTemplate[]          @relation("FaceTemplateSubject")
+  templatesFaciaisCriados           FaceTemplate[]          @relation("FaceTemplateCreator")
+  tentativasFaciais                 FaceAuthAttempt[]
+  sessoesCadastroFacialComoAdmin    FaceEnrollmentSession[] @relation("FaceEnrollmentAdmin")
+  sessoesCadastroFacialComoAlvo     FaceEnrollmentSession[] @relation("FaceEnrollmentSubject")
+  tentativasCadastroFacialComoAdmin FaceEnrollmentAttempt[] @relation("FaceEnrollmentAttemptAdmin")
+  tentativasCadastroFacialComoAlvo  FaceEnrollmentAttempt[] @relation("FaceEnrollmentAttemptSubject")
+  adminTotp                         AdminTotpCredential?
+  eventosSegurancaComoAtor          SecurityAuditEvent[]    @relation("SecurityEventActor")
+  eventosSegurancaComoAlvo          SecurityAuditEvent[]    @relation("SecurityEventSubject")
+  grantsEmergenciaComoAlvo          EmergencyAccessGrant[]  @relation("EmergencySubject")
+  grantsEmergenciaCriados           EmergencyAccessGrant[]  @relation("EmergencyApprover")
+
+  @@index([papel])
+  @@index([ativo])
   @@map("funcionarios")
 }
 
+// ============================================================
+// SESSÃO (branch + vínculo opcional com dispositivo confiável da main)
+// ============================================================
+
 model Sessao {
-  id            String      @id @default(uuid())
-  token         String      @unique
-  expiresAt     DateTime
-  accessArea    String?     @db.VarChar(30)
-  trustedDeviceId String?
-  funcionarioId Int
-  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  trustedDevice TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: SetNull)
-  createdAt     DateTime    @default(now())
+  id              String         @id @default(uuid())
+  token           String         @unique @map("token") @db.VarChar(64)
+  expiresAt       DateTime       @map("expires_at")
+  accessArea      String?        @db.VarChar(30) @map("access_area")
+  trustedDeviceId String?        @map("trusted_device_id")
+  funcionarioId   Int            @map("funcionario_id")
+  funcionario     Funcionario    @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  trustedDevice   TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: SetNull)
+  createdAt       DateTime       @default(now()) @map("created_at")
 
   @@index([funcionarioId])
   @@index([expiresAt])
   @@index([trustedDeviceId])
+  @@map("sessoes")
 }
 
-model Requisicao {
-  id                 String                      @id @default(uuid())
-  numero             Int                         @unique @default(autoincrement())
-  item               String
-  estoqueItemId      String?
-  quantidade         Int
-  qtdDevolvida       Int                         @default(0)
-  observacao         String?                     @db.Text
-  setor              String?                     @db.VarChar(30)
-  unidadeMedida      String?                     @db.VarChar(10)
-  prioridade         String?                     @db.VarChar(20)
-  status             String                      @default("PENDENTE")
-  origem             OrigemRequisicao?            @map("origem_retirada")
-  origemLegada       String                        @default("ESTOQUE") @map("origem")
-  idempotencyKey     String?                     @unique
-  grupoIdempotencia  String?
-  funcionarioId      Int
-  funcionario        Funcionario                 @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  estoqueItem        EstoqueItem?                @relation(fields: [estoqueItemId], references: [id], onDelete: SetNull)
-  movimentacoes      MovimentacaoDeposito[]
-  createdAt          DateTime                    @default(now())
-  updatedAt          DateTime                    @updatedAt
+// ============================================================
+// CATÁLOGO, LOCAIS E SALDOS (branch)
+// ============================================================
 
-  @@index([funcionarioId])
-  @@index([status])
-  @@index([grupoIdempotencia])
-}
+model Item {
+  id                      String   @id @default(uuid()) @map("id") @db.VarChar(36)
+  nome                    String   @db.VarChar(120) @map("nome")
+  categoria               String   @db.VarChar(80) @map("categoria")
+  unidade                 String   @default("unidades") @db.VarChar(30) @map("unidade")
+  tipoUnidade             String   @default("unidade") @db.VarChar(20) @map("tipo_unidade")
+  quantidadePorEmbalagem  Int      @default(1) @map("quantidade_por_embalagem")
+  tipoItem                TipoItem @default(CONSUMIVEL) @map("tipo_item")
+  codigo                  String?  @db.VarChar(50) @map("codigo")
+  // Filial NULL = item sem filial específica (unique com NULL não conflita no MySQL/TiDB)
+  filial                  String?  @db.VarChar(20) @map("filial")
+  grupoErp                String?  @db.VarChar(80) @map("grupo_erp")
+  pontoPedido             Int      @default(0) @map("ponto_pedido")
+  estoqueSeguranca        Int      @default(0) @map("estoque_seguranca")
+  bloqueadoCompra         Boolean  @default(false) @map("bloqueado_compra")
+  ultimaEntradaEmbalagens Int?     @map("ultima_entrada_embalagens")
+  ativo                   Boolean  @default(true) @map("ativo")
+  criadoEm                DateTime @default(now()) @map("criado_em")
+  atualizadoEm            DateTime @updatedAt @map("atualizado_em")
 
-model EstoqueItem {
-  id                      String        @id @default(uuid())
-  nome                    String        @db.VarChar(120)
-  categoria               String        @db.VarChar(80)
-  unidade                 String        @default("unidade") @db.VarChar(30)
-  quantidade              Int           @default(0)
-  tipoUnidade             String        @default("unidade") @db.VarChar(20)
-  quantidadePorEmbalagem  Int           @default(1)
-  tipoItem                TipoItem      @default(CONSUMIVEL)
-  codigo                  String?       @db.VarChar(50)
-  filial                  String?       @db.VarChar(20)
-  grupoErp                String?       @db.VarChar(80)
-  pontoPedido             Int           @default(0)
-  estoqueSeguranca        Int           @default(0)
-  bloqueadoCompra         Boolean       @default(false)
-  ultimaEntradaEmbalagens Int?
-  ativo                   Boolean       @default(true)
-  deposito                SaldoDeposito?
-  requisicoes             Requisicao[]
-  movimentacoesDeposito   MovimentacaoDeposito[]
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  saldos          SaldoEstoque[]
+  itensRequisicao RequisicaoItem[]
 
+  @@unique([filial, codigo], map: "uq_itens_filial_codigo")
   @@index([categoria])
   @@index([ativo])
-  @@unique([filial, codigo], map: "estoque_itens_filial_codigo_key")
-  @@map("estoque_itens")
+  @@index([codigo])
+  @@map("itens")
 }
 
-model SaldoDeposito {
-  id           String      @id @default(uuid())
-  itemId       String      @unique @map("estoqueItemId")
-  quantidade   Int         @default(0)
-  estoqueItem  EstoqueItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  criadoEm     DateTime    @default(now()) @map("createdAt")
-  atualizadoEm DateTime    @updatedAt @map("updatedAt")
+model LocalEstoque {
+  id        String   @id @default(uuid()) @map("id") @db.VarChar(36)
+  nome      String   @db.VarChar(80) @map("nome")
+  slug      String   @unique(map: "uq_locais_estoque_slug") @db.VarChar(40) @map("slug")
+  descricao String?  @db.VarChar(255) @map("descricao")
+  ativo     Boolean  @default(true) @map("ativo")
+  criadoEm  DateTime @default(now()) @map("criado_em")
 
-  @@index([quantidade])
-  @@map("deposito_itens")
+  saldos          SaldoEstoque[]
+  itensRequisicao RequisicaoItem[]
+
+  @@index([ativo])
+  @@map("locais_estoque")
 }
 
-model MovimentacaoDeposito {
-  id             String                    @id @default(uuid())
-  itemId         String
-  tipo           TipoMovimentacaoDeposito
-  quantidade     Int
-  saldoAntes     Int
-  saldoDepois    Int
-  requisicaoId   String?
-  usuarioId      Int
-  motivo         String?                   @db.VarChar(200)
-  idempotencyKey String?                   @unique
-  criadoEm       DateTime                  @default(now())
-  item           EstoqueItem               @relation(fields: [itemId], references: [id], onDelete: Restrict)
-  requisicao     Requisicao?               @relation(fields: [requisicaoId], references: [id], onDelete: SetNull)
-  usuario        Funcionario               @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+model SaldoEstoque {
+  id           String   @id @default(uuid()) @map("id") @db.VarChar(36)
+  itemId       String   @map("item_id") @db.VarChar(36)
+  localId      String   @map("local_id") @db.VarChar(36)
+  quantidade   Int      @default(0) @map("quantidade")
+  reservada    Int      @default(0) @map("reservada")
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
-  @@index([itemId, criadoEm])
-  @@index([tipo, criadoEm])
-  @@index([usuarioId, criadoEm])
+  item          Item           @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  local         LocalEstoque   @relation(fields: [localId], references: [id], onDelete: Restrict)
+  movimentacoes Movimentacao[]
+
+  @@unique([itemId, localId], map: "uq_saldo_item_local")
+  @@index([itemId])
+  @@index([localId])
+  @@map("saldos_estoque")
+}
+
+model SequenciaRequisicao {
+  id      Int @id @default(1)
+  proximo Int @default(1) @map("proximo")
+
+  @@map("sequencia_requisicao")
+}
+
+// ============================================================
+// REQUISIÇÃO E MOVIMENTAÇÃO (branch)
+// ============================================================
+
+model Requisicao {
+  id            String           @id @default(uuid()) @map("id") @db.VarChar(36)
+  numeroPedido  String           @unique(map: "uq_requisicoes_numero_pedido") @db.VarChar(20) @map("numero_pedido")
+  status        StatusRequisicao @default(PENDENTE) @map("status")
+  prioridade    Prioridade       @default(PADRAO) @map("prioridade")
+  observacao    String?          @db.Text @map("observacao")
+  solicitanteId Int              @map("solicitante_id")
+  atendenteId   Int?             @map("atendente_id")
+  criadoEm      DateTime         @default(now()) @map("criado_em")
+  assumidaEm    DateTime?        @map("assumida_em")
+  concluidaEm   DateTime?        @map("concluida_em")
+  anuladaEm     DateTime?        @map("anulada_em")
+  atualizadoEm  DateTime         @updatedAt @map("atualizado_em")
+
+  solicitante   Funcionario      @relation("Solicitante", fields: [solicitanteId], references: [id], onDelete: Restrict)
+  atendente     Funcionario?     @relation("Atendente", fields: [atendenteId], references: [id], onDelete: SetNull)
+  itens         RequisicaoItem[]
+  movimentacoes Movimentacao[]
+
+  @@index([solicitanteId])
+  @@index([atendenteId])
+  @@index([status])
+  @@index([prioridade])
+  @@index([criadoEm])
+  @@map("requisicoes")
+}
+
+model RequisicaoItem {
+  id                String               @id @default(uuid()) @map("id") @db.VarChar(36)
+  requisicaoId      String               @map("requisicao_id") @db.VarChar(36)
+  itemId            String               @map("item_id") @db.VarChar(36)
+  localId           String               @map("local_id") @db.VarChar(36)
+  quantidade        Int                  @map("quantidade")
+  unidadeMedida     String               @default("UN") @db.VarChar(10) @map("unidade_medida")
+  descricao         String?              @db.VarChar(500) @map("descricao")
+  status            StatusItemRequisicao @default(PENDENTE) @map("status")
+  separado          Boolean?             @map("separado")
+  motivoNaoAtendido String?              @db.VarChar(500) @map("motivo_nao_atendido")
+  resolvidoEm       DateTime?            @map("resolvido_em")
+
+  requisicao    Requisicao     @relation(fields: [requisicaoId], references: [id], onDelete: Cascade)
+  item          Item           @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  local         LocalEstoque   @relation(fields: [localId], references: [id], onDelete: Restrict)
+  movimentacoes Movimentacao[]
+
   @@index([requisicaoId])
-  @@map("movimentacoes_deposito")
+  @@index([itemId])
+  @@index([status])
+  @@map("requisicao_itens")
+}
+
+model Movimentacao {
+  id               String           @id @default(uuid()) @map("id") @db.VarChar(36)
+  tipo             TipoMovimentacao @map("tipo")
+  quantidade       Int              @map("quantidade")
+  saldoApos        Int              @map("saldo_apos")
+  reservadaApos    Int              @map("reservada_apos")
+  funcionarioId    Int              @map("funcionario_id")
+  saldoEstoqueId   String           @map("saldo_estoque_id") @db.VarChar(36)
+  requisicaoId     String?          @map("requisicao_id") @db.VarChar(36)
+  requisicaoItemId String?          @map("requisicao_item_id") @db.VarChar(36)
+  observacao       String?          @db.VarChar(500) @map("observacao")
+  criadoEm         DateTime         @default(now()) @map("criado_em")
+
+  funcionario    Funcionario     @relation(fields: [funcionarioId], references: [id], onDelete: Restrict)
+  saldoEstoque   SaldoEstoque    @relation(fields: [saldoEstoqueId], references: [id], onDelete: Restrict)
+  requisicao     Requisicao?     @relation(fields: [requisicaoId], references: [id], onDelete: SetNull)
+  requisicaoItem RequisicaoItem? @relation(fields: [requisicaoItemId], references: [id], onDelete: SetNull)
+
+  @@index([saldoEstoqueId])
+  @@index([requisicaoId])
+  @@index([funcionarioId])
+  @@index([tipo])
+  @@index([criadoEm])
+  @@map("movimentacoes")
 }
 
 model Auditoria {
-  id        String      @id @default(uuid())
-  acao      String      @db.VarChar(50)
-  alvoId    Int
-  autorId   Int
-  createdAt DateTime    @default(now())
-  autor     Funcionario @relation("AuditoriaAutor", fields: [autorId], references: [id], onDelete: Restrict)
+  id       String      @id @default(uuid()) @map("id") @db.VarChar(36)
+  acao     String      @db.VarChar(50) @map("acao")
+  alvoId   Int         @map("alvo_id")
+  autorId  Int         @map("autor_id")
+  detalhes String?     @db.VarChar(500) @map("detalhes")
+  criadoEm DateTime    @default(now()) @map("criado_em")
+  autor    Funcionario @relation("AuditoriaAutor", fields: [autorId], references: [id], onDelete: Restrict)
 
   @@index([alvoId])
   @@index([autorId])
-  @@index([createdAt])
+  @@index([criadoEm])
   @@map("auditorias")
 }
 
+// ============================================================
+// SEGURANÇA, PASSKEYS, TOTP E CADASTRO FACIAL (vindos da main)
+// Copiados sem alteração. Colunas em camelCase, como no schema original.
+// ============================================================
+
 model TrustedDevice {
-  id             String                    @id @default(uuid())
-  nome           String                    @db.VarChar(80)
-  tokenHash      String?                   @unique @db.VarChar(64)
-  criadoEm       DateTime                  @default(now())
-  pareadoEm      DateTime?
-  ultimoAcessoEm DateTime?
-  revogadoEm     DateTime?
-  sessoes        Sessao[]
-  credenciais    WebAuthnCredential[]
-  pareamentos    DevicePairing[]
-  desafios       AuthChallenge[]
-  eventos        SecurityAuditEvent[]
-  grants         EmergencyAccessGrant[]
+  id                 String                 @id @default(uuid())
+  nome               String                 @db.VarChar(80)
+  tokenHash          String?                @unique @db.VarChar(64)
+  criadoEm           DateTime               @default(now())
+  pareadoEm          DateTime?
+  ultimoAcessoEm     DateTime?
+  revogadoEm         DateTime?
+  sessoes            Sessao[]
+  credenciais        WebAuthnCredential[]
+  pareamentos        DevicePairing[]
+  desafios           AuthChallenge[]
+  eventos            SecurityAuditEvent[]
+  grants             EmergencyAccessGrant[]
   desafiosVivacidade LivenessChallenge[]
-  tentativasFaciais FaceAuthAttempt[]
+  tentativasFaciais  FaceAuthAttempt[]
 
   @@index([revogadoEm])
   @@map("trusted_devices")
@@ -229,106 +365,118 @@ model DevicePairing {
 
 model WebAuthnCredential {
   id              String        @id @default(uuid())
-  credentialId   String        @unique @db.VarChar(512)
-  publicKey      Bytes
-  counter        BigInt        @default(0)
-  transports     String?       @db.VarChar(200)
-  funcionarioId  Int
+  credentialId    String        @unique @db.VarChar(512)
+  publicKey       Bytes
+  counter         BigInt        @default(0)
+  transports      String?       @db.VarChar(200)
+  funcionarioId   Int
   trustedDeviceId String
-  consentVersion String        @db.VarChar(40)
-  consentAt      DateTime
-  createdById    Int
-  criadoEm       DateTime      @default(now())
-  ultimoUsoEm    DateTime?
-  revogadoEm     DateTime?
-  funcionario    Funcionario  @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  trustedDevice  TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
-  criadoPor      Funcionario  @relation("CredentialCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  consentVersion  String        @db.VarChar(40)
+  consentAt       DateTime
+  createdById     Int
+  criadoEm        DateTime      @default(now())
+  ultimoUsoEm     DateTime?
+  revogadoEm      DateTime?
+  funcionario     Funcionario   @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  trustedDevice   TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
+  criadoPor       Funcionario   @relation("CredentialCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
   @@index([funcionarioId, trustedDeviceId, revogadoEm])
   @@map("webauthn_credentials")
 }
 
 model AuthChallenge {
-  id             String        @id @default(uuid())
-  tipo           String        @db.VarChar(30)
-  challenge      String?       @db.VarChar(191)
-  preAuthTokenHash String?     @unique @db.VarChar(64)
-  funcionarioId  Int
-  trustedDeviceId String?
-  ipHash         String?       @db.VarChar(64)
-  expiraEm       DateTime
-  usadoEm        DateTime?
-  criadoEm       DateTime      @default(now())
-  funcionario    Funcionario  @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  trustedDevice  TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
+  id               String         @id @default(uuid())
+  tipo             String         @db.VarChar(30)
+  challenge        String?        @db.VarChar(191)
+  preAuthTokenHash String?        @unique @db.VarChar(64)
+  funcionarioId    Int
+  trustedDeviceId  String?
+  ipHash           String?        @db.VarChar(64)
+  expiraEm         DateTime
+  usadoEm          DateTime?
+  criadoEm         DateTime       @default(now())
+  funcionario      Funcionario    @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  trustedDevice    TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
 
   @@index([funcionarioId, tipo, expiraEm])
   @@index([trustedDeviceId, tipo, expiraEm])
   @@map("auth_challenges")
 }
 
+model LoginAttemptBucket {
+  keyHash         String    @id @map("key_hash") @db.VarChar(64)
+  failures        Int       @default(0)
+  windowStartedAt DateTime  @map("window_started_at")
+  blockedUntil    DateTime? @map("blocked_until")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([blockedUntil])
+  @@index([windowStartedAt, blockedUntil])
+  @@map("login_attempt_buckets")
+}
+
 model AdminTotpCredential {
-  id                String      @id @default(uuid())
-  funcionarioId     Int         @unique
-  secretCiphertext  Bytes
-  secretIv          Bytes
-  secretTag         Bytes
-  enabledAt         DateTime?
-  lastVerifiedStep  BigInt      @default(0)
-  criadoEm          DateTime    @default(now())
-  atualizadoEm      DateTime    @updatedAt
-  funcionario       Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  id               String      @id @default(uuid())
+  funcionarioId    Int         @unique
+  secretCiphertext Bytes
+  secretIv         Bytes
+  secretTag        Bytes
+  enabledAt        DateTime?
+  lastVerifiedStep BigInt      @default(0)
+  criadoEm         DateTime    @default(now())
+  atualizadoEm     DateTime    @updatedAt
+  funcionario      Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
 
   @@map("admin_totp_credentials")
 }
 
 model EmergencyAccessGrant {
-  id             String        @id @default(uuid())
-  funcionarioId  Int
+  id              String        @id @default(uuid())
+  funcionarioId   Int
   trustedDeviceId String
-  criadoPorId    Int
-  justificativa  String        @db.VarChar(200)
-  expiraEm       DateTime
-  usadoEm        DateTime?
-  criadoEm       DateTime      @default(now())
-  funcionario    Funcionario  @relation("EmergencySubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
-  trustedDevice  TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
-  criadoPor      Funcionario  @relation("EmergencyApprover", fields: [criadoPorId], references: [id], onDelete: Restrict)
+  criadoPorId     Int
+  justificativa   String        @db.VarChar(200)
+  expiraEm        DateTime
+  usadoEm         DateTime?
+  criadoEm        DateTime      @default(now())
+  funcionario     Funcionario   @relation("EmergencySubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
+  trustedDevice   TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
+  criadoPor       Funcionario   @relation("EmergencyApprover", fields: [criadoPorId], references: [id], onDelete: Restrict)
 
   @@index([funcionarioId, trustedDeviceId, expiraEm, usadoEm])
   @@map("emergency_access_grants")
 }
 
 model FaceTemplate {
-  id                  String      @id @default(uuid())
-  funcionarioId       Int
-  embeddingEncrypted  Bytes
-  iv                  Bytes
-  tag                 Bytes
-  consentVersion      String      @db.VarChar(40)
-  consentAt           DateTime
-  criadoPorId         Int
-  criadoEm            DateTime    @default(now())
-  revogadoEm          DateTime?
-  funcionario          Funcionario @relation("FaceTemplateSubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
-  criadoPor            Funcionario @relation("FaceTemplateCreator", fields: [criadoPorId], references: [id], onDelete: Restrict)
+  id                 String      @id @default(uuid())
+  funcionarioId      Int
+  embeddingEncrypted Bytes
+  iv                 Bytes
+  tag                Bytes
+  consentVersion     String      @db.VarChar(40)
+  consentAt          DateTime
+  criadoPorId        Int
+  criadoEm           DateTime    @default(now())
+  revogadoEm         DateTime?
+  funcionario        Funcionario @relation("FaceTemplateSubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
+  criadoPor          Funcionario @relation("FaceTemplateCreator", fields: [criadoPorId], references: [id], onDelete: Restrict)
 
   @@index([funcionarioId, revogadoEm])
   @@map("face_templates")
 }
 
 model LivenessChallenge {
-  id                String        @id @default(uuid())
-  funcionarioId     Int
-  trustedDeviceId   String
-  tipo              String        @db.VarChar(30)
-  nonceHash         String        @unique @db.VarChar(64)
-  expiraEm          DateTime
-  usadoEm           DateTime?
-  criadoEm          DateTime      @default(now())
-  funcionario       Funcionario   @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  trustedDevice     TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
+  id              String        @id @default(uuid())
+  funcionarioId   Int
+  trustedDeviceId String
+  tipo            String        @db.VarChar(30)
+  nonceHash       String        @unique @db.VarChar(64)
+  expiraEm        DateTime
+  usadoEm         DateTime?
+  criadoEm        DateTime      @default(now())
+  funcionario     Funcionario   @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  trustedDevice   TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
 
   @@index([funcionarioId, expiraEm])
   @@index([trustedDeviceId, expiraEm])
@@ -351,17 +499,17 @@ model FaceAuthAttempt {
 }
 
 model FaceEnrollmentSession {
-  id            String      @id @default(uuid())
-  tokenHash     String      @unique(map: "face_enrollment_sessions_tokenHash_key") @db.VarChar(64)
-  adminId       Int
-  funcionarioId Int
-  criadoEm      DateTime    @default(now())
+  id              String      @id @default(uuid())
+  tokenHash       String      @unique(map: "face_enrollment_sessions_tokenHash_key") @db.VarChar(64)
+  adminId         Int
+  funcionarioId   Int
+  criadoEm        DateTime    @default(now())
   ultimaAtividade DateTime
-  expiraEm      DateTime
-  tetoEm        DateTime
-  usadoEm       DateTime?
-  admin         Funcionario @relation("FaceEnrollmentAdmin", fields: [adminId], references: [id], onDelete: Cascade)
-  funcionario   Funcionario @relation("FaceEnrollmentSubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
+  expiraEm        DateTime
+  tetoEm          DateTime
+  usadoEm         DateTime?
+  admin           Funcionario @relation("FaceEnrollmentAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  funcionario     Funcionario @relation("FaceEnrollmentSubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
 
   @@index([adminId, funcionarioId, expiraEm])
   @@index([expiraEm])
@@ -382,18 +530,18 @@ model FaceEnrollmentAttempt {
 }
 
 model SecurityAuditEvent {
-  id             String         @id @default(uuid())
-  acao           String         @db.VarChar(50)
-  resultado      String         @db.VarChar(20)
-  funcionarioId  Int?
-  atorId         Int?
+  id              String         @id @default(uuid())
+  acao            String         @db.VarChar(50)
+  resultado       String         @db.VarChar(20)
+  funcionarioId   Int?
+  atorId          Int?
   trustedDeviceId String?
-  ipHash         String?        @db.VarChar(64)
-  detalhe        String?        @db.VarChar(200)
-  criadoEm       DateTime       @default(now())
-  funcionario    Funcionario?   @relation("SecurityEventSubject", fields: [funcionarioId], references: [id], onDelete: SetNull)
-  ator           Funcionario?   @relation("SecurityEventActor", fields: [atorId], references: [id], onDelete: SetNull)
-  trustedDevice  TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: SetNull)
+  ipHash          String?        @db.VarChar(64)
+  detalhe         String?        @db.VarChar(200)
+  criadoEm        DateTime       @default(now())
+  funcionario     Funcionario?   @relation("SecurityEventSubject", fields: [funcionarioId], references: [id], onDelete: SetNull)
+  ator            Funcionario?   @relation("SecurityEventActor", fields: [atorId], references: [id], onDelete: SetNull)
+  trustedDevice   TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: SetNull)
 
   @@index([acao, criadoEm])
   @@index([funcionarioId, criadoEm])

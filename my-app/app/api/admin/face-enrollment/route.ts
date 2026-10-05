@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   try {
     const auth = await requireAdmin();
     if (!auth.funcionario) return adminError(auth.status);
-    const employees = await prisma.funcionario.findMany({ where: { role: "user", ativo: true }, select: { id: true, nome: true, cracha: true }, orderBy: { nome: "asc" } });
+    const employees = await prisma.funcionario.findMany({ where: { papel: "ALMOXARIFE", ativo: true }, select: { id: true, nome: true, cracha: true }, orderBy: { nome: "asc" } });
     const statuses = await Promise.all(employees.map(async (employee) => ({
       ...employee,
       enrolled: await prisma.faceTemplate.count({ where: { funcionarioId: employee.id, revogadoEm: null } }) > 0,
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || !consent || !Number.isFinite(consentAt.getTime()) || samples.length < 3 || samples.length > 5 || !sessionId || !sessionToken) {
       return apiError(400, "FACE_ENROLLMENT_PAYLOAD_INVALID", "Confirme o consentimento e conclua a captura guiada.");
     }
-    const employee = await prisma.funcionario.findFirst({ where: { id: funcionarioId, role: "user", ativo: true }, select: { id: true } });
+    const employee = await prisma.funcionario.findFirst({ where: { id: funcionarioId, papel: "ALMOXARIFE", ativo: true }, select: { id: true } });
     if (!employee) return apiError(404, "EMPLOYEE_NOT_FOUND", "Funcionário não encontrado ou inativo.");
     const session = await findFaceEnrollmentSession(sessionId, sessionToken, auth.funcionario.id, employee.id);
     if (!session) return apiError(409, "FACE_ENROLLMENT_SESSION_EXPIRED", "A sessão expirou. Reinicie a captura.");

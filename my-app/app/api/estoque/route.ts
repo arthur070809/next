@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS } from "@/lib/stock-units";
+import { TipoMovimentacao } from "@/generated/prisma/client";
+
+// Slug do local padrão "estoque central"
+const LOCAL_ESTOQUE_SLUG = "estoque";
+const LOCAL_DEPOSITO_SLUG = "deposito";
 
 function respostaJson(body: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
@@ -34,19 +39,76 @@ function respostaErroInterno(error: unknown, operacao: string) {
   return respostaJson({ error: message, errorId }, { status });
 }
 
+/** Garante que o local existe; cria se não existir (idempotente) */
+async function ensureLocal(slug: string, nome: string) {
+  return prisma.localEstoque.upsert({
+    where: { slug },
+    create: { slug, nome, ativo: true },
+    update: {},
+  });
+}
+
+/** Formata item + saldo para a resposta da API (retrocompatível com o front) */
+function formatItem(item: {
+  id: string;
+  nome: string;
+  categoria: string;
+  unidade: string;
+  tipoUnidade: string;
+  quantidadePorEmbalagem: number;
+  tipoItem: string;
+  codigo: string | null;
+  filial: string | null;
+  grupoErp: string | null;
+  pontoPedido: number;
+  estoqueSeguranca: number;
+  bloqueadoCompra: boolean;
+  ultimaEntradaEmbalagens: number | null;
+  ativo: boolean;
+  saldos: Array<{ quantidade: number; reservada: number; local: { slug: string } }>;
+}) {
+  const saldoEstoque = item.saldos.find((s) => s.local.slug === LOCAL_ESTOQUE_SLUG);
+  const saldoDeposito = item.saldos.find((s) => s.local.slug === LOCAL_DEPOSITO_SLUG);
+  return {
+    id: item.id,
+    nome: item.nome,
+    categoria: item.categoria,
+    unidade: item.unidade,
+    tipoUnidade: item.tipoUnidade,
+    quantidadePorEmbalagem: item.quantidadePorEmbalagem,
+    tipoItem: item.tipoItem,
+    codigo: item.codigo,
+    filial: item.filial,
+    grupoErp: item.grupoErp,
+    pontoPedido: item.pontoPedido,
+    estoqueSeguranca: item.estoqueSeguranca,
+    bloqueadoCompra: item.bloqueadoCompra,
+    ultimaEntradaEmbalagens: item.ultimaEntradaEmbalagens,
+    ativo: item.ativo,
+    // Campos retrocompatíveis com o front (era EstoqueItem.quantidade)
+    quantidade: saldoEstoque?.quantidade ?? 0,
+    reservada: saldoEstoque?.reservada ?? 0,
+    disponivel: (saldoEstoque?.quantidade ?? 0) - (saldoEstoque?.reservada ?? 0),
+    quantidadeDeposito: saldoDeposito?.quantidade ?? 0,
+  };
+}
+
 export async function GET() {
   try {
-    if (!(await getAuthenticatedFuncionario())) return respostaJson({ error: "Não autenticado." }, { status: 401 });
-    const itens = await prisma.estoqueItem.findMany({
+    const funcionario = await getAuthenticatedFuncionario();
+    if (!funcionario) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+
+    const itens = await prisma.item.findMany({
       where: { ativo: true },
       orderBy: [{ categoria: "asc" }, { nome: "asc" }],
-      include: { deposito: { select: { quantidade: true } } },
+      include: {
+        saldos: {
+          include: { local: { select: { slug: true } } },
+        },
+      },
     });
 
-    return respostaJson({ itens: itens.map(({ deposito, ...item }) => ({
-      ...item,
-      quantidadeDeposito: deposito?.quantidade ?? 0,
-    })) });
+    return respostaJson({ itens: itens.map(formatItem) });
   } catch (error) {
     return respostaErroInterno(error, "carregar");
   }
@@ -54,7 +116,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    if (!(await getAuthenticatedFuncionario())) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+    const funcionario = await getAuthenticatedFuncionario();
+    if (!funcionario) return respostaJson({ error: "Não autenticado." }, { status: 401 });
     if (!isSameOrigin(request)) return respostaJson({ error: "Origem inválida." }, { status: 403 });
     let body: Record<string, unknown>;
     try {
@@ -101,24 +164,90 @@ export async function POST(request: Request) {
     let item;
     for (let attempt = 0; ; attempt += 1) {
       try {
-        item = await prisma.$transaction(async (transaction) => {
-          const itemExistente = await transaction.estoqueItem.findFirst({
+        item = await prisma.$transaction(async (tx) => {
+          // Garante que o local "estoque" existe
+          const local = await tx.localEstoque.upsert({
+            where: { slug: LOCAL_ESTOQUE_SLUG },
+            create: { slug: LOCAL_ESTOQUE_SLUG, nome: "Estoque Central", ativo: true },
+            update: {},
+          });
+
+          const itemExistente = await tx.item.findFirst({
             where: { nome, categoria, ativo: true },
           });
+
           const detalhesEntrada = {
             tipoUnidade: tipoUnidade.value,
             quantidadePorEmbalagem,
             ultimaEntradaEmbalagens: quantidadeEmbalagens,
           };
 
-          return itemExistente
-            ? transaction.estoqueItem.update({
+          let itemResult;
+          if (itemExistente) {
+            itemResult = itemExistente;
+            // Atualiza metadados do item
+            await tx.item.update({
               where: { id: itemExistente.id },
-              data: { ...detalhesEntrada, quantidade: { increment: quantidade } },
-            })
-            : transaction.estoqueItem.create({
-              data: { nome, categoria, unidade: tipoUnidade.baseUnit, quantidade, ...detalhesEntrada },
+              data: detalhesEntrada,
             });
+          } else {
+            itemResult = await tx.item.create({
+              data: {
+                nome,
+                categoria,
+                unidade: tipoUnidade.baseUnit,
+                ...detalhesEntrada,
+              },
+            });
+          }
+
+          // Upsert do saldo — incremento atômico para evitar conflito concorrente
+          const saldoExistente = await tx.saldoEstoque.findUnique({
+            where: { itemId_localId: { itemId: itemResult.id, localId: local.id } },
+          });
+
+          let novoSaldo: number;
+          if (saldoExistente) {
+            const updated = await tx.saldoEstoque.update({
+              where: { id: saldoExistente.id },
+              data: { quantidade: { increment: quantidade } },
+            });
+            novoSaldo = updated.quantidade;
+          } else {
+            const created = await tx.saldoEstoque.create({
+              data: { itemId: itemResult.id, localId: local.id, quantidade, reservada: 0 },
+            });
+            novoSaldo = created.quantidade;
+          }
+
+          // Registra movimentação de ENTRADA (append-only)
+          const saldoId = saldoExistente?.id ?? (
+            await tx.saldoEstoque.findUnique({
+              where: { itemId_localId: { itemId: itemResult.id, localId: local.id } },
+              select: { id: true },
+            })
+          )?.id;
+
+          if (saldoId) {
+            await tx.movimentacao.create({
+              data: {
+                tipo: TipoMovimentacao.ENTRADA,
+                quantidade,
+                saldoApos: novoSaldo,
+                reservadaApos: saldoExistente?.reservada ?? 0,
+                funcionarioId: funcionario.id,
+                saldoEstoqueId: saldoId,
+                observacao: `Entrada de ${quantidadeEmbalagens} ${tipoUnidade.countLabel}`,
+              },
+            });
+          }
+
+          return tx.item.findUnique({
+            where: { id: itemResult.id },
+            include: {
+              saldos: { include: { local: { select: { slug: true } } } },
+            },
+          });
         }, { isolationLevel: "Serializable" });
         break;
       } catch (error) {
@@ -127,7 +256,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return respostaJson({ item }, { status: 201 });
+    return respostaJson({ item: item ? formatItem(item) : null }, { status: 201 });
   } catch (error) {
     return respostaErroInterno(error, "cadastrar");
   }
@@ -135,7 +264,8 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    if (!(await getAuthenticatedFuncionario())) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+    const funcionario = await getAuthenticatedFuncionario();
+    if (!funcionario) return respostaJson({ error: "Não autenticado." }, { status: 401 });
     if (!isSameOrigin(request)) return respostaJson({ error: "Origem inválida." }, { status: 403 });
     let body: Record<string, unknown>;
     try {
@@ -150,13 +280,52 @@ export async function PATCH(request: Request) {
       return respostaJson({ error: "Item ou quantidade inválida." }, { status: 400 });
     }
 
-    const item = await prisma.estoqueItem.update({
-      where: { id },
-      data: { quantidade },
+    // Ajuste de saldo — registra movimentação de AJUSTE
+    const item = await prisma.$transaction(async (tx) => {
+      const local = await tx.localEstoque.findUnique({ where: { slug: LOCAL_ESTOQUE_SLUG } });
+      if (!local) throw new Error("Local de estoque não encontrado.");
+
+      const saldo = await tx.saldoEstoque.findUnique({
+        where: { itemId_localId: { itemId: id, localId: local.id } },
+      });
+
+      const saldoAnterior = saldo?.quantidade ?? 0;
+      const diff = quantidade - saldoAnterior;
+
+      const saldoResult = saldo
+        ? await tx.saldoEstoque.update({
+            where: { id: saldo.id },
+            data: { quantidade },
+          })
+        : await tx.saldoEstoque.create({
+            data: { itemId: id, localId: local.id, quantidade, reservada: 0 },
+          });
+
+      // Registra movimentação de ajuste
+      await tx.movimentacao.create({
+        data: {
+          tipo: TipoMovimentacao.AJUSTE,
+          quantidade: Math.abs(diff),
+          saldoApos: saldoResult.quantidade,
+          reservadaApos: saldoResult.reservada,
+          funcionarioId: funcionario.id,
+          saldoEstoqueId: saldoResult.id,
+          observacao: `Ajuste manual: ${saldoAnterior} → ${quantidade}`,
+        },
+      });
+
+      return tx.item.findUnique({
+        where: { id },
+        include: { saldos: { include: { local: { select: { slug: true } } } } },
+      });
     });
 
-    return respostaJson({ item });
+    if (!item) return respostaJson({ error: "Item não encontrado." }, { status: 404 });
+    return respostaJson({ item: formatItem(item) });
   } catch (error) {
     return respostaErroInterno(error, "atualizar");
   }
 }
+
+// Exporta helpers para uso em outros módulos
+export { ensureLocal, LOCAL_ESTOQUE_SLUG, LOCAL_DEPOSITO_SLUG };

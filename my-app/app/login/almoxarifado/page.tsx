@@ -1,13 +1,8 @@
 import { redirect } from "next/navigation";
-import { getAuthenticatedFuncionario, requiresPasswordChange } from "@/lib/auth";
-import LoginForm from "../LoginForm";
+import { getAuthenticatedFuncionario, getRoleHomePath } from "@/lib/auth";
 
-export default async function WarehouseLoginPage() {
+export default async function LegacyWarehouseLoginPage() {
   const funcionario = await getAuthenticatedFuncionario();
-  if (funcionario) {
-    if (funcionario.role === "admin") redirect("/admin");
-    if (requiresPasswordChange(funcionario)) redirect("/alterar-senha?next=/almoxarifado");
-    redirect("/almoxarifado");
-  }
-  return <LoginForm portal="almoxarifado" />;
+  if (funcionario) redirect(getRoleHomePath(funcionario.role));
+  redirect("/login");
 }

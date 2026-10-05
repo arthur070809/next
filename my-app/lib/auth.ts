@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { PapelFuncionario } from "@/generated/prisma/client";
 
 export const sessionCookieName = "marcon_session";
 
@@ -33,16 +34,80 @@ export async function getAuthenticatedSession() {
 
 export async function getAuthenticatedFuncionario() {
   const session = await getAuthenticatedSession();
-  return session?.funcionario ?? null;
+  if (!session?.funcionario) return null;
+  return {
+    ...session.funcionario,
+    role: papelParaRole(session.funcionario.papel),
+  };
 }
 
 export async function requireAdmin() {
   const funcionario = await getAuthenticatedFuncionario();
   if (!funcionario) return { funcionario: null, status: 401 as const };
-  if (funcionario.role !== "admin") return { funcionario: null, status: 403 as const };
+  if (funcionario.papel !== PapelFuncionario.ADMIN)
+    return { funcionario: null, status: 403 as const };
   return { funcionario, status: 200 as const };
 }
 
-export function requiresPasswordChange(funcionario: { role: string; mustChangePassword: boolean }) {
-  return funcionario.role !== "admin" && funcionario.mustChangePassword;
+export async function requireAlmoxarife() {
+  const funcionario = await getAuthenticatedFuncionario();
+  if (!funcionario) return { funcionario: null, status: 401 as const };
+  if (
+    funcionario.papel !== PapelFuncionario.ALMOXARIFE &&
+    funcionario.papel !== PapelFuncionario.ADMIN
+  )
+    return { funcionario: null, status: 403 as const };
+  return { funcionario, status: 200 as const };
+}
+
+export function requiresPasswordChange(funcionario: {
+  papel: PapelFuncionario;
+  mustChangePassword: boolean;
+}) {
+  return (
+    funcionario.papel !== PapelFuncionario.ADMIN &&
+    funcionario.mustChangePassword
+  );
+}
+
+/**
+ * Mapeia o papel para o papel antigo "role" string — usado na API de login
+ * para compatibilidade com o front-end até ele ser atualizado.
+ */
+export function papelParaRole(papel: PapelFuncionario): string {
+  switch (papel) {
+    case PapelFuncionario.ADMIN:
+      return "admin";
+    case PapelFuncionario.ALMOXARIFE:
+      return "almoxarife";
+    case PapelFuncionario.OPERADOR:
+      return "operador";
+    case PapelFuncionario.USUARIO:
+    default:
+      return "user";
+  }
+}
+
+export function getRoleHomePath(role: string) {
+  if (role === "admin") return "/admin";
+  if (role === "operador") return "/requisicao";
+  return "/almoxarifado";
+}
+
+/**
+ * Mapeia a string "role" antiga para o enum PapelFuncionario.
+ * Usado para backward compat durante a transição.
+ */
+export function roleparaPapel(role: string): PapelFuncionario {
+  switch (role.toLowerCase()) {
+    case "admin":
+      return PapelFuncionario.ADMIN;
+    case "almoxarife":
+      return PapelFuncionario.ALMOXARIFE;
+    case "operador":
+      return PapelFuncionario.OPERADOR;
+    case "user":
+    default:
+      return PapelFuncionario.USUARIO;
+  }
 }

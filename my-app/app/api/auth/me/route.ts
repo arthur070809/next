@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { getAuthenticatedFuncionario, papelParaRole } from "@/lib/auth";
 
 export async function GET() {
   const funcionario = await getAuthenticatedFuncionario();
@@ -15,8 +15,9 @@ export async function GET() {
       email: funcionario.email,
       cargo: funcionario.cargo,
       cracha: funcionario.cracha,
-        role: funcionario.role,
-        mustChangePassword: funcionario.mustChangePassword,
+      role: papelParaRole(funcionario.papel),
+      papel: funcionario.papel,
+      mustChangePassword: funcionario.mustChangePassword,
     },
   });
 }

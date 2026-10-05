@@ -1,41 +1,159 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import type { RequisicaoAtendida } from "../../lib/types/requisicao";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import type { RequisicaoMock } from "../../lib/types/almoxarifado";
+import { startVisibilityPolling } from "../../lib/visibility-polling";
+import type { PlanoViagens } from "../../lib/viagem/planejar-viagens";
+import {
+  carregarPlanoViagem,
+  consultarDadosReais,
+  planoViagemDemonstracao,
+  viagemDemoDisponivel,
+} from "../../lib/viagem/demo-mode";
+import {
+  ExecutorAssuncaoLote,
+  type ResultadoAssuncaoLote,
+} from "../../lib/viagem/assumir-lote";
+
+const podeAtivarDemonstracao = viagemDemoDisponivel(
+  process.env.NODE_ENV,
+  process.env.NEXT_PUBLIC_VIAGEM_DEMO,
+);
+
+function formatarIdade(data: string) {
+  const minutos = Math.max(0, Math.floor((Date.now() - new Date(data).getTime()) / 60000));
+  if (minutos < 60) return `${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `${horas} h`;
+  return `${Math.floor(horas / 24)} d`;
+}
 
 export default function RequisicoesQueuePage() {
-  const [requisicoes, setRequisicoes] = useState<RequisicaoAtendida[]>([]);
+  const router = useRouter();
+  const [requisicoes, setRequisicoes] = useState<RequisicaoMock[]>([]);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [atualizacao, setAtualizacao] = useState(0);
+  const [requisicaoParaAssumir, setRequisicaoParaAssumir] = useState<RequisicaoMock | null>(null);
+  const [viagemParaAssumir, setViagemParaAssumir] = useState<RequisicaoMock[] | null>(null);
+  const [assumindo, setAssumindo] = useState(false);
+  const [assumindoLote, setAssumindoLote] = useState(false);
+  const [resultadosLote, setResultadosLote] = useState<ResultadoAssuncaoLote[]>([]);
+  const [erroAcao, setErroAcao] = useState("");
+  const [mostrarViagens, setMostrarViagens] = useState(false);
+  const [modoDemonstracao, setModoDemonstracao] = useState(false);
+  const [planoViagens, setPlanoViagens] = useState<PlanoViagens | null>(null);
+  const [carregandoViagens, setCarregandoViagens] = useState(false);
+  const [erroViagens, setErroViagens] = useState("");
+  const carregado = useRef(false);
+  const executorAssuncaoLote = useRef(new ExecutorAssuncaoLote());
+  const planoViagensExibido = modoDemonstracao ? planoViagemDemonstracao : planoViagens;
 
   useEffect(() => {
     let active = true;
-    fetch("/api/requests", { cache: "no-store" }).then(async (response) => {
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar as requisições.");
-      return data.requisicoes as RequisicaoAtendida[];
-    }).then((rows) => { if (active) setRequisicoes(rows); })
-      .catch((cause) => { if (active) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar as requisições."); })
-      .finally(() => { if (active) setCarregando(false); });
-    return () => { active = false; };
-  }, []);
+    let loadingRequests = false;
+    let requestController: AbortController | null = null;
+    const loadRequests = () => {
+      if (!active || document.visibilityState === "hidden" || loadingRequests) return;
+      loadingRequests = true;
+      if (!modoDemonstracao && !carregado.current) setCarregando(true);
+      void consultarDadosReais(modoDemonstracao, async () => {
+        requestController = new AbortController();
+        const response = await fetch("/api/almoxarifado/requisicoes", {
+          cache: "no-store",
+          signal: requestController.signal,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar as requisições.");
+        return data.requisicoes as RequisicaoMock[];
+      }).then((rows) => {
+        if (active && rows) {
+          setRequisicoes(rows);
+          setErro("");
+        }
+      }).catch((cause) => {
+        if (active) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar as requisições.");
+      }).finally(() => {
+        if (active) {
+          if (!modoDemonstracao) carregado.current = true;
+          setCarregando(false);
+        }
+        requestController = null;
+        loadingRequests = false;
+      });
+    };
+    const stopPolling = startVisibilityPolling(document, loadRequests, 10000);
+    loadRequests();
+    return () => {
+      active = false;
+      requestController?.abort();
+      stopPolling();
+    };
+  }, [atualizacao, modoDemonstracao]);
+
+  useEffect(() => {
+    if (!mostrarViagens) return;
+    if (modoDemonstracao) return;
+
+    let active = true;
+    let loading = false;
+    let requestController: AbortController | null = null;
+    const carregarViagens = async () => {
+      if (!active || document.visibilityState === "hidden" || loading) return;
+      loading = true;
+      setCarregandoViagens(true);
+      try {
+        const data = await carregarPlanoViagem(modoDemonstracao, async () => {
+          requestController = new AbortController();
+          const response = await fetch("/api/almoxarifado/viagens", {
+            cache: "no-store",
+            signal: requestController.signal,
+          });
+          const resultado = await response.json() as PlanoViagens & { error?: string };
+          if (!response.ok) {
+            throw new Error(resultado.error ?? "Não foi possível montar as viagens.");
+          }
+          return resultado;
+        });
+        if (active) {
+          setPlanoViagens(data);
+          setErroViagens("");
+        }
+      } catch (cause) {
+        if (active) {
+          setErroViagens(
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível montar as viagens.",
+          );
+        }
+      } finally {
+        loading = false;
+        requestController = null;
+        if (active) setCarregandoViagens(false);
+      }
+    };
+
+    const stopPolling = startVisibilityPolling(
+      document,
+      () => void carregarViagens(),
+      10000,
+    );
+    void carregarViagens();
+    return () => {
+      active = false;
+      requestController?.abort();
+      stopPolling();
+    };
+  }, [mostrarViagens, modoDemonstracao]);
 
   const filtradas = useMemo(() => requisicoes.filter((request) =>
-    `${request.numero} ${request.item} ${request.funcionario.nome}`.toLowerCase().includes(busca.toLowerCase())
+    `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase())
   ), [requisicoes, busca]);
 
-  return <main className="mx-auto max-w-7xl p-4 sm:p-6">
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold text-[#212529]">Requisições retiradas</h1><p className="mt-1 text-sm text-slate-600">Registro de sobras por requisição.</p></div><label className="text-sm font-medium text-slate-700">Buscar<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Número, item ou solicitante" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-72" /></label></div>
-    {erro && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erro}</p>}
-    {carregando ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">Carregando requisições…</p> : filtradas.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">Nenhuma requisição encontrada.</p> : <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{["Nº", "Item", "Qtd.", "Origem", "Devolvido", "Solicitante", "Data", ""].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr></thead>
-        <tbody>{filtradas.map((request) => <tr key={request.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-          <td className="px-4 py-3 font-semibold text-slate-900">#{request.numero}</td><td className="px-4 py-3"><span className="font-medium text-slate-800">{request.item}</span>{request.estoqueItem?.codigo && <span className="block text-xs text-slate-500">{request.estoqueItem.codigo}</span>}</td><td className="px-4 py-3">{request.quantidade} {request.unidadeMedida}</td><td className="px-4 py-3">{request.origem === "DEPOSITO" ? "Depósito" : "Estoque"}</td><td className="px-4 py-3">{request.qtdDevolvida}</td><td className="px-4 py-3">{request.funcionario.nome}</td><td className="px-4 py-3 whitespace-nowrap">{new Date(request.createdAt).toLocaleString("pt-BR")}</td><td className="px-4 py-3"><Link href={`/almoxarifado/requisicao/${encodeURIComponent(request.id)}`} className="font-semibold text-royal hover:underline">Detalhes / sobra</Link></td>
-        </tr>)}</tbody>
-      </table>
-    </div>}
-  </main>;
+
 }

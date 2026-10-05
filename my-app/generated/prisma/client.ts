@@ -50,25 +50,50 @@ export type Funcionario = Prisma.FuncionarioModel
  */
 export type Sessao = Prisma.SessaoModel
 /**
+ * Model Item
+ * 
+ */
+export type Item = Prisma.ItemModel
+/**
+ * Model LocalEstoque
+ * 
+ */
+export type LocalEstoque = Prisma.LocalEstoqueModel
+/**
+ * Model SaldoEstoque
+ * 
+ */
+export type SaldoEstoque = Prisma.SaldoEstoqueModel
+/**
+ * Model SaldoOperadorItem
+ * 
+ */
+export type SaldoOperadorItem = Prisma.SaldoOperadorItemModel
+/**
+ * Model SequenciaRequisicao
+ * 
+ */
+export type SequenciaRequisicao = Prisma.SequenciaRequisicaoModel
+/**
  * Model Requisicao
  * 
  */
 export type Requisicao = Prisma.RequisicaoModel
 /**
- * Model EstoqueItem
+ * Model RequisicaoItem
  * 
  */
-export type EstoqueItem = Prisma.EstoqueItemModel
+export type RequisicaoItem = Prisma.RequisicaoItemModel
 /**
- * Model SaldoDeposito
+ * Model Movimentacao
  * 
  */
-export type SaldoDeposito = Prisma.SaldoDepositoModel
+export type Movimentacao = Prisma.MovimentacaoModel
 /**
- * Model MovimentacaoDeposito
+ * Model MovimentoContaEstoque
  * 
  */
-export type MovimentacaoDeposito = Prisma.MovimentacaoDepositoModel
+export type MovimentoContaEstoque = Prisma.MovimentoContaEstoqueModel
 /**
  * Model Auditoria
  * 
@@ -94,6 +119,11 @@ export type WebAuthnCredential = Prisma.WebAuthnCredentialModel
  * 
  */
 export type AuthChallenge = Prisma.AuthChallengeModel
+/**
+ * Model LoginAttemptBucket
+ * 
+ */
+export type LoginAttemptBucket = Prisma.LoginAttemptBucketModel
 /**
  * Model AdminTotpCredential
  * 

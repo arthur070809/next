@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getAuthenticatedFuncionario } from "@/lib/auth";
 
 export const metadata = {
   title: "Almoxarifado Marcon | Controle de estoque",
@@ -8,9 +6,6 @@ export const metadata = {
 };
 
 export default async function Home() {
-  const funcionario = await getAuthenticatedFuncionario();
-  if (funcionario) redirect(funcionario.role !== "admin" && funcionario.mustChangePassword ? "/alterar-senha?next=/almoxarifado" : funcionario.role === "admin" ? "/admin" : "/almoxarifado");
-
   return (
     <main className="min-h-screen bg-slate-100 px-5 py-8 sm:px-8 sm:py-12">
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 motion-fade-in">

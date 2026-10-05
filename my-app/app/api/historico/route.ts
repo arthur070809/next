@@ -1,45 +1,131 @@
-import { NextResponse } from "next/server"
-import type { RowDataPacket } from "mysql2/promise"
-import { getAuthenticatedFuncionario } from "../../../lib/auth"
-import { db } from "../../../lib/mysql"
-import type { EventoHistorico } from "../../../lib/types/almoxarifado"
-
-type HistoryRow = RowDataPacket & {
-  id: number; requisicao_id: number; numero_pedido: string; evento: EventoHistorico["evento"];
-  codigo_cracha: string; descricao_motivo: string | null; ocorrido_em: Date;
-  item_nome: string | null; separado: number | null; motivo_item: string | null;
-} //a
+import { NextResponse } from "next/server";
+import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import type { EventoHistorico } from "@/lib/types/almoxarifado";
 
 export async function GET() {
-  if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
+  const funcionario = await getAuthenticatedFuncionario();
+  if (!funcionario) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
   try {
-    const [rows] = await db.execute<HistoryRow[]>(`
-      SELECT h.id, h.requisicao_id, r.numero_pedido, h.evento, h.codigo_cracha,
-        h.descricao_motivo, h.ocorrido_em, i.nome AS item_nome,
-        hi.separado, hi.motivo_nao_atendido AS motivo_item
-      FROM historico h
-      JOIN requisicoes r ON r.id = h.requisicao_id
-      LEFT JOIN historico_itens hi ON hi.historico_id = h.id
-      LEFT JOIN requisicao_itens ri ON ri.id = hi.requisicao_item_id
-      LEFT JOIN itens i ON i.id = ri.item_id
-      ORDER BY h.ocorrido_em DESC, h.id DESC, hi.id ASC
-    `)
-    const events = new Map<number, EventoHistorico>()
-    for (const row of rows) {
-      let event = events.get(row.id)
-      if (!event) {
-        event = {
-          id: String(row.id), requisicaoId: String(row.requisicao_id), numeroPedido: row.numero_pedido,
-          evento: row.evento, codigoCracha: row.codigo_cracha, descricaoMotivo: row.descricao_motivo,
-          timestamp: new Date(row.ocorrido_em).toISOString(), itensFinalizados: row.item_nome ? [] : undefined,
-        }
-        events.set(row.id, event)
+    // Busca requisições com itens e funcionários para compor eventos de histórico
+    const requisicoes = await prisma.requisicao.findMany({
+      where: {
+        OR: [
+          { status: "CONCLUIDA" },
+          { status: "ANULADA" },
+          { status: "ASSUMIDA" },
+          { atendenteId: { not: null } },
+        ],
+      },
+      include: {
+        solicitante: { select: { nome: true, cracha: true } },
+        atendente: { select: { nome: true, cracha: true } },
+        itens: {
+          include: {
+            item: { select: { nome: true } },
+          },
+        },
+      },
+      orderBy: { atualizadoEm: "desc" },
+      take: 100,
+    });
+
+    // Busca registros de auditoria específicos de requisições
+    const auditorias = await prisma.auditoria.findMany({
+      where: {
+        acao: {
+          in: [
+            "REQUISICAO_ASSUMIDA",
+            "REQUISICAO_DEVOLVIDA",
+            "REQUISICAO_ANULADA",
+            "REQUISICAO_FINALIZADA",
+          ],
+        },
+      },
+      include: {
+        autor: { select: { cracha: true, nome: true } },
+      },
+      orderBy: { criadoEm: "desc" },
+      take: 200,
+    });
+
+    const eventos: EventoHistorico[] = [];
+
+    // Mapeia eventos a partir das requisições e seus itens
+    for (const req of requisicoes) {
+      const crachaAtendente = req.atendente?.cracha ?? req.solicitante.cracha;
+
+      if (req.status === "CONCLUIDA" && req.concluidaEm) {
+        eventos.push({
+          id: `concluida-${req.id}`,
+          requisicaoId: req.id,
+          numeroPedido: req.numeroPedido,
+          evento: "finalizada",
+          codigoCracha: crachaAtendente,
+          descricaoMotivo: null,
+          timestamp: req.concluidaEm.toISOString(),
+          itensFinalizados: req.itens.map((it) => ({
+            nome: it.item.nome,
+            separado: Boolean(it.separado),
+            motivo: it.motivoNaoAtendido ?? undefined,
+          })),
+        });
       }
-      if (row.item_nome && event.itensFinalizados) event.itensFinalizados.push({ nome: row.item_nome, separado: Boolean(row.separado), motivo: row.motivo_item ?? undefined })
+
+      if (req.status === "ANULADA" && req.anuladaEm) {
+        eventos.push({
+          id: `anulada-${req.id}`,
+          requisicaoId: req.id,
+          numeroPedido: req.numeroPedido,
+          evento: "cancelada",
+          codigoCracha: crachaAtendente,
+          descricaoMotivo: req.observacao ?? "Requisição cancelada.",
+          timestamp: req.anuladaEm.toISOString(),
+        });
+      }
+
+      if (req.status === "ASSUMIDA" && req.assumidaEm) {
+        eventos.push({
+          id: `assumida-${req.id}`,
+          requisicaoId: req.id,
+          numeroPedido: req.numeroPedido,
+          evento: "assumida",
+          codigoCracha: crachaAtendente,
+          descricaoMotivo: null,
+          timestamp: req.assumidaEm.toISOString(),
+        });
+      }
     }
-    return NextResponse.json({ eventos: [...events.values()] })
+
+    // Se temos auditorias de devolução ou outras ações, adiciona também
+    for (const aud of auditorias) {
+      if (aud.acao === "REQUISICAO_DEVOLVIDA") {
+        eventos.push({
+          id: aud.id,
+          requisicaoId: String(aud.alvoId),
+          numeroPedido: aud.detalhes?.split(" ")[1] ?? `REQ-${aud.alvoId}`,
+          evento: "devolvida",
+          codigoCracha: aud.autor.cracha,
+          descricaoMotivo: aud.detalhes,
+          timestamp: aud.criadoEm.toISOString(),
+        });
+      }
+    }
+
+    // Ordena do mais recente para o mais antigo
+    eventos.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    return NextResponse.json({ eventos });
   } catch (error) {
-    console.error("Falha ao consultar histórico no MySQL:", error)
-    return NextResponse.json({ error: "Não foi possível carregar o histórico do MySQL." }, { status: 500 })
+    console.error("Falha ao consultar histórico:", error instanceof Error ? error.message : "erro");
+    return NextResponse.json(
+      { error: "Não foi possível carregar o histórico." },
+      { status: 500 }
+    );
   }
 }

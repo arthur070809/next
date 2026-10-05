@@ -42,9 +42,11 @@ export type FuncionarioMinAggregateOutputType = {
   senha: string | null
   cargo: string | null
   cracha: string | null
-  role: string | null
+  papel: $Enums.PapelFuncionario | null
   mustChangePassword: boolean | null
   ativo: boolean | null
+  criadoEm: Date | null
+  atualizadoEm: Date | null
 }
 
 export type FuncionarioMaxAggregateOutputType = {
@@ -55,9 +57,11 @@ export type FuncionarioMaxAggregateOutputType = {
   senha: string | null
   cargo: string | null
   cracha: string | null
-  role: string | null
+  papel: $Enums.PapelFuncionario | null
   mustChangePassword: boolean | null
   ativo: boolean | null
+  criadoEm: Date | null
+  atualizadoEm: Date | null
 }
 
 export type FuncionarioCountAggregateOutputType = {
@@ -68,9 +72,11 @@ export type FuncionarioCountAggregateOutputType = {
   senha: number
   cargo: number
   cracha: number
-  role: number
+  papel: number
   mustChangePassword: number
   ativo: number
+  criadoEm: number
+  atualizadoEm: number
   _all: number
 }
 
@@ -91,9 +97,11 @@ export type FuncionarioMinAggregateInputType = {
   senha?: true
   cargo?: true
   cracha?: true
-  role?: true
+  papel?: true
   mustChangePassword?: true
   ativo?: true
+  criadoEm?: true
+  atualizadoEm?: true
 }
 
 export type FuncionarioMaxAggregateInputType = {
@@ -104,9 +112,11 @@ export type FuncionarioMaxAggregateInputType = {
   senha?: true
   cargo?: true
   cracha?: true
-  role?: true
+  papel?: true
   mustChangePassword?: true
   ativo?: true
+  criadoEm?: true
+  atualizadoEm?: true
 }
 
 export type FuncionarioCountAggregateInputType = {
@@ -117,9 +127,11 @@ export type FuncionarioCountAggregateInputType = {
   senha?: true
   cargo?: true
   cracha?: true
-  role?: true
+  papel?: true
   mustChangePassword?: true
   ativo?: true
+  criadoEm?: true
+  atualizadoEm?: true
   _all?: true
 }
 
@@ -217,9 +229,11 @@ export type FuncionarioGroupByOutputType = {
   senha: string
   cargo: string
   cracha: string
-  role: string
+  papel: $Enums.PapelFuncionario
   mustChangePassword: boolean
   ativo: boolean
+  criadoEm: Date
+  atualizadoEm: Date
   _count: FuncionarioCountAggregateOutputType | null
   _avg: FuncionarioAvgAggregateOutputType | null
   _sum: FuncionarioSumAggregateOutputType | null
@@ -253,12 +267,18 @@ export type FuncionarioWhereInput = {
   senha?: Prisma.StringFilter<"Funcionario"> | string
   cargo?: Prisma.StringFilter<"Funcionario"> | string
   cracha?: Prisma.StringFilter<"Funcionario"> | string
-  role?: Prisma.StringFilter<"Funcionario"> | string
+  papel?: Prisma.EnumPapelFuncionarioFilter<"Funcionario"> | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFilter<"Funcionario"> | boolean
   ativo?: Prisma.BoolFilter<"Funcionario"> | boolean
+  criadoEm?: Prisma.DateTimeFilter<"Funcionario"> | Date | string
+  atualizadoEm?: Prisma.DateTimeFilter<"Funcionario"> | Date | string
   sessoes?: Prisma.SessaoListRelationFilter
-  requisicoes?: Prisma.RequisicaoListRelationFilter
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoListRelationFilter
+  requisicoesSolicitadas?: Prisma.RequisicaoListRelationFilter
+  requisicoesAtendidas?: Prisma.RequisicaoListRelationFilter
+  movimentacoes?: Prisma.MovimentacaoListRelationFilter
+  saldosOperador?: Prisma.SaldoOperadorItemListRelationFilter
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueListRelationFilter
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueListRelationFilter
   auditorias?: Prisma.AuditoriaListRelationFilter
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialListRelationFilter
   credenciaisCriadas?: Prisma.WebAuthnCredentialListRelationFilter
@@ -288,12 +308,18 @@ export type FuncionarioOrderByWithRelationInput = {
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  papel?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   sessoes?: Prisma.SessaoOrderByRelationAggregateInput
-  requisicoes?: Prisma.RequisicaoOrderByRelationAggregateInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoOrderByRelationAggregateInput
+  requisicoesSolicitadas?: Prisma.RequisicaoOrderByRelationAggregateInput
+  requisicoesAtendidas?: Prisma.RequisicaoOrderByRelationAggregateInput
+  movimentacoes?: Prisma.MovimentacaoOrderByRelationAggregateInput
+  saldosOperador?: Prisma.SaldoOperadorItemOrderByRelationAggregateInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueOrderByRelationAggregateInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueOrderByRelationAggregateInput
   auditorias?: Prisma.AuditoriaOrderByRelationAggregateInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialOrderByRelationAggregateInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialOrderByRelationAggregateInput
@@ -327,12 +353,18 @@ export type FuncionarioWhereUniqueInput = Prisma.AtLeast<{
   nome?: Prisma.StringFilter<"Funcionario"> | string
   senha?: Prisma.StringFilter<"Funcionario"> | string
   cargo?: Prisma.StringFilter<"Funcionario"> | string
-  role?: Prisma.StringFilter<"Funcionario"> | string
+  papel?: Prisma.EnumPapelFuncionarioFilter<"Funcionario"> | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFilter<"Funcionario"> | boolean
   ativo?: Prisma.BoolFilter<"Funcionario"> | boolean
+  criadoEm?: Prisma.DateTimeFilter<"Funcionario"> | Date | string
+  atualizadoEm?: Prisma.DateTimeFilter<"Funcionario"> | Date | string
   sessoes?: Prisma.SessaoListRelationFilter
-  requisicoes?: Prisma.RequisicaoListRelationFilter
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoListRelationFilter
+  requisicoesSolicitadas?: Prisma.RequisicaoListRelationFilter
+  requisicoesAtendidas?: Prisma.RequisicaoListRelationFilter
+  movimentacoes?: Prisma.MovimentacaoListRelationFilter
+  saldosOperador?: Prisma.SaldoOperadorItemListRelationFilter
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueListRelationFilter
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueListRelationFilter
   auditorias?: Prisma.AuditoriaListRelationFilter
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialListRelationFilter
   credenciaisCriadas?: Prisma.WebAuthnCredentialListRelationFilter
@@ -362,9 +394,11 @@ export type FuncionarioOrderByWithAggregationInput = {
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  papel?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   _count?: Prisma.FuncionarioCountOrderByAggregateInput
   _avg?: Prisma.FuncionarioAvgOrderByAggregateInput
   _max?: Prisma.FuncionarioMaxOrderByAggregateInput
@@ -383,9 +417,11 @@ export type FuncionarioScalarWhereWithAggregatesInput = {
   senha?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
   cargo?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
   cracha?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
-  role?: Prisma.StringWithAggregatesFilter<"Funcionario"> | string
+  papel?: Prisma.EnumPapelFuncionarioWithAggregatesFilter<"Funcionario"> | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolWithAggregatesFilter<"Funcionario"> | boolean
   ativo?: Prisma.BoolWithAggregatesFilter<"Funcionario"> | boolean
+  criadoEm?: Prisma.DateTimeWithAggregatesFilter<"Funcionario"> | Date | string
+  atualizadoEm?: Prisma.DateTimeWithAggregatesFilter<"Funcionario"> | Date | string
 }
 
 export type FuncionarioCreateInput = {
@@ -395,12 +431,18 @@ export type FuncionarioCreateInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -430,12 +472,18 @@ export type FuncionarioUncheckedCreateInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -464,12 +512,18 @@ export type FuncionarioUpdateInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -499,12 +553,18 @@ export type FuncionarioUncheckedUpdateInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -534,9 +594,11 @@ export type FuncionarioCreateManyInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
 }
 
 export type FuncionarioUpdateManyMutationInput = {
@@ -546,9 +608,11 @@ export type FuncionarioUpdateManyMutationInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FuncionarioUncheckedUpdateManyInput = {
@@ -559,9 +623,11 @@ export type FuncionarioUncheckedUpdateManyInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FuncionarioOrderByRelevanceInput = {
@@ -578,9 +644,11 @@ export type FuncionarioCountOrderByAggregateInput = {
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  papel?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
 }
 
 export type FuncionarioAvgOrderByAggregateInput = {
@@ -595,9 +663,11 @@ export type FuncionarioMaxOrderByAggregateInput = {
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  papel?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
 }
 
 export type FuncionarioMinOrderByAggregateInput = {
@@ -608,9 +678,11 @@ export type FuncionarioMinOrderByAggregateInput = {
   senha?: Prisma.SortOrder
   cargo?: Prisma.SortOrder
   cracha?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  papel?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
   ativo?: Prisma.SortOrder
+  criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
 }
 
 export type FuncionarioSumOrderByAggregateInput = {
@@ -635,8 +707,16 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type EnumPapelFuncionarioFieldUpdateOperationsInput = {
+  set?: $Enums.PapelFuncionario
+}
+
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -661,32 +741,90 @@ export type FuncionarioUpdateOneRequiredWithoutSessoesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutSessoesInput, Prisma.FuncionarioUpdateWithoutSessoesInput>, Prisma.FuncionarioUncheckedUpdateWithoutSessoesInput>
 }
 
-export type FuncionarioCreateNestedOneWithoutRequisicoesInput = {
-  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesInput>
-  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutRequisicoesInput
+export type FuncionarioCreateNestedOneWithoutSaldosOperadorInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutSaldosOperadorInput, Prisma.FuncionarioUncheckedCreateWithoutSaldosOperadorInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutSaldosOperadorInput
   connect?: Prisma.FuncionarioWhereUniqueInput
 }
 
-export type FuncionarioUpdateOneRequiredWithoutRequisicoesNestedInput = {
-  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesInput>
-  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutRequisicoesInput
-  upsert?: Prisma.FuncionarioUpsertWithoutRequisicoesInput
+export type FuncionarioUpdateOneRequiredWithoutSaldosOperadorNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutSaldosOperadorInput, Prisma.FuncionarioUncheckedCreateWithoutSaldosOperadorInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutSaldosOperadorInput
+  upsert?: Prisma.FuncionarioUpsertWithoutSaldosOperadorInput
   connect?: Prisma.FuncionarioWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutRequisicoesInput, Prisma.FuncionarioUpdateWithoutRequisicoesInput>, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutSaldosOperadorInput, Prisma.FuncionarioUpdateWithoutSaldosOperadorInput>, Prisma.FuncionarioUncheckedUpdateWithoutSaldosOperadorInput>
 }
 
-export type FuncionarioCreateNestedOneWithoutMovimentacoesDepositoInput = {
-  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
-  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentacoesDepositoInput
+export type FuncionarioCreateNestedOneWithoutRequisicoesSolicitadasInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesSolicitadasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutRequisicoesSolicitadasInput
   connect?: Prisma.FuncionarioWhereUniqueInput
 }
 
-export type FuncionarioUpdateOneRequiredWithoutMovimentacoesDepositoNestedInput = {
-  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
-  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentacoesDepositoInput
-  upsert?: Prisma.FuncionarioUpsertWithoutMovimentacoesDepositoInput
+export type FuncionarioCreateNestedOneWithoutRequisicoesAtendidasInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesAtendidasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutRequisicoesAtendidasInput
   connect?: Prisma.FuncionarioWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUpdateWithoutMovimentacoesDepositoInput>, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutRequisicoesSolicitadasNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesSolicitadasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutRequisicoesSolicitadasInput
+  upsert?: Prisma.FuncionarioUpsertWithoutRequisicoesSolicitadasInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUpdateWithoutRequisicoesSolicitadasInput>, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesSolicitadasInput>
+}
+
+export type FuncionarioUpdateOneWithoutRequisicoesAtendidasNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesAtendidasInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutRequisicoesAtendidasInput
+  upsert?: Prisma.FuncionarioUpsertWithoutRequisicoesAtendidasInput
+  disconnect?: Prisma.FuncionarioWhereInput | boolean
+  delete?: Prisma.FuncionarioWhereInput | boolean
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUpdateWithoutRequisicoesAtendidasInput>, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesAtendidasInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutMovimentacoesInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentacoesInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutMovimentacoesNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentacoesInput
+  upsert?: Prisma.FuncionarioUpsertWithoutMovimentacoesInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutMovimentacoesInput, Prisma.FuncionarioUpdateWithoutMovimentacoesInput>, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesInput>
+}
+
+export type FuncionarioCreateNestedOneWithoutMovimentosContaOrigemInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaOrigemInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentosContaOrigemInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioCreateNestedOneWithoutMovimentosContaExecutorInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaExecutorInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentosContaExecutorInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+}
+
+export type FuncionarioUpdateOneRequiredWithoutMovimentosContaOrigemNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaOrigemInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentosContaOrigemInput
+  upsert?: Prisma.FuncionarioUpsertWithoutMovimentosContaOrigemInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUpdateWithoutMovimentosContaOrigemInput>, Prisma.FuncionarioUncheckedUpdateWithoutMovimentosContaOrigemInput>
+}
+
+export type FuncionarioUpdateOneRequiredWithoutMovimentosContaExecutorNestedInput = {
+  create?: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaExecutorInput>
+  connectOrCreate?: Prisma.FuncionarioCreateOrConnectWithoutMovimentosContaExecutorInput
+  upsert?: Prisma.FuncionarioUpsertWithoutMovimentosContaExecutorInput
+  connect?: Prisma.FuncionarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuncionarioUpdateToOneWithWhereWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUpdateWithoutMovimentosContaExecutorInput>, Prisma.FuncionarioUncheckedUpdateWithoutMovimentosContaExecutorInput>
 }
 
 export type FuncionarioCreateNestedOneWithoutAuditoriasInput = {
@@ -966,11 +1104,17 @@ export type FuncionarioCreateWithoutSessoesInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -1000,11 +1144,17 @@ export type FuncionarioUncheckedCreateWithoutSessoesInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1049,11 +1199,17 @@ export type FuncionarioUpdateWithoutSessoesInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -1083,11 +1239,17 @@ export type FuncionarioUncheckedUpdateWithoutSessoesInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -1109,18 +1271,24 @@ export type FuncionarioUncheckedUpdateWithoutSessoesInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
 }
 
-export type FuncionarioCreateWithoutRequisicoesInput = {
+export type FuncionarioCreateWithoutSaldosOperadorInput = {
   nome: string
   login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -1142,7 +1310,7 @@ export type FuncionarioCreateWithoutRequisicoesInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
 }
 
-export type FuncionarioUncheckedCreateWithoutRequisicoesInput = {
+export type FuncionarioUncheckedCreateWithoutSaldosOperadorInput = {
   id?: number
   nome: string
   login?: string | null
@@ -1150,11 +1318,17 @@ export type FuncionarioUncheckedCreateWithoutRequisicoesInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1176,34 +1350,40 @@ export type FuncionarioUncheckedCreateWithoutRequisicoesInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
 }
 
-export type FuncionarioCreateOrConnectWithoutRequisicoesInput = {
+export type FuncionarioCreateOrConnectWithoutSaldosOperadorInput = {
   where: Prisma.FuncionarioWhereUniqueInput
-  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutSaldosOperadorInput, Prisma.FuncionarioUncheckedCreateWithoutSaldosOperadorInput>
 }
 
-export type FuncionarioUpsertWithoutRequisicoesInput = {
-  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutRequisicoesInput, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesInput>
-  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesInput>
+export type FuncionarioUpsertWithoutSaldosOperadorInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutSaldosOperadorInput, Prisma.FuncionarioUncheckedUpdateWithoutSaldosOperadorInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutSaldosOperadorInput, Prisma.FuncionarioUncheckedCreateWithoutSaldosOperadorInput>
   where?: Prisma.FuncionarioWhereInput
 }
 
-export type FuncionarioUpdateToOneWithWhereWithoutRequisicoesInput = {
+export type FuncionarioUpdateToOneWithWhereWithoutSaldosOperadorInput = {
   where?: Prisma.FuncionarioWhereInput
-  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutRequisicoesInput, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesInput>
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutSaldosOperadorInput, Prisma.FuncionarioUncheckedUpdateWithoutSaldosOperadorInput>
 }
 
-export type FuncionarioUpdateWithoutRequisicoesInput = {
+export type FuncionarioUpdateWithoutSaldosOperadorInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -1225,7 +1405,7 @@ export type FuncionarioUpdateWithoutRequisicoesInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
 }
 
-export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
+export type FuncionarioUncheckedUpdateWithoutSaldosOperadorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1233,11 +1413,17 @@ export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -1259,18 +1445,24 @@ export type FuncionarioUncheckedUpdateWithoutRequisicoesInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
 }
 
-export type FuncionarioCreateWithoutMovimentacoesDepositoInput = {
+export type FuncionarioCreateWithoutRequisicoesSolicitadasInput = {
   nome: string
   login?: string | null
   email: string
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -1292,7 +1484,7 @@ export type FuncionarioCreateWithoutMovimentacoesDepositoInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
 }
 
-export type FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput = {
+export type FuncionarioUncheckedCreateWithoutRequisicoesSolicitadasInput = {
   id?: number
   nome: string
   login?: string | null
@@ -1300,11 +1492,17 @@ export type FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1326,34 +1524,124 @@ export type FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
 }
 
-export type FuncionarioCreateOrConnectWithoutMovimentacoesDepositoInput = {
+export type FuncionarioCreateOrConnectWithoutRequisicoesSolicitadasInput = {
   where: Prisma.FuncionarioWhereUniqueInput
-  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesSolicitadasInput>
 }
 
-export type FuncionarioUpsertWithoutMovimentacoesDepositoInput = {
-  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput>
-  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesDepositoInput>
+export type FuncionarioCreateWithoutRequisicoesAtendidasInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutRequisicoesAtendidasInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutRequisicoesAtendidasInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesAtendidasInput>
+}
+
+export type FuncionarioUpsertWithoutRequisicoesSolicitadasInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesSolicitadasInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesSolicitadasInput>
   where?: Prisma.FuncionarioWhereInput
 }
 
-export type FuncionarioUpdateToOneWithWhereWithoutMovimentacoesDepositoInput = {
+export type FuncionarioUpdateToOneWithWhereWithoutRequisicoesSolicitadasInput = {
   where?: Prisma.FuncionarioWhereInput
-  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentacoesDepositoInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput>
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutRequisicoesSolicitadasInput, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesSolicitadasInput>
 }
 
-export type FuncionarioUpdateWithoutMovimentacoesDepositoInput = {
+export type FuncionarioUpdateWithoutRequisicoesSolicitadasInput = {
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -1375,7 +1663,7 @@ export type FuncionarioUpdateWithoutMovimentacoesDepositoInput = {
   grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
 }
 
-export type FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput = {
+export type FuncionarioUncheckedUpdateWithoutRequisicoesSolicitadasInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1383,11 +1671,629 @@ export type FuncionarioUncheckedUpdateWithoutMovimentacoesDepositoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutRequisicoesAtendidasInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesAtendidasInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUncheckedCreateWithoutRequisicoesAtendidasInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutRequisicoesAtendidasInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutRequisicoesAtendidasInput, Prisma.FuncionarioUncheckedUpdateWithoutRequisicoesAtendidasInput>
+}
+
+export type FuncionarioUpdateWithoutRequisicoesAtendidasInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutRequisicoesAtendidasInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutMovimentacoesInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutMovimentacoesInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutMovimentacoesInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesInput>
+}
+
+export type FuncionarioUpsertWithoutMovimentacoesInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentacoesInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentacoesInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentacoesInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutMovimentacoesInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentacoesInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentacoesInput>
+}
+
+export type FuncionarioUpdateWithoutMovimentacoesInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutMovimentacoesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioCreateWithoutMovimentosContaOrigemInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutMovimentosContaOrigemInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutMovimentosContaOrigemInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaOrigemInput>
+}
+
+export type FuncionarioCreateWithoutMovimentosContaExecutorInput = {
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioUncheckedCreateWithoutMovimentosContaExecutorInput = {
+  id?: number
+  nome: string
+  login?: string | null
+  email: string
+  senha: string
+  cargo: string
+  cracha: string
+  papel?: $Enums.PapelFuncionario
+  mustChangePassword?: boolean
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutFuncionarioInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedCreateNestedManyWithoutCriadoPorInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutAdminInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedCreateNestedManyWithoutFuncionarioInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutAdminInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedCreateNestedManyWithoutFuncionarioInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedCreateNestedOneWithoutFuncionarioInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutAtorInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutFuncionarioInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedCreateNestedManyWithoutCriadoPorInput
+}
+
+export type FuncionarioCreateOrConnectWithoutMovimentosContaExecutorInput = {
+  where: Prisma.FuncionarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaExecutorInput>
+}
+
+export type FuncionarioUpsertWithoutMovimentosContaOrigemInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentosContaOrigemInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaOrigemInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutMovimentosContaOrigemInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentosContaOrigemInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentosContaOrigemInput>
+}
+
+export type FuncionarioUpdateWithoutMovimentosContaOrigemInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutMovimentosContaOrigemInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
+  auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUncheckedUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUncheckedUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUncheckedUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUncheckedUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUncheckedUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUncheckedUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUpsertWithoutMovimentosContaExecutorInput = {
+  update: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentosContaExecutorInput>
+  create: Prisma.XOR<Prisma.FuncionarioCreateWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUncheckedCreateWithoutMovimentosContaExecutorInput>
+  where?: Prisma.FuncionarioWhereInput
+}
+
+export type FuncionarioUpdateToOneWithWhereWithoutMovimentosContaExecutorInput = {
+  where?: Prisma.FuncionarioWhereInput
+  data: Prisma.XOR<Prisma.FuncionarioUpdateWithoutMovimentosContaExecutorInput, Prisma.FuncionarioUncheckedUpdateWithoutMovimentosContaExecutorInput>
+}
+
+export type FuncionarioUpdateWithoutMovimentosContaExecutorInput = {
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
+  credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
+  credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
+  pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
+  pareamentosFuncionario?: Prisma.DevicePairingUpdateManyWithoutFuncionarioNestedInput
+  desafiosAutenticacao?: Prisma.AuthChallengeUpdateManyWithoutFuncionarioNestedInput
+  desafiosVivacidade?: Prisma.LivenessChallengeUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciais?: Prisma.FaceTemplateUpdateManyWithoutFuncionarioNestedInput
+  templatesFaciaisCriados?: Prisma.FaceTemplateUpdateManyWithoutCriadoPorNestedInput
+  tentativasFaciais?: Prisma.FaceAuthAttemptUpdateManyWithoutFuncionarioNestedInput
+  sessoesCadastroFacialComoAdmin?: Prisma.FaceEnrollmentSessionUpdateManyWithoutAdminNestedInput
+  sessoesCadastroFacialComoAlvo?: Prisma.FaceEnrollmentSessionUpdateManyWithoutFuncionarioNestedInput
+  tentativasCadastroFacialComoAdmin?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutAdminNestedInput
+  tentativasCadastroFacialComoAlvo?: Prisma.FaceEnrollmentAttemptUpdateManyWithoutFuncionarioNestedInput
+  adminTotp?: Prisma.AdminTotpCredentialUpdateOneWithoutFuncionarioNestedInput
+  eventosSegurancaComoAtor?: Prisma.SecurityAuditEventUpdateManyWithoutAtorNestedInput
+  eventosSegurancaComoAlvo?: Prisma.SecurityAuditEventUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaComoAlvo?: Prisma.EmergencyAccessGrantUpdateManyWithoutFuncionarioNestedInput
+  grantsEmergenciaCriados?: Prisma.EmergencyAccessGrantUpdateManyWithoutCriadoPorNestedInput
+}
+
+export type FuncionarioUncheckedUpdateWithoutMovimentosContaExecutorInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  login?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.StringFieldUpdateOperationsInput | string
+  cracha?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -1416,12 +2322,18 @@ export type FuncionarioCreateWithoutAuditoriasInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
   pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
@@ -1450,12 +2362,18 @@ export type FuncionarioUncheckedCreateWithoutAuditoriasInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
   pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1499,12 +2417,18 @@ export type FuncionarioUpdateWithoutAuditoriasInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
   pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
@@ -1533,12 +2457,18 @@ export type FuncionarioUncheckedUpdateWithoutAuditoriasInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
   pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -1566,12 +2496,18 @@ export type FuncionarioCreateWithoutPareamentosFuncionarioInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -1600,12 +2536,18 @@ export type FuncionarioUncheckedCreateWithoutPareamentosFuncionarioInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1638,12 +2580,18 @@ export type FuncionarioCreateWithoutPareamentosCriadosInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -1672,12 +2620,18 @@ export type FuncionarioUncheckedCreateWithoutPareamentosCriadosInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1721,12 +2675,18 @@ export type FuncionarioUpdateWithoutPareamentosFuncionarioInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -1755,12 +2715,18 @@ export type FuncionarioUncheckedUpdateWithoutPareamentosFuncionarioInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -1799,12 +2765,18 @@ export type FuncionarioUpdateWithoutPareamentosCriadosInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -1833,12 +2805,18 @@ export type FuncionarioUncheckedUpdateWithoutPareamentosCriadosInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -1866,12 +2844,18 @@ export type FuncionarioCreateWithoutCredenciaisWebAuthnInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
   pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
@@ -1900,12 +2884,18 @@ export type FuncionarioUncheckedCreateWithoutCredenciaisWebAuthnInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
   pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -1938,12 +2928,18 @@ export type FuncionarioCreateWithoutCredenciaisCriadasInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   pareamentosCriados?: Prisma.DevicePairingCreateNestedManyWithoutCriadoPorInput
@@ -1972,12 +2968,18 @@ export type FuncionarioUncheckedCreateWithoutCredenciaisCriadasInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   pareamentosCriados?: Prisma.DevicePairingUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2021,12 +3023,18 @@ export type FuncionarioUpdateWithoutCredenciaisWebAuthnInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
   pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
@@ -2055,12 +3063,18 @@ export type FuncionarioUncheckedUpdateWithoutCredenciaisWebAuthnInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
   pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2099,12 +3113,18 @@ export type FuncionarioUpdateWithoutCredenciaisCriadasInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   pareamentosCriados?: Prisma.DevicePairingUpdateManyWithoutCriadoPorNestedInput
@@ -2133,12 +3153,18 @@ export type FuncionarioUncheckedUpdateWithoutCredenciaisCriadasInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   pareamentosCriados?: Prisma.DevicePairingUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2166,12 +3192,18 @@ export type FuncionarioCreateWithoutDesafiosAutenticacaoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -2200,12 +3232,18 @@ export type FuncionarioUncheckedCreateWithoutDesafiosAutenticacaoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2249,12 +3287,18 @@ export type FuncionarioUpdateWithoutDesafiosAutenticacaoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -2283,12 +3327,18 @@ export type FuncionarioUncheckedUpdateWithoutDesafiosAutenticacaoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2316,12 +3366,18 @@ export type FuncionarioCreateWithoutAdminTotpInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -2350,12 +3406,18 @@ export type FuncionarioUncheckedCreateWithoutAdminTotpInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2399,12 +3461,18 @@ export type FuncionarioUpdateWithoutAdminTotpInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -2433,12 +3501,18 @@ export type FuncionarioUncheckedUpdateWithoutAdminTotpInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2466,12 +3540,18 @@ export type FuncionarioCreateWithoutGrantsEmergenciaComoAlvoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -2500,12 +3580,18 @@ export type FuncionarioUncheckedCreateWithoutGrantsEmergenciaComoAlvoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2538,12 +3624,18 @@ export type FuncionarioCreateWithoutGrantsEmergenciaCriadosInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -2572,12 +3664,18 @@ export type FuncionarioUncheckedCreateWithoutGrantsEmergenciaCriadosInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2621,12 +3719,18 @@ export type FuncionarioUpdateWithoutGrantsEmergenciaComoAlvoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -2655,12 +3759,18 @@ export type FuncionarioUncheckedUpdateWithoutGrantsEmergenciaComoAlvoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2699,12 +3809,18 @@ export type FuncionarioUpdateWithoutGrantsEmergenciaCriadosInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -2733,12 +3849,18 @@ export type FuncionarioUncheckedUpdateWithoutGrantsEmergenciaCriadosInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2766,12 +3888,18 @@ export type FuncionarioCreateWithoutTemplatesFaciaisInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -2800,12 +3928,18 @@ export type FuncionarioUncheckedCreateWithoutTemplatesFaciaisInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2838,12 +3972,18 @@ export type FuncionarioCreateWithoutTemplatesFaciaisCriadosInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -2872,12 +4012,18 @@ export type FuncionarioUncheckedCreateWithoutTemplatesFaciaisCriadosInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -2921,12 +4067,18 @@ export type FuncionarioUpdateWithoutTemplatesFaciaisInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -2955,12 +4107,18 @@ export type FuncionarioUncheckedUpdateWithoutTemplatesFaciaisInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -2999,12 +4157,18 @@ export type FuncionarioUpdateWithoutTemplatesFaciaisCriadosInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3033,12 +4197,18 @@ export type FuncionarioUncheckedUpdateWithoutTemplatesFaciaisCriadosInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3066,12 +4236,18 @@ export type FuncionarioCreateWithoutDesafiosVivacidadeInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -3100,12 +4276,18 @@ export type FuncionarioUncheckedCreateWithoutDesafiosVivacidadeInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -3149,12 +4331,18 @@ export type FuncionarioUpdateWithoutDesafiosVivacidadeInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3183,12 +4371,18 @@ export type FuncionarioUncheckedUpdateWithoutDesafiosVivacidadeInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3216,12 +4410,18 @@ export type FuncionarioCreateWithoutTentativasFaciaisInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -3250,12 +4450,18 @@ export type FuncionarioUncheckedCreateWithoutTentativasFaciaisInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -3299,12 +4505,18 @@ export type FuncionarioUpdateWithoutTentativasFaciaisInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3333,12 +4545,18 @@ export type FuncionarioUncheckedUpdateWithoutTentativasFaciaisInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3366,12 +4584,18 @@ export type FuncionarioCreateWithoutSessoesCadastroFacialComoAdminInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -3400,12 +4624,18 @@ export type FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAdminInput
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -3438,12 +4668,18 @@ export type FuncionarioCreateWithoutSessoesCadastroFacialComoAlvoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -3472,12 +4708,18 @@ export type FuncionarioUncheckedCreateWithoutSessoesCadastroFacialComoAlvoInput 
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -3521,12 +4763,18 @@ export type FuncionarioUpdateWithoutSessoesCadastroFacialComoAdminInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3555,12 +4803,18 @@ export type FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAdminInput
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3599,12 +4853,18 @@ export type FuncionarioUpdateWithoutSessoesCadastroFacialComoAlvoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3633,12 +4893,18 @@ export type FuncionarioUncheckedUpdateWithoutSessoesCadastroFacialComoAlvoInput 
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3666,12 +4932,18 @@ export type FuncionarioCreateWithoutTentativasCadastroFacialComoAdminInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -3700,12 +4972,18 @@ export type FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAdminIn
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -3738,12 +5016,18 @@ export type FuncionarioCreateWithoutTentativasCadastroFacialComoAlvoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -3772,12 +5056,18 @@ export type FuncionarioUncheckedCreateWithoutTentativasCadastroFacialComoAlvoInp
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -3821,12 +5111,18 @@ export type FuncionarioUpdateWithoutTentativasCadastroFacialComoAdminInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3855,12 +5151,18 @@ export type FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAdminIn
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3899,12 +5201,18 @@ export type FuncionarioUpdateWithoutTentativasCadastroFacialComoAlvoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -3933,12 +5241,18 @@ export type FuncionarioUncheckedUpdateWithoutTentativasCadastroFacialComoAlvoInp
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -3966,12 +5280,18 @@ export type FuncionarioCreateWithoutEventosSegurancaComoAlvoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -4000,12 +5320,18 @@ export type FuncionarioUncheckedCreateWithoutEventosSegurancaComoAlvoInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -4038,12 +5364,18 @@ export type FuncionarioCreateWithoutEventosSegurancaComoAtorInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialCreateNestedManyWithoutCriadoPorInput
@@ -4072,12 +5404,18 @@ export type FuncionarioUncheckedCreateWithoutEventosSegurancaComoAtorInput = {
   senha: string
   cargo: string
   cracha: string
-  role?: string
+  papel?: $Enums.PapelFuncionario
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
   sessoes?: Prisma.SessaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  requisicoes?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutFuncionarioInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedCreateNestedManyWithoutUsuarioInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutSolicitanteInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedCreateNestedManyWithoutAtendenteInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutFuncionarioInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutFuncionarioInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioOrigemInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutFuncionarioExecutorInput
   auditorias?: Prisma.AuditoriaUncheckedCreateNestedManyWithoutAutorInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutFuncionarioInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedCreateNestedManyWithoutCriadoPorInput
@@ -4121,12 +5459,18 @@ export type FuncionarioUpdateWithoutEventosSegurancaComoAlvoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -4155,12 +5499,18 @@ export type FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAlvoInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -4199,12 +5549,18 @@ export type FuncionarioUpdateWithoutEventosSegurancaComoAtorInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUpdateManyWithoutCriadoPorNestedInput
@@ -4233,12 +5589,18 @@ export type FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAtorInput = {
   senha?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.StringFieldUpdateOperationsInput | string
   cracha?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
+  papel?: Prisma.EnumPapelFuncionarioFieldUpdateOperationsInput | $Enums.PapelFuncionario
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessoes?: Prisma.SessaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  requisicoes?: Prisma.RequisicaoUncheckedUpdateManyWithoutFuncionarioNestedInput
-  movimentacoesDeposito?: Prisma.MovimentacaoDepositoUncheckedUpdateManyWithoutUsuarioNestedInput
+  requisicoesSolicitadas?: Prisma.RequisicaoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  requisicoesAtendidas?: Prisma.RequisicaoUncheckedUpdateManyWithoutAtendenteNestedInput
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutFuncionarioNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutFuncionarioNestedInput
+  movimentosContaOrigem?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioOrigemNestedInput
+  movimentosContaExecutor?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutFuncionarioExecutorNestedInput
   auditorias?: Prisma.AuditoriaUncheckedUpdateManyWithoutAutorNestedInput
   credenciaisWebAuthn?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutFuncionarioNestedInput
   credenciaisCriadas?: Prisma.WebAuthnCredentialUncheckedUpdateManyWithoutCriadoPorNestedInput
@@ -4266,8 +5628,12 @@ export type FuncionarioUncheckedUpdateWithoutEventosSegurancaComoAtorInput = {
 
 export type FuncionarioCountOutputType = {
   sessoes: number
-  requisicoes: number
-  movimentacoesDeposito: number
+  requisicoesSolicitadas: number
+  requisicoesAtendidas: number
+  movimentacoes: number
+  saldosOperador: number
+  movimentosContaOrigem: number
+  movimentosContaExecutor: number
   auditorias: number
   credenciaisWebAuthn: number
   credenciaisCriadas: number
@@ -4290,8 +5656,12 @@ export type FuncionarioCountOutputType = {
 
 export type FuncionarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessoes?: boolean | FuncionarioCountOutputTypeCountSessoesArgs
-  requisicoes?: boolean | FuncionarioCountOutputTypeCountRequisicoesArgs
-  movimentacoesDeposito?: boolean | FuncionarioCountOutputTypeCountMovimentacoesDepositoArgs
+  requisicoesSolicitadas?: boolean | FuncionarioCountOutputTypeCountRequisicoesSolicitadasArgs
+  requisicoesAtendidas?: boolean | FuncionarioCountOutputTypeCountRequisicoesAtendidasArgs
+  movimentacoes?: boolean | FuncionarioCountOutputTypeCountMovimentacoesArgs
+  saldosOperador?: boolean | FuncionarioCountOutputTypeCountSaldosOperadorArgs
+  movimentosContaOrigem?: boolean | FuncionarioCountOutputTypeCountMovimentosContaOrigemArgs
+  movimentosContaExecutor?: boolean | FuncionarioCountOutputTypeCountMovimentosContaExecutorArgs
   auditorias?: boolean | FuncionarioCountOutputTypeCountAuditoriasArgs
   credenciaisWebAuthn?: boolean | FuncionarioCountOutputTypeCountCredenciaisWebAuthnArgs
   credenciaisCriadas?: boolean | FuncionarioCountOutputTypeCountCredenciaisCriadasArgs
@@ -4332,15 +5702,43 @@ export type FuncionarioCountOutputTypeCountSessoesArgs<ExtArgs extends runtime.T
 /**
  * FuncionarioCountOutputType without action
  */
-export type FuncionarioCountOutputTypeCountRequisicoesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type FuncionarioCountOutputTypeCountRequisicoesSolicitadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RequisicaoWhereInput
 }
 
 /**
  * FuncionarioCountOutputType without action
  */
-export type FuncionarioCountOutputTypeCountMovimentacoesDepositoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.MovimentacaoDepositoWhereInput
+export type FuncionarioCountOutputTypeCountRequisicoesAtendidasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RequisicaoWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountMovimentacoesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentacaoWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountSaldosOperadorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SaldoOperadorItemWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountMovimentosContaOrigemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+}
+
+/**
+ * FuncionarioCountOutputType without action
+ */
+export type FuncionarioCountOutputTypeCountMovimentosContaExecutorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentoContaEstoqueWhereInput
 }
 
 /**
@@ -4478,12 +5876,18 @@ export type FuncionarioSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   senha?: boolean
   cargo?: boolean
   cracha?: boolean
-  role?: boolean
+  papel?: boolean
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: boolean
+  atualizadoEm?: boolean
   sessoes?: boolean | Prisma.Funcionario$sessoesArgs<ExtArgs>
-  requisicoes?: boolean | Prisma.Funcionario$requisicoesArgs<ExtArgs>
-  movimentacoesDeposito?: boolean | Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs>
+  requisicoesSolicitadas?: boolean | Prisma.Funcionario$requisicoesSolicitadasArgs<ExtArgs>
+  requisicoesAtendidas?: boolean | Prisma.Funcionario$requisicoesAtendidasArgs<ExtArgs>
+  movimentacoes?: boolean | Prisma.Funcionario$movimentacoesArgs<ExtArgs>
+  saldosOperador?: boolean | Prisma.Funcionario$saldosOperadorArgs<ExtArgs>
+  movimentosContaOrigem?: boolean | Prisma.Funcionario$movimentosContaOrigemArgs<ExtArgs>
+  movimentosContaExecutor?: boolean | Prisma.Funcionario$movimentosContaExecutorArgs<ExtArgs>
   auditorias?: boolean | Prisma.Funcionario$auditoriasArgs<ExtArgs>
   credenciaisWebAuthn?: boolean | Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs>
   credenciaisCriadas?: boolean | Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs>
@@ -4516,16 +5920,22 @@ export type FuncionarioSelectScalar = {
   senha?: boolean
   cargo?: boolean
   cracha?: boolean
-  role?: boolean
+  papel?: boolean
   mustChangePassword?: boolean
   ativo?: boolean
+  criadoEm?: boolean
+  atualizadoEm?: boolean
 }
 
-export type FuncionarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "login" | "email" | "senha" | "cargo" | "cracha" | "role" | "mustChangePassword" | "ativo", ExtArgs["result"]["funcionario"]>
+export type FuncionarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "login" | "email" | "senha" | "cargo" | "cracha" | "papel" | "mustChangePassword" | "ativo" | "criadoEm" | "atualizadoEm", ExtArgs["result"]["funcionario"]>
 export type FuncionarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessoes?: boolean | Prisma.Funcionario$sessoesArgs<ExtArgs>
-  requisicoes?: boolean | Prisma.Funcionario$requisicoesArgs<ExtArgs>
-  movimentacoesDeposito?: boolean | Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs>
+  requisicoesSolicitadas?: boolean | Prisma.Funcionario$requisicoesSolicitadasArgs<ExtArgs>
+  requisicoesAtendidas?: boolean | Prisma.Funcionario$requisicoesAtendidasArgs<ExtArgs>
+  movimentacoes?: boolean | Prisma.Funcionario$movimentacoesArgs<ExtArgs>
+  saldosOperador?: boolean | Prisma.Funcionario$saldosOperadorArgs<ExtArgs>
+  movimentosContaOrigem?: boolean | Prisma.Funcionario$movimentosContaOrigemArgs<ExtArgs>
+  movimentosContaExecutor?: boolean | Prisma.Funcionario$movimentosContaExecutorArgs<ExtArgs>
   auditorias?: boolean | Prisma.Funcionario$auditoriasArgs<ExtArgs>
   credenciaisWebAuthn?: boolean | Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs>
   credenciaisCriadas?: boolean | Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs>
@@ -4552,8 +5962,12 @@ export type $FuncionarioPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "Funcionario"
   objects: {
     sessoes: Prisma.$SessaoPayload<ExtArgs>[]
-    requisicoes: Prisma.$RequisicaoPayload<ExtArgs>[]
-    movimentacoesDeposito: Prisma.$MovimentacaoDepositoPayload<ExtArgs>[]
+    requisicoesSolicitadas: Prisma.$RequisicaoPayload<ExtArgs>[]
+    requisicoesAtendidas: Prisma.$RequisicaoPayload<ExtArgs>[]
+    movimentacoes: Prisma.$MovimentacaoPayload<ExtArgs>[]
+    saldosOperador: Prisma.$SaldoOperadorItemPayload<ExtArgs>[]
+    movimentosContaOrigem: Prisma.$MovimentoContaEstoquePayload<ExtArgs>[]
+    movimentosContaExecutor: Prisma.$MovimentoContaEstoquePayload<ExtArgs>[]
     auditorias: Prisma.$AuditoriaPayload<ExtArgs>[]
     credenciaisWebAuthn: Prisma.$WebAuthnCredentialPayload<ExtArgs>[]
     credenciaisCriadas: Prisma.$WebAuthnCredentialPayload<ExtArgs>[]
@@ -4582,9 +5996,11 @@ export type $FuncionarioPayload<ExtArgs extends runtime.Types.Extensions.Interna
     senha: string
     cargo: string
     cracha: string
-    role: string
+    papel: $Enums.PapelFuncionario
     mustChangePassword: boolean
     ativo: boolean
+    criadoEm: Date
+    atualizadoEm: Date
   }, ExtArgs["result"]["funcionario"]>
   composites: {}
 }
@@ -4926,8 +6342,12 @@ readonly fields: FuncionarioFieldRefs;
 export interface Prisma__FuncionarioClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sessoes<T extends Prisma.Funcionario$sessoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$sessoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  requisicoes<T extends Prisma.Funcionario$requisicoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$requisicoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  movimentacoesDeposito<T extends Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$movimentacoesDepositoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentacaoDepositoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  requisicoesSolicitadas<T extends Prisma.Funcionario$requisicoesSolicitadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$requisicoesSolicitadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  requisicoesAtendidas<T extends Prisma.Funcionario$requisicoesAtendidasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$requisicoesAtendidasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentacoes<T extends Prisma.Funcionario$movimentacoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$movimentacoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentacaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  saldosOperador<T extends Prisma.Funcionario$saldosOperadorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$saldosOperadorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaldoOperadorItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentosContaOrigem<T extends Prisma.Funcionario$movimentosContaOrigemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$movimentosContaOrigemArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentoContaEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentosContaExecutor<T extends Prisma.Funcionario$movimentosContaExecutorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$movimentosContaExecutorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentoContaEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditorias<T extends Prisma.Funcionario$auditoriasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$auditoriasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditoriaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   credenciaisWebAuthn<T extends Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$credenciaisWebAuthnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WebAuthnCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   credenciaisCriadas<T extends Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Funcionario$credenciaisCriadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WebAuthnCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4983,9 +6403,11 @@ export interface FuncionarioFieldRefs {
   readonly senha: Prisma.FieldRef<"Funcionario", 'String'>
   readonly cargo: Prisma.FieldRef<"Funcionario", 'String'>
   readonly cracha: Prisma.FieldRef<"Funcionario", 'String'>
-  readonly role: Prisma.FieldRef<"Funcionario", 'String'>
+  readonly papel: Prisma.FieldRef<"Funcionario", 'PapelFuncionario'>
   readonly mustChangePassword: Prisma.FieldRef<"Funcionario", 'Boolean'>
   readonly ativo: Prisma.FieldRef<"Funcionario", 'Boolean'>
+  readonly criadoEm: Prisma.FieldRef<"Funcionario", 'DateTime'>
+  readonly atualizadoEm: Prisma.FieldRef<"Funcionario", 'DateTime'>
 }
     
 
@@ -5358,9 +6780,9 @@ export type Funcionario$sessoesArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
- * Funcionario.requisicoes
+ * Funcionario.requisicoesSolicitadas
  */
-export type Funcionario$requisicoesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Funcionario$requisicoesSolicitadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Requisicao
    */
@@ -5382,27 +6804,123 @@ export type Funcionario$requisicoesArgs<ExtArgs extends runtime.Types.Extensions
 }
 
 /**
- * Funcionario.movimentacoesDeposito
+ * Funcionario.requisicoesAtendidas
  */
-export type Funcionario$movimentacoesDepositoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Funcionario$requisicoesAtendidasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the MovimentacaoDeposito
+   * Select specific fields to fetch from the Requisicao
    */
-  select?: Prisma.MovimentacaoDepositoSelect<ExtArgs> | null
+  select?: Prisma.RequisicaoSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the MovimentacaoDeposito
+   * Omit specific fields from the Requisicao
    */
-  omit?: Prisma.MovimentacaoDepositoOmit<ExtArgs> | null
+  omit?: Prisma.RequisicaoOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.MovimentacaoDepositoInclude<ExtArgs> | null
-  where?: Prisma.MovimentacaoDepositoWhereInput
-  orderBy?: Prisma.MovimentacaoDepositoOrderByWithRelationInput | Prisma.MovimentacaoDepositoOrderByWithRelationInput[]
-  cursor?: Prisma.MovimentacaoDepositoWhereUniqueInput
+  include?: Prisma.RequisicaoInclude<ExtArgs> | null
+  where?: Prisma.RequisicaoWhereInput
+  orderBy?: Prisma.RequisicaoOrderByWithRelationInput | Prisma.RequisicaoOrderByWithRelationInput[]
+  cursor?: Prisma.RequisicaoWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.MovimentacaoDepositoScalarFieldEnum | Prisma.MovimentacaoDepositoScalarFieldEnum[]
+  distinct?: Prisma.RequisicaoScalarFieldEnum | Prisma.RequisicaoScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.movimentacoes
+ */
+export type Funcionario$movimentacoesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Movimentacao
+   */
+  select?: Prisma.MovimentacaoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Movimentacao
+   */
+  omit?: Prisma.MovimentacaoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentacaoInclude<ExtArgs> | null
+  where?: Prisma.MovimentacaoWhereInput
+  orderBy?: Prisma.MovimentacaoOrderByWithRelationInput | Prisma.MovimentacaoOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentacaoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentacaoScalarFieldEnum | Prisma.MovimentacaoScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.saldosOperador
+ */
+export type Funcionario$saldosOperadorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SaldoOperadorItem
+   */
+  select?: Prisma.SaldoOperadorItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SaldoOperadorItem
+   */
+  omit?: Prisma.SaldoOperadorItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SaldoOperadorItemInclude<ExtArgs> | null
+  where?: Prisma.SaldoOperadorItemWhereInput
+  orderBy?: Prisma.SaldoOperadorItemOrderByWithRelationInput | Prisma.SaldoOperadorItemOrderByWithRelationInput[]
+  cursor?: Prisma.SaldoOperadorItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SaldoOperadorItemScalarFieldEnum | Prisma.SaldoOperadorItemScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.movimentosContaOrigem
+ */
+export type Funcionario$movimentosContaOrigemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimentoContaEstoque
+   */
+  select?: Prisma.MovimentoContaEstoqueSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimentoContaEstoque
+   */
+  omit?: Prisma.MovimentoContaEstoqueOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentoContaEstoqueInclude<ExtArgs> | null
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+  orderBy?: Prisma.MovimentoContaEstoqueOrderByWithRelationInput | Prisma.MovimentoContaEstoqueOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentoContaEstoqueWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentoContaEstoqueScalarFieldEnum | Prisma.MovimentoContaEstoqueScalarFieldEnum[]
+}
+
+/**
+ * Funcionario.movimentosContaExecutor
+ */
+export type Funcionario$movimentosContaExecutorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimentoContaEstoque
+   */
+  select?: Prisma.MovimentoContaEstoqueSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimentoContaEstoque
+   */
+  omit?: Prisma.MovimentoContaEstoqueOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentoContaEstoqueInclude<ExtArgs> | null
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+  orderBy?: Prisma.MovimentoContaEstoqueOrderByWithRelationInput | Prisma.MovimentoContaEstoqueOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentoContaEstoqueWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentoContaEstoqueScalarFieldEnum | Prisma.MovimentoContaEstoqueScalarFieldEnum[]
 }
 
 /**
