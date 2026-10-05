@@ -68,7 +68,7 @@ export default function PortalShell({
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
-      <aside className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside data-demo-sticky-sidebar className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between">
           <Link href={homeHref} className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-200">Almoxarifado Marcon</Link>
           <button type="button" onClick={() => setOpen(false)} className="rounded p-2 text-slate-300 focus-visible:outline-2 focus-visible:outline-white lg:hidden" aria-label="Fechar menu">×</button>
@@ -84,7 +84,7 @@ export default function PortalShell({
       </aside>
       {open && <button type="button" className="fixed inset-0 z-20 bg-slate-950/50 lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu" />}
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-8">
+        <header data-demo-sticky-header className="sticky top-0 z-10 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-8">
           <button type="button" onClick={() => setOpen(true)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-royal lg:hidden" aria-label="Abrir menu" aria-expanded={open}>Menu</button>
           <div className="hidden text-sm text-slate-500 sm:block">{isAdmin ? "Painel de administração" : isOperator ? "Área do operador" : "Área do almoxarifado"}</div>
           <div className="ml-auto flex items-center gap-4">

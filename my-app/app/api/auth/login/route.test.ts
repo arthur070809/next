@@ -47,6 +47,7 @@ const operator = {
 };
 
 const testAdmin = { ...admin, cracha: "3333" };
+const demoAdmin = { ...admin, cracha: "3333", nome: "Demo Administrador" };
 
 const stockkeeper = {
   id: 3,
@@ -75,6 +76,13 @@ describe("login by badge code", () => {
     vi.stubEnv("NODE_ENV", "test");
     delete process.env.LOGIN_MODO_TESTE;
     delete process.env.LOGIN_TESTE_CRACHAS;
+    delete process.env.LOGIN_MODO_DEMO;
+    delete process.env.DEMO_DB_NOME;
+    delete process.env.LOGIN_DEMO_CRACHAS;
+    delete process.env.LOGIN_DEMO_TENTATIVAS_LIMITE;
+    delete process.env.LOGIN_DEMO_JANELA_MS;
+    delete process.env.LOGIN_DEMO_BLOQUEIO_MS;
+    process.env.DATABASE_URL = "mysql://unused:unused@localhost:4000/marcon_almoxarifado";
     process.env.LOGIN_FACIAL_OBRIGATORIO = "false";
     process.env.LOGIN_CHALLENGE_SECRET = "test-login-secret-that-is-at-least-32-characters";
     vi.mocked(prisma.sessao.create).mockResolvedValue({} as never);
@@ -168,6 +176,88 @@ describe("login by badge code", () => {
     expect(await response.json()).toEqual({ error: "Código inválido." });
     expect(prisma.sessao.create).not.toHaveBeenCalled();
     expect(prisma.trustedDevice.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("allows an allowlisted demo admin in production without TOTP, face or a trusted device", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.LOGIN_MODO_DEMO = "true";
+    process.env.DEMO_DB_NOME = "marcon_demo";
+    process.env.LOGIN_DEMO_CRACHAS = "1111,2222,3333";
+    process.env.DATABASE_URL = "mysql://unused:unused@tidb.example:4000/marcon_demo";
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst)
+      .mockResolvedValueOnce(demoAdmin as never)
+      .mockResolvedValueOnce(demoAdmin as never);
+    vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue({ enabledAt: new Date() } as never);
+
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const response = await POST(request("3333"));
+
+    expect(response.status).toBe(200);
+    expect(prisma.sessao.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ funcionarioId: demoAdmin.id, accessArea: "admin", trustedDeviceId: null }),
+    }));
+    expect(prisma.adminTotpCredential.findUnique).not.toHaveBeenCalled();
+    expect(prisma.faceTemplate.count).not.toHaveBeenCalled();
+    expect(prisma.trustedDevice.findUnique).not.toHaveBeenCalled();
+    expect(prisma.webAuthnCredential.findMany).not.toHaveBeenCalled();
+    expect(prisma.funcionario.findFirst).toHaveBeenCalledTimes(2);
+    expect(warning.mock.calls.flat().join(" ")).toContain("**33");
+    expect(warning.mock.calls.flat().join(" ")).not.toContain("3333");
+    warning.mockRestore();
+  });
+
+  it("does not enable demo login against any database other than the named demo target", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.LOGIN_MODO_DEMO = "true";
+    process.env.DEMO_DB_NOME = "marcon_demo";
+    process.env.LOGIN_DEMO_CRACHAS = "3333";
+    process.env.DATABASE_URL = "mysql://unused:unused@tidb.example:4000/marcon_almoxarifado";
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(demoAdmin as never);
+
+    const response = await POST(request("3333"));
+    const data = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(data.step).toBe("face");
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+    expect(prisma.authChallenge.create).toHaveBeenCalled();
+  });
+
+  it("does not enable demo login when any required flag is missing", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.LOGIN_MODO_DEMO = "true";
+    process.env.DEMO_DB_NOME = "marcon_demo";
+    process.env.LOGIN_DEMO_CRACHAS = "";
+    process.env.DATABASE_URL = "mysql://unused:unused@tidb.example:4000/marcon_demo";
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(demoAdmin as never);
+
+    const response = await POST(request("3333"));
+    const data = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(data.step).toBe("face");
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("keeps non-allowlisted badges on their normal login path", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.LOGIN_MODO_DEMO = "true";
+    process.env.DEMO_DB_NOME = "marcon_demo";
+    process.env.LOGIN_DEMO_CRACHAS = "1111,2222,3333";
+    process.env.DATABASE_URL = "mysql://unused:unused@tidb.example:4000/marcon_demo";
+    process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
+    vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue({ enabledAt: new Date() } as never);
+
+    const response = await POST(request("1000"));
+    const data = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(data.step).toBe("totp");
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
   it("requires the signed one-use facial challenge for admins by default", async () => {
