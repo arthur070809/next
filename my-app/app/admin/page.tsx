@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isDemoLoginEnabledForBadge, isDemoModeConfigured } from "@/lib/demo-mode";
 import AdminDashboard from "./dashboard";
 
 export default async function AdminPage() {
@@ -41,6 +42,7 @@ export default async function AdminPage() {
         itensNoDeposito,
         sobrasHoje: sobrasHoje._sum.quantidade ?? 0,
       }}
+      canResetDemo={isDemoModeConfigured() && isDemoLoginEnabledForBadge(funcionario.cracha)}
     />
   );
 }
