@@ -60,7 +60,7 @@ Popula ~22 itens industriais com saldos iniciais em `estoque` (Central) e `depos
 ```bash
 npm run seed -- --yes
 ```
-Todos os scripts que escrevem/apagam dados só aceitam o banco cujo nome seja exatamente `DEMO_DB_NOME` e termine em `_demo`; recusam `NODE_ENV=production`, exibem host/banco sem credenciais e exigem `--yes`. Para demonstração, prefira o fixture dedicado abaixo.
+Os comandos de seed/reset da aplicação só aceitam o banco cujo nome seja exatamente `DEMO_DB_NOME` e termine em `_demo`; recusam `NODE_ENV=production`, exibem host/banco sem credenciais e exigem `--yes`. O teste de integração é uma exceção separada: exige banco terminado em `_test`, conforme descrito abaixo. Para demonstração, prefira o fixture dedicado.
 
 ### Administrador do Sistema
 Para criar ou atualizar as credenciais do administrador principal:
