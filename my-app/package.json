@@ -13,6 +13,7 @@
     "qr:etiqueta": "tsx scripts/gerar-qr-etiqueta.ts",
     "admin:reset-password": "tsx scripts/reset-admin-password.cjs",
     "test": "vitest run",
+    "test:integration": "vitest run tests/integration-tidb.test.ts",
     "lint": "eslint"
   },
   "dependencies": {

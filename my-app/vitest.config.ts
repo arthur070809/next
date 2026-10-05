@@ -1,5 +1,5 @@
 import path from "node:path";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import { config } from "dotenv";
 
 config({ path: ".env.local" });
@@ -16,6 +16,7 @@ export default defineConfig({
   resolve: { alias: { "@": path.resolve(__dirname) } },
   test: {
     environment: "node",
+    exclude: [...configDefaults.exclude, "tests/integration-tidb.test.ts"],
     testTimeout: 60000,
     hookTimeout: 60000,
   },

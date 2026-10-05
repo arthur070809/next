@@ -65,11 +65,6 @@ export type LocalEstoque = Prisma.LocalEstoqueModel
  */
 export type SaldoEstoque = Prisma.SaldoEstoqueModel
 /**
- * Model SaldoOperadorItem
- * 
- */
-export type SaldoOperadorItem = Prisma.SaldoOperadorItemModel
-/**
  * Model SequenciaRequisicao
  * 
  */
@@ -89,11 +84,6 @@ export type RequisicaoItem = Prisma.RequisicaoItemModel
  * 
  */
 export type Movimentacao = Prisma.MovimentacaoModel
-/**
- * Model MovimentoContaEstoque
- * 
- */
-export type MovimentoContaEstoque = Prisma.MovimentoContaEstoqueModel
 /**
  * Model Auditoria
  * 

@@ -10,6 +10,8 @@ type PortalRole = "admin" | "almoxarifado" | "operador";
 const adminMenu = [
   { href: "/admin", label: "Início", icon: "⌂" },
   { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
+  { href: "/historico", label: "Histórico", icon: "◷" },
+  { href: "/admin/ressuprimento", label: "Ressuprimento", icon: "↗" },
   { href: "/admin/estoque", label: "Estoque", icon: "▦" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
   { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
@@ -21,6 +23,7 @@ const adminMenu = [
 const warehouseMenu = [
   { href: "/almoxarifado", label: "Início", icon: adminMenu[0].icon },
   { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
+  { href: "/historico", label: "Histórico", icon: "◷" },
   { href: "/almoxarifado/estoque", label: "Estoque", icon: adminMenu[1].icon },
   { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: adminMenu[2].icon },
 ];

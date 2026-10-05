@@ -12,6 +12,9 @@ import {
   naoSepararItem,
   liberarReserva,
 } from "@/lib/requisicoes-db";
+import { assertTestDatabaseUrl } from "@/lib/test-database-guard";
+
+assertTestDatabaseUrl(process.env.DATABASE_URL);
 
 describe("TiDB Integration Tests — marcon_almoxarifado_test", () => {
   afterAll(async () => {
