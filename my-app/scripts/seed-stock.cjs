@@ -1,6 +1,6 @@
 /**
  * Seed idempotente de catálogo, estoque e funcionários fictícios.
- * Executar com: npm run seed (ou node scripts/seed-stock.cjs)
+ * Executar com: npm run seed -- --yes (somente em banco _demo)
  */
 const { config } = require("dotenv");
 config({ path: ".env.local" });
@@ -12,6 +12,7 @@ const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("../generated/prisma/client");
 const { PrismaMariaDb } = require("@prisma/adapter-mariadb");
+const { assertSafeDemoScript } = require("./demo-script-safety.cjs");
 
 const mariadb = require("mariadb");
 
@@ -69,7 +70,8 @@ const FUNCIONARIOS_FICTICIOS = [
 ];
 
 async function main() {
-  console.log("Iniciando seed de dados no TiDB...");
+  assertSafeDemoScript(process.argv.slice(2));
+  console.log("Ação: criar/atualizar o catálogo fictício definido neste script.");
   const { prisma, pool } = getPrismaClient();
 
   try {

@@ -1,7 +1,7 @@
 /**
  * Redefine a senha do Administrador com confirmação de segurança.
  * Uso:
- *   CONFIRM_ADMIN_RESET=YES ADMIN_LOGIN=admin ADMIN_PASSWORD=nova-senha npm run admin:reset-password
+ *   CONFIRM_ADMIN_RESET=YES ADMIN_LOGIN=admin ADMIN_PASSWORD=nova-senha npm run admin:reset-password -- --yes
  */
 const { config } = require("dotenv");
 config({ path: ".env.local" });
@@ -10,6 +10,7 @@ config({ path: ".env" });
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("../generated/prisma/client");
 const { PrismaMariaDb } = require("@prisma/adapter-mariadb");
+const { assertSafeDemoScript } = require("./demo-script-safety.cjs");
 
 function getPrismaClient() {
   const rawUrl = process.env.DATABASE_URL;
@@ -28,11 +29,10 @@ function getPrismaClient() {
 }
 
 async function main() {
+  assertSafeDemoScript(process.argv.slice(2));
+  console.log("Ação: redefinir a senha da conta indicada por ADMIN_LOGIN.");
   if (process.env.CONFIRM_ADMIN_RESET !== "YES") {
     throw new Error("Confirme o reset com CONFIRM_ADMIN_RESET=YES.");
-  }
-  if (process.env.NODE_ENV === "production" && process.env.ALLOW_ADMIN_PASSWORD_RESET !== "true") {
-    throw new Error("Reset bloqueado em produção. Defina ALLOW_ADMIN_PASSWORD_RESET=true explicitamente.");
   }
   const { ADMIN_LOGIN, ADMIN_PASSWORD } = process.env;
   if (!ADMIN_LOGIN || !ADMIN_PASSWORD) {
@@ -53,8 +53,11 @@ async function main() {
       },
     });
     console.log(`Senha do administrador "${admin.login}" redefinida com sucesso.`);
-  } catch {
-    throw new Error(`Administrador "${login}" não encontrado.`);
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+      throw new Error(`Administrador "${login}" não encontrado.`);
+    }
+    throw error;
   } finally {
     await prisma.$disconnect();
   }

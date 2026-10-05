@@ -58,24 +58,38 @@ Os scripts de seed foram desenvolvidos para serem 100% idempotentes (podem ser e
 ### Catálogo de Materiais e Funcionários Fictícios
 Popula ~22 itens industriais com saldos iniciais em `estoque` (Central) e `deposito`, registrando movimentações de `ENTRADA`, além de funcionários para cada papel (`ADMIN`, `ALMOXARIFE`, `OPERADOR`, `USUARIO`).
 ```bash
-npm run seed
+npm run seed -- --yes
 ```
-*Se `SEED_DEFAULT_PASSWORD` não for informada, senhas fortes e aleatórias serão geradas e salvas em `.seed-credentials.local`.*
+Todos os scripts que escrevem/apagam dados só aceitam o banco cujo nome seja exatamente `DEMO_DB_NOME` e termine em `_demo`; recusam `NODE_ENV=production`, exibem host/banco sem credenciais e exigem `--yes`. Para demonstração, prefira o fixture dedicado abaixo.
 
 ### Administrador do Sistema
 Para criar ou atualizar as credenciais do administrador principal:
 ```bash
-ADMIN_LOGIN="admin" ADMIN_PASSWORD="SuaSenhaForte123!" npm run seed:admin
+ADMIN_LOGIN="admin" ADMIN_PASSWORD="SuaSenhaForte123!" npm run seed:admin -- --yes
 ```
+
+### Fixture da demonstração Vercel
+O fixture usa somente dez materiais fictícios e as contas demo. Ele não cria lote mínimo nem um fluxo de aprovação, pois esses campos/estados não existem no schema atual.
+```bash
+npm run seed:demo -- --yes
+npm run reset:demo -- --yes
+```
+O reset limpa requisições, movimentos, reservas e auditorias de requisição; preserva funcionários e catálogo. O seed e o reset recusam qualquer banco que não corresponda exatamente a `DEMO_DB_NOME` com sufixo `_demo`.
 
 ---
 
 ## 🧪 Testes Automatizados
 
-A suíte de testes combina testes unitários rápidos e testes de integração com transações concorrentes reais no TiDB (`marcon_almoxarifado_test`):
+A suíte padrão executa os testes unitários e mocks sem acessar banco:
 
 ```bash
 npm test
+```
+
+O teste de integração destrutivo é separado; ele exige que `DATABASE_URL` aponte para um banco cujo nome termine em `_test`:
+
+```bash
+npm run test:integration
 ```
 
 ### O que os testes cobrem:

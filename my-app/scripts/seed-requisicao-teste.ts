@@ -1,5 +1,3 @@
-import { createInterface } from "node:readline/promises";
-import { stdin, stdout } from "node:process";
 import { config } from "dotenv";
 import {
   PapelFuncionario,
@@ -12,41 +10,12 @@ import {
   demoRequestProducts,
   matchesDemoRequest,
 } from "../lib/requisition-test-seed";
+import { assertSafeDemoScript } from "./demo-script-safety.cjs";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
 
 const operatorBadge = "1111";
-
-function getTargetDatabase() {
-  const rawUrl = process.env.DATABASE_URL;
-  if (!rawUrl) throw new Error("DATABASE_URL não foi configurada.");
-  const url = new URL(rawUrl);
-  return {
-    host: url.hostname,
-    database: decodeURIComponent(url.pathname.replace(/^\/+/, "")),
-  };
-}
-
-async function confirmAction(
-  action: string,
-  target: { host: string; database: string },
-  yes: boolean,
-) {
-  console.log(`Destino: host=${target.host}; banco=${target.database}`);
-  console.log(`Ação: ${action}`);
-  if (yes) return;
-  if (!stdin.isTTY) {
-    throw new Error("Confirmação indisponível. Revise o destino e repita com --yes.");
-  }
-  const prompt = createInterface({ input: stdin, output: stdout });
-  try {
-    const answer = await prompt.question("Confirma esta operação? Digite SIM para continuar: ");
-    if (answer.trim() !== "SIM") throw new Error("Operação cancelada.");
-  } finally {
-    prompt.close();
-  }
-}
 
 async function removeDemoRequest(prisma: PrismaClient, operatorId: number) {
   const requests = await prisma.requisicao.findMany({
@@ -165,23 +134,12 @@ async function seedDemoRequest(prisma: PrismaClient, operatorId: number) {
 }
 
 async function main() {
-  console.warn("***** AVISO: o banco configurado é COMPARTILHADO com Arthur. Revise cuidadosamente o destino. *****");
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("seed:requisicao é proibido quando NODE_ENV=production.");
+  const args = process.argv.slice(2);
+  if (args.some((arg) => arg !== "--yes" && arg !== "--remove")) {
+    throw new Error("Uso: npm run seed:requisicao -- --yes [--remove].");
   }
-
-  const args = new Set(process.argv.slice(2));
-  if ([...args].some((arg) => arg !== "--yes" && arg !== "--remove")) {
-    throw new Error("Uso: npm run seed:requisicao -- [--yes] [--remove].");
-  }
-  const target = getTargetDatabase();
-  await confirmAction(
-    args.has("--remove")
-      ? "remover somente a requisição de demonstração deste seed e suas reservas"
-      : "criar uma requisição de demonstração com quatro produtos existentes",
-    target,
-    args.has("--yes"),
-  );
+  assertSafeDemoScript(args, process.env, ["--yes", "--remove"]);
+  console.log(`Ação: ${args.includes("--remove") ? "remover apenas a requisição do seed de teste" : "criar uma requisição de teste"}`);
 
   const { prisma } = await import("../lib/prisma");
   try {
@@ -197,7 +155,7 @@ async function main() {
       throw new Error("O funcionário TESTE operador do crachá 1111 não está ativo; execute seed:teste antes.");
     }
 
-    if (args.has("--remove")) {
+    if (args.includes("--remove")) {
       await removeDemoRequest(prisma, operator.id);
     } else {
       await seedDemoRequest(prisma, operator.id);
