@@ -2,6 +2,8 @@ name: Test Aiven MySQL
 
 on:
   workflow_dispatch:
+  push:
+    branches: [nova]
 
 jobs:
   test-database:
