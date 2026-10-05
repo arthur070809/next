@@ -191,8 +191,6 @@ export type LocalEstoqueWhereInput = {
   ativo?: Prisma.BoolFilter<"LocalEstoque"> | boolean
   criadoEm?: Prisma.DateTimeFilter<"LocalEstoque"> | Date | string
   saldos?: Prisma.SaldoEstoqueListRelationFilter
-  saldosOperador?: Prisma.SaldoOperadorItemListRelationFilter
-  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
   itensRequisicao?: Prisma.RequisicaoItemListRelationFilter
 }
 
@@ -204,8 +202,6 @@ export type LocalEstoqueOrderByWithRelationInput = {
   ativo?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
   saldos?: Prisma.SaldoEstoqueOrderByRelationAggregateInput
-  saldosOperador?: Prisma.SaldoOperadorItemOrderByRelationAggregateInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueOrderByRelationAggregateInput
   itensRequisicao?: Prisma.RequisicaoItemOrderByRelationAggregateInput
   _relevance?: Prisma.LocalEstoqueOrderByRelevanceInput
 }
@@ -221,8 +217,6 @@ export type LocalEstoqueWhereUniqueInput = Prisma.AtLeast<{
   ativo?: Prisma.BoolFilter<"LocalEstoque"> | boolean
   criadoEm?: Prisma.DateTimeFilter<"LocalEstoque"> | Date | string
   saldos?: Prisma.SaldoEstoqueListRelationFilter
-  saldosOperador?: Prisma.SaldoOperadorItemListRelationFilter
-  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
   itensRequisicao?: Prisma.RequisicaoItemListRelationFilter
 }, "id" | "slug">
 
@@ -258,8 +252,6 @@ export type LocalEstoqueCreateInput = {
   ativo?: boolean
   criadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutLocalInput
-  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutLocalInput
   itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutLocalInput
 }
 
@@ -271,8 +263,6 @@ export type LocalEstoqueUncheckedCreateInput = {
   ativo?: boolean
   criadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutLocalInput
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutLocalInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutLocalInput
 }
 
@@ -284,8 +274,6 @@ export type LocalEstoqueUpdateInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUpdateManyWithoutLocalNestedInput
-  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutLocalNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutLocalNestedInput
 }
 
@@ -297,8 +285,6 @@ export type LocalEstoqueUncheckedUpdateInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutLocalNestedInput
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutLocalNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutLocalNestedInput
 }
 
@@ -381,20 +367,6 @@ export type LocalEstoqueUpdateOneRequiredWithoutSaldosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LocalEstoqueUpdateToOneWithWhereWithoutSaldosInput, Prisma.LocalEstoqueUpdateWithoutSaldosInput>, Prisma.LocalEstoqueUncheckedUpdateWithoutSaldosInput>
 }
 
-export type LocalEstoqueCreateNestedOneWithoutSaldosOperadorInput = {
-  create?: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutSaldosOperadorInput, Prisma.LocalEstoqueUncheckedCreateWithoutSaldosOperadorInput>
-  connectOrCreate?: Prisma.LocalEstoqueCreateOrConnectWithoutSaldosOperadorInput
-  connect?: Prisma.LocalEstoqueWhereUniqueInput
-}
-
-export type LocalEstoqueUpdateOneRequiredWithoutSaldosOperadorNestedInput = {
-  create?: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutSaldosOperadorInput, Prisma.LocalEstoqueUncheckedCreateWithoutSaldosOperadorInput>
-  connectOrCreate?: Prisma.LocalEstoqueCreateOrConnectWithoutSaldosOperadorInput
-  upsert?: Prisma.LocalEstoqueUpsertWithoutSaldosOperadorInput
-  connect?: Prisma.LocalEstoqueWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.LocalEstoqueUpdateToOneWithWhereWithoutSaldosOperadorInput, Prisma.LocalEstoqueUpdateWithoutSaldosOperadorInput>, Prisma.LocalEstoqueUncheckedUpdateWithoutSaldosOperadorInput>
-}
-
 export type LocalEstoqueCreateNestedOneWithoutItensRequisicaoInput = {
   create?: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutItensRequisicaoInput, Prisma.LocalEstoqueUncheckedCreateWithoutItensRequisicaoInput>
   connectOrCreate?: Prisma.LocalEstoqueCreateOrConnectWithoutItensRequisicaoInput
@@ -409,20 +381,6 @@ export type LocalEstoqueUpdateOneRequiredWithoutItensRequisicaoNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LocalEstoqueUpdateToOneWithWhereWithoutItensRequisicaoInput, Prisma.LocalEstoqueUpdateWithoutItensRequisicaoInput>, Prisma.LocalEstoqueUncheckedUpdateWithoutItensRequisicaoInput>
 }
 
-export type LocalEstoqueCreateNestedOneWithoutMovimentosContaInput = {
-  create?: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutMovimentosContaInput, Prisma.LocalEstoqueUncheckedCreateWithoutMovimentosContaInput>
-  connectOrCreate?: Prisma.LocalEstoqueCreateOrConnectWithoutMovimentosContaInput
-  connect?: Prisma.LocalEstoqueWhereUniqueInput
-}
-
-export type LocalEstoqueUpdateOneRequiredWithoutMovimentosContaNestedInput = {
-  create?: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutMovimentosContaInput, Prisma.LocalEstoqueUncheckedCreateWithoutMovimentosContaInput>
-  connectOrCreate?: Prisma.LocalEstoqueCreateOrConnectWithoutMovimentosContaInput
-  upsert?: Prisma.LocalEstoqueUpsertWithoutMovimentosContaInput
-  connect?: Prisma.LocalEstoqueWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.LocalEstoqueUpdateToOneWithWhereWithoutMovimentosContaInput, Prisma.LocalEstoqueUpdateWithoutMovimentosContaInput>, Prisma.LocalEstoqueUncheckedUpdateWithoutMovimentosContaInput>
-}
-
 export type LocalEstoqueCreateWithoutSaldosInput = {
   id?: string
   nome: string
@@ -430,8 +388,6 @@ export type LocalEstoqueCreateWithoutSaldosInput = {
   descricao?: string | null
   ativo?: boolean
   criadoEm?: Date | string
-  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutLocalInput
   itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutLocalInput
 }
 
@@ -442,8 +398,6 @@ export type LocalEstoqueUncheckedCreateWithoutSaldosInput = {
   descricao?: string | null
   ativo?: boolean
   criadoEm?: Date | string
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutLocalInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutLocalInput
 }
 
@@ -470,8 +424,6 @@ export type LocalEstoqueUpdateWithoutSaldosInput = {
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutLocalNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutLocalNestedInput
 }
 
@@ -482,72 +434,6 @@ export type LocalEstoqueUncheckedUpdateWithoutSaldosInput = {
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutLocalNestedInput
-  itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutLocalNestedInput
-}
-
-export type LocalEstoqueCreateWithoutSaldosOperadorInput = {
-  id?: string
-  nome: string
-  slug: string
-  descricao?: string | null
-  ativo?: boolean
-  criadoEm?: Date | string
-  saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutLocalInput
-  itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutLocalInput
-}
-
-export type LocalEstoqueUncheckedCreateWithoutSaldosOperadorInput = {
-  id?: string
-  nome: string
-  slug: string
-  descricao?: string | null
-  ativo?: boolean
-  criadoEm?: Date | string
-  saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutLocalInput
-  itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutLocalInput
-}
-
-export type LocalEstoqueCreateOrConnectWithoutSaldosOperadorInput = {
-  where: Prisma.LocalEstoqueWhereUniqueInput
-  create: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutSaldosOperadorInput, Prisma.LocalEstoqueUncheckedCreateWithoutSaldosOperadorInput>
-}
-
-export type LocalEstoqueUpsertWithoutSaldosOperadorInput = {
-  update: Prisma.XOR<Prisma.LocalEstoqueUpdateWithoutSaldosOperadorInput, Prisma.LocalEstoqueUncheckedUpdateWithoutSaldosOperadorInput>
-  create: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutSaldosOperadorInput, Prisma.LocalEstoqueUncheckedCreateWithoutSaldosOperadorInput>
-  where?: Prisma.LocalEstoqueWhereInput
-}
-
-export type LocalEstoqueUpdateToOneWithWhereWithoutSaldosOperadorInput = {
-  where?: Prisma.LocalEstoqueWhereInput
-  data: Prisma.XOR<Prisma.LocalEstoqueUpdateWithoutSaldosOperadorInput, Prisma.LocalEstoqueUncheckedUpdateWithoutSaldosOperadorInput>
-}
-
-export type LocalEstoqueUpdateWithoutSaldosOperadorInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  saldos?: Prisma.SaldoEstoqueUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutLocalNestedInput
-  itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutLocalNestedInput
-}
-
-export type LocalEstoqueUncheckedUpdateWithoutSaldosOperadorInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutLocalNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutLocalNestedInput
 }
 
@@ -559,8 +445,6 @@ export type LocalEstoqueCreateWithoutItensRequisicaoInput = {
   ativo?: boolean
   criadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutLocalInput
-  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutLocalInput
 }
 
 export type LocalEstoqueUncheckedCreateWithoutItensRequisicaoInput = {
@@ -571,8 +455,6 @@ export type LocalEstoqueUncheckedCreateWithoutItensRequisicaoInput = {
   ativo?: boolean
   criadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutLocalInput
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutLocalInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutLocalInput
 }
 
 export type LocalEstoqueCreateOrConnectWithoutItensRequisicaoInput = {
@@ -599,8 +481,6 @@ export type LocalEstoqueUpdateWithoutItensRequisicaoInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUpdateManyWithoutLocalNestedInput
-  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutLocalNestedInput
 }
 
 export type LocalEstoqueUncheckedUpdateWithoutItensRequisicaoInput = {
@@ -611,72 +491,6 @@ export type LocalEstoqueUncheckedUpdateWithoutItensRequisicaoInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutLocalNestedInput
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutLocalNestedInput
-  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutLocalNestedInput
-}
-
-export type LocalEstoqueCreateWithoutMovimentosContaInput = {
-  id?: string
-  nome: string
-  slug: string
-  descricao?: string | null
-  ativo?: boolean
-  criadoEm?: Date | string
-  saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutLocalInput
-  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutLocalInput
-  itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutLocalInput
-}
-
-export type LocalEstoqueUncheckedCreateWithoutMovimentosContaInput = {
-  id?: string
-  nome: string
-  slug: string
-  descricao?: string | null
-  ativo?: boolean
-  criadoEm?: Date | string
-  saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutLocalInput
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutLocalInput
-  itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutLocalInput
-}
-
-export type LocalEstoqueCreateOrConnectWithoutMovimentosContaInput = {
-  where: Prisma.LocalEstoqueWhereUniqueInput
-  create: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutMovimentosContaInput, Prisma.LocalEstoqueUncheckedCreateWithoutMovimentosContaInput>
-}
-
-export type LocalEstoqueUpsertWithoutMovimentosContaInput = {
-  update: Prisma.XOR<Prisma.LocalEstoqueUpdateWithoutMovimentosContaInput, Prisma.LocalEstoqueUncheckedUpdateWithoutMovimentosContaInput>
-  create: Prisma.XOR<Prisma.LocalEstoqueCreateWithoutMovimentosContaInput, Prisma.LocalEstoqueUncheckedCreateWithoutMovimentosContaInput>
-  where?: Prisma.LocalEstoqueWhereInput
-}
-
-export type LocalEstoqueUpdateToOneWithWhereWithoutMovimentosContaInput = {
-  where?: Prisma.LocalEstoqueWhereInput
-  data: Prisma.XOR<Prisma.LocalEstoqueUpdateWithoutMovimentosContaInput, Prisma.LocalEstoqueUncheckedUpdateWithoutMovimentosContaInput>
-}
-
-export type LocalEstoqueUpdateWithoutMovimentosContaInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  saldos?: Prisma.SaldoEstoqueUpdateManyWithoutLocalNestedInput
-  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutLocalNestedInput
-  itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutLocalNestedInput
-}
-
-export type LocalEstoqueUncheckedUpdateWithoutMovimentosContaInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutLocalNestedInput
-  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutLocalNestedInput
-  itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutLocalNestedInput
 }
 
 
@@ -686,15 +500,11 @@ export type LocalEstoqueUncheckedUpdateWithoutMovimentosContaInput = {
 
 export type LocalEstoqueCountOutputType = {
   saldos: number
-  saldosOperador: number
-  movimentosConta: number
   itensRequisicao: number
 }
 
 export type LocalEstoqueCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   saldos?: boolean | LocalEstoqueCountOutputTypeCountSaldosArgs
-  saldosOperador?: boolean | LocalEstoqueCountOutputTypeCountSaldosOperadorArgs
-  movimentosConta?: boolean | LocalEstoqueCountOutputTypeCountMovimentosContaArgs
   itensRequisicao?: boolean | LocalEstoqueCountOutputTypeCountItensRequisicaoArgs
 }
 
@@ -718,20 +528,6 @@ export type LocalEstoqueCountOutputTypeCountSaldosArgs<ExtArgs extends runtime.T
 /**
  * LocalEstoqueCountOutputType without action
  */
-export type LocalEstoqueCountOutputTypeCountSaldosOperadorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.SaldoOperadorItemWhereInput
-}
-
-/**
- * LocalEstoqueCountOutputType without action
- */
-export type LocalEstoqueCountOutputTypeCountMovimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.MovimentoContaEstoqueWhereInput
-}
-
-/**
- * LocalEstoqueCountOutputType without action
- */
 export type LocalEstoqueCountOutputTypeCountItensRequisicaoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RequisicaoItemWhereInput
 }
@@ -745,8 +541,6 @@ export type LocalEstoqueSelect<ExtArgs extends runtime.Types.Extensions.Internal
   ativo?: boolean
   criadoEm?: boolean
   saldos?: boolean | Prisma.LocalEstoque$saldosArgs<ExtArgs>
-  saldosOperador?: boolean | Prisma.LocalEstoque$saldosOperadorArgs<ExtArgs>
-  movimentosConta?: boolean | Prisma.LocalEstoque$movimentosContaArgs<ExtArgs>
   itensRequisicao?: boolean | Prisma.LocalEstoque$itensRequisicaoArgs<ExtArgs>
   _count?: boolean | Prisma.LocalEstoqueCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["localEstoque"]>
@@ -765,8 +559,6 @@ export type LocalEstoqueSelectScalar = {
 export type LocalEstoqueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "slug" | "descricao" | "ativo" | "criadoEm", ExtArgs["result"]["localEstoque"]>
 export type LocalEstoqueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   saldos?: boolean | Prisma.LocalEstoque$saldosArgs<ExtArgs>
-  saldosOperador?: boolean | Prisma.LocalEstoque$saldosOperadorArgs<ExtArgs>
-  movimentosConta?: boolean | Prisma.LocalEstoque$movimentosContaArgs<ExtArgs>
   itensRequisicao?: boolean | Prisma.LocalEstoque$itensRequisicaoArgs<ExtArgs>
   _count?: boolean | Prisma.LocalEstoqueCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -775,8 +567,6 @@ export type $LocalEstoquePayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "LocalEstoque"
   objects: {
     saldos: Prisma.$SaldoEstoquePayload<ExtArgs>[]
-    saldosOperador: Prisma.$SaldoOperadorItemPayload<ExtArgs>[]
-    movimentosConta: Prisma.$MovimentoContaEstoquePayload<ExtArgs>[]
     itensRequisicao: Prisma.$RequisicaoItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1127,8 +917,6 @@ readonly fields: LocalEstoqueFieldRefs;
 export interface Prisma__LocalEstoqueClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   saldos<T extends Prisma.LocalEstoque$saldosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocalEstoque$saldosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaldoEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  saldosOperador<T extends Prisma.LocalEstoque$saldosOperadorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocalEstoque$saldosOperadorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaldoOperadorItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  movimentosConta<T extends Prisma.LocalEstoque$movimentosContaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocalEstoque$movimentosContaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentoContaEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   itensRequisicao<T extends Prisma.LocalEstoque$itensRequisicaoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocalEstoque$itensRequisicaoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1534,54 +1322,6 @@ export type LocalEstoque$saldosArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.SaldoEstoqueScalarFieldEnum | Prisma.SaldoEstoqueScalarFieldEnum[]
-}
-
-/**
- * LocalEstoque.saldosOperador
- */
-export type LocalEstoque$saldosOperadorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the SaldoOperadorItem
-   */
-  select?: Prisma.SaldoOperadorItemSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the SaldoOperadorItem
-   */
-  omit?: Prisma.SaldoOperadorItemOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SaldoOperadorItemInclude<ExtArgs> | null
-  where?: Prisma.SaldoOperadorItemWhereInput
-  orderBy?: Prisma.SaldoOperadorItemOrderByWithRelationInput | Prisma.SaldoOperadorItemOrderByWithRelationInput[]
-  cursor?: Prisma.SaldoOperadorItemWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.SaldoOperadorItemScalarFieldEnum | Prisma.SaldoOperadorItemScalarFieldEnum[]
-}
-
-/**
- * LocalEstoque.movimentosConta
- */
-export type LocalEstoque$movimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the MovimentoContaEstoque
-   */
-  select?: Prisma.MovimentoContaEstoqueSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the MovimentoContaEstoque
-   */
-  omit?: Prisma.MovimentoContaEstoqueOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MovimentoContaEstoqueInclude<ExtArgs> | null
-  where?: Prisma.MovimentoContaEstoqueWhereInput
-  orderBy?: Prisma.MovimentoContaEstoqueOrderByWithRelationInput | Prisma.MovimentoContaEstoqueOrderByWithRelationInput[]
-  cursor?: Prisma.MovimentoContaEstoqueWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.MovimentoContaEstoqueScalarFieldEnum | Prisma.MovimentoContaEstoqueScalarFieldEnum[]
 }
 
 /**
