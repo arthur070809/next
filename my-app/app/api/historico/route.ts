@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripIdempotencyMetadata } from "@/lib/requisition-metadata";
 import type { EventoHistorico } from "@/lib/types/almoxarifado";
 
 export async function GET() {
@@ -91,7 +92,7 @@ export async function GET() {
           numeroPedido: req.numeroPedido,
           evento: "cancelada",
           codigoCracha: crachaAtendente,
-          descricaoMotivo: req.observacao ?? "Requisição cancelada.",
+          descricaoMotivo: stripIdempotencyMetadata(req.observacao) ?? "Requisição cancelada.",
           timestamp: req.anuladaEm.toISOString(),
         });
       }
