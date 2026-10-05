@@ -325,6 +325,8 @@ export type ItemWhereInput = {
   criadoEm?: Prisma.DateTimeFilter<"Item"> | Date | string
   atualizadoEm?: Prisma.DateTimeFilter<"Item"> | Date | string
   saldos?: Prisma.SaldoEstoqueListRelationFilter
+  saldosOperador?: Prisma.SaldoOperadorItemListRelationFilter
+  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
   itensRequisicao?: Prisma.RequisicaoItemListRelationFilter
 }
 
@@ -347,6 +349,8 @@ export type ItemOrderByWithRelationInput = {
   criadoEm?: Prisma.SortOrder
   atualizadoEm?: Prisma.SortOrder
   saldos?: Prisma.SaldoEstoqueOrderByRelationAggregateInput
+  saldosOperador?: Prisma.SaldoOperadorItemOrderByRelationAggregateInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueOrderByRelationAggregateInput
   itensRequisicao?: Prisma.RequisicaoItemOrderByRelationAggregateInput
   _relevance?: Prisma.ItemOrderByRelevanceInput
 }
@@ -374,6 +378,8 @@ export type ItemWhereUniqueInput = Prisma.AtLeast<{
   criadoEm?: Prisma.DateTimeFilter<"Item"> | Date | string
   atualizadoEm?: Prisma.DateTimeFilter<"Item"> | Date | string
   saldos?: Prisma.SaldoEstoqueListRelationFilter
+  saldosOperador?: Prisma.SaldoOperadorItemListRelationFilter
+  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
   itensRequisicao?: Prisma.RequisicaoItemListRelationFilter
 }, "id" | "filial_codigo">
 
@@ -444,6 +450,8 @@ export type ItemCreateInput = {
   criadoEm?: Date | string
   atualizadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutItemInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutItemInput
   itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutItemInput
 }
 
@@ -466,6 +474,8 @@ export type ItemUncheckedCreateInput = {
   criadoEm?: Date | string
   atualizadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutItemInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutItemInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutItemInput
 }
 
@@ -488,6 +498,8 @@ export type ItemUpdateInput = {
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUpdateManyWithoutItemNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutItemNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutItemNestedInput
 }
 
@@ -510,6 +522,8 @@ export type ItemUncheckedUpdateInput = {
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutItemNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutItemNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutItemNestedInput
 }
 
@@ -689,6 +703,20 @@ export type ItemUpdateOneRequiredWithoutSaldosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ItemUpdateToOneWithWhereWithoutSaldosInput, Prisma.ItemUpdateWithoutSaldosInput>, Prisma.ItemUncheckedUpdateWithoutSaldosInput>
 }
 
+export type ItemCreateNestedOneWithoutSaldosOperadorInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutSaldosOperadorInput, Prisma.ItemUncheckedCreateWithoutSaldosOperadorInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutSaldosOperadorInput
+  connect?: Prisma.ItemWhereUniqueInput
+}
+
+export type ItemUpdateOneRequiredWithoutSaldosOperadorNestedInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutSaldosOperadorInput, Prisma.ItemUncheckedCreateWithoutSaldosOperadorInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutSaldosOperadorInput
+  upsert?: Prisma.ItemUpsertWithoutSaldosOperadorInput
+  connect?: Prisma.ItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ItemUpdateToOneWithWhereWithoutSaldosOperadorInput, Prisma.ItemUpdateWithoutSaldosOperadorInput>, Prisma.ItemUncheckedUpdateWithoutSaldosOperadorInput>
+}
+
 export type ItemCreateNestedOneWithoutItensRequisicaoInput = {
   create?: Prisma.XOR<Prisma.ItemCreateWithoutItensRequisicaoInput, Prisma.ItemUncheckedCreateWithoutItensRequisicaoInput>
   connectOrCreate?: Prisma.ItemCreateOrConnectWithoutItensRequisicaoInput
@@ -701,6 +729,20 @@ export type ItemUpdateOneRequiredWithoutItensRequisicaoNestedInput = {
   upsert?: Prisma.ItemUpsertWithoutItensRequisicaoInput
   connect?: Prisma.ItemWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ItemUpdateToOneWithWhereWithoutItensRequisicaoInput, Prisma.ItemUpdateWithoutItensRequisicaoInput>, Prisma.ItemUncheckedUpdateWithoutItensRequisicaoInput>
+}
+
+export type ItemCreateNestedOneWithoutMovimentosContaInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutMovimentosContaInput, Prisma.ItemUncheckedCreateWithoutMovimentosContaInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutMovimentosContaInput
+  connect?: Prisma.ItemWhereUniqueInput
+}
+
+export type ItemUpdateOneRequiredWithoutMovimentosContaNestedInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutMovimentosContaInput, Prisma.ItemUncheckedCreateWithoutMovimentosContaInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutMovimentosContaInput
+  upsert?: Prisma.ItemUpsertWithoutMovimentosContaInput
+  connect?: Prisma.ItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ItemUpdateToOneWithWhereWithoutMovimentosContaInput, Prisma.ItemUpdateWithoutMovimentosContaInput>, Prisma.ItemUncheckedUpdateWithoutMovimentosContaInput>
 }
 
 export type ItemCreateWithoutSaldosInput = {
@@ -721,6 +763,8 @@ export type ItemCreateWithoutSaldosInput = {
   ativo?: boolean
   criadoEm?: Date | string
   atualizadoEm?: Date | string
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutItemInput
   itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutItemInput
 }
 
@@ -742,6 +786,8 @@ export type ItemUncheckedCreateWithoutSaldosInput = {
   ativo?: boolean
   criadoEm?: Date | string
   atualizadoEm?: Date | string
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutItemInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutItemInput
 }
 
@@ -779,6 +825,8 @@ export type ItemUpdateWithoutSaldosInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutItemNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutItemNestedInput
 }
 
@@ -800,6 +848,116 @@ export type ItemUncheckedUpdateWithoutSaldosInput = {
   ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutItemNestedInput
+  itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutItemNestedInput
+}
+
+export type ItemCreateWithoutSaldosOperadorInput = {
+  id?: string
+  nome: string
+  categoria: string
+  unidade?: string
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  tipoItem?: $Enums.TipoItem
+  codigo?: string | null
+  filial?: string | null
+  grupoErp?: string | null
+  pontoPedido?: number
+  estoqueSeguranca?: number
+  bloqueadoCompra?: boolean
+  ultimaEntradaEmbalagens?: number | null
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutItemInput
+  itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutItemInput
+}
+
+export type ItemUncheckedCreateWithoutSaldosOperadorInput = {
+  id?: string
+  nome: string
+  categoria: string
+  unidade?: string
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  tipoItem?: $Enums.TipoItem
+  codigo?: string | null
+  filial?: string | null
+  grupoErp?: string | null
+  pontoPedido?: number
+  estoqueSeguranca?: number
+  bloqueadoCompra?: boolean
+  ultimaEntradaEmbalagens?: number | null
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutItemInput
+  itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type ItemCreateOrConnectWithoutSaldosOperadorInput = {
+  where: Prisma.ItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.ItemCreateWithoutSaldosOperadorInput, Prisma.ItemUncheckedCreateWithoutSaldosOperadorInput>
+}
+
+export type ItemUpsertWithoutSaldosOperadorInput = {
+  update: Prisma.XOR<Prisma.ItemUpdateWithoutSaldosOperadorInput, Prisma.ItemUncheckedUpdateWithoutSaldosOperadorInput>
+  create: Prisma.XOR<Prisma.ItemCreateWithoutSaldosOperadorInput, Prisma.ItemUncheckedCreateWithoutSaldosOperadorInput>
+  where?: Prisma.ItemWhereInput
+}
+
+export type ItemUpdateToOneWithWhereWithoutSaldosOperadorInput = {
+  where?: Prisma.ItemWhereInput
+  data: Prisma.XOR<Prisma.ItemUpdateWithoutSaldosOperadorInput, Prisma.ItemUncheckedUpdateWithoutSaldosOperadorInput>
+}
+
+export type ItemUpdateWithoutSaldosOperadorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  categoria?: Prisma.StringFieldUpdateOperationsInput | string
+  unidade?: Prisma.StringFieldUpdateOperationsInput | string
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoItem?: Prisma.EnumTipoItemFieldUpdateOperationsInput | $Enums.TipoItem
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filial?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  grupoErp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pontoPedido?: Prisma.IntFieldUpdateOperationsInput | number
+  estoqueSeguranca?: Prisma.IntFieldUpdateOperationsInput | number
+  bloqueadoCompra?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saldos?: Prisma.SaldoEstoqueUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutItemNestedInput
+  itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutItemNestedInput
+}
+
+export type ItemUncheckedUpdateWithoutSaldosOperadorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  categoria?: Prisma.StringFieldUpdateOperationsInput | string
+  unidade?: Prisma.StringFieldUpdateOperationsInput | string
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoItem?: Prisma.EnumTipoItemFieldUpdateOperationsInput | $Enums.TipoItem
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filial?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  grupoErp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pontoPedido?: Prisma.IntFieldUpdateOperationsInput | number
+  estoqueSeguranca?: Prisma.IntFieldUpdateOperationsInput | number
+  bloqueadoCompra?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutItemNestedInput
   itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutItemNestedInput
 }
 
@@ -822,6 +980,8 @@ export type ItemCreateWithoutItensRequisicaoInput = {
   criadoEm?: Date | string
   atualizadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutItemInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutItemInput
 }
 
 export type ItemUncheckedCreateWithoutItensRequisicaoInput = {
@@ -843,6 +1003,8 @@ export type ItemUncheckedCreateWithoutItensRequisicaoInput = {
   criadoEm?: Date | string
   atualizadoEm?: Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutItemInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutItemInput
 }
 
 export type ItemCreateOrConnectWithoutItensRequisicaoInput = {
@@ -880,6 +1042,8 @@ export type ItemUpdateWithoutItensRequisicaoInput = {
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUpdateManyWithoutItemNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutItemNestedInput
 }
 
 export type ItemUncheckedUpdateWithoutItensRequisicaoInput = {
@@ -901,6 +1065,116 @@ export type ItemUncheckedUpdateWithoutItensRequisicaoInput = {
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutItemNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutItemNestedInput
+}
+
+export type ItemCreateWithoutMovimentosContaInput = {
+  id?: string
+  nome: string
+  categoria: string
+  unidade?: string
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  tipoItem?: $Enums.TipoItem
+  codigo?: string | null
+  filial?: string | null
+  grupoErp?: string | null
+  pontoPedido?: number
+  estoqueSeguranca?: number
+  bloqueadoCompra?: boolean
+  ultimaEntradaEmbalagens?: number | null
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  saldos?: Prisma.SaldoEstoqueCreateNestedManyWithoutItemInput
+  saldosOperador?: Prisma.SaldoOperadorItemCreateNestedManyWithoutItemInput
+  itensRequisicao?: Prisma.RequisicaoItemCreateNestedManyWithoutItemInput
+}
+
+export type ItemUncheckedCreateWithoutMovimentosContaInput = {
+  id?: string
+  nome: string
+  categoria: string
+  unidade?: string
+  tipoUnidade?: string
+  quantidadePorEmbalagem?: number
+  tipoItem?: $Enums.TipoItem
+  codigo?: string | null
+  filial?: string | null
+  grupoErp?: string | null
+  pontoPedido?: number
+  estoqueSeguranca?: number
+  bloqueadoCompra?: boolean
+  ultimaEntradaEmbalagens?: number | null
+  ativo?: boolean
+  criadoEm?: Date | string
+  atualizadoEm?: Date | string
+  saldos?: Prisma.SaldoEstoqueUncheckedCreateNestedManyWithoutItemInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedCreateNestedManyWithoutItemInput
+  itensRequisicao?: Prisma.RequisicaoItemUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type ItemCreateOrConnectWithoutMovimentosContaInput = {
+  where: Prisma.ItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.ItemCreateWithoutMovimentosContaInput, Prisma.ItemUncheckedCreateWithoutMovimentosContaInput>
+}
+
+export type ItemUpsertWithoutMovimentosContaInput = {
+  update: Prisma.XOR<Prisma.ItemUpdateWithoutMovimentosContaInput, Prisma.ItemUncheckedUpdateWithoutMovimentosContaInput>
+  create: Prisma.XOR<Prisma.ItemCreateWithoutMovimentosContaInput, Prisma.ItemUncheckedCreateWithoutMovimentosContaInput>
+  where?: Prisma.ItemWhereInput
+}
+
+export type ItemUpdateToOneWithWhereWithoutMovimentosContaInput = {
+  where?: Prisma.ItemWhereInput
+  data: Prisma.XOR<Prisma.ItemUpdateWithoutMovimentosContaInput, Prisma.ItemUncheckedUpdateWithoutMovimentosContaInput>
+}
+
+export type ItemUpdateWithoutMovimentosContaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  categoria?: Prisma.StringFieldUpdateOperationsInput | string
+  unidade?: Prisma.StringFieldUpdateOperationsInput | string
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoItem?: Prisma.EnumTipoItemFieldUpdateOperationsInput | $Enums.TipoItem
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filial?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  grupoErp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pontoPedido?: Prisma.IntFieldUpdateOperationsInput | number
+  estoqueSeguranca?: Prisma.IntFieldUpdateOperationsInput | number
+  bloqueadoCompra?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saldos?: Prisma.SaldoEstoqueUpdateManyWithoutItemNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUpdateManyWithoutItemNestedInput
+  itensRequisicao?: Prisma.RequisicaoItemUpdateManyWithoutItemNestedInput
+}
+
+export type ItemUncheckedUpdateWithoutMovimentosContaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  categoria?: Prisma.StringFieldUpdateOperationsInput | string
+  unidade?: Prisma.StringFieldUpdateOperationsInput | string
+  tipoUnidade?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidadePorEmbalagem?: Prisma.IntFieldUpdateOperationsInput | number
+  tipoItem?: Prisma.EnumTipoItemFieldUpdateOperationsInput | $Enums.TipoItem
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filial?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  grupoErp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pontoPedido?: Prisma.IntFieldUpdateOperationsInput | number
+  estoqueSeguranca?: Prisma.IntFieldUpdateOperationsInput | number
+  bloqueadoCompra?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimaEntradaEmbalagens?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saldos?: Prisma.SaldoEstoqueUncheckedUpdateManyWithoutItemNestedInput
+  saldosOperador?: Prisma.SaldoOperadorItemUncheckedUpdateManyWithoutItemNestedInput
+  itensRequisicao?: Prisma.RequisicaoItemUncheckedUpdateManyWithoutItemNestedInput
 }
 
 
@@ -910,11 +1184,15 @@ export type ItemUncheckedUpdateWithoutItensRequisicaoInput = {
 
 export type ItemCountOutputType = {
   saldos: number
+  saldosOperador: number
+  movimentosConta: number
   itensRequisicao: number
 }
 
 export type ItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   saldos?: boolean | ItemCountOutputTypeCountSaldosArgs
+  saldosOperador?: boolean | ItemCountOutputTypeCountSaldosOperadorArgs
+  movimentosConta?: boolean | ItemCountOutputTypeCountMovimentosContaArgs
   itensRequisicao?: boolean | ItemCountOutputTypeCountItensRequisicaoArgs
 }
 
@@ -933,6 +1211,20 @@ export type ItemCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type ItemCountOutputTypeCountSaldosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SaldoEstoqueWhereInput
+}
+
+/**
+ * ItemCountOutputType without action
+ */
+export type ItemCountOutputTypeCountSaldosOperadorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SaldoOperadorItemWhereInput
+}
+
+/**
+ * ItemCountOutputType without action
+ */
+export type ItemCountOutputTypeCountMovimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentoContaEstoqueWhereInput
 }
 
 /**
@@ -962,6 +1254,8 @@ export type ItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   criadoEm?: boolean
   atualizadoEm?: boolean
   saldos?: boolean | Prisma.Item$saldosArgs<ExtArgs>
+  saldosOperador?: boolean | Prisma.Item$saldosOperadorArgs<ExtArgs>
+  movimentosConta?: boolean | Prisma.Item$movimentosContaArgs<ExtArgs>
   itensRequisicao?: boolean | Prisma.Item$itensRequisicaoArgs<ExtArgs>
   _count?: boolean | Prisma.ItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["item"]>
@@ -991,6 +1285,8 @@ export type ItemSelectScalar = {
 export type ItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "categoria" | "unidade" | "tipoUnidade" | "quantidadePorEmbalagem" | "tipoItem" | "codigo" | "filial" | "grupoErp" | "pontoPedido" | "estoqueSeguranca" | "bloqueadoCompra" | "ultimaEntradaEmbalagens" | "ativo" | "criadoEm" | "atualizadoEm", ExtArgs["result"]["item"]>
 export type ItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   saldos?: boolean | Prisma.Item$saldosArgs<ExtArgs>
+  saldosOperador?: boolean | Prisma.Item$saldosOperadorArgs<ExtArgs>
+  movimentosConta?: boolean | Prisma.Item$movimentosContaArgs<ExtArgs>
   itensRequisicao?: boolean | Prisma.Item$itensRequisicaoArgs<ExtArgs>
   _count?: boolean | Prisma.ItemCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -999,6 +1295,8 @@ export type $ItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Item"
   objects: {
     saldos: Prisma.$SaldoEstoquePayload<ExtArgs>[]
+    saldosOperador: Prisma.$SaldoOperadorItemPayload<ExtArgs>[]
+    movimentosConta: Prisma.$MovimentoContaEstoquePayload<ExtArgs>[]
     itensRequisicao: Prisma.$RequisicaoItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1360,6 +1658,8 @@ readonly fields: ItemFieldRefs;
 export interface Prisma__ItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   saldos<T extends Prisma.Item$saldosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Item$saldosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaldoEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  saldosOperador<T extends Prisma.Item$saldosOperadorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Item$saldosOperadorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaldoOperadorItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentosConta<T extends Prisma.Item$movimentosContaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Item$movimentosContaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentoContaEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   itensRequisicao<T extends Prisma.Item$itensRequisicaoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Item$itensRequisicaoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequisicaoItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1776,6 +2076,54 @@ export type Item$saldosArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.SaldoEstoqueScalarFieldEnum | Prisma.SaldoEstoqueScalarFieldEnum[]
+}
+
+/**
+ * Item.saldosOperador
+ */
+export type Item$saldosOperadorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SaldoOperadorItem
+   */
+  select?: Prisma.SaldoOperadorItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SaldoOperadorItem
+   */
+  omit?: Prisma.SaldoOperadorItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SaldoOperadorItemInclude<ExtArgs> | null
+  where?: Prisma.SaldoOperadorItemWhereInput
+  orderBy?: Prisma.SaldoOperadorItemOrderByWithRelationInput | Prisma.SaldoOperadorItemOrderByWithRelationInput[]
+  cursor?: Prisma.SaldoOperadorItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SaldoOperadorItemScalarFieldEnum | Prisma.SaldoOperadorItemScalarFieldEnum[]
+}
+
+/**
+ * Item.movimentosConta
+ */
+export type Item$movimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimentoContaEstoque
+   */
+  select?: Prisma.MovimentoContaEstoqueSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimentoContaEstoque
+   */
+  omit?: Prisma.MovimentoContaEstoqueOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentoContaEstoqueInclude<ExtArgs> | null
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+  orderBy?: Prisma.MovimentoContaEstoqueOrderByWithRelationInput | Prisma.MovimentoContaEstoqueOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentoContaEstoqueWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentoContaEstoqueScalarFieldEnum | Prisma.MovimentoContaEstoqueScalarFieldEnum[]
 }
 
 /**

@@ -402,10 +402,12 @@ export const ModelName = {
   Item: 'Item',
   LocalEstoque: 'LocalEstoque',
   SaldoEstoque: 'SaldoEstoque',
+  SaldoOperadorItem: 'SaldoOperadorItem',
   SequenciaRequisicao: 'SequenciaRequisicao',
   Requisicao: 'Requisicao',
   RequisicaoItem: 'RequisicaoItem',
   Movimentacao: 'Movimentacao',
+  MovimentoContaEstoque: 'MovimentoContaEstoque',
   Auditoria: 'Auditoria',
   TrustedDevice: 'TrustedDevice',
   DevicePairing: 'DevicePairing',
@@ -435,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "loginAttemptBucket" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
+    modelProps: "funcionario" | "sessao" | "item" | "localEstoque" | "saldoEstoque" | "saldoOperadorItem" | "sequenciaRequisicao" | "requisicao" | "requisicaoItem" | "movimentacao" | "movimentoContaEstoque" | "auditoria" | "trustedDevice" | "devicePairing" | "webAuthnCredential" | "authChallenge" | "loginAttemptBucket" | "adminTotpCredential" | "emergencyAccessGrant" | "faceTemplate" | "livenessChallenge" | "faceAuthAttempt" | "faceEnrollmentSession" | "faceEnrollmentAttempt" | "securityAuditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -769,6 +771,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SaldoOperadorItem: {
+      payload: Prisma.$SaldoOperadorItemPayload<ExtArgs>
+      fields: Prisma.SaldoOperadorItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SaldoOperadorItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SaldoOperadorItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>
+        }
+        findFirst: {
+          args: Prisma.SaldoOperadorItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SaldoOperadorItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>
+        }
+        findMany: {
+          args: Prisma.SaldoOperadorItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>[]
+        }
+        create: {
+          args: Prisma.SaldoOperadorItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>
+        }
+        createMany: {
+          args: Prisma.SaldoOperadorItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.SaldoOperadorItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>
+        }
+        update: {
+          args: Prisma.SaldoOperadorItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.SaldoOperadorItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SaldoOperadorItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.SaldoOperadorItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaldoOperadorItemPayload>
+        }
+        aggregate: {
+          args: Prisma.SaldoOperadorItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSaldoOperadorItem>
+        }
+        groupBy: {
+          args: Prisma.SaldoOperadorItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SaldoOperadorItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SaldoOperadorItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SaldoOperadorItemCountAggregateOutputType> | number
+        }
+      }
+    }
     SequenciaRequisicao: {
       payload: Prisma.$SequenciaRequisicaoPayload<ExtArgs>
       fields: Prisma.SequenciaRequisicaoFieldRefs
@@ -1030,6 +1098,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MovimentacaoCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MovimentacaoCountAggregateOutputType> | number
+        }
+      }
+    }
+    MovimentoContaEstoque: {
+      payload: Prisma.$MovimentoContaEstoquePayload<ExtArgs>
+      fields: Prisma.MovimentoContaEstoqueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MovimentoContaEstoqueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MovimentoContaEstoqueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>
+        }
+        findFirst: {
+          args: Prisma.MovimentoContaEstoqueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MovimentoContaEstoqueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>
+        }
+        findMany: {
+          args: Prisma.MovimentoContaEstoqueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>[]
+        }
+        create: {
+          args: Prisma.MovimentoContaEstoqueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>
+        }
+        createMany: {
+          args: Prisma.MovimentoContaEstoqueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.MovimentoContaEstoqueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>
+        }
+        update: {
+          args: Prisma.MovimentoContaEstoqueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>
+        }
+        deleteMany: {
+          args: Prisma.MovimentoContaEstoqueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MovimentoContaEstoqueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.MovimentoContaEstoqueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimentoContaEstoquePayload>
+        }
+        aggregate: {
+          args: Prisma.MovimentoContaEstoqueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMovimentoContaEstoque>
+        }
+        groupBy: {
+          args: Prisma.MovimentoContaEstoqueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovimentoContaEstoqueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MovimentoContaEstoqueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovimentoContaEstoqueCountAggregateOutputType> | number
         }
       }
     }
@@ -2075,6 +2209,20 @@ export const SaldoEstoqueScalarFieldEnum = {
 export type SaldoEstoqueScalarFieldEnum = (typeof SaldoEstoqueScalarFieldEnum)[keyof typeof SaldoEstoqueScalarFieldEnum]
 
 
+export const SaldoOperadorItemScalarFieldEnum = {
+  id: 'id',
+  funcionarioId: 'funcionarioId',
+  itemId: 'itemId',
+  localId: 'localId',
+  quantidadeASeparar: 'quantidadeASeparar',
+  quantidadeEmPosse: 'quantidadeEmPosse',
+  criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm'
+} as const
+
+export type SaldoOperadorItemScalarFieldEnum = (typeof SaldoOperadorItemScalarFieldEnum)[keyof typeof SaldoOperadorItemScalarFieldEnum]
+
+
 export const SequenciaRequisicaoScalarFieldEnum = {
   id: 'id',
   proximo: 'proximo'
@@ -2089,6 +2237,7 @@ export const RequisicaoScalarFieldEnum = {
   status: 'status',
   prioridade: 'prioridade',
   observacao: 'observacao',
+  regraEstoque: 'regraEstoque',
   solicitanteId: 'solicitanteId',
   atendenteId: 'atendenteId',
   criadoEm: 'criadoEm',
@@ -2133,6 +2282,32 @@ export const MovimentacaoScalarFieldEnum = {
 } as const
 
 export type MovimentacaoScalarFieldEnum = (typeof MovimentacaoScalarFieldEnum)[keyof typeof MovimentacaoScalarFieldEnum]
+
+
+export const MovimentoContaEstoqueScalarFieldEnum = {
+  id: 'id',
+  criadoEm: 'criadoEm',
+  tipo: 'tipo',
+  itemId: 'itemId',
+  localId: 'localId',
+  quantidade: 'quantidade',
+  fisicoAntes: 'fisicoAntes',
+  fisicoDepois: 'fisicoDepois',
+  quantidadeASepararAntes: 'quantidadeASepararAntes',
+  quantidadeASepararDepois: 'quantidadeASepararDepois',
+  quantidadeEmPosseAntes: 'quantidadeEmPosseAntes',
+  quantidadeEmPosseDepois: 'quantidadeEmPosseDepois',
+  requisicaoId: 'requisicaoId',
+  requisicaoItemId: 'requisicaoItemId',
+  funcionarioOrigemId: 'funcionarioOrigemId',
+  funcionarioExecutorId: 'funcionarioExecutorId',
+  origem: 'origem',
+  motivo: 'motivo',
+  correlationId: 'correlationId',
+  idempotencyKey: 'idempotencyKey'
+} as const
+
+export type MovimentoContaEstoqueScalarFieldEnum = (typeof MovimentoContaEstoqueScalarFieldEnum)[keyof typeof MovimentoContaEstoqueScalarFieldEnum]
 
 
 export const AuditoriaScalarFieldEnum = {
@@ -2405,10 +2580,20 @@ export const SaldoEstoqueOrderByRelevanceFieldEnum = {
 export type SaldoEstoqueOrderByRelevanceFieldEnum = (typeof SaldoEstoqueOrderByRelevanceFieldEnum)[keyof typeof SaldoEstoqueOrderByRelevanceFieldEnum]
 
 
+export const SaldoOperadorItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  localId: 'localId'
+} as const
+
+export type SaldoOperadorItemOrderByRelevanceFieldEnum = (typeof SaldoOperadorItemOrderByRelevanceFieldEnum)[keyof typeof SaldoOperadorItemOrderByRelevanceFieldEnum]
+
+
 export const RequisicaoOrderByRelevanceFieldEnum = {
   id: 'id',
   numeroPedido: 'numeroPedido',
-  observacao: 'observacao'
+  observacao: 'observacao',
+  regraEstoque: 'regraEstoque'
 } as const
 
 export type RequisicaoOrderByRelevanceFieldEnum = (typeof RequisicaoOrderByRelevanceFieldEnum)[keyof typeof RequisicaoOrderByRelevanceFieldEnum]
@@ -2436,6 +2621,22 @@ export const MovimentacaoOrderByRelevanceFieldEnum = {
 } as const
 
 export type MovimentacaoOrderByRelevanceFieldEnum = (typeof MovimentacaoOrderByRelevanceFieldEnum)[keyof typeof MovimentacaoOrderByRelevanceFieldEnum]
+
+
+export const MovimentoContaEstoqueOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  itemId: 'itemId',
+  localId: 'localId',
+  requisicaoId: 'requisicaoId',
+  requisicaoItemId: 'requisicaoItemId',
+  origem: 'origem',
+  motivo: 'motivo',
+  correlationId: 'correlationId',
+  idempotencyKey: 'idempotencyKey'
+} as const
+
+export type MovimentoContaEstoqueOrderByRelevanceFieldEnum = (typeof MovimentoContaEstoqueOrderByRelevanceFieldEnum)[keyof typeof MovimentoContaEstoqueOrderByRelevanceFieldEnum]
 
 
 export const AuditoriaOrderByRelevanceFieldEnum = {
@@ -2820,10 +3021,12 @@ export type GlobalOmitConfig = {
   item?: Prisma.ItemOmit
   localEstoque?: Prisma.LocalEstoqueOmit
   saldoEstoque?: Prisma.SaldoEstoqueOmit
+  saldoOperadorItem?: Prisma.SaldoOperadorItemOmit
   sequenciaRequisicao?: Prisma.SequenciaRequisicaoOmit
   requisicao?: Prisma.RequisicaoOmit
   requisicaoItem?: Prisma.RequisicaoItemOmit
   movimentacao?: Prisma.MovimentacaoOmit
+  movimentoContaEstoque?: Prisma.MovimentoContaEstoqueOmit
   auditoria?: Prisma.AuditoriaOmit
   trustedDevice?: Prisma.TrustedDeviceOmit
   devicePairing?: Prisma.DevicePairingOmit
