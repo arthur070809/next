@@ -4,10 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS } from "@/lib/stock-units";
+import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
 import { TipoMovimentacao } from "@/generated/prisma/client";
 
-// Slug do local padrão "estoque central"
-const LOCAL_ESTOQUE_SLUG = "estoque";
 const LOCAL_DEPOSITO_SLUG = "deposito";
 
 function respostaJson(body: unknown, init?: ResponseInit) {
@@ -37,15 +36,6 @@ function respostaErroInterno(error: unknown, operacao: string) {
 
   console.error("Erro interno na API de estoque", { errorId, operacao, errorName, prismaCode, stack });
   return respostaJson({ error: message, errorId }, { status });
-}
-
-/** Garante que o local existe; cria se não existir (idempotente) */
-async function ensureLocal(slug: string, nome: string) {
-  return prisma.localEstoque.upsert({
-    where: { slug },
-    create: { slug, nome, ativo: true },
-    update: {},
-  });
 }
 
 /** Formata item + saldo para a resposta da API (retrocompatível com o front) */
@@ -326,6 +316,3 @@ export async function PATCH(request: Request) {
     return respostaErroInterno(error, "atualizar");
   }
 }
-
-// Exporta helpers para uso em outros módulos
-export { ensureLocal, LOCAL_ESTOQUE_SLUG, LOCAL_DEPOSITO_SLUG };

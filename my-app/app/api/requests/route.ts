@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
-import { criarRequisicao, toRequisicaoMock } from "@/lib/requisicoes-db";
-import { LOCAL_ESTOQUE_SLUG } from "../estoque/route";
+import { criarRequisicaoIdempotente, toRequisicaoMock } from "@/lib/requisicoes-db";
+import { encodeItemDescription, type SetorRequisicao } from "@/lib/requisition-metadata";
+import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
 import { PapelFuncionario } from "@/generated/prisma/client";
 
 export async function GET() {
@@ -60,6 +62,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const rawIdempotencyKey = request.headers.get("Idempotency-Key")?.trim() ?? "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rawIdempotencyKey)) {
+      return NextResponse.json({ error: "Chave de idempotência inválida ou ausente." }, { status: 400 });
+    }
 
     // Garante que o local estoque central existe
     const localEstoque = await prisma.localEstoque.upsert({
@@ -74,6 +80,7 @@ export async function POST(request: Request) {
       quantidade: number;
       unidadeMedida?: string;
       descricao?: string;
+      setor?: SetorRequisicao;
     }> = [];
 
     let prioridade: "padrao" | "prioridade" = "padrao";
@@ -85,10 +92,16 @@ export async function POST(request: Request) {
         const itemNome = typeof rawItem?.itemNome === "string" ? rawItem.itemNome.trim() : "";
         const itemId = typeof rawItem?.itemId === "string" ? rawItem.itemId : undefined;
         const quantidade = Number(rawItem?.quantidade);
+        const setor = rawItem?.setor;
 
-        if ((!itemNome && !itemId) || !Number.isInteger(quantidade) || quantidade < 1) {
+        if (
+          (!itemNome && !itemId) ||
+          !Number.isInteger(quantidade) ||
+          quantidade < 1 ||
+          !["setor1", "setor2", "setor3"].includes(setor)
+        ) {
           return NextResponse.json(
-            { error: "Cada item deve ter nome válido e quantidade inteira positiva." },
+            { error: "Cada item deve ter nome, setor válido e quantidade inteira positiva." },
             { status: 400 }
           );
         }
@@ -114,7 +127,11 @@ export async function POST(request: Request) {
           localId: localEstoque.id,
           quantidade,
           unidadeMedida: typeof rawItem?.unidadeMedida === "string" ? rawItem.unidadeMedida : "UN",
-          descricao: typeof rawItem?.descricao === "string" ? rawItem.descricao.trim() : undefined,
+          descricao: encodeItemDescription(
+            typeof rawItem?.descricao === "string" ? rawItem.descricao : undefined,
+            setor as SetorRequisicao,
+          ) ?? undefined,
+          setor: setor as SetorRequisicao,
         });
       }
     }
@@ -158,22 +175,38 @@ export async function POST(request: Request) {
 
     // Cria requisição com reserva atômica de estoque em transação
     try {
-      const requisicao = await criarRequisicao({
+      const keyHash = createHash("sha256")
+        .update(`${funcionario.id}:${rawIdempotencyKey}`)
+        .digest("hex");
+      const payloadHash = createHash("sha256")
+        .update(JSON.stringify({
+          itens: itemsToProcess,
+          prioridade,
+          observacao: observacao ?? null,
+        }))
+        .digest("hex");
+      const { requisicao, replayed } = await criarRequisicaoIdempotente({
         solicitanteId: funcionario.id,
         itens: itemsToProcess,
         prioridade,
         observacao,
+        idempotencyKeyHash: keyHash,
+        payloadHash,
       });
 
       return NextResponse.json(
         {
           numeroPedido: requisicao.numeroPedido,
           requisicao: toRequisicaoMock(requisicao),
+          replayed,
         },
-        { status: 201 }
+        { status: replayed ? 200 : 201 }
       );
     } catch (reservaError: unknown) {
       const err = reservaError as { code?: string; message?: string; disponivel?: number };
+      if (err?.code === "IDEMPOTENCY_CONFLICT") {
+        return NextResponse.json({ error: err.message }, { status: 409 });
+      }
       if (err?.code === "SALDO_INSUFICIENTE") {
         return NextResponse.json(
           {
