@@ -6,7 +6,7 @@
 /*
  * This file should be your main import to use Prisma-related types and utilities in a browser. 
  * Use it to get access to models, enums, and input types.
- *
+ * 
  * This file does not contain a `PrismaClient` class, nor several other helpers that are intended as server-side only.
  * See `client.ts` for the standard, server-side entry point.
  *
@@ -43,6 +43,11 @@ export type LocalEstoque = Prisma.LocalEstoqueModel
  */
 export type SaldoEstoque = Prisma.SaldoEstoqueModel
 /**
+ * Model SaldoOperadorItem
+ * 
+ */
+export type SaldoOperadorItem = Prisma.SaldoOperadorItemModel
+/**
  * Model SequenciaRequisicao
  * 
  */
@@ -62,6 +67,11 @@ export type RequisicaoItem = Prisma.RequisicaoItemModel
  * 
  */
 export type Movimentacao = Prisma.MovimentacaoModel
+/**
+ * Model MovimentoContaEstoque
+ * 
+ */
+export type MovimentoContaEstoque = Prisma.MovimentoContaEstoqueModel
 /**
  * Model Auditoria
  * 
@@ -84,12 +94,12 @@ export type DevicePairing = Prisma.DevicePairingModel
 export type WebAuthnCredential = Prisma.WebAuthnCredentialModel
 /**
  * Model AuthChallenge
- *
+ * 
  */
 export type AuthChallenge = Prisma.AuthChallengeModel
 /**
  * Model LoginAttemptBucket
- *
+ * 
  */
 export type LoginAttemptBucket = Prisma.LoginAttemptBucketModel
 /**

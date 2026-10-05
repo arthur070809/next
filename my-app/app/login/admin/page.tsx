@@ -6,3 +6,4 @@ export default async function LegacyAdminLoginPage() {
   if (funcionario) redirect(getRoleHomePath(funcionario.role));
   redirect("/login");
 }
+//

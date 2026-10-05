@@ -268,6 +268,7 @@ export type RequisicaoItemWhereInput = {
   item?: Prisma.XOR<Prisma.ItemScalarRelationFilter, Prisma.ItemWhereInput>
   local?: Prisma.XOR<Prisma.LocalEstoqueScalarRelationFilter, Prisma.LocalEstoqueWhereInput>
   movimentacoes?: Prisma.MovimentacaoListRelationFilter
+  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
 }
 
 export type RequisicaoItemOrderByWithRelationInput = {
@@ -286,6 +287,7 @@ export type RequisicaoItemOrderByWithRelationInput = {
   item?: Prisma.ItemOrderByWithRelationInput
   local?: Prisma.LocalEstoqueOrderByWithRelationInput
   movimentacoes?: Prisma.MovimentacaoOrderByRelationAggregateInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueOrderByRelationAggregateInput
   _relevance?: Prisma.RequisicaoItemOrderByRelevanceInput
 }
 
@@ -308,6 +310,7 @@ export type RequisicaoItemWhereUniqueInput = Prisma.AtLeast<{
   item?: Prisma.XOR<Prisma.ItemScalarRelationFilter, Prisma.ItemWhereInput>
   local?: Prisma.XOR<Prisma.LocalEstoqueScalarRelationFilter, Prisma.LocalEstoqueWhereInput>
   movimentacoes?: Prisma.MovimentacaoListRelationFilter
+  movimentosConta?: Prisma.MovimentoContaEstoqueListRelationFilter
 }, "id">
 
 export type RequisicaoItemOrderByWithAggregationInput = {
@@ -359,6 +362,7 @@ export type RequisicaoItemCreateInput = {
   item: Prisma.ItemCreateNestedOneWithoutItensRequisicaoInput
   local: Prisma.LocalEstoqueCreateNestedOneWithoutItensRequisicaoInput
   movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemUncheckedCreateInput = {
@@ -374,6 +378,7 @@ export type RequisicaoItemUncheckedCreateInput = {
   motivoNaoAtendido?: string | null
   resolvidoEm?: Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemUpdateInput = {
@@ -389,6 +394,7 @@ export type RequisicaoItemUpdateInput = {
   item?: Prisma.ItemUpdateOneRequiredWithoutItensRequisicaoNestedInput
   local?: Prisma.LocalEstoqueUpdateOneRequiredWithoutItensRequisicaoNestedInput
   movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateInput = {
@@ -404,6 +410,7 @@ export type RequisicaoItemUncheckedUpdateInput = {
   motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemCreateManyInput = {
@@ -666,6 +673,22 @@ export type RequisicaoItemUpdateOneWithoutMovimentacoesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RequisicaoItemUpdateToOneWithWhereWithoutMovimentacoesInput, Prisma.RequisicaoItemUpdateWithoutMovimentacoesInput>, Prisma.RequisicaoItemUncheckedUpdateWithoutMovimentacoesInput>
 }
 
+export type RequisicaoItemCreateNestedOneWithoutMovimentosContaInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoItemCreateWithoutMovimentosContaInput, Prisma.RequisicaoItemUncheckedCreateWithoutMovimentosContaInput>
+  connectOrCreate?: Prisma.RequisicaoItemCreateOrConnectWithoutMovimentosContaInput
+  connect?: Prisma.RequisicaoItemWhereUniqueInput
+}
+
+export type RequisicaoItemUpdateOneWithoutMovimentosContaNestedInput = {
+  create?: Prisma.XOR<Prisma.RequisicaoItemCreateWithoutMovimentosContaInput, Prisma.RequisicaoItemUncheckedCreateWithoutMovimentosContaInput>
+  connectOrCreate?: Prisma.RequisicaoItemCreateOrConnectWithoutMovimentosContaInput
+  upsert?: Prisma.RequisicaoItemUpsertWithoutMovimentosContaInput
+  disconnect?: Prisma.RequisicaoItemWhereInput | boolean
+  delete?: Prisma.RequisicaoItemWhereInput | boolean
+  connect?: Prisma.RequisicaoItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RequisicaoItemUpdateToOneWithWhereWithoutMovimentosContaInput, Prisma.RequisicaoItemUpdateWithoutMovimentosContaInput>, Prisma.RequisicaoItemUncheckedUpdateWithoutMovimentosContaInput>
+}
+
 export type RequisicaoItemCreateWithoutItemInput = {
   id?: string
   quantidade: number
@@ -678,6 +701,7 @@ export type RequisicaoItemCreateWithoutItemInput = {
   requisicao: Prisma.RequisicaoCreateNestedOneWithoutItensInput
   local: Prisma.LocalEstoqueCreateNestedOneWithoutItensRequisicaoInput
   movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemUncheckedCreateWithoutItemInput = {
@@ -692,6 +716,7 @@ export type RequisicaoItemUncheckedCreateWithoutItemInput = {
   motivoNaoAtendido?: string | null
   resolvidoEm?: Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemCreateOrConnectWithoutItemInput = {
@@ -749,6 +774,7 @@ export type RequisicaoItemCreateWithoutLocalInput = {
   requisicao: Prisma.RequisicaoCreateNestedOneWithoutItensInput
   item: Prisma.ItemCreateNestedOneWithoutItensRequisicaoInput
   movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemUncheckedCreateWithoutLocalInput = {
@@ -763,6 +789,7 @@ export type RequisicaoItemUncheckedCreateWithoutLocalInput = {
   motivoNaoAtendido?: string | null
   resolvidoEm?: Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemCreateOrConnectWithoutLocalInput = {
@@ -803,6 +830,7 @@ export type RequisicaoItemCreateWithoutRequisicaoInput = {
   item: Prisma.ItemCreateNestedOneWithoutItensRequisicaoInput
   local: Prisma.LocalEstoqueCreateNestedOneWithoutItensRequisicaoInput
   movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemUncheckedCreateWithoutRequisicaoInput = {
@@ -817,6 +845,7 @@ export type RequisicaoItemUncheckedCreateWithoutRequisicaoInput = {
   motivoNaoAtendido?: string | null
   resolvidoEm?: Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoItemInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemCreateOrConnectWithoutRequisicaoInput = {
@@ -857,6 +886,7 @@ export type RequisicaoItemCreateWithoutMovimentacoesInput = {
   requisicao: Prisma.RequisicaoCreateNestedOneWithoutItensInput
   item: Prisma.ItemCreateNestedOneWithoutItensRequisicaoInput
   local: Prisma.LocalEstoqueCreateNestedOneWithoutItensRequisicaoInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemUncheckedCreateWithoutMovimentacoesInput = {
@@ -871,6 +901,7 @@ export type RequisicaoItemUncheckedCreateWithoutMovimentacoesInput = {
   separado?: boolean | null
   motivoNaoAtendido?: string | null
   resolvidoEm?: Date | string | null
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedCreateNestedManyWithoutRequisicaoItemInput
 }
 
 export type RequisicaoItemCreateOrConnectWithoutMovimentacoesInput = {
@@ -901,6 +932,7 @@ export type RequisicaoItemUpdateWithoutMovimentacoesInput = {
   requisicao?: Prisma.RequisicaoUpdateOneRequiredWithoutItensNestedInput
   item?: Prisma.ItemUpdateOneRequiredWithoutItensRequisicaoNestedInput
   local?: Prisma.LocalEstoqueUpdateOneRequiredWithoutItensRequisicaoNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateWithoutMovimentacoesInput = {
@@ -915,6 +947,83 @@ export type RequisicaoItemUncheckedUpdateWithoutMovimentacoesInput = {
   separado?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoItemNestedInput
+}
+
+export type RequisicaoItemCreateWithoutMovimentosContaInput = {
+  id?: string
+  quantidade: number
+  unidadeMedida?: string
+  descricao?: string | null
+  status?: $Enums.StatusItemRequisicao
+  separado?: boolean | null
+  motivoNaoAtendido?: string | null
+  resolvidoEm?: Date | string | null
+  requisicao: Prisma.RequisicaoCreateNestedOneWithoutItensInput
+  item: Prisma.ItemCreateNestedOneWithoutItensRequisicaoInput
+  local: Prisma.LocalEstoqueCreateNestedOneWithoutItensRequisicaoInput
+  movimentacoes?: Prisma.MovimentacaoCreateNestedManyWithoutRequisicaoItemInput
+}
+
+export type RequisicaoItemUncheckedCreateWithoutMovimentosContaInput = {
+  id?: string
+  requisicaoId: string
+  itemId: string
+  localId: string
+  quantidade: number
+  unidadeMedida?: string
+  descricao?: string | null
+  status?: $Enums.StatusItemRequisicao
+  separado?: boolean | null
+  motivoNaoAtendido?: string | null
+  resolvidoEm?: Date | string | null
+  movimentacoes?: Prisma.MovimentacaoUncheckedCreateNestedManyWithoutRequisicaoItemInput
+}
+
+export type RequisicaoItemCreateOrConnectWithoutMovimentosContaInput = {
+  where: Prisma.RequisicaoItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.RequisicaoItemCreateWithoutMovimentosContaInput, Prisma.RequisicaoItemUncheckedCreateWithoutMovimentosContaInput>
+}
+
+export type RequisicaoItemUpsertWithoutMovimentosContaInput = {
+  update: Prisma.XOR<Prisma.RequisicaoItemUpdateWithoutMovimentosContaInput, Prisma.RequisicaoItemUncheckedUpdateWithoutMovimentosContaInput>
+  create: Prisma.XOR<Prisma.RequisicaoItemCreateWithoutMovimentosContaInput, Prisma.RequisicaoItemUncheckedCreateWithoutMovimentosContaInput>
+  where?: Prisma.RequisicaoItemWhereInput
+}
+
+export type RequisicaoItemUpdateToOneWithWhereWithoutMovimentosContaInput = {
+  where?: Prisma.RequisicaoItemWhereInput
+  data: Prisma.XOR<Prisma.RequisicaoItemUpdateWithoutMovimentosContaInput, Prisma.RequisicaoItemUncheckedUpdateWithoutMovimentosContaInput>
+}
+
+export type RequisicaoItemUpdateWithoutMovimentosContaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  unidadeMedida?: Prisma.StringFieldUpdateOperationsInput | string
+  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusItemRequisicaoFieldUpdateOperationsInput | $Enums.StatusItemRequisicao
+  separado?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requisicao?: Prisma.RequisicaoUpdateOneRequiredWithoutItensNestedInput
+  item?: Prisma.ItemUpdateOneRequiredWithoutItensRequisicaoNestedInput
+  local?: Prisma.LocalEstoqueUpdateOneRequiredWithoutItensRequisicaoNestedInput
+  movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoItemNestedInput
+}
+
+export type RequisicaoItemUncheckedUpdateWithoutMovimentosContaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  requisicaoId?: Prisma.StringFieldUpdateOperationsInput | string
+  itemId?: Prisma.StringFieldUpdateOperationsInput | string
+  localId?: Prisma.StringFieldUpdateOperationsInput | string
+  quantidade?: Prisma.IntFieldUpdateOperationsInput | number
+  unidadeMedida?: Prisma.StringFieldUpdateOperationsInput | string
+  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusItemRequisicaoFieldUpdateOperationsInput | $Enums.StatusItemRequisicao
+  separado?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemCreateManyItemInput = {
@@ -942,6 +1051,7 @@ export type RequisicaoItemUpdateWithoutItemInput = {
   requisicao?: Prisma.RequisicaoUpdateOneRequiredWithoutItensNestedInput
   local?: Prisma.LocalEstoqueUpdateOneRequiredWithoutItensRequisicaoNestedInput
   movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateWithoutItemInput = {
@@ -956,6 +1066,7 @@ export type RequisicaoItemUncheckedUpdateWithoutItemInput = {
   motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateManyWithoutItemInput = {
@@ -996,6 +1107,7 @@ export type RequisicaoItemUpdateWithoutLocalInput = {
   requisicao?: Prisma.RequisicaoUpdateOneRequiredWithoutItensNestedInput
   item?: Prisma.ItemUpdateOneRequiredWithoutItensRequisicaoNestedInput
   movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateWithoutLocalInput = {
@@ -1010,6 +1122,7 @@ export type RequisicaoItemUncheckedUpdateWithoutLocalInput = {
   motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateManyWithoutLocalInput = {
@@ -1050,6 +1163,7 @@ export type RequisicaoItemUpdateWithoutRequisicaoInput = {
   item?: Prisma.ItemUpdateOneRequiredWithoutItensRequisicaoNestedInput
   local?: Prisma.LocalEstoqueUpdateOneRequiredWithoutItensRequisicaoNestedInput
   movimentacoes?: Prisma.MovimentacaoUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateWithoutRequisicaoInput = {
@@ -1064,6 +1178,7 @@ export type RequisicaoItemUncheckedUpdateWithoutRequisicaoInput = {
   motivoNaoAtendido?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resolvidoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   movimentacoes?: Prisma.MovimentacaoUncheckedUpdateManyWithoutRequisicaoItemNestedInput
+  movimentosConta?: Prisma.MovimentoContaEstoqueUncheckedUpdateManyWithoutRequisicaoItemNestedInput
 }
 
 export type RequisicaoItemUncheckedUpdateManyWithoutRequisicaoInput = {
@@ -1086,10 +1201,12 @@ export type RequisicaoItemUncheckedUpdateManyWithoutRequisicaoInput = {
 
 export type RequisicaoItemCountOutputType = {
   movimentacoes: number
+  movimentosConta: number
 }
 
 export type RequisicaoItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   movimentacoes?: boolean | RequisicaoItemCountOutputTypeCountMovimentacoesArgs
+  movimentosConta?: boolean | RequisicaoItemCountOutputTypeCountMovimentosContaArgs
 }
 
 /**
@@ -1109,6 +1226,13 @@ export type RequisicaoItemCountOutputTypeCountMovimentacoesArgs<ExtArgs extends 
   where?: Prisma.MovimentacaoWhereInput
 }
 
+/**
+ * RequisicaoItemCountOutputType without action
+ */
+export type RequisicaoItemCountOutputTypeCountMovimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+}
+
 
 export type RequisicaoItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1126,6 +1250,7 @@ export type RequisicaoItemSelect<ExtArgs extends runtime.Types.Extensions.Intern
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
   local?: boolean | Prisma.LocalEstoqueDefaultArgs<ExtArgs>
   movimentacoes?: boolean | Prisma.RequisicaoItem$movimentacoesArgs<ExtArgs>
+  movimentosConta?: boolean | Prisma.RequisicaoItem$movimentosContaArgs<ExtArgs>
   _count?: boolean | Prisma.RequisicaoItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["requisicaoItem"]>
 
@@ -1151,6 +1276,7 @@ export type RequisicaoItemInclude<ExtArgs extends runtime.Types.Extensions.Inter
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
   local?: boolean | Prisma.LocalEstoqueDefaultArgs<ExtArgs>
   movimentacoes?: boolean | Prisma.RequisicaoItem$movimentacoesArgs<ExtArgs>
+  movimentosConta?: boolean | Prisma.RequisicaoItem$movimentosContaArgs<ExtArgs>
   _count?: boolean | Prisma.RequisicaoItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1161,6 +1287,7 @@ export type $RequisicaoItemPayload<ExtArgs extends runtime.Types.Extensions.Inte
     item: Prisma.$ItemPayload<ExtArgs>
     local: Prisma.$LocalEstoquePayload<ExtArgs>
     movimentacoes: Prisma.$MovimentacaoPayload<ExtArgs>[]
+    movimentosConta: Prisma.$MovimentoContaEstoquePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1518,6 +1645,7 @@ export interface Prisma__RequisicaoItemClient<T, Null = never, ExtArgs extends r
   item<T extends Prisma.ItemDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ItemDefaultArgs<ExtArgs>>): Prisma.Prisma__ItemClient<runtime.Types.Result.GetResult<Prisma.$ItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   local<T extends Prisma.LocalEstoqueDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocalEstoqueDefaultArgs<ExtArgs>>): Prisma.Prisma__LocalEstoqueClient<runtime.Types.Result.GetResult<Prisma.$LocalEstoquePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   movimentacoes<T extends Prisma.RequisicaoItem$movimentacoesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RequisicaoItem$movimentacoesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentacaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimentosConta<T extends Prisma.RequisicaoItem$movimentosContaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RequisicaoItem$movimentosContaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimentoContaEstoquePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1927,6 +2055,30 @@ export type RequisicaoItem$movimentacoesArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.MovimentacaoScalarFieldEnum | Prisma.MovimentacaoScalarFieldEnum[]
+}
+
+/**
+ * RequisicaoItem.movimentosConta
+ */
+export type RequisicaoItem$movimentosContaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimentoContaEstoque
+   */
+  select?: Prisma.MovimentoContaEstoqueSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimentoContaEstoque
+   */
+  omit?: Prisma.MovimentoContaEstoqueOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimentoContaEstoqueInclude<ExtArgs> | null
+  where?: Prisma.MovimentoContaEstoqueWhereInput
+  orderBy?: Prisma.MovimentoContaEstoqueOrderByWithRelationInput | Prisma.MovimentoContaEstoqueOrderByWithRelationInput[]
+  cursor?: Prisma.MovimentoContaEstoqueWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimentoContaEstoqueScalarFieldEnum | Prisma.MovimentoContaEstoqueScalarFieldEnum[]
 }
 
 /**

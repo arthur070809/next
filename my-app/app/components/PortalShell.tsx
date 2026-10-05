@@ -9,6 +9,7 @@ type PortalRole = "admin" | "almoxarifado" | "operador";
 
 const adminMenu = [
   { href: "/admin", label: "Início", icon: "⌂" },
+  { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
   { href: "/admin/estoque", label: "Estoque", icon: "▦" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
   { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
