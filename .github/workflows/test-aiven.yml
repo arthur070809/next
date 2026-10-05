@@ -1,4 +1,4 @@
-name: Test Aiven MySQL
+cdname: Test Aiven MySQL
 
 on:
   workflow_dispatch:
@@ -7,27 +7,6 @@ jobs:
   test-database:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Baixar projeto
-        uses: actions/checkout@v4
-
-      - name: Configurar Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Instalar dependencias
-        run: npm ci
-
-      - name: Gerar Prisma Client
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma generate
-
-      - name: Testar banco Aiven
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          DATABASE_URL="${DATABASE_URL//ssl-mode=REQUIRED/sslaccept=strict}"
-          export DATABASE_URL
-          npx prisma db pull --print
+    defaults:
+      run:
+        working-directory: my-app
