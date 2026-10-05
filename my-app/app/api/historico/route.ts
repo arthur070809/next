@@ -3,11 +3,18 @@ import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripIdempotencyMetadata } from "@/lib/requisition-metadata";
 import type { EventoHistorico } from "@/lib/types/almoxarifado";
+import { PapelFuncionario } from "@/generated/prisma/client";
 
 export async function GET() {
   const funcionario = await getAuthenticatedFuncionario();
   if (!funcionario) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+  if (
+    funcionario.papel !== PapelFuncionario.ADMIN &&
+    funcionario.papel !== PapelFuncionario.ALMOXARIFE
+  ) {
+    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
   }
 
   try {
