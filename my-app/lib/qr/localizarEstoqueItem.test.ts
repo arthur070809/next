@@ -12,6 +12,22 @@ describe("localizarItemEstoquePorCodigo", () => {
       .toEqual({ type: "not-found" });
   });
 
+  it("matches 1794 and 17940 as distinct exact product codes", () => {
+    const items = [
+      { id: "short-code", codigo: "1794" },
+      { id: "long-code", codigo: "17940" },
+    ];
+
+    expect(localizarItemEstoquePorCodigo("1794", items)).toEqual({
+      type: "found",
+      item: items[0],
+    });
+    expect(localizarItemEstoquePorCodigo("17940", items)).toEqual({
+      type: "found",
+      item: items[1],
+    });
+  });
+
   it("refuses ambiguous matches rather than selecting an arbitrary product", () => {
     expect(localizarItemEstoquePorCodigo("129", [
       { id: "item-1", codigo: "129" },

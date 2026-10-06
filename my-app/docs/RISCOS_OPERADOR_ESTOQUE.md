@@ -27,7 +27,7 @@
 ## E2 — QR e entrada de estoque
 
 1. Código parcial `1794` seleciona `17940`: igualdade exata e teste dos dois códigos.
-2. Timeout seguido de retry credita duas vezes: mesma chave de idempotência no cliente/servidor e replay sem novo movimento, sem criar lógica paralela de saldo.
+2. Timeout seguido de retry pode creditar duas vezes: endpoint atual não persiste idempotency key. Nesta tarefa não alteramos transações/schema; portanto retry idempotente permanece pendente e o operador deve confirmar o saldo/histórico antes de repetir uma entrada incerta.
 3. Operador chama API diretamente: autorização no handler POST e teste 403 antes de consultas/gravações.
 
 ## R1 — ponto de pedido
