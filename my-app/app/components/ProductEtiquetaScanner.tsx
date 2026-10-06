@@ -32,6 +32,8 @@ export default function ProductEtiquetaScanner({
   const scannerRef = useRef<ReturnType<typeof createScanner> | null>(null);
 
   useEffect(() => {
+    document.documentElement.dataset.qrScannerActive = "true";
+    window.dispatchEvent(new Event("marcon:qr-scanner-change"));
     const lease = createCameraLease();
     let effectStream: MediaStream | null = null;
     let effectScanner: ReturnType<typeof createScanner> | null = null;
@@ -91,6 +93,8 @@ export default function ProductEtiquetaScanner({
 
     void start();
     return () => {
+      delete document.documentElement.dataset.qrScannerActive;
+      window.dispatchEvent(new Event("marcon:qr-scanner-change"));
       lease.close();
       effectScanner?.stop();
       if (scannerRef.current === effectScanner) scannerRef.current = null;

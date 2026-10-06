@@ -18,7 +18,7 @@ Atualizado durante a revisão funcional do almoxarifado, QR e cadastro facial. N
 | R1 — ressuprimento | Corrigido: dashboard, lista e ressuprimento agora usam saldo livre e o mesmo critério inclusivo. Ponto zero/nulo não é considerado configurado. | `lib/stock-status.ts`, `lib/ressuprimento/carregar-dados.ts` |
 | E1 — layout de estoque | Contrato do CSS/regressão passou; viewport/captura não disponível, portanto 360/768/1440 não verificado em dispositivo. | `app/estoque/stock-layout.test.ts`, `app/estoque/stock-list.module.css` |
 | E2 — QR no estoque | Parcial: scanner existente, conhecido/desconhecido, match exato 1794/17940 e auth de API cobertos. Retry idempotente bloqueado: rota não aceita idempotency key; mudar transação/schema está proibido. | `app/estoque/page.tsx`, `app/api/estoque/route.ts`, `lib/qr/localizarEstoqueItem.test.ts` |
-| O3 — fechamento/retorno do operador | Implementado best-effort com cookie de sessão existente, carência 60s, retorno/visibility e exclusão do scanner; limitação de eventos móveis documentada. | `app/components/PortalShell.tsx`, `lib/operator-session-lifecycle.ts` |
+| O3 — fechamento/retorno do operador | Implementado best-effort: cookie de sessão existente, carência 60 s, logout de pagehide, retorno da aba e suspensão durante scanner. Testes cobrem limites, papéis e scanner. Limitação móvel documentada. | `app/components/PortalShell.tsx`, `lib/operator-session-lifecycle.test.ts` |
 
 ## Validação desta revisão
 

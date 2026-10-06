@@ -5,6 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
+import {
+  shouldEndOperatorSessionOnReturn,
+  shouldSendOperatorPagehideLogout,
+} from "@/lib/operator-session-lifecycle";
 
 type PortalRole = "admin" | "almoxarifado" | "operador";
 
@@ -72,7 +76,27 @@ export default function PortalShell({
   useEffect(() => {
     if (!isOperator) return;
     let timer = 0;
+    let sessionEnding = false;
+    const hiddenAtKey = "marcon-operator-hidden-at";
+    const scannerActive = () => document.documentElement.dataset.qrScannerActive === "true";
+    const readHiddenAt = () => {
+      try {
+        const value = Number(sessionStorage.getItem(hiddenAtKey));
+        return Number.isFinite(value) && value > 0 ? value : null;
+      } catch {
+        return null;
+      }
+    };
+    const clearHiddenAt = () => {
+      try {
+        sessionStorage.removeItem(hiddenAtKey);
+      } catch {
+        return;
+      }
+    };
     const expireSession = () => {
+      if (sessionEnding) return;
+      sessionEnding = true;
       void fetch("/api/auth/logout", { method: "POST" })
         .finally(() => {
           router.replace("/login");
@@ -81,14 +105,59 @@ export default function PortalShell({
     };
     const resetIdleTimer = () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(expireSession, OPERATOR_IDLE_TIMEOUT_MS);
+      timer = window.setTimeout(() => {
+        if (scannerActive()) {
+          resetIdleTimer();
+          return;
+        }
+        expireSession();
+      }, OPERATOR_IDLE_TIMEOUT_MS);
     };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        if (scannerActive()) {
+          clearHiddenAt();
+          return;
+        }
+        try {
+          sessionStorage.setItem(hiddenAtKey, String(Date.now()));
+        } catch {
+          return;
+        }
+        return;
+      }
+      if (scannerActive()) {
+        clearHiddenAt();
+        resetIdleTimer();
+        return;
+      }
+      const hiddenAt = readHiddenAt();
+      clearHiddenAt();
+      if (shouldEndOperatorSessionOnReturn("operador", hiddenAt, Date.now(), false)) {
+        expireSession();
+      } else {
+        resetIdleTimer();
+      }
+    };
+    const onPageHide = (event: PageTransitionEvent) => {
+      if (!shouldSendOperatorPagehideLogout("operador", scannerActive(), event.persisted)) return;
+      if (typeof navigator.sendBeacon === "function") {
+        navigator.sendBeacon("/api/auth/logout", new Blob([], { type: "text/plain" }));
+      }
+    };
+    const onScannerChange = () => resetIdleTimer();
     resetIdleTimer();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("marcon:qr-scanner-change", onScannerChange);
     window.addEventListener("pointerdown", resetIdleTimer);
     window.addEventListener("keydown", resetIdleTimer);
     window.addEventListener("touchstart", resetIdleTimer);
     return () => {
       window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("marcon:qr-scanner-change", onScannerChange);
       window.removeEventListener("pointerdown", resetIdleTimer);
       window.removeEventListener("keydown", resetIdleTimer);
       window.removeEventListener("touchstart", resetIdleTimer);
