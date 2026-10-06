@@ -84,6 +84,7 @@ export default function RessuprimentoTabela({
         : <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {itensNoPonto.map((item) => <li key={item.id} className="rounded-lg border border-amber-200 bg-white p-3 text-sm">
             <span className="font-semibold text-slate-900">{item.nome}</span>
+            <span className="mt-1 block text-slate-600">{item.categoria?.trim() || "—"}</span>
             <span className="mt-1 block text-slate-700">Livre: {item.estoque} · ponto: {item.pontoAtual}</span>
           </li>)}
         </ul>}
@@ -138,7 +139,7 @@ export default function RessuprimentoTabela({
         </thead>
         <tbody>
           {filtradas.map((item) => <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-            <th scope="row" className="px-4 py-3 font-medium text-slate-900">{item.nome}</th>
+            <th scope="row" className="px-4 py-3 font-medium text-slate-900">{item.nome}<span className="mt-1 block font-normal text-slate-600">{item.categoria?.trim() || "—"}</span></th>
             <td className="px-4 py-3">{item.estoque}</td>
             <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
             <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>

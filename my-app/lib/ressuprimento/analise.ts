@@ -16,6 +16,7 @@ export interface MovimentoHistoricoRessuprimento {
 export interface ItemRessuprimentoInput {
   id: string;
   nome: string;
+  categoria?: string;
   estoque: number;
   pontoAtual: number;
   movimentosSaida: readonly MovimentoHistoricoRessuprimento[];
@@ -24,6 +25,7 @@ export interface ItemRessuprimentoInput {
 export interface SugestaoRessuprimento {
   id: string;
   nome: string;
+  categoria?: string;
   estoque: number;
   consumoDiario: number | null;
   diasCobertura: number | null;
@@ -159,6 +161,7 @@ export function sugestao(
   return {
     id: item.id,
     nome: item.nome,
+    categoria: item.categoria,
     estoque: item.estoque,
     consumoDiario,
     diasCobertura: Number.isFinite(cobertura) ? cobertura : Number.POSITIVE_INFINITY,

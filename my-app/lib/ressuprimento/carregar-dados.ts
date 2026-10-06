@@ -30,6 +30,7 @@ export async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoD
         select: {
           id: true,
           nome: true,
+          categoria: true,
           pontoPedido: true,
           saldos: {
             where: { local: { slug: LOCAL_ESTOQUE_SLUG } },
@@ -76,6 +77,7 @@ export async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoD
       return sugestao({
         id: item.id,
         nome: item.nome,
+        categoria: item.categoria,
         estoque: estoqueLivre,
         pontoAtual: item.pontoPedido,
         movimentosSaida,
