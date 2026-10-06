@@ -9,6 +9,11 @@ import {
   TipoItem,
   TipoMovimentacao,
 } from "@/generated/prisma/client";
+import {
+  encodeIdempotencyMetadata,
+  encodeItemDescription,
+  type SetorRequisicao,
+} from "@/lib/requisition-metadata";
 
 export const demoLocations = [
   { slug: "estoque", nome: "Central" },
@@ -42,7 +47,13 @@ type SeedRequest = {
   status: StatusRequisicao;
   prioridade: Prioridade;
   observation?: string;
-  items: Array<{ codigo: string; quantidade: number; status: StatusItemRequisicao; separado: boolean | null }>;
+  items: Array<{
+    codigo: string;
+    quantidade: number;
+    status: StatusItemRequisicao;
+    separado: boolean | null;
+    setor: SetorRequisicao;
+  }>;
 };
 
 export const demoSeedRequests: SeedRequest[] = [
@@ -53,8 +64,8 @@ export const demoSeedRequests: SeedRequest[] = [
     status: StatusRequisicao.CONCLUIDA,
     prioridade: Prioridade.PADRAO,
     items: [
-      { codigo: "129", quantidade: 2, status: StatusItemRequisicao.SEPARADO, separado: true },
-      { codigo: "1794", quantidade: 1, status: StatusItemRequisicao.SEPARADO, separado: true },
+      { codigo: "129", quantidade: 2, status: StatusItemRequisicao.SEPARADO, separado: true, setor: "setor1" },
+      { codigo: "1794", quantidade: 1, status: StatusItemRequisicao.SEPARADO, separado: true, setor: "setor2" },
     ],
   },
   {
@@ -64,8 +75,8 @@ export const demoSeedRequests: SeedRequest[] = [
     status: StatusRequisicao.CONCLUIDA,
     prioridade: Prioridade.PADRAO,
     items: [
-      { codigo: "173", quantidade: 2, status: StatusItemRequisicao.SEPARADO, separado: true },
-      { codigo: "1796", quantidade: 2, status: StatusItemRequisicao.SEPARADO, separado: true },
+      { codigo: "173", quantidade: 2, status: StatusItemRequisicao.SEPARADO, separado: true, setor: "setor2" },
+      { codigo: "1796", quantidade: 2, status: StatusItemRequisicao.SEPARADO, separado: true, setor: "setor3" },
     ],
   },
   {
@@ -75,8 +86,8 @@ export const demoSeedRequests: SeedRequest[] = [
     status: StatusRequisicao.CONCLUIDA,
     prioridade: Prioridade.PADRAO,
     items: [
-      { codigo: "128", quantidade: 3, status: StatusItemRequisicao.SEPARADO, separado: true },
-      { codigo: "5746", quantidade: 1, status: StatusItemRequisicao.SEPARADO, separado: true },
+      { codigo: "128", quantidade: 3, status: StatusItemRequisicao.SEPARADO, separado: true, setor: "setor1" },
+      { codigo: "5746", quantidade: 1, status: StatusItemRequisicao.SEPARADO, separado: true, setor: "setor3" },
     ],
   },
   {
@@ -86,8 +97,8 @@ export const demoSeedRequests: SeedRequest[] = [
     status: StatusRequisicao.PENDENTE,
     prioridade: Prioridade.PADRAO,
     items: [
-      { codigo: "129", quantidade: 2, status: StatusItemRequisicao.PENDENTE, separado: null },
-      { codigo: "128", quantidade: 1, status: StatusItemRequisicao.PENDENTE, separado: null },
+      { codigo: "129", quantidade: 2, status: StatusItemRequisicao.PENDENTE, separado: null, setor: "setor1" },
+      { codigo: "128", quantidade: 1, status: StatusItemRequisicao.PENDENTE, separado: null, setor: "setor2" },
     ],
   },
   {
@@ -98,8 +109,8 @@ export const demoSeedRequests: SeedRequest[] = [
     prioridade: Prioridade.PRIORITARIO,
     observation: "Solicitação prioritária aguardando análise.",
     items: [
-      { codigo: "127", quantidade: 1, status: StatusItemRequisicao.PENDENTE, separado: null },
-      { codigo: "1794", quantidade: 1, status: StatusItemRequisicao.PENDENTE, separado: null },
+      { codigo: "127", quantidade: 1, status: StatusItemRequisicao.PENDENTE, separado: null, setor: "setor2" },
+      { codigo: "1794", quantidade: 1, status: StatusItemRequisicao.PENDENTE, separado: null, setor: "setor3" },
     ],
   },
   {
@@ -110,8 +121,8 @@ export const demoSeedRequests: SeedRequest[] = [
     status: StatusRequisicao.ASSUMIDA,
     prioridade: Prioridade.PADRAO,
     items: [
-      { codigo: "173", quantidade: 2, status: StatusItemRequisicao.ASSUMIDO, separado: null },
-      { codigo: "1796", quantidade: 1, status: StatusItemRequisicao.ASSUMIDO, separado: null },
+      { codigo: "173", quantidade: 2, status: StatusItemRequisicao.ASSUMIDO, separado: null, setor: "setor1" },
+      { codigo: "1796", quantidade: 1, status: StatusItemRequisicao.ASSUMIDO, separado: null, setor: "setor3" },
     ],
   },
 ];
@@ -126,6 +137,18 @@ function deterministicId(value: string): string {
 
 function daysAgo(value: number): Date {
   return new Date(Date.now() - value * 24 * 60 * 60 * 1000);
+}
+
+function seedRequestObservation(request: SeedRequest): string {
+  const keyHash = createHash("sha256").update(`demo-seed:key:${request.numeroPedido}`).digest("hex");
+  const payloadHash = createHash("sha256").update(JSON.stringify(request)).digest("hex");
+  return encodeIdempotencyMetadata(request.observation, keyHash, payloadHash);
+}
+
+export function getDemoSeedRequestObservation(numeroPedido: string): string {
+  const request = demoSeedRequests.find((entry) => entry.numeroPedido === numeroPedido);
+  if (!request) throw new Error(`Requisição demo ${numeroPedido} não existe no fixture.`);
+  return seedRequestObservation(request);
 }
 
 async function generatedPasswordHash(): Promise<string> {
@@ -260,7 +283,7 @@ async function upsertSeedRequest(
       numeroPedido: request.numeroPedido,
       status: request.status,
       prioridade: request.prioridade,
-      observacao: request.observation ?? null,
+      observacao: seedRequestObservation(request),
       solicitanteId,
       atendenteId: atendenteId ?? null,
       criadoEm: createdAt,
@@ -288,7 +311,7 @@ async function upsertSeedRequest(
         localId: stockLocationId,
         quantidade: fixtureItem.quantidade,
         unidadeMedida: "UN",
-        descricao: null,
+        descricao: encodeItemDescription(undefined, fixtureItem.setor),
         status: fixtureItem.status,
         separado: fixtureItem.separado,
         resolvidoEm: request.status === StatusRequisicao.CONCLUIDA ? createdAt : null,

@@ -4,7 +4,11 @@
  */
 import { prisma } from "@/lib/prisma";
 import type { RequisicaoMock } from "@/lib/types/almoxarifado";
-import { decodeItemDescription } from "@/lib/requisition-metadata";
+import {
+  createIdempotencyMarker,
+  decodeItemDescription,
+  idempotencyMarkerPrefix,
+} from "@/lib/requisition-metadata";
 import {
   PrismaClient,
   Prisma,
@@ -136,10 +140,10 @@ type CriarRequisicaoParams = {
 async function criarRequisicaoCore(params: CriarRequisicaoParams) {
   return prisma.$transaction(async (tx) => {
     const idempotencyPrefix = params.idempotencyKeyHash
-      ? `[[idem:v1:${params.idempotencyKeyHash}:`
+      ? idempotencyMarkerPrefix(params.idempotencyKeyHash)
       : null;
-    const idempotencyMarker = idempotencyPrefix && params.payloadHash
-      ? `${idempotencyPrefix}${params.payloadHash}]]`
+    const idempotencyMarker = idempotencyPrefix && params.payloadHash && params.idempotencyKeyHash
+      ? createIdempotencyMarker(params.idempotencyKeyHash, params.payloadHash)
       : null;
 
     if (idempotencyPrefix && idempotencyMarker) {

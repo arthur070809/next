@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { demoCatalog, demoSeedRequests } from "./demo-seed";
+import { demoCatalog, demoSeedRequests, getDemoSeedRequestObservation } from "./demo-seed";
 import { StatusRequisicao } from "@/generated/prisma/client";
+import { decodeItemDescription, encodeItemDescription, stripIdempotencyMetadata } from "./requisition-metadata";
 
 describe("demo data fixture", () => {
   it("contains only the ten requested labels and codes", () => {
@@ -34,5 +35,18 @@ describe("demo data fixture", () => {
     )).toBe(true);
     expect(demoSeedRequests.some(({ status }) => status === StatusRequisicao.ASSUMIDA)).toBe(true);
     expect(demoSeedRequests.filter(({ status }) => status === StatusRequisicao.PENDENTE)).toHaveLength(2);
+  });
+
+  it("stores sector and idempotency metadata using the public metadata helpers", () => {
+    for (const request of demoSeedRequests) {
+      for (const item of request.items) {
+        const publicItemDescription = decodeItemDescription(encodeItemDescription(undefined, item.setor));
+        expect(publicItemDescription.setor).toBe(item.setor);
+        expect(publicItemDescription.descricao).toBe("");
+      }
+      const observation = getDemoSeedRequestObservation(request.numeroPedido);
+      expect(observation).toContain("[[idem:v1:");
+      expect(stripIdempotencyMetadata(observation)).toBe(request.observation ?? null);
+    }
   });
 });
