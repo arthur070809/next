@@ -12,7 +12,7 @@ import { GET } from "./route";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { encodeItemDescription, stripIdempotencyMetadata } from "@/lib/requisition-metadata";
+import { stripIdempotencyMetadata } from "@/lib/requisition-metadata";
 import { getDemoSeedRequestObservation } from "@/lib/demo-seed";
 
 function request(query = "") {

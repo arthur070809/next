@@ -68,8 +68,6 @@ export default function HistoricoPage() {
     if (ate) params.set("ate", ate);
     if (selected.length) params.set("eventos", selected.join(","));
 
-    setLoading(true);
-    setApiError("");
     fetch(`/api/historico?${params}`, { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
         const data = await response.json() as HistoryResponse & { error?: string };
@@ -99,11 +97,15 @@ export default function HistoricoPage() {
   });
 
   function changeFilter(setter: (value: string) => void, value: string) {
+    setLoading(true);
+    setApiError("");
     setter(value);
     setPage(1);
   }
 
   function toggle(kind: EventoHistorico["evento"]) {
+    setLoading(true);
+    setApiError("");
     setSelected((current) => current.includes(kind)
       ? current.filter((event) => event !== kind)
       : [...current, kind]);
@@ -111,6 +113,9 @@ export default function HistoricoPage() {
   }
 
   function clearFilters() {
+    if (!selected.length && !search && !product && !employee && !desde && !ate && page === 1) return;
+    setLoading(true);
+    setApiError("");
     setSelected([]);
     setSearch("");
     setProduct("");
@@ -182,8 +187,8 @@ export default function HistoricoPage() {
           </section>
         )}
         <nav aria-label="Paginação do histórico" className="mt-5 flex items-center justify-between">
-          <button type="button" disabled={loading || page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Anterior</button>
-          <button type="button" disabled={loading || page >= totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Próxima</button>
+          <button type="button" disabled={loading || page <= 1} onClick={() => { setLoading(true); setPage((current) => Math.max(1, current - 1)); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Anterior</button>
+          <button type="button" disabled={loading || page >= totalPages} onClick={() => { setLoading(true); setPage((current) => Math.min(totalPages, current + 1)); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Próxima</button>
         </nav>
       </div>
     </main>
