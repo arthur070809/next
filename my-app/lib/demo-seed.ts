@@ -211,6 +211,16 @@ async function upsertCatalog(tx: Prisma.TransactionClient, initializeBalances: b
   }
 
   const items = new Map<string, { id: string; unit: string }>();
+  const initialCentralBalance = new Map(
+    demoCatalog.map(({ codigo, central }) => [
+      codigo,
+      central + demoSeedRequests
+        .filter(({ status }) => status === StatusRequisicao.CONCLUIDA)
+        .flatMap(({ items: requestItems }) => requestItems)
+        .filter(({ codigo: itemCode }) => itemCode === codigo)
+        .reduce((sum, { quantidade }) => sum + quantidade, 0),
+    ]),
+  );
   for (const fixture of demoCatalog) {
     const item = await tx.item.upsert({
       where: { filial_codigo: { filial: "DEMO", codigo: fixture.codigo } },
@@ -255,10 +265,12 @@ async function upsertCatalog(tx: Prisma.TransactionClient, initializeBalances: b
         create: {
           itemId: item.id,
           localId,
-          quantidade: quantity,
+          quantidade: slug === "estoque" ? initialCentralBalance.get(fixture.codigo)! : quantity,
           reservada: 0,
         },
-        update: initializeBalances ? { quantidade: quantity, reservada: 0 } : {},
+        update: initializeBalances
+          ? { quantidade: slug === "estoque" ? initialCentralBalance.get(fixture.codigo)! : quantity, reservada: 0 }
+          : {},
         select: { id: true },
       });
       balances.set(`${fixture.codigo}:${slug}`, balance.id);
@@ -300,35 +312,232 @@ export async function upsertSeedRequest(
     update: {},
     select: { id: true },
   });
-  const requestItems = [];
+  if (typeof requisicao?.id !== "string" || !requisicao.id ||
+    requisicao.id !== requisicaoId) {
+    const codigo = request.items[0]?.codigo ?? "desconhecido";
+    throw new Error(`Requisição ${request.numeroPedido}, item ${codigo}: id da requisição pai não resolvido ou divergente.`);
+  }
+  const requestItems: Array<SeedRequest["items"][number] & {
+    itemId: string;
+    requisitionItemId: string;
+  }> = [];
+  const itemRows: Prisma.RequisicaoItemCreateManyInput[] = [];
   for (const fixtureItem of request.items) {
     const catalogItem = items.get(fixtureItem.codigo);
-    if (!catalogItem) throw new Error(`Item ${fixtureItem.codigo} ausente no catálogo demo.`);
+    if (!catalogItem?.id || !stockLocationId) {
+      throw new Error(`Requisição ${request.numeroPedido}, item ${fixtureItem.codigo}: item de catálogo ou local não resolvido.`);
+    }
     const id = deterministicId(`request-item:${request.numeroPedido}:${fixtureItem.codigo}`);
-    const requisitionItem = await tx.requisicaoItem.upsert({
-      where: { id },
-      create: {
-        id,
-        requisicaoId: requisicao.id,
-        itemId: catalogItem.id,
-        localId: stockLocationId,
-        quantidade: fixtureItem.quantidade,
-        unidadeMedida: "UN",
-        descricao: encodeItemDescription(undefined, fixtureItem.setor),
-        status: fixtureItem.status,
-        separado: fixtureItem.separado,
-        resolvidoEm: request.status === StatusRequisicao.CONCLUIDA ? createdAt : null,
-      },
-      update: {},
-      select: { id: true },
+    itemRows.push({
+      id,
+      requisicaoId: requisicao.id,
+      itemId: catalogItem.id,
+      localId: stockLocationId,
+      quantidade: fixtureItem.quantidade,
+      unidadeMedida: "UN",
+      descricao: encodeItemDescription(undefined, fixtureItem.setor),
+      status: fixtureItem.status,
+      separado: fixtureItem.separado,
+      resolvidoEm: request.status === StatusRequisicao.CONCLUIDA ? createdAt : null,
     });
-    requestItems.push({ ...fixtureItem, itemId: catalogItem.id, requisitionItemId: requisitionItem.id });
+    requestItems.push({ ...fixtureItem, itemId: catalogItem.id, requisitionItemId: id });
   }
+  await tx.requisicaoItem.createMany({ data: itemRows, skipDuplicates: true });
   return { requisicaoId: requisicao.id, createdAt, solicitanteId, atendenteId, items: requestItems };
 }
 
-async function createSeedMovements(
+export type DemoSeedInvariantSnapshot = {
+  stocks: Array<{
+    id: string;
+    itemId: string;
+    codigo: string;
+    localId: string;
+    slug: string;
+    quantidade: number;
+    reservada: number;
+  }>;
+  movements: Array<{
+    saldoEstoqueId: string;
+    tipo: string;
+    quantidade: number;
+    saldoApos: number;
+  }>;
+  requests: Array<{
+    numeroPedido: string;
+    status: string;
+    prioridade: string;
+    itens: Array<{ itemId: string; localId: string; quantidade: number }>;
+  }>;
+};
+
+export function assertDemoSeedInvariants(snapshot: DemoSeedInvariantSnapshot) {
+  const expectedNumbers = new Set(demoSeedRequests.map(({ numeroPedido }) => numeroPedido));
+  if (snapshot.requests.length !== demoSeedRequests.length ||
+    snapshot.requests.some(({ numeroPedido }) => !expectedNumbers.has(numeroPedido))) {
+    throw new Error("Invariante demo: contagem de requisições diferente do fixture.");
+  }
+
+  const statusCounts = snapshot.requests.reduce<Record<string, number>>((counts, request) => {
+    counts[request.status] = (counts[request.status] ?? 0) + 1;
+    return counts;
+  }, {});
+  const pendingPriority = snapshot.requests.filter((request) =>
+    request.status === StatusRequisicao.PENDENTE && request.prioridade === Prioridade.PRIORITARIO,
+  ).length;
+  if (statusCounts[StatusRequisicao.CONCLUIDA] !== 3 ||
+    statusCounts[StatusRequisicao.PENDENTE] !== 2 ||
+    statusCounts[StatusRequisicao.ASSUMIDA] !== 1 || pendingPriority !== 1) {
+    throw new Error("Invariante demo: contagem de status/prioridade das requisições divergente.");
+  }
+
+  const reservations = new Map<string, number>();
+  for (const request of snapshot.requests) {
+    if (request.itens.length === 0) {
+      throw new Error(`Invariante demo: requisição ${request.numeroPedido} sem itens.`);
+    }
+    if (request.status === StatusRequisicao.PENDENTE || request.status === StatusRequisicao.ASSUMIDA) {
+      for (const item of request.itens) {
+        const key = `${item.itemId}:${item.localId}`;
+        reservations.set(key, (reservations.get(key) ?? 0) + item.quantidade);
+      }
+    }
+  }
+
+  if (snapshot.stocks.length !== demoCatalog.length * demoLocations.length) {
+    throw new Error("Invariante demo: conjunto de saldos não corresponde ao catálogo/localidades do fixture.");
+  }
+  const movementsByStock = new Map<string, DemoSeedInvariantSnapshot["movements"]>();
+  for (const movement of snapshot.movements) {
+    const list = movementsByStock.get(movement.saldoEstoqueId) ?? [];
+    list.push(movement);
+    movementsByStock.set(movement.saldoEstoqueId, list);
+  }
+  for (const stock of snapshot.stocks) {
+    const movementRows = movementsByStock.get(stock.id) ?? [];
+    if (movementRows.length === 0 || movementRows[0].tipo !== TipoMovimentacao.ENTRADA ||
+      movementRows[0].quantidade !== movementRows[0].saldoApos) {
+      throw new Error(`Invariante demo: saldo ${stock.codigo} sem movimentação inicial coerente.`);
+    }
+    let previous = movementRows[0].saldoApos;
+    for (const movement of movementRows.slice(1)) {
+      let expected = previous;
+      if (movement.tipo === TipoMovimentacao.ENTRADA) expected += movement.quantidade;
+      if (movement.tipo === TipoMovimentacao.SAIDA) expected -= movement.quantidade;
+      if (movement.tipo === TipoMovimentacao.AJUSTE) {
+        if (movement.quantidade !== Math.abs(movement.saldoApos - previous)) {
+          throw new Error(`Invariante demo: ajuste incoerente para o saldo ${stock.codigo}.`);
+        }
+        expected = movement.saldoApos;
+      }
+      if (movement.saldoApos !== expected) {
+        throw new Error(`Invariante demo: saldo ${stock.codigo} não reconcilia com movimentações.`);
+      }
+      previous = movement.saldoApos;
+    }
+    if (previous !== stock.quantidade) {
+      throw new Error(`Invariante demo: saldo ${stock.codigo} diverge da última movimentação.`);
+    }
+    if (stock.reservada !== (reservations.get(`${stock.itemId}:${stock.localId}`) ?? 0)) {
+      throw new Error(`Invariante demo: reserva do item ${stock.codigo} diverge das requisições ativas.`);
+    }
+  }
+}
+
+async function readDemoSeedInvariantSnapshot(client: PrismaClient): Promise<DemoSeedInvariantSnapshot> {
+  const [items, locations, requests] = await Promise.all([
+    client.item.findMany({
+      where: { filial: "DEMO", codigo: { in: demoCatalog.map(({ codigo }) => codigo) } },
+      select: { id: true, codigo: true },
+    }),
+    client.localEstoque.findMany({
+      where: { slug: { in: demoLocations.map(({ slug }) => slug) } },
+      select: { id: true, slug: true },
+    }),
+    client.requisicao.findMany({
+      where: { numeroPedido: { in: demoSeedRequests.map(({ numeroPedido }) => numeroPedido) } },
+      select: {
+        numeroPedido: true,
+        status: true,
+        prioridade: true,
+        itens: { select: { itemId: true, localId: true, quantidade: true } },
+      },
+    }),
+  ]);
+  const itemCodes = new Map(items.map(({ id, codigo }) => [id, codigo]));
+  const locationSlugs = new Map(locations.map(({ id, slug }) => [id, slug]));
+  const stocks = await client.saldoEstoque.findMany({
+    where: {
+      itemId: { in: items.map(({ id }) => id) },
+      localId: { in: locations.map(({ id }) => id) },
+    },
+    select: {
+      id: true,
+      itemId: true,
+      localId: true,
+      quantidade: true,
+      reservada: true,
+    },
+  });
+  const movements = await client.movimentacao.findMany({
+    where: { saldoEstoqueId: { in: stocks.map(({ id }) => id) } },
+    orderBy: [{ criadoEm: "asc" }, { id: "asc" }],
+    select: { saldoEstoqueId: true, tipo: true, quantidade: true, saldoApos: true },
+  });
+  return {
+    stocks: stocks.map((stock) => ({
+      ...stock,
+      codigo: itemCodes.get(stock.itemId) ?? "desconhecido",
+      slug: locationSlugs.get(stock.localId) ?? "desconhecido",
+    })),
+    movements,
+    requests,
+  };
+}
+
+async function createOpeningMovements(
   tx: Prisma.TransactionClient,
+  locations: Map<string, string>,
+  items: Map<string, { id: string; unit: string }>,
+  stockBalances: Map<string, string>,
+  employeeIds: Map<string, number>,
+) {
+  const adminId = employeeIds.get("3333");
+  if (!adminId) throw new Error("Funcionário demo administrador não foi resolvido para o saldo inicial.");
+  const createdAt = daysAgo(32);
+  const movements: Prisma.MovimentacaoCreateManyInput[] = [];
+  for (const fixture of demoCatalog) {
+    for (const [slug, quantity] of [
+      ["estoque", fixture.central + demoSeedRequests
+        .filter(({ status }) => status === StatusRequisicao.CONCLUIDA)
+        .flatMap(({ items: requestItems }) => requestItems)
+        .filter(({ codigo }) => codigo === fixture.codigo)
+        .reduce((sum, { quantidade: count }) => sum + count, 0)],
+      ["importados", fixture.importados],
+    ] as const) {
+      const item = items.get(fixture.codigo);
+      const localId = locations.get(slug);
+      const saldoId = stockBalances.get(`${fixture.codigo}:${slug}`);
+      if (!item?.id || !localId || !saldoId) {
+        throw new Error(`Saldo inicial demo não resolvido para item ${fixture.codigo} no local ${slug}.`);
+      }
+      movements.push({
+        id: deterministicId(`movement:opening:${fixture.codigo}:${slug}`),
+        tipo: TipoMovimentacao.ENTRADA,
+        quantidade: quantity,
+        saldoApos: quantity,
+        reservadaApos: 0,
+        funcionarioId: adminId,
+        saldoEstoqueId: saldoId,
+        observacao: `Saldo inicial do fixture demo: ${fixture.codigo}`,
+        criadoEm: createdAt,
+      });
+    }
+  }
+  await tx.movimentacao.createMany({ data: movements, skipDuplicates: true });
+}
+
+async function createSeedMovements(
+  client: PrismaClient,
   locations: Map<string, string>,
   items: Map<string, { id: string; unit: string }>,
   stockBalances: Map<string, string>,
@@ -336,140 +545,179 @@ async function createSeedMovements(
 ) {
   const centralId = locations.get("estoque");
   if (!centralId) throw new Error("Local Central não foi criado.");
-  const endingBalance = new Map<string, number>(
-    demoCatalog.map(({ codigo, central }) => [codigo, central]),
-  );
+  const runningBalances = new Map<string, number>();
+  const reservations = new Map<string, number>();
   for (const request of demoSeedRequests.filter(({ status }) => status === StatusRequisicao.CONCLUIDA)) {
     for (const requestItem of request.items) {
-      endingBalance.set(
+      runningBalances.set(
         requestItem.codigo,
-        (endingBalance.get(requestItem.codigo) ?? 0) + requestItem.quantidade,
+        (runningBalances.get(requestItem.codigo) ?? 0) + requestItem.quantidade,
       );
     }
   }
-  const balances = new Map(endingBalance);
-  const reservations = new Map<string, number>();
+  for (const fixture of demoCatalog) {
+    runningBalances.set(fixture.codigo, (runningBalances.get(fixture.codigo) ?? 0) + fixture.central);
+  }
 
   for (const request of demoSeedRequests) {
-    const seed = await upsertSeedRequest(tx, request, employeeIds, items, centralId);
-    for (const requestItem of seed.items) {
-      const saldoId = stockBalances.get(`${requestItem.codigo}:estoque`);
-      if (!saldoId) throw new Error(`Saldo do item ${requestItem.codigo} não foi criado.`);
-      if (request.status === StatusRequisicao.CONCLUIDA) {
-        const current = balances.get(requestItem.codigo)!;
-        const postReservation = current;
-        const postIssue = current - requestItem.quantidade;
-        const reserveId = deterministicId(`movement:reserve:${request.numeroPedido}:${requestItem.codigo}`);
-        const issueId = deterministicId(`movement:issue:${request.numeroPedido}:${requestItem.codigo}`);
-        const reservedMovement = {
-          tipo: TipoMovimentacao.RESERVA,
-          quantidade: requestItem.quantidade,
-          saldoApos: postReservation,
-          reservadaApos: requestItem.quantidade,
-          funcionarioId: seed.solicitanteId,
-          saldoEstoqueId: saldoId,
-          requisicaoId: seed.requisicaoId,
-          requisicaoItemId: requestItem.requisitionItemId,
-          observacao: `Reserva para ${request.numeroPedido}`,
-          criadoEm: new Date(seed.createdAt.getTime() + 1000),
-        };
-        const issueMovement = {
-          tipo: TipoMovimentacao.SAIDA,
-          quantidade: requestItem.quantidade,
-          saldoApos: postIssue,
-          reservadaApos: 0,
-          funcionarioId: seed.atendenteId ?? employeeIds.get("2222")!,
-          saldoEstoqueId: saldoId,
-          requisicaoId: seed.requisicaoId,
-          requisicaoItemId: requestItem.requisitionItemId,
-          observacao: `Saída por separação ${request.numeroPedido}`,
-          criadoEm: new Date(seed.createdAt.getTime() + 2000),
-        };
-        await tx.movimentacao.upsert({
-          where: { id: reserveId },
-          create: { id: reserveId, ...reservedMovement },
-          update: {},
-        });
-        await tx.movimentacao.upsert({
-          where: { id: issueId },
-          create: { id: issueId, ...issueMovement },
-          update: {},
-        });
-        balances.set(requestItem.codigo, postIssue);
-      } else {
-        const previousReserved = reservations.get(requestItem.codigo) ?? 0;
-        const currentReserved = previousReserved + requestItem.quantidade;
-        reservations.set(requestItem.codigo, currentReserved);
-        const reserveId = deterministicId(`movement:reserve:${request.numeroPedido}:${requestItem.codigo}`);
-        await tx.movimentacao.upsert({
-          where: { id: reserveId },
-          create: {
+    let step = "requisicao e itens";
+    try {
+      await client.$transaction(async (tx) => {
+        const seed = await upsertSeedRequest(tx, request, employeeIds, items, centralId);
+        const movements: Prisma.MovimentacaoCreateManyInput[] = [];
+        const completedById = seed.atendenteId ?? employeeIds.get("2222");
+        if (!completedById) {
+          const codigo = request.items[0]?.codigo ?? "desconhecido";
+          throw new Error(`Requisição ${request.numeroPedido}, item ${codigo}: atendente demo não resolvido.`);
+        }
+        for (const [itemIndex, requestItem] of seed.items.entries()) {
+          const saldoId = stockBalances.get(`${requestItem.codigo}:estoque`);
+          const item = items.get(requestItem.codigo);
+          if (!saldoId || !item?.id) {
+            throw new Error(`Requisição ${request.numeroPedido}, item ${requestItem.codigo}: saldo ou item não resolvido.`);
+          }
+          const before = runningBalances.get(requestItem.codigo);
+          if (before === undefined) {
+            throw new Error(`Requisição ${request.numeroPedido}, item ${requestItem.codigo}: saldo inicial não resolvido.`);
+          }
+          const reservedBefore = reservations.get(requestItem.codigo) ?? 0;
+          const reservedAfter = request.status === StatusRequisicao.CONCLUIDA
+            ? reservedBefore
+            : reservedBefore + requestItem.quantidade;
+          const reserveId = deterministicId(`movement:reserve:${request.numeroPedido}:${requestItem.codigo}`);
+          movements.push({
             id: reserveId,
             tipo: TipoMovimentacao.RESERVA,
             quantidade: requestItem.quantidade,
-            saldoApos: demoCatalog.find(({ codigo }) => codigo === requestItem.codigo)!.central,
-            reservadaApos: currentReserved,
+            saldoApos: before,
+            reservadaApos: request.status === StatusRequisicao.CONCLUIDA
+              ? reservedBefore + requestItem.quantidade
+              : reservedAfter,
             funcionarioId: seed.solicitanteId,
             saldoEstoqueId: saldoId,
             requisicaoId: seed.requisicaoId,
             requisicaoItemId: requestItem.requisitionItemId,
             observacao: `Reserva para ${request.numeroPedido}`,
+            criadoEm: new Date(seed.createdAt.getTime() + itemIndex * 2),
+          });
+          if (request.status === StatusRequisicao.CONCLUIDA) {
+            const after = before - requestItem.quantidade;
+            movements.push({
+              id: deterministicId(`movement:issue:${request.numeroPedido}:${requestItem.codigo}`),
+              tipo: TipoMovimentacao.SAIDA,
+              quantidade: requestItem.quantidade,
+              saldoApos: after,
+              reservadaApos: reservedBefore,
+              funcionarioId: completedById,
+              saldoEstoqueId: saldoId,
+              requisicaoId: seed.requisicaoId,
+              requisicaoItemId: requestItem.requisitionItemId,
+              observacao: `Saída por separação ${request.numeroPedido}`,
+              criadoEm: new Date(seed.createdAt.getTime() + itemIndex * 2 + 1),
+            });
+            runningBalances.set(requestItem.codigo, after);
+          } else {
+            reservations.set(requestItem.codigo, reservedAfter);
+          }
+          step = "movimentacoes e saldo reservado";
+          await tx.saldoEstoque.update({
+            where: { itemId_localId: { itemId: item.id, localId: centralId } },
+            data: {
+              quantidade: runningBalances.get(requestItem.codigo)!,
+              reservada: reservedAfter,
+            },
+          });
+        }
+        await tx.movimentacao.createMany({ data: movements, skipDuplicates: true });
+        step = "auditoria";
+        const actorId = seed.atendenteId ?? seed.solicitanteId;
+        await tx.auditoria.createMany({
+          data: [{
+            id: deterministicId(`audit:request:${request.numeroPedido}`),
+            acao: "REQUISICAO_DEMO_SEEDED",
+            alvoId: seed.solicitanteId,
+            autorId: actorId,
+            detalhes: `Fixture demo ${request.numeroPedido}; status ${request.status}.`,
             criadoEm: seed.createdAt,
-          },
-          update: {},
+          }],
+          skipDuplicates: true,
         });
-      }
+      }, {
+        maxWait: 20_000,
+        timeout: 60_000,
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      });
+    } catch (error) {
+      console.error(`[demo-seed] Falha na requisição ${request.numeroPedido}, etapa ${step}.`);
+      throw error;
     }
-  }
-
-  for (const [codigo, reservada] of reservations) {
-    const item = items.get(codigo)!;
-    await tx.saldoEstoque.update({
-      where: { itemId_localId: { itemId: item.id, localId: centralId } },
-      data: { reservada },
-    });
   }
 }
 
-async function populateDemoData(tx: Prisma.TransactionClient) {
-  const existingFixture = await tx.requisicao.findUnique({
-    where: { numeroPedido: "DEMO-000101" },
-    select: { id: true },
+async function fixtureStatus(client: PrismaClient) {
+  return client.requisicao.findMany({
+    where: { numeroPedido: { in: demoSeedRequests.map(({ numeroPedido }) => numeroPedido) } },
+    select: { numeroPedido: true },
   });
-  if (existingFixture && existingFixture.id !== deterministicId("request:DEMO-000101")) {
-    throw new Error("O número de requisição reservado ao fixture já está ocupado; nenhuma alteração foi aplicada.");
-  }
-  if (!existingFixture) {
-    const [requestCount, movementCount] = await Promise.all([
-      tx.requisicao.count(),
-      tx.movimentacao.count(),
-    ]);
-    if (requestCount > 0 || movementCount > 0) {
-      throw new Error("O banco já contém dados operacionais; execute reset:demo explicitamente para iniciar o fixture.");
-    }
-  }
-
-  const employeeIds = await upsertEmployees(tx);
-  const { locations, items, balances } = await upsertCatalog(tx, !existingFixture);
-  if (existingFixture) return { initialized: false, preservedExistingDemo: true };
-
-  await createSeedMovements(tx, locations, items, balances, employeeIds);
-  return { initialized: true, preservedExistingDemo: false };
 }
 
 export async function seedDemoData(client: PrismaClient) {
-  return client.$transaction((tx) => populateDemoData(tx), { isolationLevel: "Serializable" });
+  const existingRequests = await fixtureStatus(client);
+  const [totalRequestCount, totalMovementCount] = await Promise.all([
+    client.requisicao.count(),
+    client.movimentacao.count(),
+  ]);
+  const demoOpeningIds = demoCatalog.flatMap(({ codigo }) =>
+    demoLocations.map(({ slug }) => deterministicId(`movement:opening:${codigo}:${slug}`)),
+  );
+  const existingOpenings = await client.movimentacao.findMany({
+    where: { id: { in: demoOpeningIds } },
+    select: { id: true },
+  });
+  const isInitialSeed = existingRequests.length === 0 && existingOpenings.length === 0;
+  if (existingRequests.length === 0 &&
+    (totalRequestCount > 0 || totalMovementCount > 0)) {
+    throw new Error("O banco já contém dados operacionais; execute reset:demo explicitamente para iniciar o fixture.");
+  }
+
+  const catalog = await client.$transaction(async (tx) => {
+    const employeeIds = await upsertEmployees(tx);
+    const stock = await upsertCatalog(tx, isInitialSeed);
+    await createOpeningMovements(tx, stock.locations, stock.items, stock.balances, employeeIds);
+    return { employeeIds, ...stock };
+  }, {
+    maxWait: 20_000,
+    timeout: 60_000,
+    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+  });
+
+  await createSeedMovements(
+    client,
+    catalog.locations,
+    catalog.items,
+    catalog.balances,
+    catalog.employeeIds,
+  );
+  assertDemoSeedInvariants(await readDemoSeedInvariantSnapshot(client));
+  return {
+    initialized: existingRequests.length === 0,
+    preservedExistingDemo: existingRequests.length > 0,
+  };
 }
 
 export async function resetAndSeedDemoData(client: PrismaClient) {
-  return client.$transaction(async (tx) => {
+  await client.$transaction(async (tx) => {
     await tx.movimentacao.deleteMany();
+    await tx.requisicaoItem.deleteMany();
     await tx.requisicao.deleteMany();
     await tx.auditoria.deleteMany({ where: { acao: { startsWith: "REQUISICAO_" } } });
-    await tx.saldoEstoque.updateMany({ data: { quantidade: 0, reservada: 0 } });
     await tx.loginAttemptBucket.deleteMany();
-    return populateDemoData(tx);
-  }, { isolationLevel: "Serializable" });
+  }, {
+    maxWait: 20_000,
+    timeout: 60_000,
+    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+  });
+  return seedDemoData(client);
 }
 
 export function deterministicDemoId(value: string) {
