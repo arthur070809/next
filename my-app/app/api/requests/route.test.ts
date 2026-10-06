@@ -9,6 +9,7 @@ vi.mock("@/lib/prisma", () => ({
     movimentacao: { aggregate: vi.fn() },
   },
 }));
+vi.mock("@/lib/security", () => ({ isSameOrigin: vi.fn(() => true) }));
 vi.mock("@/lib/requisicoes-db", () => ({
   criarRequisicaoIdempotente: vi.fn(),
   toRequisicaoMock: vi.fn(() => ({ numeroPedido: "REQ-000010" })),
@@ -144,5 +145,26 @@ describe("POST /api/requests", () => {
     expect(response.status).toBe(400);
     expect(prisma.localEstoque.upsert).not.toHaveBeenCalled();
     expect(criarRequisicaoIdempotente).not.toHaveBeenCalled();
+  });
+
+  it("requires authentication when listing requests", async () => {
+    vi.mocked(getAuthenticatedFuncionario).mockResolvedValueOnce(null);
+    const response = await GET(new Request("http://localhost/api/requests"));
+
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects an invalid request payload", async () => {
+    const response = await POST(new Request("http://localhost/api/requests", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "http://localhost",
+        "Idempotency-Key": badge,
+      },
+      body: JSON.stringify({}),
+    }));
+
+    expect(response.status).toBe(400);
   });
 });

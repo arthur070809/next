@@ -138,6 +138,7 @@ npm run dev
 npm run build
 ```
 
+> Nota: ao rodar `npx tsc --noEmit` antes de qualquer `next build` ou `next dev`, o TypeScript pode reportar um falso positivo de `LayoutProps` em `app/layout.tsx` porque os tipos gerados pelo Next ainda não existem em `.next/types/`. Rodar `npx next typegen` (ou abrir o app com `next dev` uma vez) antes da checagem resolve o problema sem afetar a aplicação.
 
 ## Autenticacao por aparelho e rosto
 

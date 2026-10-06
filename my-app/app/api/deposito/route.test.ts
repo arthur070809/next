@@ -8,7 +8,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-import { GET } from "./route";
+import { GET, PATCH } from "./route";
 import { requireAlmoxarife } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -84,5 +84,17 @@ describe("GET /api/deposito", () => {
     vi.mocked(requireAlmoxarife).mockResolvedValueOnce({ funcionario: null, status: 403 } as never);
     expect((await GET(new Request("http://localhost/api/deposito"))).status).toBe(403);
     expect(prisma.item.findMany).not.toHaveBeenCalled();
+  });
+
+  it("requires an authenticated staff user for balance adjustments", async () => {
+    vi.mocked(requireAlmoxarife).mockResolvedValueOnce({ funcionario: null, status: 401 } as never);
+    const response = await PATCH(new Request("http://localhost/api/deposito", {
+      method: "PATCH",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ itemId: "item-1", quantidade: 5 }),
+    }));
+
+    expect(response.status).toBe(401);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

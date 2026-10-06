@@ -44,4 +44,14 @@ describe("GET /api/requests/[id] metadata presentation", () => {
     expect(JSON.stringify(body)).not.toContain("[[idem:");
     expect(JSON.stringify(body)).not.toContain("[[setor:");
   });
+
+  it("requires authentication before returning request details", async () => {
+    vi.mocked(getAuthenticatedFuncionario).mockResolvedValueOnce(null as never);
+    const response = await GET(new Request("http://localhost/api/requests/1"), {
+      params: Promise.resolve({ id: "1" }),
+    });
+
+    expect(response.status).toBe(401);
+    expect(prisma.requisicao.findUnique).not.toHaveBeenCalled();
+  });
 });

@@ -78,4 +78,12 @@ describe("GET /api/deposito/historico", () => {
       }),
     }));
   });
+
+  it("rejects unauthenticated requests before reading movements", async () => {
+    vi.mocked(requireAlmoxarife).mockResolvedValueOnce({ funcionario: null, status: 401 } as never);
+    const response = await GET(new Request("http://localhost/api/deposito/historico"));
+
+    expect(response.status).toBe(401);
+    expect(prisma.movimentacao.findMany).not.toHaveBeenCalled();
+  });
 });

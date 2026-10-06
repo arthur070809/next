@@ -240,21 +240,27 @@ export default function EstoquePage() {
     : unidadeSelecionada ? "Informe as quantidades válidas para ver o total." : "Selecione o tipo de unidade.";
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-6 sm:px-8 md:flex md:h-dvh md:min-h-0 md:flex-col md:overflow-hidden md:px-12">
-      <div className="mx-auto flex w-full max-w-7xl flex-col md:min-h-0 md:flex-1">
-        <header className="border-b border-slate-200 pb-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-royal">Almoxarifado Marcon</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">Estoque</h1>
-          <p className="text-sm text-slate-600">Cadastre e acompanhe os materiais disponíveis.</p>
+    <main className="min-h-screen bg-[#f5f7fb] px-4 py-6 sm:px-8 md:px-12">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+        <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">Almoxarifado Marcon</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Estoque</h1>
+          <p className="mt-2 text-sm text-slate-600">Cadastre e acompanhe os materiais disponíveis com uma visão mais clara da operação.</p>
         </header>
 
-        <section className="mt-3 grid gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
-          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2 shadow-sm"><p className="text-sm text-slate-500">Itens cadastrados</p><p className="text-xl font-bold text-slate-950">{itens.length}</p></div>
-          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2 shadow-sm"><p className="text-sm text-slate-500">Categorias</p><p className="text-xl font-bold text-slate-950">{new Set(itens.map((item) => item.categoria)).size}</p></div>
+        <section className="grid gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <p className="text-sm text-slate-500">Itens cadastrados</p>
+            <p className="text-2xl font-black text-slate-900">{itens.length}</p>
+          </div>
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <p className="text-sm text-slate-500">Categorias</p>
+            <p className="text-2xl font-black text-slate-900">{new Set(itens.map((item) => item.categoria)).size}</p>
+          </div>
         </section>
 
         <div className="mt-4 grid gap-4 md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
-          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm`}>
+          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm`}>
             <h2 className="text-lg font-bold text-slate-950">Novo item</h2>
             <form onSubmit={cadastrarItem} noValidate className={`${styles.formLayout} mt-2`}>
               <div className={`${styles.formBody} space-y-2`}>
@@ -321,7 +327,7 @@ export default function EstoquePage() {
             </form>
           </section>
 
-          <section className={`${styles.stockPanel} rounded-xl border border-slate-200 bg-white p-6 shadow-sm`}>
+          <section className={`${styles.stockPanel} rounded-2xl border border-slate-200 bg-white p-5 shadow-sm`}>
             <div className={styles.stockHeader}>
               <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
               <h2 className="text-center text-xl font-bold text-slate-950 sm:col-start-2">Itens do estoque</h2>

@@ -95,4 +95,12 @@ describe("GET /api/historico", () => {
     const response = await GET(request("?desde=2026-10-05&ate=2026-10-04"));
     expect(response.status).toBe(400);
   });
+
+  it("rejects unauthenticated access before querying history", async () => {
+    vi.mocked(getAuthenticatedFuncionario).mockResolvedValueOnce(null);
+    const response = await GET(request());
+
+    expect(response.status).toBe(401);
+    expect(prisma.requisicao.findMany).not.toHaveBeenCalled();
+  });
 });
