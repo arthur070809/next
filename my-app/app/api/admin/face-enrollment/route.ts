@@ -129,8 +129,9 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     const errorId = randomUUID();
-    console.error("Falha no cadastro facial", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
-    return apiError(500, "FACE_ENROLLMENT_SAVE_FAILED", "Não foi possível concluir o cadastro. Tente novamente.", errorId);
+    const code = error instanceof FaceEnrollmentRuntimeError ? error.code : "ENROLLMENT_UNAVAILABLE";
+    console.error("[face-enroll]", code, { errorId, errorName: error instanceof Error ? error.name : "UnknownError", message: error instanceof Error ? error.message : "Unknown error" });
+    return apiError(code === "FACE_SERVICE_NOT_CONFIGURED" || code === "FACE_ENCRYPTION_NOT_CONFIGURED" || code === "FACE_SERVICE_UNAVAILABLE" ? 503 : 500, code, code === "FACE_SERVICE_NOT_CONFIGURED" || code === "FACE_SERVICE_UNAVAILABLE" ? "O serviço de validação facial está indisponível." : "Não foi possível concluir o cadastro. Tente novamente.", errorId);
   }
 }
 
