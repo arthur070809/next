@@ -23,7 +23,10 @@ import { PapelFuncionario } from "@/generated/prisma/client";
 
 const badge = "10000000-0000-4000-8000-000000000001";
 
-function request(headers: Record<string, string> = { "Idempotency-Key": badge }) {
+function request(
+  headers: Record<string, string> = { "Idempotency-Key": badge },
+  itemOverrides: Record<string, unknown> = {},
+) {
   return new Request("http://localhost/api/requests", {
     method: "POST",
     headers: {
@@ -39,6 +42,7 @@ function request(headers: Record<string, string> = { "Idempotency-Key": badge })
         unidadeMedida: "un",
         descricao: "Para montagem",
         prioridade: "padrao",
+        ...itemOverrides,
       }],
     }),
   });
@@ -125,6 +129,37 @@ describe("POST /api/requests", () => {
     expect(call.idempotencyKeyHash).toMatch(/^[a-f0-9]{64}$/);
     expect(call.payloadHash).toMatch(/^[a-f0-9]{64}$/);
     expect(call.idempotencyKeyHash).not.toBe(badge);
+  });
+
+  it("accepts a standard request without a description", async () => {
+    const response = await POST(request({ "Idempotency-Key": badge }, { descricao: "" }));
+
+    expect(response.status).toBe(201);
+    expect(criarRequisicaoIdempotente).toHaveBeenCalled();
+  });
+
+  it("requires a description for a priority request on the server", async () => {
+    const response = await POST(request(
+      { "Idempotency-Key": badge },
+      { prioridade: "prioridade", descricao: "  " },
+    ));
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toContain("prioritários");
+    expect(criarRequisicaoIdempotente).not.toHaveBeenCalled();
+  });
+
+  it("accepts a priority request when a description is supplied", async () => {
+    const response = await POST(request(
+      { "Idempotency-Key": badge },
+      { prioridade: "prioridade", descricao: "Parada de máquina" },
+    ));
+
+    expect(response.status).toBe(201);
+    expect(criarRequisicaoIdempotente).toHaveBeenCalledWith(expect.objectContaining({
+      prioridade: "prioridade",
+      itens: [expect.objectContaining({ descricao: "[[setor:v1:setor3]]\nParada de máquina" })],
+    }));
   });
 
   it("returns the original request for an idempotent replay", async () => {

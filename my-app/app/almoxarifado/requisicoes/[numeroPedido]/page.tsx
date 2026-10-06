@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
+import PriorityBadge from "../../../components/PriorityBadge";
 import { parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
 
 type ChecklistItem = {
   id: string;
   itemId: string;
   nome: string;
+  descricao: string;
   codigo: string | null;
   unidadeMedida: string;
   quantidadeSolicitada: number;
@@ -165,6 +167,12 @@ export default function ChecklistRequisicaoPage() {
   }, [numeroPedido]);
 
   const handleCameraRead = useCallback(async (raw: string) => {
+    const parsed = parseEtiqueta(raw);
+    if (!parsed.ok) {
+      const feedback = `QR lido, mas formato não reconhecido: “${raw.slice(0, 80)}”. ${parsed.motivo}`;
+      setErro(feedback);
+      return feedback;
+    }
     const feedback = await conferirCodigo(raw, "QR");
     if (!sequenceRef.current && (feedback.startsWith("Item conferido") || feedback.includes("já foi conferido"))) {
       setCameraAberta(false);
@@ -265,6 +273,7 @@ export default function ChecklistRequisicaoPage() {
         <p className="text-xs font-semibold uppercase tracking-wider text-royal">{requisicao.numeroPedido}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-950">Checklist de separação</h1>
         <p className="mt-2 text-sm text-slate-600">Solicitante: {requisicao.solicitante} · Atendimento: {requisicao.atendente ?? "—"}</p>
+        <div className="mt-3"><PriorityBadge priority={requisicao.prioridade === "PRIORITARIO" ? "prioridade" : "padrao"} /></div>
         {!requisicaoAtiva && <p role="status" className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Esta requisição não está em atendimento. A conferência só pode ser registrada enquanto estiver assumida.</p>}
       </header>
 
@@ -309,6 +318,7 @@ export default function ChecklistRequisicaoPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="font-semibold text-slate-950">{item.nome}</h2>
+                  {item.descricao && <p className="mt-1 text-sm text-slate-600">{item.descricao}</p>}
                   <p className="mt-1 text-sm text-slate-600">Código {item.codigo ?? "não cadastrado"} · Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.conferido ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{item.conferido ? "Conferido" : "Pendente"}</span>

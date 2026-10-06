@@ -138,15 +138,19 @@ export async function POST(request: Request) {
         const itemId = typeof rawItem?.itemId === "string" ? rawItem.itemId : undefined;
         const quantidade = Number(rawItem?.quantidade);
         const setor = rawItem?.setor;
+        const descricao = typeof rawItem?.descricao === "string" ? rawItem.descricao.trim() : "";
 
         if (
           (!itemNome && !itemId) ||
           !Number.isInteger(quantidade) ||
           quantidade < 1 ||
-          !["setor1", "setor2", "setor3"].includes(setor)
+          !["setor1", "setor2", "setor3"].includes(setor) ||
+          (rawItem.prioridade === "prioridade" && !descricao)
         ) {
           return NextResponse.json(
-            { error: "Cada item deve ter nome, setor válido e quantidade inteira positiva." },
+            { error: rawItem.prioridade === "prioridade" && !descricao
+              ? "Pedidos prioritários exigem uma descrição ou justificativa."
+              : "Cada item deve ter nome, setor válido e quantidade inteira positiva." },
             { status: 400 }
           );
         }
@@ -173,7 +177,7 @@ export async function POST(request: Request) {
           quantidade,
           unidadeMedida: typeof rawItem?.unidadeMedida === "string" ? rawItem.unidadeMedida : "UN",
           descricao: encodeItemDescription(
-            typeof rawItem?.descricao === "string" ? rawItem.descricao : undefined,
+            descricao || undefined,
             setor as SetorRequisicao,
           ) ?? undefined,
           setor: setor as SetorRequisicao,

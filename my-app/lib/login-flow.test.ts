@@ -6,6 +6,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: {
 } }));
 
 import { PapelFuncionario } from "@/generated/prisma/client";
+import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
 import { prisma } from "@/lib/prisma";
 import {
   createLoginFaceChallenge,
@@ -23,6 +24,7 @@ const admin = {
   papel: PapelFuncionario.ADMIN,
   mustChangePassword: false,
 };
+const operator = { ...admin, id: 2, nome: "Operador", papel: PapelFuncionario.OPERADOR };
 
 describe("login flow security", () => {
   const originalFaceSetting = process.env.LOGIN_FACIAL_OBRIGATORIO;
@@ -111,5 +113,28 @@ describe("login flow security", () => {
     expect(response).toBeNull();
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it("creates operator sessions with a session cookie and short server expiry", async () => {
+    const sessionCreate = vi.fn();
+    vi.mocked(prisma.$transaction).mockImplementation((async (callback: (transaction: {
+      funcionario: { findFirst: ReturnType<typeof vi.fn> };
+      sessao: { create: ReturnType<typeof vi.fn> };
+    }) => Promise<unknown>) => {
+      return callback({
+        funcionario: { findFirst: vi.fn().mockResolvedValue(operator) },
+        sessao: { create: sessionCreate },
+      });
+    }) as never);
+    const before = Date.now();
+
+    const response = await createLoginSessionResponse(operator, "operador");
+    const sessionExpiry = sessionCreate.mock.calls[0][0].data.expiresAt as Date;
+    const cookie = response?.headers.get("set-cookie") ?? "";
+
+    expect(sessionExpiry.getTime()).toBeGreaterThanOrEqual(before + OPERATOR_IDLE_TIMEOUT_MS - 100);
+    expect(sessionExpiry.getTime()).toBeLessThanOrEqual(Date.now() + OPERATOR_IDLE_TIMEOUT_MS);
+    expect(cookie).toContain("marcon_session=");
+    expect(cookie.toLowerCase()).not.toContain("max-age");
   });
 });

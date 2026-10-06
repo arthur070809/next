@@ -1,6 +1,7 @@
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
+import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
 import { papelParaRole, sessionCookieName } from "@/lib/auth";
 import { createFaceNonce, hashFaceNonce } from "@/lib/face";
 import { prisma } from "@/lib/prisma";
@@ -125,6 +126,9 @@ export async function createLoginSessionResponse(
   trustedDeviceId: string | null = null,
 ) {
   const token = randomBytes(32).toString("hex");
+  const sessionTtlMs = funcionario.papel === PapelFuncionario.OPERADOR
+    ? OPERATOR_IDLE_TIMEOUT_MS
+    : 8 * 60 * 60 * 1000;
   const currentEmployee = await prisma.$transaction(async (transaction) => {
     const current = await transaction.funcionario.findFirst({
       where: { id: funcionario.id, ativo: true, papel: funcionario.papel },
@@ -145,7 +149,7 @@ export async function createLoginSessionResponse(
         funcionarioId: current.id,
         accessArea,
         trustedDeviceId,
-        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + sessionTtlMs),
       },
     });
     return current;
@@ -172,13 +176,17 @@ export function createLoginSessionSuccessResponse(
       mustChangePassword: currentEmployee.mustChangePassword,
     },
   });
-  response.cookies.set(sessionCookieName, token, {
+  const cookieOptions = {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 8 * 60 * 60,
-  });
+  } as const;
+  if (currentEmployee.papel === PapelFuncionario.OPERADOR) {
+    response.cookies.set(sessionCookieName, token, cookieOptions);
+  } else {
+    response.cookies.set(sessionCookieName, token, { ...cookieOptions, maxAge: 8 * 60 * 60 });
+  }
   return response;
 }
 

@@ -41,6 +41,25 @@ describe("localizarItemDaEtiqueta", () => {
     expect(localizarItemDaEtiqueta({ ...base, produtos: [] }).tipo).toBe("produto-inexistente");
   });
 
+  it("não confunde código 1794 com seu prefixo 17940", () => {
+    const longProduct = { id: "product-2", nome: "Pneu maior", codigo: "17940" };
+    const longItem = { id: "request-item-2", itemId: "product-2", conferido: false };
+    expect(localizarItemDaEtiqueta({
+      ...base,
+      codigo: "1794",
+      produtos: [{ id: "short", nome: "Pneu", codigo: "1794" }, longProduct],
+      itens: [longItem],
+    })).toMatchObject({ tipo: "fora-da-requisicao", produto: { codigo: "1794" } });
+  });
+
+  it("recusa correspondência ambígua após remover zeros à esquerda", () => {
+    expect(localizarItemDaEtiqueta({
+      ...base,
+      produtos: [produto, { id: "product-alias", nome: "Outro", codigo: "129" }],
+      itens: [item],
+    }).tipo).toBe("codigo-ambiguo");
+  });
+
   it("nega perfil sem permissão", () => {
     expect(localizarItemDaEtiqueta({ ...base, permitido: false }).tipo).toBe("sem-permissao");
   });

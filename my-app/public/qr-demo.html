@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Etiquetas QR de demonstração · Marcon</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #fff; color: #111; font: 16px Arial, sans-serif; }
+    body { padding: 8px; }
+    header { max-width: 900px; margin: 0 auto 20px; }
+    h1 { font-size: 1.5rem; }
+    label { display: block; font-weight: 700; }
+    select { margin-top: 8px; width: 100%; max-width: 500px; min-height: 44px; padding: 8px; background: #fff; color: #111; font-size: 1rem; }
+    .labels { display: grid; grid-template-columns: repeat(auto-fit, minmax(336px, 1fr)); gap: 16px; max-width: 1200px; margin: 0 auto; }
+    .label { min-width: 336px; break-inside: avoid; border: 2px solid #222; padding: 8px; text-align: center; background: #fff; color: #111; }
+    .qr { width: 320px; height: 320px; max-width: 100%; margin: auto; }
+    .qr svg { display: block; width: 100%; height: 100%; }
+    .code { margin: 8px 0 4px; font-size: 1.5rem; font-weight: 700; }
+    h2 { margin: 0; font-size: 1rem; }
+    @media print {
+      body { padding: 0; }
+      header { display: none; }
+      .labels { display: block; }
+      .label { min-height: 100vh; border: 0; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+      .qr { width: min(80vw, 170mm); }
+      .label[hidden] { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Etiquetas QR de demonstração</h1>
+    <p>Conteúdo codificado: código puro. Para leitura no checklist, abra a câmera e enquadre um QR.</p>
+    <label for="product">Exibir um produto por vez (ou todos)
+      <select id="product"><option value="all">Todos os produtos</option><option value="129">129 · RODIZIO GLE 414 NPN-MM (4&quot; GIRAT.)</option><option value="128">128 · RODIZIO FLE 312 NPP (3&quot; FIXA) - MM</option><option value="127">127 · RODIZIO GLE 312 NPP (3&quot; GIRAT.) - MM</option><option value="173">173 · GARFO GGMS 3508 R (GARFO GIRATORIO)</option><option value="7988">7988 · GARFO GGMX 62 (PLATAFORMA ELEVADOR)</option><option value="17940">17940 · GUIA DE FERRO FUNDIDO N° 06</option><option value="1794">1794 · PNEU MACICO 8&quot;</option><option value="1796">1796 · PNEU MACICO 10&quot;</option><option value="1795">1795 · PNEU MACICO 9&quot;</option><option value="5746">5746 · RODA BORRACHA 9200 BIN 3/4 (9&quot;)</option></select>
+    </label>
+  </header>
+  <main class="labels"><article class="label" data-code="129">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m1 0h3m3 0h7M4 5.5h1m5 0h1m2 0h4m1 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h5m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h2m2 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h3M4 12.5h1m3 0h1m1 0h3m1 0h1m1 0h6m2 0h1M4 13.5h4m1 0h1m1 0h1m1 0h1m2 0h3m3 0h1m1 0h1M5 14.5h4m1 0h5m1 0h2m3 0h1M4 15.5h1m3 0h1m2 0h1m1 0h4m2 0h1m1 0h1M4 16.5h1m2 0h1m2 0h1m2 0h3m2 0h3m1 0h2M12 17.5h2m1 0h2m2 0h1m1 0h1m1 0h2M4 18.5h7m1 0h4m2 0h7M4 19.5h1m5 0h1m6 0h2m1 0h1m1 0h1M4 20.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3M4 21.5h1m1 0h3m1 0h1m2 0h2m1 0h3m3 0h3M4 22.5h1m1 0h3m1 0h1m2 0h2m1 0h2M4 23.5h1m5 0h1m2 0h1m1 0h2m2 0h1m1 0h1m1 0h1M4 24.5h7m1 0h1m2 0h1m2 0h7"/></svg>
+</div>
+      <p class="code">129</p>
+      <h2>RODIZIO GLE 414 NPN-MM (4&quot; GIRAT.)</h2>
+    </article>
+<article class="label" data-code="128">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m4 0h1m2 0h7M4 5.5h1m5 0h1m1 0h4m2 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m3 0h1m3 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m2 0h3m2 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M13 11.5h2M4 12.5h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m3 0h1m2 0h1M4 13.5h1m2 0h3m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1M7 14.5h1m1 0h2m3 0h2m1 0h3m2 0h1m1 0h1M5 15.5h1m1 0h1m1 0h1m1 0h1m3 0h3m1 0h3m1 0h1M4 16.5h3m1 0h4m2 0h2m1 0h3m2 0h1M12 17.5h2m4 0h1m3 0h2M4 18.5h7m2 0h1m2 0h1m3 0h1m2 0h1M4 19.5h1m5 0h1m2 0h2m3 0h1m3 0h2M4 20.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1M4 21.5h1m1 0h3m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m1 0h1M4 22.5h1m1 0h3m1 0h1m1 0h4m1 0h3m1 0h2m1 0h1M4 23.5h1m5 0h1m2 0h1m1 0h3m1 0h3M4 24.5h7m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1"/></svg>
+</div>
+      <p class="code">128</p>
+      <h2>RODIZIO FLE 312 NPP (3&quot; FIXA) - MM</h2>
+    </article>
+<article class="label" data-code="127">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m3 0h2m2 0h7M4 5.5h1m5 0h1m1 0h1m3 0h1m1 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m3 0h1m3 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m2 0h2m3 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h5m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m2 0h1m1 0h1m2 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M14 11.5h1M4 12.5h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m3 0h1m2 0h1M6 13.5h2m1 0h1m2 0h4m1 0h1m1 0h1m1 0h1m2 0h1M4 14.5h1m1 0h1m1 0h3m3 0h2m1 0h3m2 0h2M4 15.5h2m1 0h1m1 0h1m2 0h2m1 0h3m1 0h3m2 0h1M5 16.5h6m2 0h1m1 0h1m1 0h3m2 0h3M12 17.5h1m1 0h1m3 0h1m3 0h2M4 18.5h7m5 0h1m3 0h1m2 0h1M4 19.5h1m5 0h1m3 0h1m3 0h1m3 0h2M4 20.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1M4 21.5h1m1 0h3m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m1 0h1M4 22.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1M4 23.5h1m5 0h1m2 0h1m1 0h3m1 0h3M4 24.5h7m1 0h1m1 0h2m1 0h3m1 0h2m1 0h1"/></svg>
+</div>
+      <p class="code">127</p>
+      <h2>RODIZIO GLE 312 NPP (3&quot; GIRAT.) - MM</h2>
+    </article>
+<article class="label" data-code="173">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m1 0h1m3 0h1m1 0h7M4 5.5h1m5 0h1m4 0h1m2 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h2M4 12.5h1m3 0h1m1 0h5m1 0h6m2 0h1M6 13.5h2m3 0h2m1 0h1m1 0h3m3 0h1m1 0h1M6 14.5h2m2 0h5m1 0h2m3 0h1m1 0h2M5 15.5h1m2 0h1m5 0h3m2 0h1m1 0h1m2 0h1M5 16.5h1m2 0h3m2 0h3m2 0h3m1 0h2M12 17.5h2m1 0h2m2 0h1m1 0h1m1 0h2M4 18.5h7m1 0h1m2 0h1m2 0h7M4 19.5h1m5 0h1m2 0h1m3 0h2m1 0h1m1 0h1M4 20.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3M4 21.5h1m1 0h3m1 0h1m2 0h2m1 0h3m3 0h3M4 22.5h1m1 0h3m1 0h1m3 0h1m1 0h2M4 23.5h1m5 0h1m2 0h1m1 0h2m2 0h1m1 0h1m1 0h1M4 24.5h7m1 0h1m2 0h1m2 0h7"/></svg>
+</div>
+      <p class="code">173</p>
+      <h2>GARFO GGMS 3508 R (GARFO GIRATORIO)</h2>
+    </article>
+<article class="label" data-code="7988">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m3 0h2m2 0h7M4 5.5h1m5 0h1m4 0h1m2 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h2m2 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h1m1 0h3M4 12.5h1m1 0h5m2 0h1m2 0h1m1 0h5M5 13.5h2m1 0h2m1 0h4m1 0h1m2 0h1m4 0h1M4 14.5h1m1 0h2m1 0h2m1 0h1m2 0h1m1 0h1m2 0h1m1 0h3M4 15.5h3m1 0h1m5 0h1m4 0h2m1 0h2M4 16.5h1m1 0h6m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1M12 17.5h2m1 0h4m2 0h1m1 0h2M4 18.5h7m2 0h1m2 0h1m1 0h2M4 19.5h1m5 0h1m1 0h1m2 0h4m2 0h1m1 0h1M4 20.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1M4 21.5h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h1m2 0h1M4 22.5h1m1 0h3m1 0h1m1 0h4m1 0h1m2 0h3M4 23.5h1m5 0h1m2 0h2m4 0h2m1 0h2M4 24.5h7m1 0h4m1 0h1m2 0h3"/></svg>
+</div>
+      <p class="code">7988</p>
+      <h2>GARFO GGMX 62 (PLATAFORMA ELEVADOR)</h2>
+    </article>
+<article class="label" data-code="17940">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m4 0h2m1 0h7M4 5.5h1m5 0h1m1 0h1m2 0h1m2 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m5 0h1m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m5 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M14 11.5h3M4 12.5h1m1 0h1m1 0h1m1 0h1m3 0h2m4 0h1m2 0h1M4 13.5h1m1 0h2m1 0h1m2 0h1m5 0h1m5 0h1M6 14.5h2m2 0h2m1 0h1m2 0h1m3 0h3m1 0h1M8 15.5h2m2 0h3m3 0h1m2 0h1m2 0h1M5 16.5h4m1 0h5m1 0h1m1 0h1m1 0h1m1 0h1M12 17.5h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M4 18.5h7m4 0h1m1 0h3m2 0h3M4 19.5h1m5 0h1m2 0h1m1 0h3m1 0h3M4 20.5h1m1 0h3m1 0h1m1 0h4m1 0h3m2 0h1m1 0h1M4 21.5h1m1 0h3m1 0h1m2 0h2m3 0h1m3 0h2M4 22.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m3 0h1M4 23.5h1m5 0h1m7 0h1m3 0h1M4 24.5h7m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+      <p class="code">17940</p>
+      <h2>GUIA DE FERRO FUNDIDO N° 06</h2>
+    </article>
+<article class="label" data-code="1794">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m1 0h4m2 0h7M4 5.5h1m5 0h1m2 0h1m1 0h2m1 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m3 0h2m2 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h1m3 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h1m1 0h1M4 12.5h1m3 0h1m1 0h3m3 0h6m2 0h1M6 13.5h1m1 0h2m2 0h1m1 0h1m1 0h3m2 0h2M4 14.5h7m1 0h1m3 0h2m3 0h1M5 15.5h1m2 0h1m2 0h2m2 0h2m2 0h1m1 0h1m1 0h2M7 16.5h1m2 0h1m2 0h3m2 0h3m1 0h2M12 17.5h2m1 0h2m2 0h1m1 0h1m1 0h2M4 18.5h7m1 0h1m2 0h1m2 0h5M4 19.5h1m5 0h1m6 0h2m1 0h1m1 0h2M4 20.5h1m1 0h3m1 0h1m1 0h3m1 0h3m3 0h3M4 21.5h1m1 0h3m1 0h1m2 0h1m2 0h3m3 0h3M4 22.5h1m1 0h3m1 0h1m2 0h2m1 0h2M4 23.5h1m5 0h1m2 0h1m1 0h2m2 0h1m1 0h1m1 0h1M4 24.5h7m1 0h1m2 0h1m2 0h7"/></svg>
+</div>
+      <p class="code">1794</p>
+      <h2>PNEU MACICO 8&quot;</h2>
+    </article>
+<article class="label" data-code="1796">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m2 0h1m1 0h2m1 0h7M4 5.5h1m5 0h1m2 0h1m4 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h2m1 0h2M4 12.5h1m1 0h5m2 0h2m1 0h1m1 0h5M9 13.5h1m2 0h3m1 0h1m2 0h1m1 0h4M5 14.5h7m1 0h1m1 0h1m1 0h1m2 0h1M5 15.5h5m1 0h1m2 0h1m4 0h2m1 0h3M10 16.5h2m2 0h2m1 0h1m2 0h1m1 0h1m1 0h1M12 17.5h1m2 0h4m2 0h1M4 18.5h7m2 0h1m2 0h1m1 0h2M4 19.5h1m5 0h1m1 0h1m2 0h4m2 0h1m1 0h1M4 20.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1M4 21.5h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h1m2 0h1M4 22.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m2 0h3M4 23.5h1m5 0h1m8 0h2m1 0h2M4 24.5h7m1 0h4m1 0h1m2 0h3"/></svg>
+</div>
+      <p class="code">1796</p>
+      <h2>PNEU MACICO 10&quot;</h2>
+    </article>
+<article class="label" data-code="1795">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m3 0h1m1 0h1m1 0h7M4 5.5h1m5 0h1m1 0h1m1 0h2m2 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m4 0h1m2 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M14 11.5h1M4 12.5h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m3 0h1m2 0h1M6 13.5h3m2 0h1m1 0h3m1 0h1m1 0h1m4 0h1M5 14.5h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1M6 15.5h2m1 0h1m1 0h2m2 0h3m1 0h3m2 0h1M4 16.5h1m2 0h4m1 0h2m1 0h1m1 0h3m2 0h1M12 17.5h1m5 0h1m3 0h2M4 18.5h7m5 0h1m3 0h1m3 0h1M4 19.5h1m5 0h1m2 0h1m4 0h1m3 0h1M4 20.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1M4 21.5h1m1 0h3m1 0h1m4 0h1m1 0h1m1 0h1m1 0h1m1 0h1M4 22.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1M4 23.5h1m5 0h1m3 0h4m1 0h3M4 24.5h7m1 0h2m1 0h1m1 0h3m1 0h2m1 0h1"/></svg>
+</div>
+      <p class="code">1795</p>
+      <h2>PNEU MACICO 9&quot;</h2>
+    </article>
+<article class="label" data-code="5746">
+      <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h29v29H0z"/><path stroke="#000000" d="M4 4.5h7m2 0h2m1 0h1m1 0h7M4 5.5h1m5 0h1m2 0h1m4 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m1 0h4m2 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h1m3 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h2m1 0h2M4 12.5h1m1 0h5m2 0h2m1 0h1m1 0h5M5 13.5h2m1 0h2m3 0h2m1 0h1m2 0h1m1 0h2m1 0h1M4 14.5h2m4 0h2m2 0h2m1 0h1m2 0h1m2 0h2M6 15.5h3m4 0h1m5 0h2m1 0h3M4 16.5h2m3 0h3m3 0h1m1 0h1m2 0h1m1 0h1M12 17.5h2m1 0h4m2 0h1m2 0h1M4 18.5h7m2 0h2m1 0h1m1 0h2M4 19.5h1m5 0h1m1 0h1m2 0h4m2 0h1m1 0h1M4 20.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1M4 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1M4 22.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m2 0h3M4 23.5h1m5 0h1m8 0h2m1 0h2M4 24.5h7m1 0h2m1 0h1m1 0h1m2 0h3"/></svg>
+</div>
+      <p class="code">5746</p>
+      <h2>RODA BORRACHA 9200 BIN 3/4 (9&quot;)</h2>
+    </article></main>
+  <script>
+    const selector = document.getElementById("product");
+    selector.addEventListener("change", () => {
+      document.querySelectorAll(".label").forEach((label) => {
+        label.hidden = selector.value !== "all" && label.dataset.code !== selector.value;
+      });
+    });
+  </script>
+</body>
+</html>

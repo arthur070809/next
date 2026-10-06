@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { isSameOrigin } from "@/lib/security";
+import { decodeItemDescription } from "@/lib/requisition-metadata";
 import { prisma } from "@/lib/prisma";
 import {
   finalizarItemComQuantidade,
@@ -84,16 +85,21 @@ export async function GET(_request: Request, { params }: RouteContext) {
         atendente: requisicao.atendente?.nome ?? null,
         atendenteId: requisicao.atendente?.id ?? null,
         podeFinalizar: requisicao.atendente?.id === funcionario.id,
-        itens: requisicao.itens.map((item) => ({
-          id: item.id,
-          itemId: item.item.id,
-          nome: item.item.nome,
-          codigo: item.item.codigo,
-          unidadeMedida: item.unidadeMedida,
-          quantidadeSolicitada: item.quantidade,
-          status: item.status,
-          conferido: checkedIds.has(item.id) || item.status === StatusItemRequisicao.SEPARADO,
-        })),
+        itens: requisicao.itens.map((item) => {
+          const metadata = decodeItemDescription(item.descricao);
+          return {
+            id: item.id,
+            itemId: item.item.id,
+            nome: item.item.nome,
+            descricao: metadata.descricao,
+            setor: metadata.setor,
+            codigo: item.item.codigo,
+            unidadeMedida: item.unidadeMedida,
+            quantidadeSolicitada: item.quantidade,
+            status: item.status,
+            conferido: checkedIds.has(item.id) || item.status === StatusItemRequisicao.SEPARADO,
+          };
+        }),
       },
     });
   } catch (error) {

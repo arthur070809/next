@@ -65,7 +65,8 @@ export default function FormularioItem({
     ? "ESTOQUE"
     : null;
   const insufficientFreeStock = selectedItem && validQuantity && selectedItem.disponivel < quantity;
-  const isValid = Boolean(form.itemId && validQuantity && form.descricao.trim());
+  const descricaoObrigatoria = form.prioridade === "prioridade";
+  const isValid = Boolean(form.itemId && validQuantity && (!descricaoObrigatoria || form.descricao.trim()));
 
   function update<K extends keyof ItemFormData>(key: K, value: ItemFormData[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -108,7 +109,7 @@ export default function FormularioItem({
       <div className="mt-2 flex gap-2"><button type="button" aria-pressed={form.prioridade === "padrao"} onClick={() => update("prioridade", "padrao")} className={`rounded-lg px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-royal ${form.prioridade === "padrao" ? "ring-2 ring-royal" : "border border-slate-200"}`}><PriorityBadge priority="padrao" /></button><button type="button" aria-pressed={form.prioridade === "prioridade"} onClick={() => update("prioridade", "prioridade")} className={`rounded-lg px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-royal ${form.prioridade === "prioridade" ? "ring-2 ring-royal" : "border border-slate-200"}`}><PriorityBadge priority="prioridade" /></button></div>
     </div>
 
-    <label className="block text-sm font-medium text-slate-800">Descrição / Motivo<textarea value={form.descricao} onChange={(event) => update("descricao", event.target.value)} rows={3} className="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+    <label className="block text-sm font-medium text-slate-800">Descrição / Motivo{descricaoObrigatoria ? " (obrigatória para prioridade)" : " (opcional)"}<textarea value={form.descricao} onChange={(event) => update("descricao", event.target.value)} rows={3} className="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2" />{descricaoObrigatoria && !form.descricao.trim() && <span className="mt-1 block text-xs text-amber-800">Informe o motivo do pedido prioritário.</span>}</label>
 
     <div aria-live="polite" className="min-h-12 rounded-lg bg-slate-50 px-3 py-2 text-sm">
       {previewOrigin === "ESTOQUE" && <p className="font-medium text-slate-700">Será atendido pelo estoque.</p>}

@@ -1,6 +1,7 @@
 export type ItemChecklist = {
   id: string
   nome: string
+  descricao?: string
   quantidade: number
   unidadeMedida: string
   setor?: "setor1" | "setor2" | "setor3"
@@ -34,11 +35,13 @@ export type EventoHistorico = {
   codigoCracha: string
   funcionarioId: number
   funcionarioNome: string
+  prioridade?: "padrao" | "prioridade"
   descricaoMotivo: string | null
   timestamp: string
   produtos: Array<{
     codigo: string | null
     nome: string
+    descricao?: string
     quantidadePedida: number
     quantidadeSeparada: number
     motivo?: string

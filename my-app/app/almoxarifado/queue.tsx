@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
+import PriorityBadge from "../components/PriorityBadge";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 import { startVisibilityPolling } from "../../lib/visibility-polling";
@@ -152,9 +153,10 @@ export default function RequisicoesQueuePage() {
     };
   }, [mostrarViagens, modoDemonstracao]);
 
-  const filtradas = useMemo(() => requisicoes.filter((request) =>
-    `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase())
-  ), [requisicoes, busca]);
+  const filtradas = useMemo(() => requisicoes
+    .filter((request) => `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase()))
+    .sort((first, second) => Number(second.prioridade === "prioridade") - Number(first.prioridade === "prioridade"))
+  , [requisicoes, busca]);
 
   async function assumirRequisicao(requisicao: RequisicaoMock, codigoCracha: string) {
     if (assumindo) return;
@@ -367,10 +369,10 @@ export default function RequisicoesQueuePage() {
               {filtradas.map((request) => (
                 <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                   <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td>
-                  <td className="px-4 py-3 text-slate-600">Não informado</td>
+                  <td className="px-4 py-3 text-slate-600">{request.setor}</td>
                   <td className="px-4 py-3">{request.itens?.length ?? 0}</td>
                   <td className="whitespace-nowrap px-4 py-3">{formatarIdade(request.data)}</td>
-                  <td className="px-4 py-3">{request.prioridade === "prioridade" ? "Prioritária" : "Padrão"}</td>
+                  <td className="px-4 py-3"><PriorityBadge priority={request.prioridade} /></td>
                   <td className="px-4 py-3"><StatusBadge label={request.status === "pendente" ? "Aguardando" : "Em atendimento"} tone={request.status === "pendente" ? "warning" : "brand"} /></td>
                   <td className="px-4 py-3">{request.solicitante ?? "—"}</td>
                   <td className="px-4 py-3">

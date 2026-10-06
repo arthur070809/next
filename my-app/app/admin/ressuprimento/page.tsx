@@ -4,6 +4,7 @@ import RessuprimentoTabela from "./RessuprimentoTabela";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { autorizarRessuprimento } from "@/lib/ressuprimento/access";
+import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
 import {
   historicoRealSuficiente,
   JANELA_CONSUMO_PADRAO_DIAS,
@@ -19,7 +20,7 @@ type ResultadoDadosRessuprimento =
   | { ok: true; sugestoes: SugestaoRessuprimento[]; fonte: "Dados reais" | "Dados simulados" }
   | { ok: false; errorId: string };
 
-async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoDadosRessuprimento> {
+export async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoDadosRessuprimento> {
   const inicioJanela = new Date(Date.UTC(
     hoje.getUTCFullYear(),
     hoje.getUTCMonth(),
@@ -34,13 +35,17 @@ async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoDadosRes
           id: true,
           nome: true,
           pontoPedido: true,
-          saldos: { select: { quantidade: true, reservada: true } },
+          saldos: {
+            where: { local: { slug: LOCAL_ESTOQUE_SLUG } },
+            select: { quantidade: true, reservada: true },
+          },
         },
       }),
       prisma.movimentacao.findMany({
         where: {
           tipo: "SAIDA",
           criadoEm: { gte: inicioJanela, lte: hoje },
+          saldoEstoque: { local: { slug: LOCAL_ESTOQUE_SLUG } },
         },
         select: {
           quantidade: true,

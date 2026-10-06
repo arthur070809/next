@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { EventoHistorico } from "@/lib/types/almoxarifado";
+import PriorityBadge from "../components/PriorityBadge";
 
 const labels: Record<EventoHistorico["evento"], string> = {
   assumida: "Assumida",
@@ -40,6 +41,7 @@ function eventProducts(event: EventoHistorico) {
       <p key={`${product.codigo ?? ""}-${product.nome}`} className="text-sm leading-6 text-slate-600">
         {product.codigo ? `${product.codigo} · ` : ""}
         {product.nome}: pedido {product.quantidadePedida}, separado {product.quantidadeSeparada}
+        {product.descricao ? ` · ${product.descricao}` : ""}
         {product.motivo ? ` · Motivo: ${product.motivo}` : ""}
       </p>
     ));
@@ -205,6 +207,7 @@ export default function HistoricoPage() {
                 <div className="flex items-center gap-3">
                   <strong className="text-slate-900">{event.numeroPedido}</strong>
                   <StatusBadge label={labels[event.evento]} tone={tones[event.evento]} />
+                  {event.prioridade && <PriorityBadge priority={event.prioridade} />}
                 </div>
                 <time className="text-sm text-slate-500">{new Date(event.timestamp).toLocaleString("pt-BR")}</time>
               </div>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
 
 type PortalRole = "admin" | "almoxarifado" | "operador";
 
@@ -14,6 +15,7 @@ const adminMenu = [
   { href: "/admin/ressuprimento", label: "Ressuprimento", icon: "↗" },
   { href: "/admin/estoque", label: "Estoque", icon: "▦" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
+  { href: "/deposito/sobras", label: "Resumo de excedentes", icon: "≋" },
   { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
   { href: "/admin/biometria", label: "Biometria facial", icon: "◌" },
 ];
@@ -24,10 +26,12 @@ const warehouseMenu = [
   { href: "/historico", label: "Histórico", icon: "◷" },
   { href: "/almoxarifado/estoque", label: "Estoque", icon: "▦" },
   { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: "◇" },
+  { href: "/deposito/sobras", label: "Resumo de excedentes", icon: "≋" },
 ];
 
 const operatorMenu = [
   { href: "/requisicao", label: "Nova requisição", icon: "＋" },
+  { href: "/minhas-requisicoes", label: "Minhas Requisições", icon: "▤" },
 ];
 
 export default function PortalShell({
@@ -65,10 +69,35 @@ export default function PortalShell({
     }
   };
 
+  useEffect(() => {
+    if (!isOperator) return;
+    let timer = 0;
+    const expireSession = () => {
+      void fetch("/api/auth/logout", { method: "POST" })
+        .finally(() => {
+          router.replace("/login");
+          router.refresh();
+        });
+    };
+    const resetIdleTimer = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(expireSession, OPERATOR_IDLE_TIMEOUT_MS);
+    };
+    resetIdleTimer();
+    window.addEventListener("pointerdown", resetIdleTimer);
+    window.addEventListener("keydown", resetIdleTimer);
+    window.addEventListener("touchstart", resetIdleTimer);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", resetIdleTimer);
+      window.removeEventListener("keydown", resetIdleTimer);
+      window.removeEventListener("touchstart", resetIdleTimer);
+    };
+  }, [isOperator, router]);
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900" data-shell>
       <aside
-        data-demo-sticky-sidebar
         className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform duration-200 ease-out lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between gap-4">
@@ -134,7 +163,7 @@ export default function PortalShell({
       )}
 
       <div className="lg:pl-72">
-        <header data-demo-sticky-header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl sm:px-8">
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl sm:px-8">
           <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3">
             <button
               type="button"

@@ -1,21 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createScanner, type ScannerDiagnostics } from "../../lib/qr/decoder";
 import {
   cameraErrorMessage,
   requestScannerStream,
   shouldAcceptScan,
   stopCameraStream,
 } from "../../lib/qr/camera-utils";
-
-type BarcodeDetection = { rawValue: string; format: string };
-type NativeBarcodeDetector = {
-  detect(source: CanvasImageSource): Promise<BarcodeDetection[]>;
-};
-type BarcodeDetectorConstructor = {
-  new (options?: { formats?: string[] }): NativeBarcodeDetector;
-  getSupportedFormats?: () => Promise<string[]>;
-};
 
 export default function ProductEtiquetaScanner({
   onRead,
@@ -30,20 +22,19 @@ export default function ProductEtiquetaScanner({
   const previousRef = useRef<{ value: string; at: number } | null>(null);
   const busyRef = useRef(false);
   const [error, setError] = useState("");
-  const [feedback, setFeedback] = useState("Aponte a câmera para o QR da etiqueta.");
+  const [feedback, setFeedback] = useState("Procurando QR… Aponte a câmera para a etiqueta.");
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
-  const decodingRef = useRef(false);
+  const [debug, setDebug] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<ScannerDiagnostics | null>(null);
+  const [manualValue, setManualValue] = useState("");
+  const [parserResult, setParserResult] = useState("");
+  const scannerRef = useRef<ReturnType<typeof createScanner> | null>(null);
 
   useEffect(() => {
     activeRef.current = true;
-    let frameId = 0;
-    let lastFrameAt = 0;
-    let detector: NativeBarcodeDetector | null = null;
-    let jsQr: typeof import("jsqr").default | null = null;
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d", { willReadFrequently: true });
+    queueMicrotask(() => setDebug(new URLSearchParams(window.location.search).get("debug") === "1"));
 
     const start = async () => {
       try {
@@ -69,55 +60,27 @@ export default function ProductEtiquetaScanner({
         if (!videoRef.current) return;
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
-
-        const detectorConstructor = (window as Window & { BarcodeDetector?: BarcodeDetectorConstructor }).BarcodeDetector;
-        if (detectorConstructor) {
-          const supported = await detectorConstructor.getSupportedFormats?.() ?? [];
-          if (supported.includes("qr_code")) detector = new detectorConstructor({ formats: ["qr_code"] });
-        }
-        if (!detector) {
-          jsQr = (await import("jsqr")).default;
-        }
-
-        const scan = async (time: number) => {
-          if (!activeRef.current) return;
-          frameId = window.requestAnimationFrame(scan);
-          if (time - lastFrameAt < 100 || busyRef.current || decodingRef.current || !context || !videoRef.current) return;
-          lastFrameAt = time;
-          const video = videoRef.current;
-          if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth) return;
-
-          decodingRef.current = true;
-          try {
-            let detected: BarcodeDetection | undefined;
-            if (detector) {
-              detected = (await detector.detect(video))[0];
-            } else if (jsQr) {
-              const ratio = Math.min(1, 1280 / video.videoWidth);
-              canvas.width = Math.round(video.videoWidth * ratio);
-              canvas.height = Math.round(video.videoHeight * ratio);
-              context.drawImage(video, 0, 0, canvas.width, canvas.height);
-              const image = context.getImageData(0, 0, canvas.width, canvas.height);
-              const result = jsQr(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" });
-              if (result) detected = { rawValue: result.data, format: "qr_code" };
-            }
-            if (!detected?.rawValue || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
-
+        const scanner = createScanner(videoRef.current, {
+          onDiagnostics: setDiagnostics,
+          onDecode: async (detected) => {
+            if (!activeRef.current || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
             previousRef.current = { value: detected.rawValue, at: Date.now() };
             busyRef.current = true;
-            setFeedback("Etiqueta lida. Conferindo código…");
+            setFeedback(`QR lido (${detected.rawValue.slice(0, 50)}). Conferindo…`);
             if ("vibrate" in navigator) navigator.vibrate(100);
-            const message = await onRead(detected.rawValue, detected.format);
-            if (activeRef.current) setFeedback(message);
-            window.setTimeout(() => { busyRef.current = false; }, 500);
-          } catch {
-            if (activeRef.current) setFeedback("Não foi possível decodificar o QR. Mantenha a etiqueta próxima e tente novamente.");
-            busyRef.current = false;
-          } finally {
-            decodingRef.current = false;
-          }
-        };
-        frameId = window.requestAnimationFrame(scan);
+            try {
+              const message = await onRead(detected.rawValue, detected.format);
+              if (activeRef.current) {
+                setFeedback(message);
+                setParserResult(message);
+              }
+            } finally {
+              window.setTimeout(() => { busyRef.current = false; }, 500);
+            }
+          },
+        });
+        scannerRef.current = scanner;
+        await scanner.start();
       } catch (cause) {
         if (activeRef.current) setError(cameraErrorMessage(cause));
       }
@@ -126,7 +89,8 @@ export default function ProductEtiquetaScanner({
     void start();
     return () => {
       activeRef.current = false;
-      window.cancelAnimationFrame(frameId);
+      scannerRef.current?.stop();
+      scannerRef.current = null;
       stopCameraStream(streamRef.current);
       streamRef.current = null;
     };
@@ -145,7 +109,7 @@ export default function ProductEtiquetaScanner({
 
   function retryCamera() {
     setError("");
-    setFeedback("Aponte a câmera para o QR da etiqueta.");
+    setFeedback("Procurando QR… Aponte a câmera para a etiqueta.");
     previousRef.current = null;
     busyRef.current = false;
     setRetryKey((value) => value + 1);
@@ -166,7 +130,47 @@ export default function ProductEtiquetaScanner({
         {error && <div role="alert" className="absolute mx-5 max-w-lg rounded-xl bg-white p-5 text-slate-900 shadow-xl"><p>{error}</p><button type="button" onClick={retryCamera} className="mt-4 rounded-lg bg-royal px-4 py-2 font-semibold text-white">Tentar novamente</button></div>}
       </div>
       <footer className="space-y-3 px-4 py-4">
-        <p aria-live="polite" className="text-center text-sm">{feedback}</p>
+        <p aria-live="polite" className={`text-center text-sm ${feedback.startsWith("Item conferido") ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : ""}`}>{feedback}</p>
+        <form
+          className="mx-auto flex max-w-lg gap-2"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (!manualValue.trim() || busyRef.current) return;
+            busyRef.current = true;
+            try {
+              const message = await onRead(manualValue, "manual");
+              setFeedback(message);
+              setParserResult(message);
+              setManualValue("");
+            } finally {
+              busyRef.current = false;
+            }
+          }}
+        >
+          <label htmlFor="scanner-manual-code" className="sr-only">Digitar código da etiqueta</label>
+          <input
+            id="scanner-manual-code"
+            value={manualValue}
+            onChange={(event) => setManualValue(event.target.value)}
+            placeholder="Ou digite o código"
+            className="min-h-11 min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 text-white placeholder:text-slate-400"
+          />
+          <button type="submit" disabled={!manualValue.trim()} className="min-h-11 rounded-lg bg-blue-700 px-4 text-sm font-semibold text-white disabled:opacity-50">
+            Conferir
+          </button>
+        </form>
+        {debug && diagnostics && (
+          <section aria-label="Diagnóstico da leitura QR" className="mx-auto grid max-w-2xl grid-cols-2 gap-x-4 gap-y-1 rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200 sm:grid-cols-3">
+            <p>Decoder: {diagnostics.decoder}</p>
+            <p>BarcodeDetector QR: {diagnostics.nativeSupported ? "sim" : "não"}</p>
+            <p>Vídeo: {diagnostics.videoWidth}×{diagnostics.videoHeight}</p>
+            <p>FPS leitura: {diagnostics.fps}</p>
+            <p>Frames: {diagnostics.framesRead}</p>
+            <p>Erros: {diagnostics.decodeErrors} {diagnostics.lastError}</p>
+            <p className="col-span-2 break-all sm:col-span-3">Último QR: {diagnostics.lastRawText || "—"}</p>
+            <p className="col-span-2 break-all sm:col-span-3">Resultado do parser: {parserResult || "—"}</p>
+          </section>
+        )}
         <button type="button" onClick={() => void toggleTorch()} disabled={!torchSupported} className="mx-auto block rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold disabled:opacity-40">
           {torchOn ? "Desligar lanterna" : "Ligar lanterna"}
         </button>

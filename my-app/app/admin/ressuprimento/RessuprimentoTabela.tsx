@@ -52,6 +52,9 @@ export default function RessuprimentoTabela({
   const filtradas = useMemo(() => sugestoes
     .filter((item) => classeFiltro === "TODAS" || item.classe === classeFiltro)
     .sort(compararCobertura), [sugestoes, classeFiltro]);
+  const itensNoPonto = useMemo(() => sugestoes
+    .filter((item) => item.estoque <= item.pontoAtual)
+    .sort((a, b) => a.estoque - b.estoque || a.nome.localeCompare(b.nome)), [sugestoes]);
   const maxCobertura = Math.max(
     1,
     ...filtradas
@@ -73,6 +76,18 @@ export default function RessuprimentoTabela({
     {fonte === "Dados simulados" && <p className="mb-4 rounded-lg border border-amber-700 bg-amber-100 p-3 text-sm font-semibold text-amber-950">
       O histórico real disponível não atende ao mínimo para análise; estes valores são simulados e não devem ser usados como medição.
     </p>}
+
+    <section aria-labelledby="itens-ponto-pedido" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
+      <h2 id="itens-ponto-pedido" className="text-lg font-semibold text-amber-950">Itens no ponto de pedido ou abaixo</h2>
+      {itensNoPonto.length === 0
+        ? <p className="mt-2 text-sm text-amber-900">Nenhum item está no ponto de pedido ou abaixo no estoque central.</p>
+        : <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {itensNoPonto.map((item) => <li key={item.id} className="rounded-lg border border-amber-200 bg-white p-3 text-sm">
+            <span className="font-semibold text-slate-900">{item.nome}</span>
+            <span className="mt-1 block text-slate-700">Livre: {item.estoque} · ponto: {item.pontoAtual}</span>
+          </li>)}
+        </ul>}
+    </section>
 
     <div className="mb-4 max-w-xs">
       <label htmlFor="filtro-classe" className="block text-sm font-medium text-slate-700">Filtrar por classe</label>

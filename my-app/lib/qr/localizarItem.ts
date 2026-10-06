@@ -17,6 +17,7 @@ export type ResultadoLocalizacao =
   | { tipo: "sem-permissao" }
   | { tipo: "requisicao-inativa" }
   | { tipo: "produto-inexistente" }
+  | { tipo: "codigo-ambiguo" }
   | { tipo: "fora-da-requisicao"; produto: ProdutoEtiquetado }
   | { tipo: "item-resolvido"; item: ItemDaRequisicao; produto: ProdutoEtiquetado }
   | { tipo: "ja-conferido"; item: ItemDaRequisicao; produto: ProdutoEtiquetado }
@@ -39,6 +40,7 @@ export function localizarItemDaEtiqueta(params: {
       normalizarCodigoEtiqueta(produto.codigo) === codigoNormalizado,
   );
   if (produtos.length === 0) return { tipo: "produto-inexistente" };
+  if (produtos.length > 1) return { tipo: "codigo-ambiguo" };
 
   const produtoIds = new Set(produtos.map((produto) => produto.id));
   const item = params.itens.find((candidato) => produtoIds.has(candidato.itemId));

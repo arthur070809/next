@@ -204,6 +204,42 @@ describe("POST /api/estoque", () => {
     );
   });
 
+  it("saves a numeric QR label on a newly registered item", async () => {
+    transactionMock.item.findFirst.mockResolvedValue(null);
+    transactionMock.item.create.mockResolvedValue({ id: "item-qr" });
+    transactionMock.saldoEstoque.findUnique.mockResolvedValue(null);
+
+    const response = await POST(request({
+      nome: "Rodízio",
+      categoria: "Rodízios e Pés",
+      codigo: "129",
+      tipoUnidade: "unidade",
+      quantidadeEmbalagens: 2,
+    }));
+
+    expect(response.status).toBe(201);
+    expect(transactionMock.item.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ codigo: "129" }),
+    }));
+    expect(transactionMock.movimentacao.create).toHaveBeenCalled();
+  });
+
+  it("rejects invalid label codes without starting the stock transaction", async () => {
+    const response = await POST(request({
+      nome: "Rodízio",
+      categoria: "Rodízios e Pés",
+      codigo: "not-a-code",
+      tipoUnidade: "unidade",
+      quantidadeEmbalagens: 2,
+    }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: "O código da etiqueta deve conter de 1 a 8 dígitos.",
+    });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it("keeps concurrent intakes as separate atomic increments", async () => {
     transactionMock.item.findFirst.mockResolvedValue({ id: "item-4" });
     transactionMock.item.update.mockResolvedValue({ id: "item-4" });

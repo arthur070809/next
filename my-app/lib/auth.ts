@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { PapelFuncionario } from "@/generated/prisma/client";
+import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
 
 export const sessionCookieName = "marcon_session";
 
@@ -17,7 +18,8 @@ export async function getAuthenticatedSession() {
 
   if (!session) return null;
 
-  if (session.expiresAt <= new Date()) {
+  const now = new Date();
+  if (session.expiresAt <= now) {
     await prisma.sessao.delete({ where: { id: session.id } });
     return null;
   }
@@ -28,6 +30,15 @@ export async function getAuthenticatedSession() {
   }
 
   if (!session.funcionario.ativo) return null;
+
+  if (session.funcionario.papel === PapelFuncionario.OPERADOR) {
+    const expiresAt = new Date(now.getTime() + OPERATOR_IDLE_TIMEOUT_MS);
+    await prisma.sessao.update({
+      where: { id: session.id },
+      data: { expiresAt },
+    });
+    session.expiresAt = expiresAt;
+  }
 
   return session;
 }
