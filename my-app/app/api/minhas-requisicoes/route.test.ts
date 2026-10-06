@@ -32,14 +32,15 @@ describe("GET /api/minhas-requisicoes", () => {
   });
 
   it("queries only the authenticated operator and returns item outcomes", async () => {
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/minhas-requisicoes"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(prisma.requisicao.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { solicitanteId: 17 },
-      orderBy: { criadoEm: "desc" },
-      take: 100,
+      orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+      skip: 0,
+      take: 21,
     }));
     expect(body.requisicoes[0]).toMatchObject({
       status: "CONCLUIDA",
@@ -60,7 +61,7 @@ describe("GET /api/minhas-requisicoes", () => {
       papel: PapelFuncionario.ADMIN,
     } as never);
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/minhas-requisicoes"));
 
     expect(response.status).toBe(403);
     expect(prisma.requisicao.findMany).not.toHaveBeenCalled();
@@ -69,9 +70,41 @@ describe("GET /api/minhas-requisicoes", () => {
   it("requires authentication", async () => {
     vi.mocked(getAuthenticatedFuncionario).mockResolvedValueOnce(null);
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/minhas-requisicoes"));
 
     expect(response.status).toBe(401);
     expect(prisma.requisicao.findMany).not.toHaveBeenCalled();
+  });
+
+  it("paginates only the current operator's requests", async () => {
+    vi.mocked(prisma.requisicao.findMany).mockResolvedValue([] as never);
+    const response = await GET(new Request("http://localhost/api/minhas-requisicoes?page=2&funcionarioId=999"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(prisma.requisicao.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { solicitanteId: 17 },
+      orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+      skip: 20,
+      take: 21,
+    }));
+    expect(body).toMatchObject({ pagina: 2, limite: 20, temMais: false });
+  });
+
+  it("reports a next page when the query returns one extra own request", async () => {
+    vi.mocked(prisma.requisicao.findMany).mockResolvedValue(
+      Array.from({ length: 21 }, (_, index) => ({
+        numeroPedido: `REQ-${index}`,
+        status: "PENDENTE",
+        prioridade: "PADRAO",
+        criadoEm: new Date(`2026-10-01T${String(20 - index).padStart(2, "0")}:00:00Z`),
+        itens: [],
+      })) as never,
+    );
+    const response = await GET(new Request("http://localhost/api/minhas-requisicoes?page=1"));
+    const body = await response.json();
+
+    expect(body.requisicoes).toHaveLength(20);
+    expect(body.temMais).toBe(true);
   });
 });

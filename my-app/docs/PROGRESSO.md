@@ -13,6 +13,8 @@ Atualizado durante a revisão funcional do almoxarifado, QR e cadastro facial. N
 | Facial | Feito parcialmente: comparação local à mediana, validação e configuração centralizada dos limites locais, detecção exatamente de um rosto e diagnóstico de origem da rejeição. Login e limiar do serviço não foram alterados. | `lib/face.ts`, `lib/facial/config.ts`, `lib/facial/face-count.ts` |
 | Cadastro facial por uma foto | Não implementado: o contrato atual de persistência exige amostras e serviço externo; não se criou um caminho alternativo que envie uma imagem ou enfraqueça as verificações. | `docs/RELATORIO_ALMOXARIFADO.md` |
 | Revisão e riscos | Disponíveis nos relatórios dedicados; viewport e câmera física seguem não verificados. | `docs/STATUS_ALMOXARIFADO.md`, `docs/RISCOS_ALMOXARIFADO.md`, `docs/DIAGNOSTICO_QR_FACIAL.md` |
+| O1 — descrição obrigatória para prioridade | Feita e testada: API rejeita prioridade vazia/com espaços antes da criação; pedido normal segue aceito sem descrição. | `app/api/requests/route.test.ts` |
+| O2 — minhas requisições | Feita e testada: corrigidos IDOR no detalhe e corte silencioso em 100; lista paginada, ordem determinística e labels de status centralizadas/exaustivas. Suíte: 81 arquivos/367 testes, tsc/lint verdes. | `app/api/minhas-requisicoes/route.ts`, `app/api/requests/[id]/route.ts`, `lib/requisition-status.ts` |
 
 ## Validação desta revisão
 
