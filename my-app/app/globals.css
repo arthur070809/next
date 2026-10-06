@@ -18,12 +18,3 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
 }
-
-body[data-demo-active="true"] [data-demo-sticky-header] {
-  top: 2.5rem;
-}
-
-body[data-demo-active="true"] [data-demo-sticky-sidebar] {
-  top: 2.5rem;
-  bottom: 0;
-}
