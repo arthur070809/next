@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       return invalidCodeResponse(startedAt, badge, ipHash, testMode, attemptPolicy);
     }
 
-    if (credential !== undefined && credential !== "badge" && credential !== "password") {
+    if (credential !== undefined && credential !== "password" && credential !== "face") {
       return invalidCodeResponse(startedAt, badge, ipHash, testMode, attemptPolicy);
     }
 
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
       return session;
     }
 
-    if (credential === "password") {
+    if (credential !== "face") {
       const password = typeof body.password === "string" ? body.password : "";
       const isBcryptHash = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(funcionario.senha);
       if (!password || password.length > 256 || !isBcryptHash || !(await bcrypt.compare(password, funcionario.senha))) {
@@ -148,6 +148,22 @@ export async function POST(request: Request) {
         });
         return NextResponse.json({ step: "totp", preAuthToken }, { status: 202 });
       }
+    }
+
+    if (credential === "face") {
+      if (funcionario.papel !== PapelFuncionario.ADMIN && funcionario.papel !== PapelFuncionario.OPERADOR) {
+        return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
+      }
+      const faceTemplateCount = await prisma.faceTemplate.count({
+        where: { funcionarioId: funcionario.id, revogadoEm: null },
+      });
+      if (faceTemplateCount === 0) {
+        return NextResponse.json(
+          { error: "Não há cadastro facial ativo para este funcionário. Procure o administrador." },
+          { status: 503 },
+        );
+      }
+      return NextResponse.json(await createLoginFaceChallenge(funcionario.id, ipHash), { status: 202 });
     }
 
     if (loginRequiresFace(funcionario.papel)) {
