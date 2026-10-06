@@ -5,7 +5,7 @@ import { isSameOrigin } from "@/lib/security";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS } from "@/lib/stock-units";
 import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
-import { TipoMovimentacao } from "@/generated/prisma/client";
+import { PapelFuncionario, TipoMovimentacao } from "@/generated/prisma/client";
 
 const LOCAL_DEPOSITO_SLUG = "deposito";
 
@@ -110,6 +110,9 @@ export async function POST(request: Request) {
   try {
     const funcionario = await getAuthenticatedFuncionario();
     if (!funcionario) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+    if (funcionario.papel !== PapelFuncionario.ADMIN && funcionario.papel !== PapelFuncionario.ALMOXARIFE) {
+      return respostaJson({ error: "Acesso permitido apenas ao almoxarife ou admin." }, { status: 403 });
+    }
     if (!isSameOrigin(request)) return respostaJson({ error: "Origem inválida." }, { status: 403 });
     let body: Record<string, unknown>;
     try {
@@ -267,6 +270,9 @@ export async function PATCH(request: Request) {
   try {
     const funcionario = await getAuthenticatedFuncionario();
     if (!funcionario) return respostaJson({ error: "Não autenticado." }, { status: 401 });
+    if (funcionario.papel !== PapelFuncionario.ADMIN && funcionario.papel !== PapelFuncionario.ALMOXARIFE) {
+      return respostaJson({ error: "Acesso permitido apenas ao almoxarife ou admin." }, { status: 403 });
+    }
     if (!isSameOrigin(request)) return respostaJson({ error: "Origem inválida." }, { status: 403 });
     let body: Record<string, unknown>;
     try {

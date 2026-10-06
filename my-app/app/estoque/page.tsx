@@ -5,7 +5,8 @@ import styles from "./stock-list.module.css";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
 import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
 import ProductEtiquetaScanner from "@/app/components/ProductEtiquetaScanner";
-import { normalizarCodigoEtiqueta, parseEtiqueta } from "@/lib/qr/parseEtiqueta";
+import { parseEtiqueta } from "@/lib/qr/parseEtiqueta";
+import { localizarItemEstoquePorCodigo } from "@/lib/qr/localizarEstoqueItem";
 
 type EstoqueItem = {
   id: string;
@@ -77,6 +78,7 @@ export default function EstoquePage() {
   const [nomeAberto, setNomeAberto] = useState(false);
   const [cameraAberta, setCameraAberta] = useState(false);
   const [qrMatchedItem, setQrMatchedItem] = useState<EstoqueItem | null>(null);
+  const [codigoNovoPorQr, setCodigoNovoPorQr] = useState(false);
   const salvandoRef = useRef(false);
   const listaRef = useRef<HTMLDivElement>(null);
 
@@ -95,23 +97,27 @@ export default function EstoquePage() {
       setErro(message);
       return message;
     }
-    const codigoNormalizado = normalizarCodigoEtiqueta(parsed.codigo);
-    const matches = itens.filter((item) =>
-      item.codigo !== null && normalizarCodigoEtiqueta(item.codigo) === codigoNormalizado,
-    );
     setErro("");
     setMensagem("");
     setCameraAberta(false);
-    if (matches.length > 1) {
+    const result = localizarItemEstoquePorCodigo(parsed.codigo, itens);
+    if (result.type === "ambiguous") {
       setQrMatchedItem(null);
+      setCodigoNovoPorQr(false);
       setForm((current) => ({ ...current, codigo: parsed.codigo }));
       const message = `O código ${parsed.codigo} corresponde a mais de um material. Resolva a duplicidade antes de registrar uma entrada.`;
       setErro(message);
       return message;
     }
-    if (matches.length === 1) {
-      const item = matches[0];
+    if (result.type === "found") {
+      const item = itens.find(({ id }) => id === result.item.id);
+      if (!item) {
+        const message = "O material lido não está disponível na lista atual. Atualize o estoque e tente novamente.";
+        setErro(message);
+        return message;
+      }
       setQrMatchedItem(item);
+      setCodigoNovoPorQr(false);
       setBusca("");
       setCategoriaBusca("");
       setForm((current) => ({
@@ -130,8 +136,18 @@ export default function EstoquePage() {
     }
 
     setQrMatchedItem(null);
-    setForm((current) => ({ ...current, codigo: parsed.codigo }));
-    return `Código ${parsed.codigo} não cadastrado. Selecione a categoria e o material para criar um item com esta etiqueta.`;
+    setCodigoNovoPorQr(true);
+    setForm((current) => ({
+      ...current,
+      nome: "",
+      categoria: "",
+      codigo: parsed.codigo,
+      tipoUnidade: "unidade",
+      quantidadePorEmbalagem: "1",
+      quantidadeEmbalagens: "",
+    }));
+    window.requestAnimationFrame(() => document.getElementById("categoria")?.focus());
+    return `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`;
   }, [itens]);
 
   const carregarItens = async () => {
@@ -179,7 +195,7 @@ export default function EstoquePage() {
 
   const itensFiltrados = useMemo(
     () => itens.filter((item) => {
-      const correspondeBusca = `${item.nome} ${item.categoria}`.toLowerCase().includes(busca.toLowerCase());
+      const correspondeBusca = `${item.nome} ${item.categoria} ${item.codigo ?? ""}`.toLowerCase().includes(busca.toLowerCase());
       const correspondeCategoria = !categoriaBusca || item.categoria === categoriaBusca;
       return correspondeBusca && correspondeCategoria;
     }),
@@ -202,7 +218,7 @@ export default function EstoquePage() {
         && form.codigo === qrMatchedItem.codigo
         && form.nome === qrMatchedItem.nome
         && form.categoria === qrMatchedItem.categoria;
-      if (!isMatchedQrItem && !materiaisDaCategoria.includes(form.nome as never)) {
+      if (!isMatchedQrItem && !codigoNovoPorQr && !materiaisDaCategoria.includes(form.nome as never)) {
         setErro("Selecione uma categoria e um material disponível nessa categoria.");
         return;
       }
@@ -265,6 +281,7 @@ export default function EstoquePage() {
         quantidadeEmbalagens: "",
       }));
       setQrMatchedItem(null);
+      setCodigoNovoPorQr(false);
       setErrosQuantidade({});
       setNomeAberto(false);
       setMensagem("Item cadastrado no estoque.");
@@ -336,7 +353,10 @@ export default function EstoquePage() {
                 <input id="codigo" inputMode="numeric" maxLength={8} value={form.codigo} onChange={(event) => {
                   const codigo = event.target.value;
                   setForm((current) => ({ ...current, codigo }));
-                  if (codigo !== qrMatchedItem?.codigo) setQrMatchedItem(null);
+                  if (codigo !== qrMatchedItem?.codigo) {
+                    setQrMatchedItem(null);
+                    setCodigoNovoPorQr(false);
+                  }
                 }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
               </div>
               <div>
