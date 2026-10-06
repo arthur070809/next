@@ -11,7 +11,7 @@ vi.mock("@/lib/face-enrollment-attempts", () => ({ faceEnrollmentAttemptLimit: 5
 vi.mock("@/lib/face-enrollment-session", () => ({ createFaceEnrollmentSession: vi.fn(async () => ({ id: "s1", token: "token", expiraEm: new Date(Date.now() + 60000) })), findFaceEnrollmentSession: vi.fn(async () => ({ id: "s1", token: "token", expiraEm: new Date(Date.now() + 60000) })), renewFaceEnrollmentSession: vi.fn(async () => ({})) }));
 vi.mock("@/lib/webauthn", () => ({ getClientIpHash: vi.fn(() => "client-hash"), hashSecret: vi.fn(() => "hash") }));
 
-import { GET } from "./route";
+import { GET, POST } from "./route";
 import { requireAdmin } from "@/lib/auth";
 
 describe("admin face enrollment route", () => {
@@ -21,5 +21,15 @@ describe("admin face enrollment route", () => {
     vi.mocked(requireAdmin).mockResolvedValue({ funcionario: null, status: 401 });
     const response = await GET(new Request("http://localhost/api/admin/face-enrollment"));
     expect(response.status).toBe(401);
+  });
+
+  it("does not allow non-admin users to submit facial enrollment captures", async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({ funcionario: null, status: 403 });
+    const response = await POST(new Request("http://localhost/api/admin/face-enrollment", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ funcionarioId: 1, samples: ["private-image"] }),
+    }));
+    expect(response.status).toBe(403);
   });
 });
