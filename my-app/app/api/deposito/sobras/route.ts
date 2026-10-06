@@ -85,9 +85,20 @@ export async function GET() {
       agrupados.set(key, registro);
     }
 
+    const registros = [...agrupados.values()].sort((a, b) =>
+      a.setor.localeCompare(b.setor) || a.produto.localeCompare(b.produto));
+    const totaisPorSetor = [...agrupados.values()].reduce((totals, registro) => {
+      const total = totals.get(registro.setor) ?? { setor: registro.setor, quantidadePedida: 0, quantidadeSeparada: 0, quantidadeExcedente: 0 };
+      total.quantidadePedida += registro.quantidadePedida;
+      total.quantidadeSeparada += registro.quantidadeSeparada;
+      total.quantidadeExcedente += registro.quantidadeExcedente;
+      totals.set(registro.setor, total);
+      return totals;
+    }, new Map<string, { setor: string; quantidadePedida: number; quantidadeSeparada: number; quantidadeExcedente: number }>());
+
     return NextResponse.json({
-      registros: [...agrupados.values()].sort((a, b) =>
-        a.setor.localeCompare(b.setor) || a.produto.localeCompare(b.produto)),
+      registros,
+      totaisPorSetor: [...totaisPorSetor.values()],
       aviso: "Excedente por lote mínimo é quantidade entregue ao solicitante, não uma sobra física registrada. O saldo do depósito é global por produto e não tem vínculo com setor.",
     });
   } catch (error) {

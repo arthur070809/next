@@ -53,6 +53,12 @@ describe("GET /api/deposito/sobras", () => {
         estoqueLivre: 8,
         saldoDeposito: 1,
       }],
+      totaisPorSetor: [{
+        setor: "setor2",
+        quantidadePedida: 2,
+        quantidadeSeparada: 5,
+        quantidadeExcedente: 3,
+      }],
       aviso: expect.stringContaining("não uma sobra física registrada"),
     });
   });
