@@ -15,14 +15,58 @@ export async function hashPassword(password: string) {
   return bcrypt.hash(password, 12);
 }
 
+function getAllowedForwardedDevOrigin(request: Request): string | null {
+  if (process.env.NODE_ENV === "production") return null;
+
+  const forwardedHost = request.headers.get("x-forwarded-host")?.trim();
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.trim().toLowerCase();
+  if (!forwardedHost || !forwardedProto || forwardedHost.includes(",") ||
+    forwardedProto.includes(",") || !["http", "https"].includes(forwardedProto)) {
+    return null;
+  }
+
+  let forwardedOrigin: URL;
+  try {
+    forwardedOrigin = new URL(`${forwardedProto}://${forwardedHost}`);
+  } catch {
+    return null;
+  }
+  if (forwardedOrigin.username || forwardedOrigin.password ||
+    forwardedOrigin.pathname !== "/" || forwardedOrigin.search || forwardedOrigin.hash) {
+    return null;
+  }
+
+  const extraOrigins = (process.env.DEV_EXTRA_ORIGINS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  for (const value of extraOrigins) {
+    try {
+      const allowed = new URL(value);
+      if (!allowed.username && !allowed.password &&
+        ["http:", "https:"].includes(allowed.protocol) &&
+        allowed.pathname === "/" && !allowed.search && !allowed.hash &&
+        allowed.origin === forwardedOrigin.origin) {
+        return forwardedOrigin.origin;
+      }
+    } catch {
+      // Ignore malformed development-only configuration entries.
+    }
+  }
+  return null;
+}
+
 export function isSameOrigin(request: Request) {
   const requestUrl = new URL(request.url);
   const host = request.headers.get("host");
   if (host && host.toLowerCase() !== requestUrl.host.toLowerCase()) return false;
+  const forwardedDevOrigin = getAllowedForwardedDevOrigin(request);
   const origin = request.headers.get("origin");
   if (origin) {
     try {
-      return new URL(origin).origin === requestUrl.origin;
+      const parsedOrigin = new URL(origin);
+      return parsedOrigin.origin === requestUrl.origin ||
+        parsedOrigin.origin === forwardedDevOrigin;
     } catch {
       return false;
     }
@@ -30,7 +74,9 @@ export function isSameOrigin(request: Request) {
   const referer = request.headers.get("referer");
   if (!referer || !host) return false;
   try {
-    return new URL(referer).origin === requestUrl.origin;
+    const parsedRefererOrigin = new URL(referer).origin;
+    return parsedRefererOrigin === requestUrl.origin ||
+      parsedRefererOrigin === forwardedDevOrigin;
   } catch {
     return false;
   }
