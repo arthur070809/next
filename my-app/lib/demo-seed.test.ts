@@ -4,6 +4,7 @@ import {
   demoSeedRequests,
   deterministicDemoId,
   getDemoSeedRequestObservation,
+  resetAndSeedDemoData,
   seedDemoData,
   upsertSeedRequest,
 } from "./demo-seed";
@@ -103,6 +104,25 @@ describe("demo data fixture", () => {
     }
   });
 
+  it("rejects a parent upsert result without an id before writing child rows", async () => {
+    const tx = {
+      requisicao: { upsert: vi.fn(async () => ({ id: undefined })) },
+      requisicaoItem: { upsert: vi.fn() },
+    };
+    const request = demoSeedRequests[0];
+    const employees = new Map([["1111", 11], ["2222", 22]]);
+    const items = new Map(request.items.map(({ codigo }) => [codigo, { id: `item-${codigo}`, unit: "unidades" }]));
+
+    await expect(upsertSeedRequest(
+      tx as never as Prisma.TransactionClient,
+      request,
+      employees,
+      items,
+      "central-id",
+    )).rejects.toThrow(/DEMO-000101.*129.*requisicao/i);
+    expect(tx.requisicaoItem.upsert).not.toHaveBeenCalled();
+  });
+
   it("does not recreate requests or movements when the seed runs a second time", async () => {
     const employeeIds = new Map([["1111", 11], ["2222", 22], ["3333", 33]]);
     const localIds = new Map([["estoque", "central-id"], ["importados", "imported-id"]]);
@@ -157,19 +177,72 @@ describe("demo data fixture", () => {
       },
     };
     const client = {
-      $transaction: vi.fn(async (callback: (transaction: unknown) => Promise<unknown>) => callback(tx)),
+      $transaction: vi.fn(async (
+        callback: (transaction: unknown) => Promise<unknown>,
+        _options?: { maxWait?: number; timeout?: number },
+      ) => callback(tx)),
     };
 
     const first = await seedDemoData(client as never);
     const requestCountAfterFirstRun = tx.requisicao.upsert.mock.calls.length;
     const movementCountAfterFirstRun = tx.movimentacao.upsert.mock.calls.length;
+    const transactionCountAfterFirstRun = client.$transaction.mock.calls.length;
     const second = await seedDemoData(client as never);
 
     expect(first).toMatchObject({ initialized: true, preservedExistingDemo: false });
     expect(second).toMatchObject({ initialized: false, preservedExistingDemo: true });
     expect(requestCountAfterFirstRun).toBe(demoSeedRequests.length);
+    expect(transactionCountAfterFirstRun).toBeGreaterThanOrEqual(demoSeedRequests.length);
+    expect(client.$transaction.mock.calls.every(([, options]) =>
+      options?.maxWait === 20_000 && options.timeout === 60_000,
+    )).toBe(true);
     expect(tx.requisicao.upsert).toHaveBeenCalledTimes(requestCountAfterFirstRun);
     expect(movementCountAfterFirstRun).toBeGreaterThan(0);
     expect(tx.movimentacao.upsert).toHaveBeenCalledTimes(movementCountAfterFirstRun);
+  });
+
+  it("deletes children before request parents with an explicit reset timeout", async () => {
+    const operations: string[] = [];
+    const sentinel = new Error("stop after reset ordering check");
+    const tx = {
+      movimentacao: {
+        deleteMany: vi.fn(async () => { operations.push("movimentacao"); }),
+        count: vi.fn(async () => 0),
+      },
+      requisicaoItem: {
+        deleteMany: vi.fn(async () => { operations.push("requisicaoItem"); }),
+      },
+      auditoria: {
+        deleteMany: vi.fn(async () => { operations.push("auditoria"); }),
+      },
+      requisicao: {
+        deleteMany: vi.fn(async () => { operations.push("requisicao"); }),
+        findUnique: vi.fn(async () => null),
+        count: vi.fn(async () => 0),
+      },
+      saldoEstoque: {
+        updateMany: vi.fn(async () => { operations.push("saldoEstoque"); }),
+      },
+      loginAttemptBucket: {
+        deleteMany: vi.fn(async () => { operations.push("loginAttemptBucket"); }),
+      },
+      funcionario: {
+        findMany: vi.fn(async () => { throw sentinel; }),
+      },
+    };
+    const client = {
+      $transaction: vi.fn(async (
+        callback: (transaction: unknown) => Promise<unknown>,
+        options?: { maxWait?: number; timeout?: number },
+      ) => {
+        expect(options).toMatchObject({ maxWait: 20_000, timeout: 60_000 });
+        return callback(tx);
+      }),
+    };
+
+    await expect(resetAndSeedDemoData(client as never)).rejects.toBe(sentinel);
+    expect(operations.indexOf("movimentacao")).toBeLessThan(operations.indexOf("requisicaoItem"));
+    expect(operations.indexOf("requisicaoItem")).toBeLessThan(operations.indexOf("requisicao"));
+    expect(operations.indexOf("auditoria")).toBeLessThan(operations.indexOf("requisicao"));
   });
 });
