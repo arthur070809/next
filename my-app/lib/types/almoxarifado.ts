@@ -32,7 +32,16 @@ export type EventoHistorico = {
   numeroPedido: string
   evento: "assumida" | "devolvida" | "finalizada" | "cancelada"
   codigoCracha: string
+  funcionarioId: number
+  funcionarioNome: string
   descricaoMotivo: string | null
   timestamp: string
+  produtos: Array<{
+    codigo: string | null
+    nome: string
+    quantidadePedida: number
+    quantidadeSeparada: number
+    motivo?: string
+  }>
   itensFinalizados?: Array<{ nome: string; quantidadePedida: number; quantidadeSeparada: number; separado: boolean; motivo?: string }>
 }
