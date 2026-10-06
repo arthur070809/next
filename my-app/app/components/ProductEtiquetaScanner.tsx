@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createScanner, type ScannerDiagnostics } from "../../lib/qr/decoder";
 import {
   cameraErrorMessage,
+  createCameraLease,
   requestScannerStream,
   shouldAcceptScan,
-  stopCameraStream,
 } from "../../lib/qr/camera-utils";
 
 export default function ProductEtiquetaScanner({
@@ -18,7 +18,6 @@ export default function ProductEtiquetaScanner({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const activeRef = useRef(true);
   const previousRef = useRef<{ value: string; at: number } | null>(null);
   const busyRef = useRef(false);
   const [error, setError] = useState("");
@@ -33,7 +32,9 @@ export default function ProductEtiquetaScanner({
   const scannerRef = useRef<ReturnType<typeof createScanner> | null>(null);
 
   useEffect(() => {
-    activeRef.current = true;
+    const lease = createCameraLease();
+    let effectStream: MediaStream | null = null;
+    let effectScanner: ReturnType<typeof createScanner> | null = null;
     queueMicrotask(() => setDebug(new URLSearchParams(window.location.search).get("debug") === "1"));
 
     const start = async () => {
@@ -42,10 +43,8 @@ export default function ProductEtiquetaScanner({
           navigator.mediaDevices,
           window.isSecureContext || ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname),
         );
-        if (!activeRef.current) {
-          stopCameraStream(stream);
-          return;
-        }
+        if (!lease.attach(stream)) return;
+        effectStream = stream;
         streamRef.current = stream;
         const track = stream.getVideoTracks()[0];
         const capabilities = track?.getCapabilities?.() as MediaTrackCapabilities & { torch?: boolean; focusMode?: string[] } | undefined;
@@ -60,17 +59,18 @@ export default function ProductEtiquetaScanner({
         if (!videoRef.current) return;
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        if (!lease.isActive()) return;
         const scanner = createScanner(videoRef.current, {
           onDiagnostics: setDiagnostics,
           onDecode: async (detected) => {
-            if (!activeRef.current || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
+            if (!lease.isActive() || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
             previousRef.current = { value: detected.rawValue, at: Date.now() };
             busyRef.current = true;
             setFeedback(`QR lido (${detected.rawValue.slice(0, 50)}). Conferindo…`);
             if ("vibrate" in navigator) navigator.vibrate(100);
             try {
               const message = await onRead(detected.rawValue, detected.format);
-              if (activeRef.current) {
+              if (lease.isActive()) {
                 setFeedback(message);
                 setParserResult(message);
               }
@@ -79,20 +79,22 @@ export default function ProductEtiquetaScanner({
             }
           },
         });
+        effectScanner = scanner;
         scannerRef.current = scanner;
         await scanner.start();
       } catch (cause) {
-        if (activeRef.current) setError(cameraErrorMessage(cause));
+        if (lease.isActive()) setError(cameraErrorMessage(cause));
+        const stream = lease.close();
+        if (streamRef.current === stream) streamRef.current = null;
       }
     };
 
     void start();
     return () => {
-      activeRef.current = false;
-      scannerRef.current?.stop();
-      scannerRef.current = null;
-      stopCameraStream(streamRef.current);
-      streamRef.current = null;
+      lease.close();
+      effectScanner?.stop();
+      if (scannerRef.current === effectScanner) scannerRef.current = null;
+      if (streamRef.current === effectStream) streamRef.current = null;
     };
   }, [onRead, retryKey]);
 

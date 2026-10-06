@@ -31,7 +31,7 @@ function renderQr(text: string) {
 }
 
 describe("QR decoder", () => {
-  it.each(["129", "1794", "17940"])("round-trips an offline QR for %s", (text) => {
+  it.each(["129", "128", "127", "173", "7988", "17940", "1794", "1796", "1795", "5746"])("round-trips an offline QR for %s", (text) => {
     expect(decodeFrame(renderQr(text), jsQR)).toBe(text);
   });
 
