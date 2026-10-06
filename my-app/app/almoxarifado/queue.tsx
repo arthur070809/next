@@ -263,7 +263,7 @@ export default function RequisicoesQueuePage() {
                   onChange={(event) => setModoDemonstracao(event.target.checked)}
                   className="size-4 accent-blue-700"
                 />
-                Ver com dados de demonstração
+                Ver dados simulados
               </label>
             )}
             {planoViagensExibido && (
@@ -276,7 +276,7 @@ export default function RequisicoesQueuePage() {
 
           {modoDemonstracao && (
             <p role="status" className="sticky top-0 z-10 mb-4 border-y-2 border-amber-700 bg-amber-100 px-3 py-3 text-center font-bold tracking-wide text-amber-950 shadow-sm">
-              DADOS SIMULADOS (demonstração)
+              DADOS SIMULADOS
             </p>
           )}
           {erroViagens && <p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erroViagens}</p>}
@@ -381,13 +381,13 @@ export default function RequisicoesQueuePage() {
                         <button
                           type="button"
                           disabled={modoDemonstracao}
-                          title={modoDemonstracao ? "As requisições não podem ser assumidas durante a demonstração." : undefined}
+                          title={modoDemonstracao ? "As requisições não podem ser assumidas durante a simulação." : undefined}
                           onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }}
                           className="font-semibold text-blue-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Assumir
                         </button>
-                        {modoDemonstracao && <span className="ml-2 text-xs text-slate-600">Indisponível na demonstração</span>}
+                        {modoDemonstracao && <span className="ml-2 text-xs text-slate-600">Indisponível durante a simulação</span>}
                       </>
                     ) : (
                       <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="font-semibold text-blue-800 hover:underline">
