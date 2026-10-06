@@ -15,17 +15,15 @@ const adminMenu = [
   { href: "/admin/estoque", label: "Estoque", icon: "▦" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
   { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
-  { href: "/admin/dispositivos", label: "Aparelhos", icon: "▣" },
   { href: "/admin/biometria", label: "Biometria facial", icon: "◌" },
-  { href: "/admin/seguranca", label: "Segurança", icon: "⌑" },
 ];
 
 const warehouseMenu = [
   { href: "/almoxarifado", label: "Início", icon: adminMenu[0].icon },
   { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
   { href: "/historico", label: "Histórico", icon: "◷" },
-  { href: "/almoxarifado/estoque", label: "Estoque", icon: adminMenu[1].icon },
-  { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: adminMenu[2].icon },
+  { href: "/almoxarifado/estoque", label: "Estoque", icon: "▦" },
+  { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: "◇" },
 ];
 
 const operatorMenu = [
