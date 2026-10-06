@@ -50,7 +50,7 @@ O trabalho reforçou a apresentação segura de descrições, a prioridade na fi
 - `bf4b066` — agregação de excedentes.
 - `854458c` — scanner QR e permissões de câmera.
 - `7d025a3` — consistência e diagnóstico facial.
-- O relatório/documentação final será registrado em commit separado depois da última validação.
+- `a59517f` — relatórios finais, progresso e riscos.
 
 Branch mantida: `ajustes-finais`. Nenhum push, merge, migration, alteração de schema ou dependência foi feito.
 
