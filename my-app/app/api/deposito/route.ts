@@ -1,15 +1,74 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
-import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { requireAlmoxarife } from "@/lib/auth";
 import { TipoMovimentacao } from "@/generated/prisma/client";
 
 const LOCAL_DEPOSITO_SLUG = "deposito";
 
+export async function GET(request: Request) {
+  try {
+    const { funcionario, status } = await requireAlmoxarife();
+    if (!funcionario) {
+      return NextResponse.json({
+        error: status === 401 ? "Não autenticado." : "Acesso permitido apenas ao almoxarife ou admin.",
+      }, { status });
+    }
+    const params = new URL(request.url).searchParams;
+    const query = params.get("q")?.trim() ?? "";
+    const showZeroBalances = params.get("zerados") === "true";
+    const rows = await prisma.item.findMany({
+      where: {
+        ativo: true,
+        ...(query ? { OR: [{ nome: { contains: query } }, { codigo: { contains: query } }] } : {}),
+      },
+      orderBy: [{ categoria: "asc" }, { nome: "asc" }],
+      select: {
+        id: true,
+        nome: true,
+        codigo: true,
+        categoria: true,
+        saldos: {
+          where: { local: { slug: LOCAL_DEPOSITO_SLUG } },
+          select: {
+            quantidade: true,
+            movimentacoes: {
+              orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+              take: 1,
+              select: { criadoEm: true },
+            },
+          },
+        },
+      },
+    });
+    const itens = rows.map((item) => {
+      const saldo = item.saldos[0];
+      return {
+        id: item.id,
+        nome: item.nome,
+        codigo: item.codigo,
+        categoria: item.categoria,
+        quantidade: saldo?.quantidade ?? 0,
+        ultimaMovimentacaoEm: saldo?.movimentacoes[0]?.criadoEm ?? null,
+      };
+    }).filter((item) => showZeroBalances || item.quantidade > 0);
+    return NextResponse.json({ itens });
+  } catch (error) {
+    console.error("Falha ao carregar saldos do depósito", {
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
+    return NextResponse.json({ error: "Não foi possível carregar os saldos do depósito." }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: Request) {
   try {
-    const funcionario = await getAuthenticatedFuncionario();
-    if (!funcionario) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const { funcionario, status } = await requireAlmoxarife();
+    if (!funcionario) {
+      return NextResponse.json({
+        error: status === 401 ? "Não autenticado." : "Ajuste permitido apenas para almoxarife ou admin.",
+      }, { status });
+    }
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     const body = await request.json();
     const itemId = typeof body?.estoqueItemId === "string" ? body.estoqueItemId

@@ -5,6 +5,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     localEstoque: { upsert: vi.fn() },
     item: { findUnique: vi.fn(), findFirst: vi.fn() },
+    requisicao: { findUnique: vi.fn() },
+    movimentacao: { aggregate: vi.fn() },
   },
 }));
 vi.mock("@/lib/requisicoes-db", () => ({
@@ -12,7 +14,7 @@ vi.mock("@/lib/requisicoes-db", () => ({
   toRequisicaoMock: vi.fn(() => ({ numeroPedido: "REQ-000010" })),
 }));
 
-import { POST } from "./route";
+import { GET, POST } from "./route";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { criarRequisicaoIdempotente } from "@/lib/requisicoes-db";
@@ -58,6 +60,57 @@ describe("POST /api/requests", () => {
       requisicao: { numeroPedido: "REQ-000010" },
       replayed: false,
     } as never);
+  });
+
+  describe("GET /api/requests return lookup", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(getAuthenticatedFuncionario).mockResolvedValue({
+        id: 12,
+        papel: PapelFuncionario.ALMOXARIFE,
+      } as never);
+      vi.mocked(prisma.requisicao.findUnique).mockResolvedValue({
+        id: "request-id",
+        numeroPedido: "REQ-000010",
+        status: "CONCLUIDA",
+        itens: [{
+          id: "request-item-id",
+          itemId: "item-1",
+          quantidade: 4,
+          item: { nome: "Arruela" },
+        }],
+      } as never);
+      vi.mocked(prisma.movimentacao.aggregate).mockResolvedValue({ _sum: { quantidade: 1 } } as never);
+    });
+
+    it("returns the selected completed request item and prior deposit returns", async () => {
+      const response = await GET(new Request("http://localhost/api/requests?numero=REQ-000010&itemId=item-1"));
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        requisicao: {
+          id: "request-id",
+          numero: "REQ-000010",
+          item: "Arruela",
+          estoqueItemId: "item-1",
+          quantidade: 4,
+          qtdDevolvida: 1,
+          status: "RETIRADA",
+        },
+      });
+      expect(prisma.movimentacao.aggregate).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({ requisicaoItemId: "request-item-id", tipo: "ENTRADA" }),
+      }));
+    });
+
+    it("limits return lookup to warehouse staff", async () => {
+      vi.mocked(getAuthenticatedFuncionario).mockResolvedValueOnce({
+        id: 12,
+        papel: PapelFuncionario.OPERADOR,
+      } as never);
+      const response = await GET(new Request("http://localhost/api/requests?numero=REQ-000010&itemId=item-1"));
+      expect(response.status).toBe(403);
+      expect(prisma.requisicao.findUnique).not.toHaveBeenCalled();
+    });
   });
 
   it("persists the selected sector and supplies hashed idempotency fingerprints", async () => {

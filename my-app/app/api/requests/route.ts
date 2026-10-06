@@ -6,9 +6,9 @@ import { isSameOrigin } from "@/lib/security";
 import { criarRequisicaoIdempotente, toRequisicaoMock } from "@/lib/requisicoes-db";
 import { encodeItemDescription, type SetorRequisicao } from "@/lib/requisition-metadata";
 import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
-import { PapelFuncionario } from "@/generated/prisma/client";
+import { PapelFuncionario, StatusRequisicao, TipoMovimentacao } from "@/generated/prisma/client";
 
-export async function GET() {
+export async function GET(request: Request) {
   const funcionario = await getAuthenticatedFuncionario();
 
   if (!funcionario) {
@@ -16,6 +16,51 @@ export async function GET() {
   }
 
   try {
+    const params = new URL(request.url).searchParams;
+    const requestNumber = params.get("numero")?.trim() ?? "";
+    if (requestNumber) {
+      const isStaff =
+        funcionario.papel === PapelFuncionario.ADMIN ||
+        funcionario.papel === PapelFuncionario.ALMOXARIFE;
+      if (!isStaff) return NextResponse.json({ error: "Acesso permitido apenas ao almoxarife ou admin." }, { status: 403 });
+      const itemId = params.get("itemId")?.trim() ?? "";
+      if (!itemId) return NextResponse.json({ error: "Selecione o item para verificar a devolução." }, { status: 400 });
+      const requisicao = await prisma.requisicao.findUnique({
+        where: { numeroPedido: requestNumber },
+        select: {
+          id: true,
+          numeroPedido: true,
+          status: true,
+          itens: {
+            where: { itemId },
+            select: { id: true, itemId: true, quantidade: true, item: { select: { nome: true } } },
+          },
+        },
+      });
+      if (!requisicao) return NextResponse.json({ error: "Requisição não encontrada." }, { status: 404 });
+      const item = requisicao.itens[0];
+      if (!item) return NextResponse.json({ error: "A requisição não contém o item selecionado." }, { status: 404 });
+      const devolucoes = await prisma.movimentacao.aggregate({
+        where: {
+          requisicaoItemId: item.id,
+          tipo: TipoMovimentacao.ENTRADA,
+          saldoEstoque: { local: { slug: "deposito" } },
+        },
+        _sum: { quantidade: true },
+      });
+      return NextResponse.json({
+        requisicao: {
+          id: requisicao.id,
+          numero: requisicao.numeroPedido,
+          item: item.item.nome,
+          estoqueItemId: item.itemId,
+          quantidade: item.quantidade,
+          qtdDevolvida: devolucoes._sum.quantidade ?? 0,
+          status: requisicao.status === StatusRequisicao.CONCLUIDA ? "RETIRADA" : requisicao.status,
+        },
+      });
+    }
+
     const isStaff =
       funcionario.papel === PapelFuncionario.ADMIN ||
       funcionario.papel === PapelFuncionario.ALMOXARIFE;

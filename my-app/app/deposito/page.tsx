@@ -9,7 +9,7 @@ import { MANUAL_DEPOSIT_REASONS, MAX_MANUAL_DEPOSIT_QUANTITY } from "@/lib/depos
 type DepositoItem = { id: string; nome: string; codigo: string | null; categoria: string; quantidade: number; ultimaMovimentacaoEm: string | null };
 type Movement = {
   id: string;
-  tipo: "SAIDA_REQUISICAO" | "ENTRADA_SOBRA" | "ENTRADA_MANUAL" | "AJUSTE";
+  tipo: "SAIDA_REQUISICAO" | "SAIDA_REAPROVEITAMENTO" | "ENTRADA_SOBRA" | "ENTRADA_MANUAL" | "AJUSTE";
   quantidade: number;
   saldoDepois: number;
   criadoEm: string;
@@ -19,13 +19,14 @@ type Movement = {
   requisicao: { id: string; numero: number } | null;
 };
 type Adjustment = { id: string; nome: string; quantidade: number };
-type StockOption = { id: string; nome: string; codigo: string | null; categoria: string; unidade: string; quantidade: number; quantidadeDeposito: number };
-type RequestPreview = { id: string; numero: number; item: string; estoqueItemId: string | null; quantidade: number; qtdDevolvida: number; status: string };
-type RequestLookup = { numero: number | null; loading: boolean; error: string; requisicao: RequestPreview | null };
+type Withdrawal = { id: string; nome: string; quantidade: number };
+type StockOption = { id: string; nome: string; codigo: string | null; categoria: string; unidade: string; quantidade: number; disponivel: number; quantidadeDeposito: number };
+type RequestPreview = { id: string; numero: string; item: string; estoqueItemId: string | null; quantidade: number; qtdDevolvida: number; status: string };
+type RequestLookup = { numero: string | null; loading: boolean; error: string; requisicao: RequestPreview | null };
 
 const tabNames = ["saldos", "historico"] as const;
 type Tab = typeof tabNames[number];
-const typeLabels = { SAIDA_REQUISICAO: "Saída por requisição", ENTRADA_SOBRA: "Entrada de sobra", ENTRADA_MANUAL: "Entrada manual", AJUSTE: "Ajuste" };
+const typeLabels = { SAIDA_REQUISICAO: "Saída por requisição", SAIDA_REAPROVEITAMENTO: "Retirada para reaproveitamento", ENTRADA_SOBRA: "Entrada de sobra", ENTRADA_MANUAL: "Entrada manual", AJUSTE: "Ajuste" };
 const dateLabel = (value: string | null) => value ? new Date(value).toLocaleString("pt-BR") : "Sem movimentações";
 
 export default function DepositoPage() {
@@ -52,6 +53,11 @@ export default function DepositoPage() {
   const [adjustmentQuantity, setAdjustmentQuantity] = useState("");
   const [adjustmentReason, setAdjustmentReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const [withdrawal, setWithdrawal] = useState<Withdrawal | null>(null);
+  const [withdrawalQuantity, setWithdrawalQuantity] = useState("");
+  const [withdrawalReason, setWithdrawalReason] = useState("");
+  const [withdrawalSaving, setWithdrawalSaving] = useState(false);
+  const [withdrawalError, setWithdrawalError] = useState("");
   const [feedback, setFeedback] = useState("");
   const [entryOpen, setEntryOpen] = useState(false);
   const [entryItems, setEntryItems] = useState<StockOption[]>([]);
@@ -69,17 +75,19 @@ export default function DepositoPage() {
   const [entryReason, setEntryReason] = useState("");
   const [entryObservation, setEntryObservation] = useState("");
   const entryKey = useRef<string | null>(null);
+  const withdrawalKey = useRef<string | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const fetchKey = JSON.stringify([tab, busca, mostrarZerados, tipo, usuario, inicio, fim, pagina, reloadCounter]);
   const carregando = fetchState.key !== fetchKey;
+  const fetchFailed = fetchState.key === fetchKey && Boolean(fetchState.error);
   const erro = fetchState.key === fetchKey ? fetchState.error : mutationError;
   const selectedEntryItem = entryItems.find((item) => item.id === entryItemId);
   const entryLabel = (item: StockOption) => `${item.codigo ? `${item.codigo} · ` : ""}${item.nome} · ${item.categoria}`;
   const entryMatches = entryItems.filter((item) => !entrySearch.trim() || `${item.codigo ?? ""} ${item.nome} ${item.categoria}`.toLowerCase().includes(entrySearch.trim().toLowerCase()));
   const selectedEntryQuantity = Number(entryQuantity);
   const entryHasRequest = entryRequisition.trim() !== "";
-  const requestedNumber = entryHasRequest ? Number(entryRequisition) : null;
-  const requestNumberValid = requestedNumber !== null && Number.isSafeInteger(requestedNumber) && requestedNumber > 0;
+  const requestedNumber = entryHasRequest ? entryRequisition.trim() : null;
+  const requestNumberValid = requestedNumber !== null && /^[A-Za-z0-9-]{1,20}$/.test(requestedNumber);
   const matchingRequestLookup = entryRequestLookup?.numero === requestedNumber ? entryRequestLookup : null;
   const previewedRequest = matchingRequestLookup?.requisicao ?? null;
   const requestItemMismatch = Boolean(previewedRequest && selectedEntryItem && previewedRequest.estoqueItemId !== selectedEntryItem.id);
@@ -96,13 +104,10 @@ export default function DepositoPage() {
           : previewedRequest?.status !== "RETIRADA"
             ? `A requisição #${previewedRequest?.numero} do item ${previewedRequest?.item} ainda não foi retirada ou foi cancelada.`
             : "";
-  const entryQuantityLimit = validRequest ? remainingRequestAmount : selectedEntryItem?.quantidade ?? 0;
+  const entryQuantityLimit = validRequest ? remainingRequestAmount : selectedEntryItem?.disponivel ?? 0;
   const entryQuantityValid = Number.isSafeInteger(selectedEntryQuantity) && selectedEntryQuantity > 0 && selectedEntryQuantity <= MAX_MANUAL_DEPOSIT_QUANTITY;
   const entryProjectionValid = entryQuantityValid && selectedEntryQuantity <= entryQuantityLimit;
   const projectedEntryBalance = selectedEntryItem && entryProjectionValid ? selectedEntryItem.quantidadeDeposito + selectedEntryQuantity : null;
-  const projectedStockBalance = selectedEntryItem && entryProjectionValid
-    ? validRequest ? selectedEntryItem.quantidade : selectedEntryItem.quantidade - selectedEntryQuantity
-    : null;
   const entryBlockReason = !selectedEntryItem
     ? "Selecione um item do estoque."
     : !entryQuantityValid
@@ -112,7 +117,7 @@ export default function DepositoPage() {
         : selectedEntryQuantity > entryQuantityLimit
           ? validRequest
             ? `Só é possível devolver até ${remainingRequestAmount} unidades desta requisição.`
-            : `Saldo insuficiente no estoque. Disponível: ${selectedEntryItem.quantidade}.`
+            : `Saldo livre insuficiente no estoque. Disponível: ${selectedEntryItem.disponivel}.`
           : !entryHasRequest && !entryReason
             ? "Selecione o motivo da entrada."
             : !entryHasRequest && entryReason === MANUAL_DEPOSIT_REASONS.OUTRO && !entryObservation.trim()
@@ -127,12 +132,17 @@ export default function DepositoPage() {
         return;
       }
       if (!requestNumberValid || requestedNumber === null) {
-        setEntryRequestLookup({ numero: null, loading: false, error: "Informe um número inteiro de requisição válido.", requisicao: null });
+        setEntryRequestLookup({ numero: requestedNumber, loading: false, error: "Informe um número de requisição válido.", requisicao: null });
+        return;
+      }
+      if (!selectedEntryItem) {
+        setEntryRequestLookup({ numero: requestedNumber, loading: false, error: "Selecione o item da requisição para conferir a devolução.", requisicao: null });
         return;
       }
       setEntryRequestLookup({ numero: requestedNumber, loading: true, error: "", requisicao: null });
       try {
-        const response = await fetch(`/api/requests?numero=${requestedNumber}`, { cache: "no-store" });
+        const params = new URLSearchParams({ numero: requestedNumber, itemId: selectedEntryItem.id });
+        const response = await fetch(`/api/requests?${params}`, { cache: "no-store" });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "Não foi possível verificar a requisição.");
         if (active) setEntryRequestLookup({ numero: requestedNumber, loading: false, error: "", requisicao: data.requisicao as RequestPreview });
@@ -141,7 +151,7 @@ export default function DepositoPage() {
       }
     }, 250);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [entryHasRequest, entryRequisition, requestNumberValid, requestedNumber]);
+  }, [entryHasRequest, entryRequisition, requestNumberValid, requestedNumber, selectedEntryItem]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -303,6 +313,40 @@ export default function DepositoPage() {
     }
   }
 
+  async function saveWithdrawal(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!withdrawal || withdrawalSaving) return;
+    withdrawalKey.current ??= crypto.randomUUID();
+    setWithdrawalSaving(true);
+    setWithdrawalError("");
+    try {
+      const response = await fetch("/api/deposito/saida", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": withdrawalKey.current,
+        },
+        body: JSON.stringify({
+          itemId: withdrawal.id,
+          quantidade: Number(withdrawalQuantity),
+          motivo: withdrawalReason.trim(),
+        }),
+      });
+      const data = await response.json() as { error?: string; deposito?: { quantidade: number } };
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível retirar a sobra.");
+      setFeedback(`Retirada registrada. Saldo restante no depósito: ${data.deposito?.quantidade ?? 0} un.`);
+      setWithdrawal(null);
+      setWithdrawalQuantity("");
+      setWithdrawalReason("");
+      withdrawalKey.current = null;
+      setReloadCounter((current) => current + 1);
+    } catch (cause) {
+      setWithdrawalError(cause instanceof Error ? cause.message : "Não foi possível retirar a sobra.");
+    } finally {
+      setWithdrawalSaving(false);
+    }
+  }
+
   const openHistory = (item: DepositoItem) => {
     setBusca(item.nome);
     setPagina(1);
@@ -334,21 +378,21 @@ export default function DepositoPage() {
         <label className="block flex-1 text-sm font-medium text-slate-700">Buscar item<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Código ou descrição" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></label>
         <div className="flex flex-wrap items-center gap-3"><label className="inline-flex min-h-10 items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={mostrarZerados} onChange={(event) => setMostrarZerados(event.target.checked)} className="h-4 w-4 accent-[#4169E1]" />Mostrar zerados</label><button type="button" onClick={() => void openEntryForm()} className="min-h-10 rounded-lg bg-royal px-4 text-sm font-semibold text-white hover:bg-blue-700">Adicionar sobra</button></div>
       </div>
-      {carregando ? <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando saldos…</p> : itens.length === 0 ? <div role="status" className="my-6 rounded-lg border border-dashed border-slate-300 bg-white px-5 py-8 text-center"><p className="font-semibold text-slate-800">{!busca && !mostrarZerados ? "O depósito ainda não tem saldo disponível." : "Nenhum item encontrado com este filtro."}</p><p className="mt-1 text-sm text-slate-500">Pesquise qualquer item do estoque ou registre uma sobra para iniciar o saldo.</p><button type="button" onClick={() => void openEntryForm()} className="mt-4 min-h-10 rounded-lg bg-royal px-4 text-sm font-semibold text-white hover:bg-blue-700">Adicionar sobra</button></div> : <div className="divide-y divide-slate-200">
+      {carregando ? <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando saldos…</p> : fetchFailed ? null : itens.length === 0 ? <div role="status" className="my-6 rounded-lg border border-dashed border-slate-300 bg-white px-5 py-8 text-center"><p className="font-semibold text-slate-800">{!busca && !mostrarZerados ? "O depósito ainda não tem saldo disponível." : "Nenhum item encontrado com este filtro."}</p><p className="mt-1 text-sm text-slate-500">Pesquise qualquer item do estoque ou registre uma sobra para iniciar o saldo.</p><button type="button" onClick={() => void openEntryForm()} className="mt-4 min-h-10 rounded-lg bg-royal px-4 text-sm font-semibold text-white hover:bg-blue-700">Adicionar sobra</button></div> : <div className="divide-y divide-slate-200">
         {itens.map((item) => <article key={item.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0"><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.codigo ? `${item.codigo} · ` : ""}{item.categoria}</p><p className="mt-1 text-xs text-slate-500">Última movimentação: {dateLabel(item.ultimaMovimentacaoEm)}</p></div>
-          <div className="flex flex-wrap items-center gap-3"><span className="min-w-24 text-sm font-bold text-emerald-800">{item.quantidade} un</span><button type="button" onClick={() => openHistory(item)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Histórico</button>{isAdmin && <button type="button" onClick={() => { setAdjustment(item); setAdjustmentQuantity(String(item.quantidade)); setAdjustmentReason(""); }} className="rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">Ajustar saldo</button>}</div>
+          <div className="flex flex-wrap items-center gap-3"><span className="min-w-24 text-sm font-bold text-emerald-800">{item.quantidade} un</span><button type="button" onClick={() => openHistory(item)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Histórico</button>{item.quantidade > 0 && <button type="button" onClick={() => { withdrawalKey.current = null; setWithdrawal(item); setWithdrawalQuantity(""); setWithdrawalReason(""); setWithdrawalError(""); }} className="rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Reaproveitar sobra</button>}{isAdmin && <button type="button" onClick={() => { setAdjustment(item); setAdjustmentQuantity(String(item.quantidade)); setAdjustmentReason(""); }} className="rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">Ajustar saldo</button>}</div>
         </article>)}
       </div>}
     </section> : <section id="panel-historico" role="tabpanel" aria-labelledby="tab-historico" className="min-h-0 flex-1 pt-4">
       <div className="grid gap-3 border-b border-slate-200 pb-4 sm:grid-cols-2 lg:grid-cols-5">
         <label className="text-sm font-medium text-slate-700">Item<input value={busca} onChange={(event) => { setBusca(event.target.value); setPagina(1); }} placeholder="Código ou descrição" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-royal" /></label>
-        <label className="text-sm font-medium text-slate-700">Tipo<select value={tipo} onChange={(event) => { setTipo(event.target.value); setPagina(1); }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2"><option value="">Todos</option><option value="ENTRADA_SOBRA">Entrada de sobra</option><option value="ENTRADA_MANUAL">Entrada manual</option><option value="SAIDA_REQUISICAO">Saída por requisição</option><option value="AJUSTE">Ajuste</option></select></label>
+        <label className="text-sm font-medium text-slate-700">Tipo<select value={tipo} onChange={(event) => { setTipo(event.target.value); setPagina(1); }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2"><option value="">Todos</option><option value="ENTRADA_SOBRA">Entrada de sobra</option><option value="ENTRADA_MANUAL">Entrada manual</option><option value="SAIDA_REQUISICAO">Saída por requisição</option><option value="SAIDA_REAPROVEITAMENTO">Retirada para reaproveitamento</option><option value="AJUSTE">Ajuste</option></select></label>
         <label className="text-sm font-medium text-slate-700">De<input type="date" value={inicio} onChange={(event) => { setInicio(event.target.value); setPagina(1); }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
         <label className="text-sm font-medium text-slate-700">Até<input type="date" value={fim} onChange={(event) => { setFim(event.target.value); setPagina(1); }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
         <label className="text-sm font-medium text-slate-700">Usuário<input value={usuario} onChange={(event) => { setUsuario(event.target.value); setPagina(1); }} placeholder="Nome" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
       </div>
-      {carregando ? <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando histórico…</p> : movimentacoes.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">Nenhuma movimentação encontrada.</p> : <>
+      {carregando ? <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando histórico…</p> : fetchFailed ? null : movimentacoes.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">Nenhuma movimentação encontrada.</p> : <>
         <div className="divide-y divide-slate-200">
           {movimentacoes.map((movement) => <article key={movement.id} className={`grid gap-2 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${movement.tipo === "ENTRADA_MANUAL" ? styles.manualMovement : ""}`}>
             <div><p className="font-semibold text-slate-900">{movement.item.nome}</p><p className="mt-1 text-sm text-slate-600">{typeLabels[movement.tipo]} · {movement.quantidade} un · saldo após: {movement.saldoDepois}</p><p className="mt-1 text-xs text-slate-500">{movement.usuario.nome} · {dateLabel(movement.criadoEm)}{movement.motivo ? ` · ${movement.motivo}` : ""}</p></div>
@@ -360,7 +404,7 @@ export default function DepositoPage() {
     </section>}
 
     {entryOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4"><section role="dialog" aria-modal="true" aria-labelledby="entry-title" className={`${styles.entryDialog} rounded-xl bg-white p-5 shadow-xl`}>
-      <div className="mb-4 flex items-start justify-between gap-4"><div><h2 id="entry-title" className="text-lg font-bold text-slate-950">Adicionar sobra</h2><p className="mt-1 text-sm text-slate-600">Entrada manual de até {MAX_MANUAL_DEPOSIT_QUANTITY.toLocaleString("pt-BR")} unidades por operação.</p></div><button type="button" aria-label="Fechar" onClick={() => setEntryOpen(false)} disabled={entrySaving} className="rounded-md border border-slate-300 px-3 py-1 text-slate-700">Fechar</button></div>
+      <div className="mb-4 flex items-start justify-between gap-4"><div><h2 id="entry-title" className="text-lg font-bold text-slate-950">Adicionar sobra</h2><p className="mt-1 text-sm text-slate-600">Entrada manual de até {MAX_MANUAL_DEPOSIT_QUANTITY.toLocaleString("pt-BR")} unidades por operação.</p><p className="mt-1 text-xs text-slate-500">Destino: Depósito de sobras. O usuário autenticado e o local ficam registrados no histórico.</p></div><button type="button" aria-label="Fechar" onClick={() => setEntryOpen(false)} disabled={entrySaving} className="rounded-md border border-slate-300 px-3 py-1 text-slate-700">Fechar</button></div>
       {entryLoading ? <p role="status" className="py-8 text-center text-sm text-slate-500">Carregando itens do estoque…</p> : <form onSubmit={(event) => void submitEntry(event)} className={styles.entryForm}>
         <div className={`${styles.entryField} text-sm font-medium text-slate-800`}>
           <label htmlFor="entry-item">Item do estoque</label>
@@ -387,7 +431,7 @@ export default function DepositoPage() {
                 setEntryActiveIndex(-1);
               }
             }} placeholder="Buscar por código ou descrição" />
-            <div id="entry-item-options" role="listbox" aria-label="Itens do estoque" hidden={!entryListOpen} className={styles.entryOptionList}>{entryListOpen && (entryMatches.length === 0 ? <p className="px-3 py-2 text-sm text-slate-500">Nenhum item encontrado.</p> : entryMatches.map((item, index) => <div key={item.id} id={`entry-option-${item.id}`} role="option" aria-selected={entryActiveIndex === index} onMouseDown={(event) => event.preventDefault()} onClick={() => selectEntryItem(item)} className={`${styles.entryOption} ${entryActiveIndex === index ? styles.entryOptionActive : ""}`}><span>{entryLabel(item)}</span><small>Depósito {item.quantidadeDeposito} · estoque {item.quantidade}</small></div>))}</div>
+            <div id="entry-item-options" role="listbox" aria-label="Itens do estoque" hidden={!entryListOpen} className={styles.entryOptionList}>{entryListOpen && (entryMatches.length === 0 ? <p className="px-3 py-2 text-sm text-slate-500">Nenhum item encontrado.</p> : entryMatches.map((item, index) => <div key={item.id} id={`entry-option-${item.id}`} role="option" aria-selected={entryActiveIndex === index} onMouseDown={(event) => event.preventDefault()} onClick={() => selectEntryItem(item)} className={`${styles.entryOption} ${entryActiveIndex === index ? styles.entryOptionActive : ""}`}><span>{entryLabel(item)}</span><small>Depósito {item.quantidadeDeposito} · livre no estoque {item.disponivel}</small></div>))}</div>
           </div>
         </div>
         {selectedEntryItem && <div className="grid gap-2 rounded-lg bg-slate-50 p-3 text-sm sm:grid-cols-2"><p>Saldo atual no depósito: <strong>{selectedEntryItem.quantidadeDeposito}</strong></p><p>Saldo no estoque: <strong>{selectedEntryItem.quantidade}</strong></p></div>}
@@ -395,7 +439,7 @@ export default function DepositoPage() {
           <input id="entry-quantity" type="number" inputMode="numeric" min={1} max={entryQuantityLimit} step={1} required value={entryQuantity} onChange={(event) => { setEntryQuantity(event.target.value); entryKey.current = null; }} />
         </label>
         <label htmlFor="entry-requisition" className={`${styles.entryField} text-sm font-medium text-slate-800`}>Requisição de origem (opcional)
-          <input id="entry-requisition" type="number" inputMode="numeric" min={1} step={1} value={entryRequisition} onChange={(event) => { setEntryRequisition(event.target.value); setEntryRequestLookup(null); entryKey.current = null; }} placeholder="Número da requisição" />
+          <input id="entry-requisition" type="text" maxLength={20} value={entryRequisition} onChange={(event) => { setEntryRequisition(event.target.value); setEntryRequestLookup(null); entryKey.current = null; }} placeholder="Ex.: REQ-000123" />
         </label>
         {entryHasRequest && <div className="flex flex-wrap items-center justify-between gap-2">{requestError && <p role="status" className="text-sm text-amber-800">{requestError}</p>}<button type="button" onClick={() => { setEntryRequisition(""); setEntryRequestLookup(null); entryKey.current = null; }} className="text-sm font-semibold text-royal underline">Limpar requisição</button></div>}
         {!validRequest && <>
@@ -406,7 +450,7 @@ export default function DepositoPage() {
             <textarea id="entry-observation" required maxLength={160} rows={2} value={entryObservation} onChange={(event) => { setEntryObservation(event.target.value); entryKey.current = null; }} />
           </label>}
         </>}
-        <p aria-live="polite" className={styles.entrySummary}>{selectedEntryItem && projectedEntryBalance !== null && entryQuantityValid ? `Estoque: ${selectedEntryItem.quantidade} → ${projectedStockBalance}${validRequest ? " (sem alteração)" : ""} · Depósito: ${selectedEntryItem.quantidadeDeposito} → ${projectedEntryBalance}` : "Selecione um item e uma quantidade válida para ver o resumo."}</p>
+        <p aria-live="polite" className={styles.entrySummary}>{selectedEntryItem && projectedEntryBalance !== null && entryQuantityValid ? `Estoque livre: ${selectedEntryItem.disponivel} → ${validRequest ? selectedEntryItem.disponivel : selectedEntryItem.disponivel - selectedEntryQuantity}${validRequest ? " (sem alteração)" : ""} · Depósito: ${selectedEntryItem.quantidadeDeposito} → ${projectedEntryBalance}` : "Selecione um item e uma quantidade válida para ver o resumo."}</p>
         {entryBlockReason && <p id="entry-form-hint" role="status" className="text-sm text-amber-800">{entryBlockReason}</p>}
         {entryError && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{entryError}</p>}
         <div className="flex justify-end gap-2"><button type="button" disabled={entrySaving} onClick={() => setEntryOpen(false)} className="min-h-10 rounded-lg border border-slate-300 px-4 text-sm">Cancelar</button><button type="submit" disabled={Boolean(entryBlockReason)} aria-describedby={entryBlockReason ? "entry-form-hint" : undefined} className="min-h-10 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{entrySaving ? "Adicionando…" : "Adicionar sobra"}</button></div>
@@ -418,6 +462,13 @@ export default function DepositoPage() {
       <label className="mt-4 block text-sm font-medium text-slate-700">Quantidade contada<input autoFocus type="number" inputMode="numeric" min={0} step={1} required value={adjustmentQuantity} onChange={(event) => setAdjustmentQuantity(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
       <label className="mt-3 block text-sm font-medium text-slate-700">Motivo<input required maxLength={200} value={adjustmentReason} onChange={(event) => setAdjustmentReason(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
       <div className="mt-5 flex justify-end gap-2"><button type="button" disabled={saving} onClick={() => setAdjustment(null)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">Cancelar</button><button type="submit" disabled={saving} className="rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{saving ? "Salvando…" : "Registrar ajuste"}</button></div>
+    </form></div>}
+    {withdrawal && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4"><form role="dialog" aria-modal="true" aria-labelledby="withdraw-title" onSubmit={(event) => void saveWithdrawal(event)} className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+      <h2 id="withdraw-title" className="text-lg font-bold text-slate-950">Reaproveitar sobra</h2><p className="mt-1 text-sm text-slate-600">{withdrawal.nome} · saldo disponível {withdrawal.quantidade} un</p>
+      <label className="mt-4 block text-sm font-medium text-slate-700">Quantidade<input autoFocus type="number" inputMode="numeric" min={1} max={withdrawal.quantidade} step={1} required value={withdrawalQuantity} onChange={(event) => { setWithdrawalQuantity(event.target.value); withdrawalKey.current = null; }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+      <label className="mt-3 block text-sm font-medium text-slate-700">Destino ou motivo<input required maxLength={160} value={withdrawalReason} onChange={(event) => { setWithdrawalReason(event.target.value); withdrawalKey.current = null; }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+      {withdrawalError && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{withdrawalError}</p>}
+      <div className="mt-5 flex justify-end gap-2"><button type="button" disabled={withdrawalSaving} onClick={() => { setWithdrawal(null); withdrawalKey.current = null; }} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">Cancelar</button><button type="submit" disabled={withdrawalSaving || !Number.isSafeInteger(Number(withdrawalQuantity)) || Number(withdrawalQuantity) < 1 || Number(withdrawalQuantity) > withdrawal.quantidade || !withdrawalReason.trim()} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{withdrawalSaving ? "Registrando…" : "Confirmar retirada"}</button></div>
     </form></div>}
   </main>;
 }
