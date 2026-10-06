@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
 
 type PortalRole = "admin" | "almoxarifado" | "operador";
 
@@ -28,6 +29,7 @@ const warehouseMenu = [
 
 const operatorMenu = [
   { href: "/requisicao", label: "Nova requisição", icon: "＋" },
+  { href: "/minhas-requisicoes", label: "Minhas Requisições", icon: "▤" },
 ];
 
 export default function PortalShell({
@@ -64,6 +66,32 @@ export default function PortalShell({
       setLoggingOut(false);
     }
   };
+
+  useEffect(() => {
+    if (!isOperator) return;
+    let timer = 0;
+    const expireSession = () => {
+      void fetch("/api/auth/logout", { method: "POST" })
+        .finally(() => {
+          router.replace("/login");
+          router.refresh();
+        });
+    };
+    const resetIdleTimer = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(expireSession, OPERATOR_IDLE_TIMEOUT_MS);
+    };
+    resetIdleTimer();
+    window.addEventListener("pointerdown", resetIdleTimer);
+    window.addEventListener("keydown", resetIdleTimer);
+    window.addEventListener("touchstart", resetIdleTimer);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", resetIdleTimer);
+      window.removeEventListener("keydown", resetIdleTimer);
+      window.removeEventListener("touchstart", resetIdleTimer);
+    };
+  }, [isOperator, router]);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900" data-shell>
