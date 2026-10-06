@@ -78,3 +78,11 @@ O diretório estava na branch `ajustes-finais`, não `feat/inventario-invisivel`
 - **Senha inicial:** a coluna existente é hash bcrypt; o seed gera senha aleatória e os crachás allowlisted ignoram senha pelo caminho demo. Não há política de senha inicial igual ao crachá nem credenciais de jurado documentadas neste relatório.
 - **Sobras:** sem registro confiável de retorno físico/setor associado ao saldo, a visão não permite reaproveitamento nem baixa de uma “sobra”. Isso exigiria modelagem operacional própria, fora do escopo e sem mudança de schema nesta execução.
 - Decisões conservadoras: não criar um fluxo facial inseguro de uma foto, não simular consistência duplicando imagens, não usar URL fictícia no build e não mudar branch ativa.
+
+## Complemento — revisão de descrições, excedentes, QR e qualidade facial
+
+Uma revisão funcional posterior adicionou sanitização de metadados antes de exibir descrições, prioridade acessível e estável, agregação de excedentes por setor/produto com aviso de que não representam saldo físico, fallback do scanner QR para `jsqr`, lease de streams sob React StrictMode e teste de dez etiquetas offline. A validação facial local passou a usar mediana coordenada e diagnósticos diferenciam rejeição do serviço externo e da comparação local. Os detalhes e evidências estão em [RELATORIO_ALMOXARIFADO.md](./RELATORIO_ALMOXARIFADO.md), com riscos em [RISCOS_ALMOXARIFADO.md](./RISCOS_ALMOXARIFADO.md).
+
+Esta rodada foi executada na branch `ajustes-finais`; não houve troca para `feat/inventario-invisivel`, push ou merge. Validações: `npx tsc --noEmit` passou; `npm run lint` passou; `npm test` passou com 358 testes em 80 arquivos. O build isolado sem `.env*` compilou e passou TypeScript, mas não coletou rotas por falta de `DATABASE_URL`; nenhum banco foi acessado. `git diff --check` será repetido após o commit documental.
+
+Commits locais desta rodada: `46cb960`, `fb94c41`, `bf4b066`, `854458c`, `7d025a3`. O cadastro facial por foto única continua deliberadamente não implementado; não foi criada integração com galeria nem mudança no pipeline de login.

@@ -4,7 +4,7 @@
 
 Leitura estática da branch `feat/inventario-invisivel`; nenhum banco ou arquivo `.env*` foi aberto. Nenhum seed, reset ou migration foi executado. O estado inicial do worktree estava limpo no commit `273b768`.
 
-## QR
+## QR — achados antes das correções desta revisão
 
 - O scanner usa `BarcodeDetector` nativo quando a feature existe e anuncia `qr_code`; caso contrário carrega `jsqr` dinamicamente. `jsqr` já é dependência de runtime (`package.json`, versão declarada `^1.4.0`); não há `html5-qrcode`, `@zxing/*`, WASM ou worker identificado. A biblioteca carrega apenas quando o scanner é montado.
 - O código de seleção do decoder está em `app/components/ProductEtiquetaScanner.tsx` (inicialização e fallback) e o loop usa `requestAnimationFrame`. O loop aguarda `readyState >= HAVE_CURRENT_DATA`, limita a 10 leituras/s, pede câmera traseira com 1920×1080 e reduz a imagem do fallback para no máximo 1280 px no maior eixo.
@@ -16,7 +16,7 @@ Leitura estática da branch `feat/inventario-invisivel`; nenhum banco ou arquivo
 - Há um script anterior `scripts/gerar-qr-etiqueta.ts`, porém ele consulta o banco e não serve para gerar material de teste offline. Não há `public/qr-demo.html` nem `lib/qr/decoder.ts` no histórico examinado.
 - `lib/qr/camera-utils.ts` já trata erros de permissão, ausência/uso da câmera e contexto inseguro, interrompe todas as tracks e pede `playsInline` no vídeo. O efeito do scanner usa um ref compartilhado como flag de atividade; uma montagem/desmontagem rápida (React StrictMode) pode tornar ambígua a propriedade da stream.
 
-## Facial
+## Facial — achados antes das correções desta revisão
 
 - A frase “As capturas ficaram diferentes. Tente novamente.” tem **duas origens possíveis**: o serviço externo pode retornar `INCONSISTENT_SAMPLES` em `lib/face.ts`, ou a API pode produzir a mesma mensagem quando `areEnrollmentEmbeddingsConsistent()` reprova em `app/api/admin/face-enrollment/route.ts`.
 - A comparação local mede distância euclidiana entre cada embedding e o embedding da primeira captura, exigindo `<= 0.35`. Não valida finitude, dimensão comum ou norma antes de comparar. Essa hipótese é confirmada como comportamento local; a origem do erro reportado em produção não pode ser decidida sem distinguir a resposta externa da rejeição local.
@@ -28,7 +28,7 @@ Leitura estática da branch `feat/inventario-invisivel`; nenhum banco ou arquivo
 
 ## Headers e deploy
 
-- `next.config.ts` contém somente a opção experimental `authInterrupts`; não define CSP, Permissions-Policy nem headers.
+- Na inspeção inicial, `next.config.ts` continha somente a opção experimental `authInterrupts`; nesta revisão foram adicionados headers de câmera apenas às rotas que efetivamente usam a câmera.
 - Não foi encontrado `middleware.ts`/`middleware.js` nem `vercel.json` no app. Portanto, não há política de câmera/CSP customizada no repositório para confirmar como aplicada pela Vercel.
 - O módulo Human e os modelos são solicitados a jsDelivr. Como não existe CSP local explícita, não se identificou bloqueio por uma CSP definida neste repositório; a política final de borda da hospedagem permanece não verificada.
 
@@ -60,7 +60,7 @@ Este arquivo será atualizado com correções, testes, validações e limites de
 - O cadastro facial centraliza limiares do comparador local, valida dimensões/valores/norma dos embeddings e descarta no máximo um outlier quando restam pelo menos três capturas consistentes. A API retorna apenas métricas agregadas, sem imagens ou descritores. O painel `?debug=1` apresenta estado de modelo/câmera, backend, tempo, score de detecção, tamanho relativo do rosto, luz, nitidez e as métricas de consistência sem sobrescrevê-las com o código de erro.
 - A detecção facial usa `boxScore` e `boxRaw` (normalizado) fornecidos pelo Human, em vez do score global e de uma divisão adicional pela resolução do vídeo.
 - `scripts/gerar-qr-demo.ts` gera `public/qr-demo.html` offline com dez produtos, SVGs embutidos, seleção por código e impressão. Não consulta o banco nem carrega recursos externos.
-- `next.config.ts` restringe `Permissions-Policy: camera=(self)` às páginas do checklist e de cadastro facial.
-- Validações observadas: `npx tsc --noEmit` passou; `npm run lint` passou; a suíte padrão passou com 296 testes em 65 arquivos; `npm run qr:demo` passou; `git diff --check` passou.
-- O build isolado foi compilado com sucesso até a etapa de TypeScript usando `next build --webpack`, mas a coleta das rotas falhou porque `lib/prisma.ts` exige `DATABASE_URL`. Não foi fornecida uma URL fictícia nem tentado acesso ao banco. O build Turbopack também não passou na cópia isolada: recusou a junction `node_modules` externa à raiz da cópia. Portanto, o build de produção completo permanece não verificado sob a restrição de não configurar/conectar banco.
+- `next.config.ts` restringe `Permissions-Policy: camera=(self)` às rotas de checklist, estoque e cadastro facial. `next.config.test.ts` confere a lista.
+- A suíte padrão desta revisão passou com 358 testes em 80 arquivos. `npx tsc --noEmit` e `npm run lint` passaram. Os testes QR cobrem os dez códigos atuais e a estrutura standalone/print das etiquetas.
+- O build isolado foi compilado e passou a verificação TypeScript usando `next build --webpack`, mas falhou ao coletar dados de rotas porque `lib/prisma.ts` exige `DATABASE_URL`. Não foi fornecida URL fictícia nem tentada conexão. A cópia temporária excluiu `.env*` e foi removida. Portanto, o build de produção completo permanece bloqueado pela restrição de não configurar/conectar banco.
 - A página QR foi validada estruturalmente (10 etiquetas SVG embutidas e filtro de produto); não foi impressa nem testada com câmera física. A origem exata de divergência facial em produção continua inconclusiva sem resposta/telemetria do serviço facial externo; calibração FAR/FRR também depende do fornecedor.
