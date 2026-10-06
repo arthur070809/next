@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./stock-list.module.css";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
+import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
 
 type EstoqueItem = {
   id: string;
@@ -10,6 +11,7 @@ type EstoqueItem = {
   categoria: string;
   unidade: string;
   quantidade: number;
+  pontoPedido: number;
   quantidadeDeposito: number;
   tipoUnidade: StockUnit | null;
   quantidadePorEmbalagem: number | null;
@@ -336,7 +338,7 @@ export default function EstoquePage() {
               {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
                 const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
                 return <article key={item.id} tabIndex={0} className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between">
-                  <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p>{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-emerald-700">No depósito: {item.quantidadeDeposito} un</p>}</div>
+                  <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p><p className="mt-1 text-sm text-slate-600">Ponto de pedido: {item.pontoPedido} {item.unidade}</p>{isAtOrBelowReorderPoint(item.quantidade, item.pontoPedido) && <span className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">Repor · saldo no ponto de pedido ou abaixo</span>}{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-emerald-700">No depósito: {item.quantidadeDeposito} un</p>}</div>
                   {tipoUltimaEntrada && item.ultimaEntradaEmbalagens !== null && item.quantidadePorEmbalagem !== null && <p className="text-sm text-slate-500">Última entrada: {item.ultimaEntradaEmbalagens} {item.ultimaEntradaEmbalagens === 1 ? tipoUltimaEntrada.singular : tipoUltimaEntrada.plural}{item.tipoUnidade === "unidade" ? "" : ` de ${item.quantidadePorEmbalagem}`}</p>}
                   <div className="text-sm font-semibold text-slate-700">Disponível</div>
                 </article>;

@@ -10,6 +10,7 @@ type Stats = {
   usuariosAtivos: number;
   itensNoDeposito: number;
   sobrasHoje: number;
+  itensParaRepor: Array<{ nome: string; codigo: string | null }>;
 };
 
 export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; canResetDemo: boolean }) {
@@ -23,6 +24,7 @@ export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; 
     { label: "Usuários ativos", value: stats.usuariosAtivos, tone: "text-royal" },
     { label: "Itens no depósito", value: stats.itensNoDeposito, tone: "text-emerald-800" },
     { label: "Sobras registradas hoje", value: stats.sobrasHoje, tone: "text-emerald-800" },
+    { label: "Itens no ponto de pedido ou abaixo", value: stats.itensParaRepor.length, tone: stats.itensParaRepor.length ? "text-amber-800" : "text-emerald-800" },
   ];
 
   async function resetDemo() {
@@ -51,8 +53,14 @@ export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; 
   return <main className="min-h-[calc(100vh-4rem)] px-4 py-8 sm:px-8">
     <div className="mx-auto max-w-7xl">
       <header><p className="text-sm font-semibold uppercase tracking-[0.2em] text-royal">Visão geral</p><h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Início</h1><p className="mt-1 text-slate-600">Acompanhe a operação e acesse as tarefas principais.</p></header>
-      <section aria-label="Resumo da operação" className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section aria-label="Resumo da operação" className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         {cards.map((card) => <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">{card.label}</p><p className={`mt-3 text-3xl font-bold ${card.tone}`}>{card.value}</p></article>)}
+      </section>
+      <section aria-label="Alerta de ponto de pedido" className={`mt-5 rounded-xl border p-5 ${stats.itensParaRepor.length ? "border-amber-300 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
+        <h2 className={`font-bold ${stats.itensParaRepor.length ? "text-amber-950" : "text-emerald-950"}`}>Alerta de ponto de pedido</h2>
+        {stats.itensParaRepor.length
+          ? <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-amber-900">{stats.itensParaRepor.map((item) => <li key={`${item.codigo ?? ""}-${item.nome}`}>{item.codigo ? `${item.codigo} · ` : ""}{item.nome}</li>)}</ul>
+          : <p className="mt-2 text-sm text-emerald-900">Nenhum item está no ponto de pedido ou abaixo.</p>}
       </section>
       <section className="mt-8">
         <h2 className="text-xl font-bold text-slate-950">Ações rápidas</h2>
