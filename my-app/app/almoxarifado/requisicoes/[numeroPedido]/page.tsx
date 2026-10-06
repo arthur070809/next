@@ -165,6 +165,12 @@ export default function ChecklistRequisicaoPage() {
   }, [numeroPedido]);
 
   const handleCameraRead = useCallback(async (raw: string) => {
+    const parsed = parseEtiqueta(raw);
+    if (!parsed.ok) {
+      const feedback = `QR lido, mas formato não reconhecido: “${raw.slice(0, 80)}”. ${parsed.motivo}`;
+      setErro(feedback);
+      return feedback;
+    }
     const feedback = await conferirCodigo(raw, "QR");
     if (!sequenceRef.current && (feedback.startsWith("Item conferido") || feedback.includes("já foi conferido"))) {
       setCameraAberta(false);

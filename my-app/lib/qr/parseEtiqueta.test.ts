@@ -21,6 +21,30 @@ describe("parseEtiqueta", () => {
     expect(parsed.ok && normalizarCodigoEtiqueta(parsed.codigo)).toBe("129");
   });
 
+  it.each([
+    ["https://etiquetas.marcon.local/item?codigo=1794", "1794"],
+    ["https://etiquetas.marcon.local/item/17940", "17940"],
+    ['{"sku":"1794"}', "1794"],
+    ["Código: 1794", "1794"],
+    ["produto=17940", "17940"],
+    [" 1794\n", "1794"],
+  ])("aceita formatos estruturados sem confundir códigos: %s", (payload, codigo) => {
+    expect(parseEtiqueta(payload)).toEqual({ ok: true, codigo });
+  });
+
+  it("normaliza Unicode NFKC e mantém a igualdade exata dos códigos próximos", () => {
+    expect(parseEtiqueta("１７９４")).toEqual({ ok: true, codigo: "1794" });
+    expect(parseEtiqueta("17940")).toEqual({ ok: true, codigo: "17940" });
+  });
+
+  it.each([
+    "texto aleatório sem código",
+    "códigos 1794 e 17940",
+    '{"codigo":"1794","sku":"17940"}',
+  ])("rejeita conteúdo ilegível ou ambíguo %j", (payload) => {
+    expect(parseEtiqueta(payload).ok).toBe(false);
+  });
+
   it.each(["", " \n ", "ABC", "12-9", "123456789", "x".repeat(33)])(
     "rejeita payload inválido %j",
     (payload) => {
