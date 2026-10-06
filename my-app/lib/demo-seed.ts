@@ -173,8 +173,9 @@ async function upsertEmployees(tx: Prisma.TransactionClient) {
     }
   }
 
+  const employeeIds = new Map<string, number>();
   for (const employee of demoEmployees) {
-    await tx.funcionario.upsert({
+    const row = await tx.funcionario.upsert({
       where: { cracha: employee.cracha },
       create: {
         ...employee,
@@ -190,12 +191,16 @@ async function upsertEmployees(tx: Prisma.TransactionClient) {
         ativo: true,
         mustChangePassword: false,
       },
+      select: { id: true },
     });
+    employeeIds.set(employee.cracha, row.id);
   }
+  return employeeIds;
 }
 
 async function upsertCatalog(tx: Prisma.TransactionClient, initializeBalances: boolean) {
   const locations = new Map<string, string>();
+  const balances = new Map<string, string>();
   for (const location of demoLocations) {
     const row = await tx.localEstoque.upsert({
       where: { slug: location.slug },
@@ -245,7 +250,7 @@ async function upsertCatalog(tx: Prisma.TransactionClient, initializeBalances: b
     ] as const) {
       const localId = locations.get(slug);
       if (!localId) throw new Error(`Local de estoque ${slug} não foi criado.`);
-      await tx.saldoEstoque.upsert({
+      const balance = await tx.saldoEstoque.upsert({
         where: { itemId_localId: { itemId: item.id, localId } },
         create: {
           itemId: item.id,
@@ -254,13 +259,15 @@ async function upsertCatalog(tx: Prisma.TransactionClient, initializeBalances: b
           reservada: 0,
         },
         update: initializeBalances ? { quantidade: quantity, reservada: 0 } : {},
+        select: { id: true },
       });
+      balances.set(`${fixture.codigo}:${slug}`, balance.id);
     }
   }
-  return { locations, items };
+  return { locations, items, balances };
 }
 
-async function upsertSeedRequest(
+export async function upsertSeedRequest(
   tx: Prisma.TransactionClient,
   request: SeedRequest,
   employees: Map<string, number>,
@@ -276,7 +283,7 @@ async function upsertSeedRequest(
   }
   const createdAt = daysAgo(request.daysAgo);
   const requisicaoId = deterministicId(`request:${request.numeroPedido}`);
-  await tx.requisicao.upsert({
+  const requisicao = await tx.requisicao.upsert({
     where: { numeroPedido: request.numeroPedido },
     create: {
       id: requisicaoId,
@@ -291,10 +298,6 @@ async function upsertSeedRequest(
       concluidaEm: request.status === StatusRequisicao.CONCLUIDA ? createdAt : null,
     },
     update: {},
-  });
-
-  const requisicao = await tx.requisicao.findUniqueOrThrow({
-    where: { numeroPedido: request.numeroPedido },
     select: { id: true },
   });
   const requestItems = [];
@@ -302,7 +305,7 @@ async function upsertSeedRequest(
     const catalogItem = items.get(fixtureItem.codigo);
     if (!catalogItem) throw new Error(`Item ${fixtureItem.codigo} ausente no catálogo demo.`);
     const id = deterministicId(`request-item:${request.numeroPedido}:${fixtureItem.codigo}`);
-    await tx.requisicaoItem.upsert({
+    const requisitionItem = await tx.requisicaoItem.upsert({
       where: { id },
       create: {
         id,
@@ -317,9 +320,6 @@ async function upsertSeedRequest(
         resolvidoEm: request.status === StatusRequisicao.CONCLUIDA ? createdAt : null,
       },
       update: {},
-    });
-    const requisitionItem = await tx.requisicaoItem.findUniqueOrThrow({
-      where: { id },
       select: { id: true },
     });
     requestItems.push({ ...fixtureItem, itemId: catalogItem.id, requisitionItemId: requisitionItem.id });
@@ -331,6 +331,7 @@ async function createSeedMovements(
   tx: Prisma.TransactionClient,
   locations: Map<string, string>,
   items: Map<string, { id: string; unit: string }>,
+  stockBalances: Map<string, string>,
   employeeIds: Map<string, number>,
 ) {
   const centralId = locations.get("estoque");
@@ -352,11 +353,8 @@ async function createSeedMovements(
   for (const request of demoSeedRequests) {
     const seed = await upsertSeedRequest(tx, request, employeeIds, items, centralId);
     for (const requestItem of seed.items) {
-      const item = items.get(requestItem.codigo)!;
-      const saldo = await tx.saldoEstoque.findUniqueOrThrow({
-        where: { itemId_localId: { itemId: item.id, localId: centralId } },
-        select: { id: true },
-      });
+      const saldoId = stockBalances.get(`${requestItem.codigo}:estoque`);
+      if (!saldoId) throw new Error(`Saldo do item ${requestItem.codigo} não foi criado.`);
       if (request.status === StatusRequisicao.CONCLUIDA) {
         const current = balances.get(requestItem.codigo)!;
         const postReservation = current;
@@ -369,7 +367,7 @@ async function createSeedMovements(
           saldoApos: postReservation,
           reservadaApos: requestItem.quantidade,
           funcionarioId: seed.solicitanteId,
-          saldoEstoqueId: saldo.id,
+          saldoEstoqueId: saldoId,
           requisicaoId: seed.requisicaoId,
           requisicaoItemId: requestItem.requisitionItemId,
           observacao: `Reserva para ${request.numeroPedido}`,
@@ -381,7 +379,7 @@ async function createSeedMovements(
           saldoApos: postIssue,
           reservadaApos: 0,
           funcionarioId: seed.atendenteId ?? employeeIds.get("2222")!,
-          saldoEstoqueId: saldo.id,
+          saldoEstoqueId: saldoId,
           requisicaoId: seed.requisicaoId,
           requisicaoItemId: requestItem.requisitionItemId,
           observacao: `Saída por separação ${request.numeroPedido}`,
@@ -412,7 +410,7 @@ async function createSeedMovements(
             saldoApos: demoCatalog.find(({ codigo }) => codigo === requestItem.codigo)!.central,
             reservadaApos: currentReserved,
             funcionarioId: seed.solicitanteId,
-            saldoEstoqueId: saldo.id,
+            saldoEstoqueId: saldoId,
             requisicaoId: seed.requisicaoId,
             requisicaoItemId: requestItem.requisitionItemId,
             observacao: `Reserva para ${request.numeroPedido}`,
@@ -451,20 +449,11 @@ async function populateDemoData(tx: Prisma.TransactionClient) {
     }
   }
 
-  await upsertEmployees(tx);
-  const { locations, items } = await upsertCatalog(tx, !existingFixture);
+  const employeeIds = await upsertEmployees(tx);
+  const { locations, items, balances } = await upsertCatalog(tx, !existingFixture);
   if (existingFixture) return { initialized: false, preservedExistingDemo: true };
 
-  const employeeIds = new Map<string, number>();
-  for (const employee of demoEmployees) {
-    const row = await tx.funcionario.findUniqueOrThrow({
-      where: { cracha: employee.cracha },
-      select: { id: true },
-    });
-    employeeIds.set(employee.cracha, row.id);
-  }
-
-  await createSeedMovements(tx, locations, items, employeeIds);
+  await createSeedMovements(tx, locations, items, balances, employeeIds);
   return { initialized: true, preservedExistingDemo: false };
 }
 

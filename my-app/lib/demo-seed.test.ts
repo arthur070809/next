@@ -1,7 +1,19 @@
-import { describe, expect, it } from "vitest";
-import { demoCatalog, demoSeedRequests, getDemoSeedRequestObservation } from "./demo-seed";
+import { describe, expect, it, vi } from "vitest";
+import {
+  demoCatalog,
+  demoSeedRequests,
+  deterministicDemoId,
+  getDemoSeedRequestObservation,
+  seedDemoData,
+  upsertSeedRequest,
+} from "./demo-seed";
 import { StatusRequisicao } from "@/generated/prisma/client";
 import { decodeItemDescription, encodeItemDescription, stripIdempotencyMetadata } from "./requisition-metadata";
+import type { Prisma } from "@/generated/prisma/client";
+
+vi.mock("bcryptjs", () => ({
+  default: { hash: vi.fn(async () => "demo-seed-test-hash") },
+}));
 
 describe("demo data fixture", () => {
   it("contains only the ten requested labels and codes", () => {
@@ -48,5 +60,116 @@ describe("demo data fixture", () => {
       expect(observation).toContain("[[idem:v1:");
       expect(stripIdempotencyMetadata(observation)).toBe(request.observation ?? null);
     }
+  });
+
+  it("uses upsert return records directly and repeats with the same unique keys", async () => {
+    const tx = {
+      requisicao: {
+        upsert: vi.fn(async ({ create }: { create: { id: string }; where: unknown }) => ({ id: create.id })),
+      },
+      requisicaoItem: {
+        upsert: vi.fn(async ({ create }: { create: { id: string }; where: unknown }) => ({ id: create.id })),
+      },
+    };
+    const request = demoSeedRequests[0];
+    const employees = new Map([["1111", 11], ["2222", 22]]);
+    const items = new Map(request.items.map(({ codigo }) => [codigo, { id: `item-${codigo}`, unit: "unidades" }]));
+
+    const first = await upsertSeedRequest(
+      tx as never as Prisma.TransactionClient,
+      request,
+      employees,
+      items,
+      "central-id",
+    );
+    const second = await upsertSeedRequest(
+      tx as never as Prisma.TransactionClient,
+      request,
+      employees,
+      items,
+      "central-id",
+    );
+
+    expect(first.requisicaoId).toBe(second.requisicaoId);
+    expect(first.items.map(({ requisitionItemId }) => requisitionItemId))
+      .toEqual(second.items.map(({ requisitionItemId }) => requisitionItemId));
+    expect(tx.requisicao.upsert).toHaveBeenCalledTimes(2);
+    expect(tx.requisicao.upsert.mock.calls[0][0].where)
+      .toEqual(tx.requisicao.upsert.mock.calls[1][0].where);
+    const itemCallsPerSeed = request.items.length;
+    for (let index = 0; index < itemCallsPerSeed; index += 1) {
+      expect(tx.requisicaoItem.upsert.mock.calls[index][0].where)
+        .toEqual(tx.requisicaoItem.upsert.mock.calls[index + itemCallsPerSeed][0].where);
+    }
+  });
+
+  it("does not recreate requests or movements when the seed runs a second time", async () => {
+    const employeeIds = new Map([["1111", 11], ["2222", 22], ["3333", 33]]);
+    const localIds = new Map([["estoque", "central-id"], ["importados", "imported-id"]]);
+    const itemIds = new Map<string, string>(demoCatalog.map(({ codigo }) => [codigo, `item-${codigo}`]));
+    const saldoIds = new Map<string, string>();
+    for (const fixture of demoCatalog) {
+      saldoIds.set(`${itemIds.get(fixture.codigo)}:central-id`, `saldo-central-${fixture.codigo}`);
+      saldoIds.set(`${itemIds.get(fixture.codigo)}:imported-id`, `saldo-imported-${fixture.codigo}`);
+    }
+    let fixtureRequestExists = false;
+    const tx = {
+      requisicao: {
+        findUnique: vi.fn(async () => fixtureRequestExists
+          ? { id: deterministicDemoId("request:DEMO-000101") }
+          : null),
+        count: vi.fn(async () => 0),
+        upsert: vi.fn(async ({ create }: { create: { id: string } }) => {
+          fixtureRequestExists = true;
+          return { id: create.id };
+        }),
+      },
+      movimentacao: {
+        count: vi.fn(async () => 0),
+        upsert: vi.fn(async ({ create }: { create: { id: string } }) => ({ id: create.id })),
+      },
+      funcionario: {
+        findMany: vi.fn(async () => []),
+        upsert: vi.fn(async ({ where }: { where: { cracha: string } }) => ({
+          id: employeeIds.get(where.cracha)!,
+        })),
+      },
+      localEstoque: {
+        upsert: vi.fn(async ({ where }: { where: { slug: string } }) => ({
+          id: localIds.get(where.slug)!,
+          slug: where.slug,
+        })),
+      },
+      item: {
+        upsert: vi.fn(async ({ where }: { where: { filial_codigo: { codigo: string } } }) => ({
+          id: itemIds.get(where.filial_codigo.codigo)!,
+          unidade: "unidades",
+        })),
+      },
+      saldoEstoque: {
+        upsert: vi.fn(async ({ where }: { where: { itemId_localId: { itemId: string; localId: string } } }) => ({
+          id: saldoIds.get(`${where.itemId_localId.itemId}:${where.itemId_localId.localId}`)!,
+        })),
+        update: vi.fn(async () => ({})),
+      },
+      requisicaoItem: {
+        upsert: vi.fn(async ({ create }: { create: { id: string } }) => ({ id: create.id })),
+      },
+    };
+    const client = {
+      $transaction: vi.fn(async (callback: (transaction: unknown) => Promise<unknown>) => callback(tx)),
+    };
+
+    const first = await seedDemoData(client as never);
+    const requestCountAfterFirstRun = tx.requisicao.upsert.mock.calls.length;
+    const movementCountAfterFirstRun = tx.movimentacao.upsert.mock.calls.length;
+    const second = await seedDemoData(client as never);
+
+    expect(first).toMatchObject({ initialized: true, preservedExistingDemo: false });
+    expect(second).toMatchObject({ initialized: false, preservedExistingDemo: true });
+    expect(requestCountAfterFirstRun).toBe(demoSeedRequests.length);
+    expect(tx.requisicao.upsert).toHaveBeenCalledTimes(requestCountAfterFirstRun);
+    expect(movementCountAfterFirstRun).toBeGreaterThan(0);
+    expect(tx.movimentacao.upsert).toHaveBeenCalledTimes(movementCountAfterFirstRun);
   });
 });
