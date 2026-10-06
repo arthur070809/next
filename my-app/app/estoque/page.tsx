@@ -1,13 +1,16 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./stock-list.module.css";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
 import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
+import ProductEtiquetaScanner from "@/app/components/ProductEtiquetaScanner";
+import { normalizarCodigoEtiqueta, parseEtiqueta } from "@/lib/qr/parseEtiqueta";
 
 type EstoqueItem = {
   id: string;
   nome: string;
+  codigo: string | null;
   categoria: string;
   unidade: string;
   quantidade: number;
@@ -21,6 +24,7 @@ type EstoqueItem = {
 const initialForm = {
   nome: "",
   categoria: "",
+  codigo: "",
   tipoUnidade: "unidade" as StockUnit | "",
   quantidadePorEmbalagem: "1",
   quantidadeEmbalagens: "",
@@ -71,6 +75,8 @@ export default function EstoquePage() {
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [nomeAberto, setNomeAberto] = useState(false);
+  const [cameraAberta, setCameraAberta] = useState(false);
+  const [qrMatchedItem, setQrMatchedItem] = useState<EstoqueItem | null>(null);
   const salvandoRef = useRef(false);
   const listaRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +87,52 @@ export default function EstoquePage() {
   const materiaisSugeridos = materiaisDaCategoria.filter((material) =>
     material.toLowerCase().includes(form.nome.toLowerCase())
   );
+
+  const handleQrRead = useCallback(async (raw: string) => {
+    const parsed = parseEtiqueta(raw);
+    if (!parsed.ok) {
+      const message = `QR não reconhecido: ${parsed.motivo}`;
+      setErro(message);
+      return message;
+    }
+    const codigoNormalizado = normalizarCodigoEtiqueta(parsed.codigo);
+    const matches = itens.filter((item) =>
+      item.codigo !== null && normalizarCodigoEtiqueta(item.codigo) === codigoNormalizado,
+    );
+    setErro("");
+    setMensagem("");
+    setCameraAberta(false);
+    if (matches.length > 1) {
+      setQrMatchedItem(null);
+      setForm((current) => ({ ...current, codigo: parsed.codigo }));
+      const message = `O código ${parsed.codigo} corresponde a mais de um material. Resolva a duplicidade antes de registrar uma entrada.`;
+      setErro(message);
+      return message;
+    }
+    if (matches.length === 1) {
+      const item = matches[0];
+      setQrMatchedItem(item);
+      setBusca("");
+      setCategoriaBusca("");
+      setForm((current) => ({
+        ...current,
+        nome: item.nome,
+        categoria: item.categoria,
+        codigo: item.codigo ?? parsed.codigo,
+        tipoUnidade: item.tipoUnidade ?? "unidade",
+        quantidadePorEmbalagem: String(item.quantidadePorEmbalagem ?? 1),
+        quantidadeEmbalagens: "",
+      }));
+      window.requestAnimationFrame(() => {
+        document.getElementById(`stock-item-${item.id}`)?.scrollIntoView({ block: "nearest" });
+      });
+      return `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`;
+    }
+
+    setQrMatchedItem(null);
+    setForm((current) => ({ ...current, codigo: parsed.codigo }));
+    return `Código ${parsed.codigo} não cadastrado. Selecione a categoria e o material para criar um item com esta etiqueta.`;
+  }, [itens]);
 
   const carregarItens = async () => {
     try {
@@ -146,7 +198,11 @@ export default function EstoquePage() {
         setErro("Selecione uma categoria.");
         return;
       }
-      if (!materiaisDaCategoria.includes(form.nome as never)) {
+      const isMatchedQrItem = qrMatchedItem !== null
+        && form.codigo === qrMatchedItem.codigo
+        && form.nome === qrMatchedItem.nome
+        && form.categoria === qrMatchedItem.categoria;
+      if (!isMatchedQrItem && !materiaisDaCategoria.includes(form.nome as never)) {
         setErro("Selecione uma categoria e um material disponível nessa categoria.");
         return;
       }
@@ -187,6 +243,7 @@ export default function EstoquePage() {
         body: JSON.stringify({
           nome: form.nome,
           categoria: form.categoria,
+          codigo: form.codigo,
           tipoUnidade: form.tipoUnidade,
           quantidadePorEmbalagem,
           quantidadeEmbalagens,
@@ -203,9 +260,11 @@ export default function EstoquePage() {
       }
       setForm((current) => ({
         ...current,
+        codigo: "",
         quantidadePorEmbalagem: "",
         quantidadeEmbalagens: "",
       }));
+      setQrMatchedItem(null);
       setErrosQuantidade({});
       setNomeAberto(false);
       setMensagem("Item cadastrado no estoque.");
@@ -259,23 +318,43 @@ export default function EstoquePage() {
           </div>
         </section>
 
-        <div className="mt-4 grid gap-4 md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
+        <div className="mt-4 grid items-start gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
           <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm`}>
-            <h2 className="text-lg font-bold text-slate-950">Novo item</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-slate-950">{qrMatchedItem ? "Entrada do item identificado" : "Novo item / registrar entrada"}</h2>
+              <button type="button" onClick={() => setCameraAberta(true)} className="min-h-10 rounded-lg border border-blue-700 px-4 text-sm font-semibold text-blue-800 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+                Ler etiqueta QR
+              </button>
+            </div>
+            {qrMatchedItem && <p role="status" className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900">
+              {qrMatchedItem.nome} · código {qrMatchedItem.codigo}. Informe a quantidade abaixo; a entrada será registrada pela operação existente.
+            </p>}
             <form onSubmit={cadastrarItem} noValidate className={`${styles.formLayout} mt-2`}>
               <div className={`${styles.formBody} space-y-2`}>
               <div>
+                <label htmlFor="codigo" className="text-xs font-semibold text-slate-800">Código da etiqueta (opcional)</label>
+                <input id="codigo" inputMode="numeric" maxLength={8} value={form.codigo} onChange={(event) => {
+                  const codigo = event.target.value;
+                  setForm((current) => ({ ...current, codigo }));
+                  if (codigo !== qrMatchedItem?.codigo) setQrMatchedItem(null);
+                }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+              </div>
+              <div>
                 <label htmlFor="categoria" className="text-xs font-semibold text-slate-800">Categoria</label>
-                <select id="categoria" required value={form.categoria} onChange={(event) => setForm({ ...form, categoria: event.target.value, nome: "" })} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
+                <select id="categoria" required value={form.categoria} onChange={(event) => {
+                  setForm({ ...form, categoria: event.target.value, nome: "" });
+                  setQrMatchedItem(null);
+                }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
                   <option value="">Selecione uma categoria</option>
+                  {form.categoria && !categorias.includes(form.categoria) && <option value={form.categoria}>{form.categoria}</option>}
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
               </div>
               <div>
                 <label htmlFor="nome" className="text-xs font-semibold text-slate-800">Nome do material</label>
                 <div className="relative mt-1">
-                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setNomeAberto(true); }} className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 disabled:cursor-not-allowed disabled:bg-slate-100" />
-                  {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-slate-300 bg-white p-1 shadow-lg">
+                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setQrMatchedItem(null); setNomeAberto(true); }} className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 disabled:cursor-not-allowed disabled:bg-slate-100" />
+                  {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-slate-300 bg-white p-1 shadow-lg">
                     {materiaisSugeridos.map((material) => <button key={material} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setForm({ ...form, nome: material }); setNomeAberto(false); }} className="block w-full rounded-md px-3 py-2 text-left text-sm leading-5 text-slate-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none">{material}</button>)}
                   </div>}
                 </div>
@@ -343,7 +422,7 @@ export default function EstoquePage() {
             <div ref={listaRef} tabIndex={0} aria-label="Lista de itens do estoque" className={`${styles.stockBody} mt-5 space-y-3 pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal`}>
               {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
                 const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
-                return <article key={item.id} tabIndex={0} className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between">
+                return <article id={`stock-item-${item.id}`} key={item.id} tabIndex={0} data-qr-selected={qrMatchedItem?.id === item.id || undefined} className={`flex flex-col gap-4 rounded-lg border p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between ${qrMatchedItem?.id === item.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200"}`}>
                   <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p><p className="mt-1 text-sm text-slate-600">Ponto de pedido: {item.pontoPedido} {item.unidade}</p>{isAtOrBelowReorderPoint(item.quantidade, item.pontoPedido) && <span className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">Repor · saldo no ponto de pedido ou abaixo</span>}{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-emerald-700">No depósito: {item.quantidadeDeposito} un</p>}</div>
                   {tipoUltimaEntrada && item.ultimaEntradaEmbalagens !== null && item.quantidadePorEmbalagem !== null && <p className="text-sm text-slate-500">Última entrada: {item.ultimaEntradaEmbalagens} {item.ultimaEntradaEmbalagens === 1 ? tipoUltimaEntrada.singular : tipoUltimaEntrada.plural}{item.tipoUnidade === "unidade" ? "" : ` de ${item.quantidadePorEmbalagem}`}</p>}
                   <div className="text-sm font-semibold text-slate-700">Disponível</div>
@@ -356,6 +435,7 @@ export default function EstoquePage() {
       <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-slate-200 pt-4 text-center text-xs text-slate-400 md:mt-auto md:shrink-0">
         Almoxarifado Marcon
       </footer>
+      {cameraAberta && <ProductEtiquetaScanner onRead={handleQrRead} onClose={() => setCameraAberta(false)} />}
     </main>
   );
 }

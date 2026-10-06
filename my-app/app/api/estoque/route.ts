@@ -21,9 +21,11 @@ function respostaErroInterno(error: unknown, operacao: string) {
   const prismaCode = errorRecord && "code" in errorRecord && typeof errorRecord.code === "string" ? errorRecord.code : undefined;
   const errorName = error instanceof Error ? error.name : "UnknownError";
   const stack = error instanceof Error ? error.stack?.split("\n").slice(1).join("\n") : undefined;
-  const status = prismaCode === "P2002" || prismaCode === "P2034" ? 409 : prismaCode === "P2025" ? 404 : 500;
+  const status = prismaCode === "P2002" || prismaCode === "P2034" || prismaCode === "STOCK_CODE_CONFLICT" ? 409 : prismaCode === "P2025" ? 404 : 500;
   const message = status === 409
-    ? prismaCode === "P2002"
+    ? prismaCode === "STOCK_CODE_CONFLICT"
+      ? "O código da etiqueta já está vinculado a outro material."
+      : prismaCode === "P2002"
       ? "Este item já existe. Atualize a lista e tente novamente."
       : "O estoque foi alterado por outra operação. Atualize e tente novamente."
     : status === 404
@@ -117,6 +119,7 @@ export async function POST(request: Request) {
     }
     const nome = typeof body?.nome === "string" ? body.nome.trim() : "";
     const categoria = typeof body?.categoria === "string" ? body.categoria.trim() : "";
+    const codigo = typeof body?.codigo === "string" ? body.codigo.trim() : "";
     const tipoUnidade = STOCK_UNITS.find((unit) => unit.value === body?.tipoUnidade);
     const quantidadeEmbalagens = typeof body?.quantidadeEmbalagens === "number" ? body.quantidadeEmbalagens : Number.NaN;
     const quantidadePorEmbalagem = tipoUnidade?.value === "unidade"
@@ -130,6 +133,9 @@ export async function POST(request: Request) {
     }
     if (!tipoUnidade) {
       return respostaJson({ error: "Selecione o tipo de unidade." }, { status: 400 });
+    }
+    if (codigo && !/^\d{1,8}$/.test(codigo)) {
+      return respostaJson({ error: "O código da etiqueta deve conter de 1 a 8 dígitos." }, { status: 400 });
     }
 
     const limite = MAX_STOCK_INPUT.toLocaleString("pt-BR");
@@ -165,11 +171,21 @@ export async function POST(request: Request) {
           const itemExistente = await tx.item.findFirst({
             where: { nome, categoria, ativo: true },
           });
+          const itemComCodigo = codigo
+            ? await tx.item.findFirst({ where: { codigo, ativo: true } })
+            : null;
+          if (itemComCodigo && itemComCodigo.id !== itemExistente?.id) {
+            throw Object.assign(new Error("Código de etiqueta já vinculado a outro material."), { code: "STOCK_CODE_CONFLICT" });
+          }
+          if (codigo && itemExistente?.codigo && itemExistente.codigo !== codigo) {
+            throw Object.assign(new Error("Item já possui outro código de etiqueta."), { code: "STOCK_CODE_CONFLICT" });
+          }
 
           const detalhesEntrada = {
             tipoUnidade: tipoUnidade.value,
             quantidadePorEmbalagem,
             ultimaEntradaEmbalagens: quantidadeEmbalagens,
+            ...(codigo ? { codigo } : {}),
           };
 
           let itemResult;
@@ -186,6 +202,7 @@ export async function POST(request: Request) {
                 nome,
                 categoria,
                 unidade: tipoUnidade.baseUnit,
+                codigo: codigo || null,
                 ...detalhesEntrada,
               },
             });
@@ -197,40 +214,34 @@ export async function POST(request: Request) {
           });
 
           let novoSaldo: number;
+          let saldoId: string;
           if (saldoExistente) {
             const updated = await tx.saldoEstoque.update({
               where: { id: saldoExistente.id },
               data: { quantidade: { increment: quantidade } },
             });
             novoSaldo = updated.quantidade;
+            saldoId = updated.id;
           } else {
             const created = await tx.saldoEstoque.create({
               data: { itemId: itemResult.id, localId: local.id, quantidade, reservada: 0 },
             });
             novoSaldo = created.quantidade;
+            saldoId = created.id;
           }
 
           // Registra movimentação de ENTRADA (append-only)
-          const saldoId = saldoExistente?.id ?? (
-            await tx.saldoEstoque.findUnique({
-              where: { itemId_localId: { itemId: itemResult.id, localId: local.id } },
-              select: { id: true },
-            })
-          )?.id;
-
-          if (saldoId) {
-            await tx.movimentacao.create({
-              data: {
-                tipo: TipoMovimentacao.ENTRADA,
-                quantidade,
-                saldoApos: novoSaldo,
-                reservadaApos: saldoExistente?.reservada ?? 0,
-                funcionarioId: funcionario.id,
-                saldoEstoqueId: saldoId,
-                observacao: `Entrada de ${quantidadeEmbalagens} ${tipoUnidade.countLabel}`,
-              },
-            });
-          }
+          await tx.movimentacao.create({
+            data: {
+              tipo: TipoMovimentacao.ENTRADA,
+              quantidade,
+              saldoApos: novoSaldo,
+              reservadaApos: saldoExistente?.reservada ?? 0,
+              funcionarioId: funcionario.id,
+              saldoEstoqueId: saldoId,
+              observacao: `Entrada de ${quantidadeEmbalagens} ${tipoUnidade.countLabel}`,
+            },
+          });
 
           return tx.item.findUnique({
             where: { id: itemResult.id },
