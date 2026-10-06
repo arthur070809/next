@@ -5,12 +5,18 @@
 import { prisma } from "@/lib/prisma";
 import type { RequisicaoMock } from "@/lib/types/almoxarifado";
 import {
+  createIdempotencyMarker,
+  decodeItemDescription,
+  idempotencyMarkerPrefix,
+} from "@/lib/requisition-metadata";
+import {
   PrismaClient,
   Prisma,
   StatusRequisicao,
   StatusItemRequisicao,
   TipoMovimentacao,
 } from "@/generated/prisma/client";
+import { MAX_STOCK_BALANCE } from "@/lib/stock-units";
 
 type TransactionClient = Omit<
   PrismaClient,
@@ -46,6 +52,7 @@ function statusToFront(status: StatusRequisicao): RequisicaoMock["status"] {
 /** Monta um RequisicaoMock a partir do modelo Prisma */
 export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
   const primeiroItem = req.itens[0];
+  const primeiroItemMetadata = decodeItemDescription(primeiroItem?.descricao);
   const almoxarifadoSlug = primeiroItem?.local?.slug ?? "estoque";
   const almoxarifadoFront = (["central", "embalagens", "materia-prima", "importados"] as const).find(
     (s) => s === almoxarifadoSlug
@@ -54,11 +61,11 @@ export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
   return {
     numeroPedido: req.numeroPedido,
     almoxarifado: almoxarifadoFront,
-    setor: "setor1", // setor não está no novo schema — valor padrão para compatibilidade
+    setor: primeiroItemMetadata.setor ?? "setor1",
     item: primeiroItem?.item?.nome ?? "Sem itens",
     quantidade: primeiroItem?.quantidade ?? 0,
     unidadeMedida: (primeiroItem?.unidadeMedida?.toLowerCase() ?? "un") as RequisicaoMock["unidadeMedida"],
-    descricao: primeiroItem?.descricao ?? "",
+    descricao: primeiroItemMetadata.descricao,
     data: req.criadoEm.toISOString(),
     codigoTratamento: "209",
     prioridade: req.prioridade === "PRIORITARIO" ? "prioridade" : "padrao",
@@ -73,6 +80,7 @@ export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
       nome: ri.item?.nome ?? "Item",
       quantidade: ri.quantidade,
       unidadeMedida: ri.unidadeMedida,
+      setor: decodeItemDescription(ri.descricao).setor ?? undefined,
     })),
   };
 }
@@ -113,7 +121,7 @@ export async function nextNumeroPedido(tx: TransactionClient): Promise<string> {
  * Rejeita com HTTP 409 se qualquer item não tiver saldo disponível suficiente.
  * Tudo em uma única transação — nada é criado se algum item falhar.
  */
-export async function criarRequisicao(params: {
+type CriarRequisicaoParams = {
   solicitanteId: number;
   itens: Array<{
     itemId: string;
@@ -125,8 +133,40 @@ export async function criarRequisicao(params: {
   prioridade?: "padrao" | "prioridade";
   observacao?: string;
   movimentacaoObservacao?: string;
-}) {
+  idempotencyKeyHash?: string;
+  payloadHash?: string;
+};
+
+async function criarRequisicaoCore(params: CriarRequisicaoParams) {
   return prisma.$transaction(async (tx) => {
+    const idempotencyPrefix = params.idempotencyKeyHash
+      ? idempotencyMarkerPrefix(params.idempotencyKeyHash)
+      : null;
+    const idempotencyMarker = idempotencyPrefix && params.payloadHash && params.idempotencyKeyHash
+      ? createIdempotencyMarker(params.idempotencyKeyHash, params.payloadHash)
+      : null;
+
+    if (idempotencyPrefix && idempotencyMarker) {
+      await tx.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM sequencia_requisicao WHERE id = 1 FOR UPDATE
+      `;
+      const existing = await tx.requisicao.findFirst({
+        where: {
+          solicitanteId: params.solicitanteId,
+          observacao: { contains: idempotencyPrefix },
+        },
+        include: REQUISICAO_INCLUDE,
+      });
+      if (existing) {
+        if (!existing.observacao?.includes(idempotencyMarker)) {
+          throw Object.assign(new Error("A chave de idempotência já foi usada com outro pedido."), {
+            code: "IDEMPOTENCY_CONFLICT",
+          });
+        }
+        return { requisicao: existing, replayed: true };
+      }
+    }
+
     // Valida e reserva cada item atomicamente sem ler-depois-escrever
     for (const itemPayload of params.itens) {
       const updateResult = await tx.$executeRaw`
@@ -160,7 +200,10 @@ export async function criarRequisicao(params: {
       data: {
         numeroPedido,
         prioridade: params.prioridade === "prioridade" ? "PRIORITARIO" : "PADRAO",
-        observacao: params.observacao ?? null,
+        observacao: [
+          params.observacao?.trim(),
+          idempotencyMarker,
+        ].filter(Boolean).join("\n") || null,
         solicitanteId: params.solicitanteId,
         itens: {
           create: params.itens.map((ri) => ({
@@ -202,8 +245,18 @@ export async function criarRequisicao(params: {
       }
     }
 
-    return requisicao;
+    return { requisicao, replayed: false };
   });
+}
+
+export async function criarRequisicao(params: CriarRequisicaoParams) {
+  return (await criarRequisicaoCore(params)).requisicao;
+}
+
+export async function criarRequisicaoIdempotente(
+  params: CriarRequisicaoParams & { idempotencyKeyHash: string; payloadHash: string },
+) {
+  return criarRequisicaoCore(params);
 }
 
 /**
@@ -392,6 +445,105 @@ export async function naoSepararItem(params: {
   });
 
   return "ok";
+}
+
+export async function finalizarItemComQuantidade(params: {
+  requisicaoItemId: string;
+  quantidadeSeparada: number;
+  motivo?: string;
+  funcionarioId: number;
+  tx: TransactionClient;
+}) {
+  const { requisicaoItemId, quantidadeSeparada, motivo, funcionarioId, tx } = params;
+  if (!Number.isSafeInteger(quantidadeSeparada) || quantidadeSeparada < 0 || quantidadeSeparada > MAX_STOCK_BALANCE) {
+    throw new RangeError("A quantidade separada deve ser um inteiro não negativo dentro do limite permitido.");
+  }
+
+  const item = await tx.requisicaoItem.findUnique({ where: { id: requisicaoItemId } });
+  if (!item) throw new Error("Item de requisição não encontrado.");
+  if (
+    item.status === StatusItemRequisicao.SEPARADO ||
+    item.status === StatusItemRequisicao.NAO_SEPARADO ||
+    item.status === StatusItemRequisicao.ANULADO
+  ) throw new Error("Item já resolvido.");
+
+  const motivoFinal = motivo?.trim() || null;
+  if (quantidadeSeparada !== item.quantidade && !motivoFinal) {
+    throw new Error("Informe o motivo da divergência.");
+  }
+
+  const updateResult = quantidadeSeparada === 0
+    ? await tx.$executeRaw`
+      UPDATE saldos_estoque
+      SET reservada = reservada - ${item.quantidade}
+      WHERE item_id = ${item.itemId}
+        AND local_id = ${item.localId}
+        AND reservada >= ${item.quantidade}
+    `
+    : await tx.$executeRaw`
+      UPDATE saldos_estoque
+      SET
+        quantidade = quantidade - ${quantidadeSeparada},
+        reservada = reservada - ${item.quantidade}
+      WHERE item_id = ${item.itemId}
+        AND local_id = ${item.localId}
+        AND quantidade >= ${quantidadeSeparada}
+        AND reservada >= ${item.quantidade}
+        AND quantidade - ${quantidadeSeparada} >= reservada - ${item.quantidade}
+    `;
+
+  if (updateResult === 0) {
+    throw Object.assign(
+      new Error("O saldo físico ou reservado mudou e não permite finalizar esta quantidade. Atualize o checklist."),
+      { code: "SALDO_INSUFICIENTE" },
+    );
+  }
+
+  const saldo = await tx.saldoEstoque.findUnique({
+    where: { itemId_localId: { itemId: item.itemId, localId: item.localId } },
+  });
+  if (!saldo) throw new Error("Saldo do item não encontrado após a atualização.");
+
+  const movimentacao = await tx.movimentacao.create({
+    data: {
+      tipo: quantidadeSeparada === 0 ? TipoMovimentacao.LIBERACAO_RESERVA : TipoMovimentacao.SAIDA,
+      quantidade: quantidadeSeparada === 0 ? item.quantidade : quantidadeSeparada,
+      saldoApos: saldo.quantidade,
+      reservadaApos: saldo.reservada,
+      funcionarioId,
+      saldoEstoqueId: saldo.id,
+      requisicaoId: item.requisicaoId,
+      requisicaoItemId: item.id,
+      observacao: quantidadeSeparada === 0
+        ? `Não separado: ${motivoFinal}`
+        : motivoFinal
+          ? `Separação divergente: ${motivoFinal}`
+          : "Saída por separação",
+    },
+  });
+
+  await tx.requisicaoItem.update({
+    where: { id: item.id },
+    data: {
+      status: quantidadeSeparada === 0
+        ? StatusItemRequisicao.NAO_SEPARADO
+        : StatusItemRequisicao.SEPARADO,
+      separado: quantidadeSeparada > 0,
+      motivoNaoAtendido: motivoFinal,
+      resolvidoEm: new Date(),
+    },
+  });
+
+  return {
+    quantidadePedida: item.quantidade,
+    quantidadeSeparada,
+    motivo: motivoFinal,
+    movimentacao: {
+      id: movimentacao.id,
+      tipo: movimentacao.tipo,
+      quantidade: movimentacao.quantidade,
+    },
+  };
 }
 
 /**

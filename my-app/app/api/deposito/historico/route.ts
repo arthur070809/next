@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { requireAlmoxarife } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { TipoMovimentacao } from "@/generated/prisma/client";
 
@@ -9,6 +9,7 @@ const LOCAL_DEPOSITO_SLUG = "deposito";
 // Os filtros da tela usam os nomes antigos; aqui viram os tipos do modelo novo.
 const TIPO_FILTRO: Record<string, TipoMovimentacao> = {
   SAIDA_REQUISICAO: TipoMovimentacao.SAIDA,
+  SAIDA_REAPROVEITAMENTO: TipoMovimentacao.SAIDA,
   ENTRADA_SOBRA: TipoMovimentacao.ENTRADA,
   ENTRADA_MANUAL: TipoMovimentacao.ENTRADA,
   AJUSTE: TipoMovimentacao.AJUSTE,
@@ -19,10 +20,16 @@ const TIPO_TELA: Record<string, string> = {
   SAIDA: "SAIDA_REQUISICAO",
   AJUSTE: "AJUSTE",
 };
+const DEPOSIT_OPERATION_MARKER = /\s*\[\[deposit-op:v1:[a-f0-9]{64}:[a-f0-9]{64}\]\]/gi;
 
 export async function GET(request: Request) {
   try {
-    if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const { funcionario, status } = await requireAlmoxarife();
+    if (!funcionario) {
+      return NextResponse.json({
+        error: status === 401 ? "Não autenticado." : "Acesso permitido apenas ao almoxarife ou admin.",
+      }, { status });
+    }
     const params = new URL(request.url).searchParams;
     const page = Math.max(1, Number.parseInt(params.get("page") ?? "1", 10) || 1);
     const pageSize = 25;
@@ -48,6 +55,15 @@ export async function GET(request: Request) {
         ...(item ? { item: { OR: [{ nome: { contains: item } }, { codigo: { contains: item } }] } } : {}),
       },
       ...(tipoFiltro ? { tipo: tipoFiltro } : {}),
+      ...(tipo === "SAIDA_REAPROVEITAMENTO"
+        ? { observacao: { startsWith: "Retirada para reaproveitamento:" } }
+        : tipo === "SAIDA_REQUISICAO"
+          ? { NOT: { observacao: { startsWith: "Retirada para reaproveitamento:" } } }
+          : tipo === "ENTRADA_SOBRA"
+            ? { observacao: { startsWith: "Entrada de sobra" } }
+            : tipo === "ENTRADA_MANUAL"
+              ? { NOT: { observacao: { startsWith: "Entrada de sobra" } } }
+              : {}),
       ...(criadoEm ? { criadoEm } : {}),
       ...(usuario ? { funcionario: { nome: { contains: usuario } } } : {}),
     };
@@ -69,11 +85,15 @@ export async function GET(request: Request) {
 
     const movimentacoes = rows.map((row) => ({
       id: row.id,
-      tipo: TIPO_TELA[row.tipo] ?? row.tipo,
+      tipo: row.tipo === "SAIDA" && row.observacao?.startsWith("Retirada para reaproveitamento:")
+        ? "SAIDA_REAPROVEITAMENTO"
+        : row.tipo === "ENTRADA" && row.observacao?.startsWith("Entrada de sobra")
+          ? "ENTRADA_SOBRA"
+          : TIPO_TELA[row.tipo] ?? row.tipo,
       quantidade: row.quantidade,
       saldoAntes: row.tipo === "ENTRADA" ? row.saldoApos - row.quantidade : row.tipo === "SAIDA" ? row.saldoApos + row.quantidade : null,
       saldoDepois: row.saldoApos,
-      motivo: row.observacao,
+      motivo: row.observacao?.replace(DEPOSIT_OPERATION_MARKER, "").trim() || null,
       criadoEm: row.criadoEm,
       item: row.saldoEstoque.item,
       usuario: row.funcionario,

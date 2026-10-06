@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
+import { isDemoLoginEnabledForBadge, isDemoModeConfigured } from "@/lib/demo-mode";
 import AdminDashboard from "./dashboard";
 
 export default async function AdminPage() {
@@ -16,7 +18,7 @@ export default async function AdminPage() {
   const inicioHoje = new Date(`${hoje}T03:00:00.000Z`);
   const amanha = new Date(inicioHoje);
   amanha.setUTCDate(amanha.getUTCDate() + 1);
-  const [estoqueTotal, requisicoesPendentes, usuariosAtivos, itensNoDeposito, sobrasHoje] = await Promise.all([
+  const [estoqueTotal, requisicoesPendentes, usuariosAtivos, itensNoDeposito, sobrasHoje, saldosParaRepor] = await Promise.all([
     prisma.item.count({ where: { ativo: true } }),
     prisma.requisicao.count({ where: { status: "PENDENTE" } }),
     prisma.funcionario.count({ where: { ativo: true } }),
@@ -31,7 +33,20 @@ export default async function AdminPage() {
       },
       _sum: { quantidade: true },
     }),
+    prisma.saldoEstoque.findMany({
+      where: {
+        local: { slug: "estoque" },
+        item: { ativo: true },
+      },
+      select: {
+        quantidade: true,
+        item: { select: { nome: true, codigo: true, pontoPedido: true } },
+      },
+    }),
   ]);
+  const itensParaRepor = saldosParaRepor
+    .filter(({ quantidade, item }) => isAtOrBelowReorderPoint(quantidade, item.pontoPedido))
+    .map(({ item }) => ({ nome: item.nome, codigo: item.codigo }));
   return (
     <AdminDashboard
       stats={{
@@ -40,7 +55,9 @@ export default async function AdminPage() {
         usuariosAtivos,
         itensNoDeposito,
         sobrasHoje: sobrasHoje._sum.quantidade ?? 0,
+        itensParaRepor,
       }}
+      canResetDemo={isDemoModeConfigured() && isDemoLoginEnabledForBadge(funcionario.cracha)}
     />
   );
 }

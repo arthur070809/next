@@ -1,10 +1,9 @@
 import { randomBytes } from "node:crypto";
-import { createInterface } from "node:readline/promises";
-import { stdin, stdout } from "node:process";
 import { config } from "dotenv";
 import bcrypt from "bcryptjs";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client";
+import { assertSafeDemoScript } from "./demo-script-safety.cjs";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -33,53 +32,24 @@ const testEmployees = [
   },
 ] as const;
 
-function getTargetDatabase() {
-  const rawUrl = process.env.DATABASE_URL;
-  if (!rawUrl) throw new Error("DATABASE_URL não foi configurada.");
-  const url = new URL(rawUrl);
-  return {
-    host: url.hostname,
-    database: decodeURIComponent(url.pathname.replace(/^\/+/, "")),
-    url,
-  };
-}
-
 function isOwnedTestAccount(employee: { nome: string; email: string }, expected: typeof testEmployees[number]) {
   return employee.nome.startsWith("TESTE ") && employee.email === expected.email;
 }
 
-async function confirmAction(action: string, target: { host: string; database: string }, yes: boolean) {
-  console.log(`Destino: host=${target.host}; banco=${target.database}`);
-  console.log(`Ação: ${action}`);
-  if (yes) return;
-  if (!stdin.isTTY) {
-    throw new Error("Confirmação interativa indisponível. Revise o destino e repita com --yes.");
-  }
-  const prompt = createInterface({ input: stdin, output: stdout });
-  try {
-    const answer = await prompt.question("Confirma esta operação? Digite SIM para continuar: ");
-    if (answer.trim() !== "SIM") throw new Error("Operação cancelada.");
-  } finally {
-    prompt.close();
-  }
-}
-
 async function main() {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("seed:teste é proibido quando NODE_ENV=production.");
+  const args = process.argv.slice(2);
+  if (args.some((arg) => arg !== "--yes" && arg !== "--remove")) {
+    throw new Error("Uso: npm run seed:teste -- --yes [--remove].");
   }
-
-  const args = new Set(process.argv.slice(2));
-  if ([...args].some((arg) => arg !== "--yes" && arg !== "--remove")) {
-    throw new Error("Uso: npm run seed:teste -- [--yes] [--remove].");
-  }
-  const remove = args.has("--remove");
-  const target = getTargetDatabase();
+  const target = assertSafeDemoScript(args, process.env, ["--yes", "--remove"]);
+  const remove = args.includes("--remove");
+  console.log(`Ação: ${remove ? "remover apenas as contas TESTE descritas neste script" : "criar/atualizar apenas as contas TESTE descritas neste script"}`);
+  const url = new URL(process.env.DATABASE_URL!);
   const prisma = new PrismaClient({ adapter: new PrismaMariaDb({
-    host: target.url.hostname,
-    port: Number(target.url.port) || 4000,
-    user: decodeURIComponent(target.url.username),
-    password: decodeURIComponent(target.url.password),
+    host: target.host,
+    port: Number(url.port) || 4000,
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
     database: target.database,
     ssl: true,
     connectTimeout: 30000,
@@ -88,14 +58,6 @@ async function main() {
   }) });
 
   try {
-    await confirmAction(
-      remove
-        ? "remover exclusivamente as três contas TESTE listadas"
-        : "criar/atualizar exclusivamente as três contas TESTE listadas",
-      target,
-      args.has("--yes"),
-    );
-
     const existing = await prisma.funcionario.findMany({
       where: { cracha: { in: testEmployees.map(({ cracha }) => cracha) } },
       select: { id: true, cracha: true, nome: true, email: true },

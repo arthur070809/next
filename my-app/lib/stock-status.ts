@@ -2,6 +2,10 @@ export const STOCK_STATUSES = ["SEM_ESTOQUE", "CRITICO", "REPOR", "DISPONIVEL"] 
 
 export type StockStatus = (typeof STOCK_STATUSES)[number];
 
+export function isAtOrBelowReorderPoint(quantidade: number, pontoPedido: number): boolean {
+  return quantidade <= pontoPedido;
+}
+
 export function getStockStatus(quantidade: number, estoqueSeguranca: number, pontoPedido: number): StockStatus {
   if (quantidade === 0) return "SEM_ESTOQUE";
   if (estoqueSeguranca > 0 && quantidade < estoqueSeguranca) return "CRITICO";

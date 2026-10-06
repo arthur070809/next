@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeLoginCode } from "@/lib/normalize-login-code";
+import { getLoginAttemptPolicy, type LoginAttemptPolicy } from "@/lib/login-attempt-policy";
 import { hashSecret } from "@/lib/webauthn";
 
 export { normalizeLoginCode } from "@/lib/normalize-login-code";
@@ -58,7 +59,11 @@ export function getLoginClientIpHash(request: Request) {
   return hashSecret(trustedAddress);
 }
 
-export async function getLoginBlockRetryAfter(badge: string, ipHash: string, now = new Date()) {
+export async function getLoginBlockRetryAfter(
+  badge: string,
+  ipHash: string,
+  now = new Date(),
+) {
   const keys = [bucketKey("badge", normalizeLoginCode(badge)), bucketKey("ip", ipHash)];
   try {
     const blocked = await prisma.loginAttemptBucket.findFirst({
@@ -74,14 +79,23 @@ export async function getLoginBlockRetryAfter(badge: string, ipHash: string, now
   }
 }
 
-export async function isLoginTemporarilyBlocked(badge: string, ipHash: string, now = new Date()) {
+export async function isLoginTemporarilyBlocked(
+  badge: string,
+  ipHash: string,
+  now = new Date(),
+) {
   return (await getLoginBlockRetryAfter(badge, ipHash, now)) !== null;
 }
 
-export async function recordLoginFailure(badge: string, ipHash: string, now = new Date()) {
-  const cutoff = new Date(now.getTime() - loginAttemptWindowMs);
-  const retentionCutoff = new Date(now.getTime() - loginAttemptWindowMs - loginBlockDurationMs);
-  const blockedUntil = new Date(now.getTime() + loginBlockDurationMs);
+export async function recordLoginFailure(
+  badge: string,
+  ipHash: string,
+  now = new Date(),
+  policy: LoginAttemptPolicy = getLoginAttemptPolicy(),
+) {
+  const cutoff = new Date(now.getTime() - policy.windowMs);
+  const retentionCutoff = new Date(now.getTime() - policy.windowMs - policy.blockDurationMs);
+  const blockedUntil = new Date(now.getTime() + policy.blockDurationMs);
   const keys = [bucketKey("badge", normalizeLoginCode(badge)), bucketKey("ip", ipHash)];
 
   try {
@@ -94,7 +108,7 @@ export async function recordLoginFailure(badge: string, ipHash: string, now = ne
         ON DUPLICATE KEY UPDATE
           blocked_until = CASE
             WHEN window_started_at <= ${cutoff} THEN NULL
-            WHEN failures + 1 >= ${loginAttemptLimit} THEN ${blockedUntil}
+            WHEN failures + 1 >= ${policy.limit} THEN ${blockedUntil}
             ELSE blocked_until
           END,
           failures = CASE

@@ -21,15 +21,23 @@ import {
   maskLoginTestBadge,
   recordTestLoginFailure,
 } from "@/lib/login-test-mode";
+import { isDemoLoginEnabledForBadge, maskDemoBadge } from "@/lib/demo-mode";
+import { getLoginAttemptPolicy } from "@/lib/login-attempt-policy";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { createSecret, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
 
 const invalidCode = () => NextResponse.json({ error: "Código inválido." }, { status: 401 });
 const minInvalidResponseMs = 200;
 
-async function invalidCodeResponse(startedAt: number, badge: string, ipHash: string, localTestMode: boolean) {
+async function invalidCodeResponse(
+  startedAt: number,
+  badge: string,
+  ipHash: string,
+  localTestMode: boolean,
+  policy = getLoginAttemptPolicy(),
+) {
   if (localTestMode) recordTestLoginFailure(badge, ipHash);
-  else await recordLoginFailure(badge, ipHash);
+  else await recordLoginFailure(badge, ipHash, new Date(), policy);
   const remaining = minInvalidResponseMs - (Date.now() - startedAt);
   if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
   return invalidCode();
@@ -72,6 +80,8 @@ export async function POST(request: Request) {
     const badge = normalizeLoginCode(suppliedCode);
     const validCode = /^\d{4,10}$/.test(badge);
     const testMode = isTestLoginEnabledForBadge(badge);
+    const demoMode = !testMode && isDemoLoginEnabledForBadge(badge);
+    const attemptPolicy = getLoginAttemptPolicy(demoMode);
 
     const retryAfter = testMode
       ? getTestLoginBlockRetryAfter(badge, ipHash)
@@ -93,14 +103,19 @@ export async function POST(request: Request) {
         funcionario.papel !== PapelFuncionario.ALMOXARIFE &&
         funcionario.papel !== PapelFuncionario.OPERADOR)
     ) {
-      return invalidCodeResponse(startedAt, badge, ipHash, testMode);
+      return invalidCodeResponse(startedAt, badge, ipHash, testMode, attemptPolicy);
     }
 
-    if (testMode) {
-      clearTestLoginBadgeFailures(badge);
+    if (testMode || demoMode) {
+      if (testMode) clearTestLoginBadgeFailures(badge);
+      else await clearBadgeLoginFailures(badge);
       const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));
       if (!session) return invalidCode();
-      console.warn(`[LOGIN TESTE] Login de teste realizado para crachá ${maskLoginTestBadge(badge)}.`);
+      if (testMode) {
+        console.warn(`[LOGIN TESTE] Login de teste realizado para crachá ${maskLoginTestBadge(badge)}.`);
+      } else {
+        console.warn(`[LOGIN DEMO] Login de demonstração para crachá ${maskDemoBadge(badge)}.`);
+      }
       return session;
     }
 
@@ -137,10 +152,10 @@ export async function POST(request: Request) {
     if (funcionario.papel === PapelFuncionario.ALMOXARIFE) {
       const cookieStore = await cookies();
       const deviceToken = cookieStore.get(trustedDeviceCookieName)?.value;
-      if (!deviceToken) return invalidCodeResponse(startedAt, badge, ipHash, false);
+      if (!deviceToken) return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
 
       const device = await prisma.trustedDevice.findUnique({ where: { tokenHash: hashSecret(deviceToken) } });
-      if (!device || device.revogadoEm) return invalidCodeResponse(startedAt, badge, ipHash, false);
+      if (!device || device.revogadoEm) return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
       const employeeDevice = await prisma.webAuthnCredential.findMany({
         where: { funcionarioId: funcionario.id, trustedDeviceId: device.id, revogadoEm: null },
         select: { credentialId: true, transports: true },

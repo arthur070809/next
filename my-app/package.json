@@ -10,9 +10,12 @@
     "seed:admin": "tsx scripts/seed-admin.cjs",
     "seed:teste": "tsx scripts/seed-teste.ts",
     "seed:requisicao": "tsx scripts/seed-requisicao-teste.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "reset:demo": "tsx scripts/reset-demo.ts",
     "qr:etiqueta": "tsx scripts/gerar-qr-etiqueta.ts",
     "admin:reset-password": "tsx scripts/reset-admin-password.cjs",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/integration-tidb.test.ts",
+    "test:integration": "vitest run tests/integration-tidb.test.ts",
     "lint": "eslint"
   },
   "dependencies": {

@@ -1,6 +1,7 @@
 export type RequisicaoItemPayload = {
   itemId: string
   setor: "setor1" | "setor2" | "setor3"
+  itemNome?: string
   quantidade: number
   unidadeMedida: string
   descricao: string

@@ -6,12 +6,14 @@ vi.mock("@/lib/prisma", () => ({
     item: { count: vi.fn() },
     saldoEstoque: { count: vi.fn() },
     requisicao: { count: vi.fn() },
+    movimentacao: { aggregate: vi.fn() },
   },
 }));
 
 import { GET } from "./route";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { TipoMovimentacao } from "@/generated/prisma/client";
 
 describe("GET /api/almoxarifado/resumo", () => {
   beforeEach(() => {
@@ -22,6 +24,7 @@ describe("GET /api/almoxarifado/resumo", () => {
       .mockResolvedValueOnce(2) // materiaisSemEstoque
       .mockResolvedValueOnce(4); // itensComSobras
     vi.mocked(prisma.requisicao.count).mockResolvedValue(3);
+    vi.mocked(prisma.movimentacao.aggregate).mockResolvedValue({ _sum: { quantidade: 6 } } as never);
   });
 
   it("returns only aggregate counts from the authenticated database scope", async () => {
@@ -34,9 +37,17 @@ describe("GET /api/almoxarifado/resumo", () => {
         materiaisSemEstoque: 2,
         requisicoesPendentes: 3,
         itensComSobras: 4,
+        sobrasHoje: 6,
       },
     });
     expect(prisma.requisicao.count).toHaveBeenCalledWith({ where: { status: "PENDENTE" } });
+    expect(prisma.movimentacao.aggregate).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        tipo: TipoMovimentacao.ENTRADA,
+        saldoEstoque: { local: { slug: "deposito" } },
+      }),
+      _sum: { quantidade: true },
+    }));
   });
 
   it("returns 401 without a session and does not query data", async () => {

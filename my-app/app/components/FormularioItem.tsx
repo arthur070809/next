@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import PriorityBadge from "./PriorityBadge";
 
-type CatalogItem = { id: string; nome: string; unidade: string; quantidade: number; quantidadeDeposito: number };
+type CatalogItem = {
+  id: string;
+  nome: string;
+  unidade: string;
+  quantidade: number;
+  reservada: number;
+  disponivel: number;
+  quantidadeDeposito: number;
+};
 export type ItemFormData = {
   itemId: string;
   itemNome: string;
@@ -53,10 +61,10 @@ export default function FormularioItem({
   const selectedItem = catalogItems.find((item) => item.id === form.itemId);
   const quantity = Number(form.quantidade);
   const validQuantity = Number.isSafeInteger(quantity) && quantity > 0;
-  const previewOrigin = selectedItem && validQuantity
-    ? selectedItem.quantidadeDeposito >= quantity ? "DEPOSITO" : "ESTOQUE"
+  const previewOrigin = selectedItem && validQuantity && selectedItem.disponivel >= quantity
+    ? "ESTOQUE"
     : null;
-  const remainingDepositWarning = selectedItem && validQuantity && selectedItem.quantidadeDeposito > 0 && selectedItem.quantidadeDeposito < quantity;
+  const insufficientFreeStock = selectedItem && validQuantity && selectedItem.disponivel < quantity;
   const isValid = Boolean(form.itemId && validQuantity && form.descricao.trim());
 
   function update<K extends keyof ItemFormData>(key: K, value: ItemFormData[K]) {
@@ -82,9 +90,12 @@ export default function FormularioItem({
         setForm((current) => ({ ...current, itemId: item?.id ?? "", itemNome: item?.nome ?? "", unidadeMedida: item?.unidade ?? "un", saldoDepositoPrevio: item?.quantidadeDeposito ?? 0, saldoEstoquePrevio: item?.quantidade ?? 0 }));
       }} className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
         <option value="">Escolha um item...</option>
-        {catalogItems.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.quantidade} {item.unidade}</option>)}
+        {catalogItems.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.disponivel} livre · {item.reservada} reservado</option>)}
       </select>
       {catalogError && <p role="alert" className="mt-1 text-xs text-red-600">{catalogError}</p>}
+      {selectedItem && <p className="mt-1 text-xs text-slate-600">
+        Estoque físico: {selectedItem.quantidade} {selectedItem.unidade} · Reservado: {selectedItem.reservada} · Livre: {selectedItem.disponivel}
+      </p>}
     </div>
 
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -100,10 +111,10 @@ export default function FormularioItem({
     <label className="block text-sm font-medium text-slate-800">Descrição / Motivo<textarea value={form.descricao} onChange={(event) => update("descricao", event.target.value)} rows={3} className="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
 
     <div aria-live="polite" className="min-h-12 rounded-lg bg-slate-50 px-3 py-2 text-sm">
-      {previewOrigin === "DEPOSITO" && <p className="font-medium text-emerald-800">Será atendido pelo depósito.</p>}
       {previewOrigin === "ESTOQUE" && <p className="font-medium text-slate-700">Será atendido pelo estoque.</p>}
-      {remainingDepositWarning && <p className="mt-1 text-amber-800">Depósito tem {selectedItem.quantidadeDeposito} (insuficiente para este pedido).</p>}
-      {!previewOrigin && <p className="text-slate-500">Escolha item e quantidade para ver a prévia.</p>}
+      {insufficientFreeStock && <p className="mt-1 text-amber-800">Saldo livre insuficiente: {selectedItem.disponivel} disponível, {quantity} solicitado.</p>}
+      {!selectedItem && <p className="text-slate-500">Escolha um item para ver o saldo livre.</p>}
+      {selectedItem && !validQuantity && <p className="text-slate-500">Informe uma quantidade inteira positiva.</p>}
     </div>
     <div className="flex gap-3"><button type="submit" disabled={!isValid} className="min-h-11 flex-1 rounded-lg bg-royal py-3 text-white disabled:opacity-50">Adicionar item</button><button type="button" onClick={() => setForm(emptyForm)} className="min-h-11 flex-1 rounded-lg border border-slate-300 py-3">Limpar</button></div>
   </form>;

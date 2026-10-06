@@ -69,6 +69,26 @@ const mockCreatedItem = {
   saldos: [{ quantidade: 500, reservada: 0, local: { slug: "estoque" } }],
 };
 
+describe("GET /api/estoque", () => {
+  it("returns the existing reorder point with the central balance", async () => {
+    vi.mocked(prisma.item.findMany).mockResolvedValue([{
+      ...mockCreatedItem,
+      pontoPedido: 7,
+      saldos: [{ quantidade: 7, reservada: 2, local: { slug: "estoque" } }],
+    }] as never);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.itens[0]).toMatchObject({
+      quantidade: 7,
+      disponivel: 5,
+      pontoPedido: 7,
+    });
+  });
+});
+
 describe("POST /api/estoque", () => {
   beforeEach(() => {
     vi.restoreAllMocks();

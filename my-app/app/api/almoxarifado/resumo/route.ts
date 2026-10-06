@@ -2,14 +2,23 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { StatusRequisicao } from "@/generated/prisma/client";
+import { StatusRequisicao, TipoMovimentacao } from "@/generated/prisma/client";
 
 export async function GET() {
   const funcionario = await getAuthenticatedFuncionario();
   if (!funcionario) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const [materiaisAtivos, materiaisSemEstoque, requisicoesPendentes, itensComSobras] = await Promise.all([
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+    const inicioHoje = new Date(`${today}T03:00:00.000Z`);
+    const amanha = new Date(inicioHoje);
+    amanha.setUTCDate(amanha.getUTCDate() + 1);
+    const [materiaisAtivos, materiaisSemEstoque, requisicoesPendentes, itensComSobras, sobrasHoje] = await Promise.all([
       prisma.item.count({ where: { ativo: true } }),
       prisma.saldoEstoque.count({
         where: {
@@ -27,6 +36,14 @@ export async function GET() {
           quantidade: { gt: 0 },
         },
       }),
+      prisma.movimentacao.aggregate({
+        where: {
+          tipo: TipoMovimentacao.ENTRADA,
+          saldoEstoque: { local: { slug: "deposito" } },
+          criadoEm: { gte: inicioHoje, lt: amanha },
+        },
+        _sum: { quantidade: true },
+      }),
     ]);
 
     return NextResponse.json({
@@ -35,6 +52,7 @@ export async function GET() {
         materiaisSemEstoque,
         requisicoesPendentes,
         itensComSobras,
+        sobrasHoje: sobrasHoje._sum.quantidade ?? 0,
       },
     });
   } catch (error) {

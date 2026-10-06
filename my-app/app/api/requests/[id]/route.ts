@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { decodeItemDescription, stripIdempotencyMetadata } from "@/lib/requisition-metadata";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -23,7 +24,20 @@ export async function GET(_request: Request, { params }: RouteContext) {
       },
     });
     if (!requisicao) return NextResponse.json({ error: "Requisição não encontrada." }, { status: 404 });
-    return NextResponse.json({ requisicao });
+    return NextResponse.json({
+      requisicao: {
+        ...requisicao,
+        observacao: stripIdempotencyMetadata(requisicao.observacao),
+        itens: requisicao.itens.map((item) => {
+          const metadata = decodeItemDescription(item.descricao);
+          return {
+            ...item,
+            descricao: metadata.descricao,
+            setor: metadata.setor,
+          };
+        }),
+      },
+    });
   } catch (error) {
     const errorId = randomUUID();
     console.error("Falha ao consultar requisição", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });

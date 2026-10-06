@@ -3,9 +3,8 @@ import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { isSameOrigin } from "@/lib/security";
 import { prisma } from "@/lib/prisma";
 import {
+  finalizarItemComQuantidade,
   liberarReserva,
-  separarItem,
-  naoSepararItem,
 } from "@/lib/requisicoes-db";
 import { localizarItemDaEtiqueta } from "@/lib/qr/localizarItem";
 import { normalizarCodigoEtiqueta, parseEtiqueta } from "@/lib/qr/parseEtiqueta";
@@ -16,7 +15,12 @@ import {
   StatusItemRequisicao,
 } from "@/generated/prisma/client";
 
-type CompletionItem = { id: string; separado: boolean; motivo?: string };
+type MotivoDivergencia = "FALTOU" | "EXCEDEU_LOTE_MINIMO" | "AVARIA";
+type CompletionItem = {
+  id: string;
+  quantidadeSeparada: number;
+  motivo?: MotivoDivergencia;
+};
 type ActionBody = {
   action?: string;
   codigoCracha?: string;
@@ -78,6 +82,8 @@ export async function GET(_request: Request, { params }: RouteContext) {
         criadoEm: requisicao.criadoEm,
         solicitante: requisicao.solicitante.nome,
         atendente: requisicao.atendente?.nome ?? null,
+        atendenteId: requisicao.atendente?.id ?? null,
+        podeFinalizar: requisicao.atendente?.id === funcionario.id,
         itens: requisicao.itens.map((item) => ({
           id: item.id,
           itemId: item.item.id,
@@ -106,10 +112,22 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (!rawNumero) return badRequest("Número da requisição inválido.");
     const numeroPedido = decodeURIComponent(rawNumero);
 
-    const body = (await request.json()) as ActionBody;
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return badRequest("Corpo JSON inválido.");
+    }
+    if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
+      return badRequest("Corpo da requisição inválido.");
+    }
+    const body = rawBody as ActionBody;
     const action = body.action;
     if (!["assumir", "devolver", "anular", "finalizar", "conferir-item"].includes(action ?? "")) {
       return badRequest("Ação inválida.");
+    }
+    if (action === "finalizar" && !Array.isArray(body.itens)) {
+      return badRequest("Informe os itens da requisição.");
     }
     if (
       action !== "conferir-item" &&
@@ -140,7 +158,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         if (!requisicao) return badRequest("Requisição não encontrada.", 404);
         if (
           requisicao.status !== StatusRequisicao.ASSUMIDA ||
-          (actor.papel !== PapelFuncionario.ADMIN && requisicao.atendenteId !== actor.id)
+          requisicao.atendenteId !== actor.id
         ) return badRequest("A requisição não está em atendimento por este usuário.", 409);
 
         const codigoNormalizado = normalizarCodigoEtiqueta(parsed.codigo);
@@ -229,11 +247,15 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const badge = body.codigoCracha?.trim();
 
-    if (!badge) return badRequest("Informe o código do crachá.");
+    if (!badge && action !== "finalizar") return badRequest("Informe o código do crachá.");
     if (action === "assumir") {
       const claim = await prisma.$transaction(async (tx) => {
         const actor = await tx.funcionario.findFirst({
-          where: { cracha: badge, ativo: true },
+          where: {
+            id: sessaoFuncionario.id,
+            ativo: true,
+            ...(badge ? { cracha: badge } : {}),
+          },
           select: { id: true, nome: true, papel: true },
         });
         if (
@@ -307,7 +329,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       // 1. Busca requisição com lock implícito na transação
       const requisicao = await tx.requisicao.findUnique({
         where: { numeroPedido },
-        include: { itens: true },
+        include: { itens: { include: { item: { select: { nome: true } } } } },
       });
 
       if (!requisicao) {
@@ -316,7 +338,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
       // 2. Busca e valida o funcionário pelo crachá
       const actor = await tx.funcionario.findFirst({
-        where: { cracha: badge, ativo: true },
+        where: { cracha: badge, ativo: true, id: sessaoFuncionario.id },
       });
 
       if (
@@ -325,6 +347,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           actor.papel !== PapelFuncionario.ADMIN)
       ) {
         return badRequest("Crachá não cadastrado como almoxarife ativo.", 403);
+      }
+      if (action === "finalizar" && requisicao.atendenteId !== actor.id) {
+        return badRequest("Somente quem assumiu a requisição pode finalizá-la.", 403);
       }
 
       // 3. Valida transições de status
@@ -402,36 +427,70 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         // action === "finalizar"
         const outcomes = body.itens ?? [];
         const dbItems = requisicao.itens;
-        const itemIds = new Set(outcomes.map((item) => String(item.id)));
+        if (
+          !Array.isArray(outcomes) ||
+          outcomes.some((item) =>
+            !item ||
+            typeof item !== "object" ||
+            typeof item.id !== "string" ||
+            !Number.isSafeInteger(item.quantidadeSeparada) ||
+            item.quantidadeSeparada < 0 ||
+            item.quantidadeSeparada > 2_147_483_647
+          )
+        ) {
+          return badRequest("Informe uma quantidade inteira válida para cada item da requisição.");
+        }
+        const itemIds = new Set(outcomes.map((item) => item.id));
 
         if (
           outcomes.length !== dbItems.length ||
-          dbItems.some((item) => !itemIds.has(String(item.id))) ||
-          outcomes.some((item) => !item.separado && !item.motivo?.trim())
+          itemIds.size !== outcomes.length ||
+          dbItems.some((item) => !itemIds.has(item.id))
         ) {
-          return badRequest(
-            "Informe se cada item foi separado; os itens não separados precisam de um motivo."
-          );
+          return badRequest("Informe uma quantidade inteira válida para cada item da requisição.");
         }
 
-        // Processa cada item com regra atômica de estoque
+        const summaryItems: Array<{
+          id: string;
+          nome: string;
+          quantidadePedida: number;
+          quantidadeSeparada: number;
+          unidadeMedida: string;
+          motivo: MotivoDivergencia | null;
+        }> = [];
+        const movements: Array<{ id: string; tipo: string; quantidade: number; unidadeMedida: string }> = [];
         for (const itemOutcome of outcomes) {
-          if (itemOutcome.separado) {
-            // Baixa real do estoque (quantidade -= q, reservada -= q) + movimentação SAIDA
-            await separarItem({
-              requisicaoItemId: String(itemOutcome.id),
-              funcionarioId: actor.id,
-              tx,
-            });
-          } else {
-            // Libera reserva (reservada -= q) + movimentação LIBERACAO_RESERVA
-            await naoSepararItem({
-              requisicaoItemId: String(itemOutcome.id),
-              motivo: itemOutcome.motivo!.trim(),
-              funcionarioId: actor.id,
-              tx,
-            });
+          const requisitionItem = dbItems.find((item) => item.id === itemOutcome.id)!;
+          const quantity = itemOutcome.quantidadeSeparada;
+          const motive = itemOutcome.motivo;
+          const validMotive = motive === "FALTOU" || motive === "EXCEDEU_LOTE_MINIMO" || motive === "AVARIA";
+          if (
+            quantity !== requisitionItem.quantidade &&
+            (!validMotive ||
+              (quantity < requisitionItem.quantidade && motive === "EXCEDEU_LOTE_MINIMO") ||
+              (quantity > requisitionItem.quantidade && motive !== "EXCEDEU_LOTE_MINIMO"))
+          ) {
+            return badRequest("Selecione um motivo válido para a divergência.");
           }
+          const result = await finalizarItemComQuantidade({
+            requisicaoItemId: requisitionItem.id,
+            quantidadeSeparada: quantity,
+            motivo: validMotive ? motive : undefined,
+            funcionarioId: actor.id,
+            tx,
+          });
+          summaryItems.push({
+            id: requisitionItem.id,
+            nome: requisitionItem.item?.nome ?? "Item",
+            quantidadePedida: result.quantidadePedida,
+            quantidadeSeparada: result.quantidadeSeparada,
+            unidadeMedida: requisitionItem.unidadeMedida,
+            motivo: result.motivo as MotivoDivergencia | null,
+          });
+          movements.push({
+            ...result.movimentacao,
+            unidadeMedida: requisitionItem.unidadeMedida,
+          });
         }
 
         await tx.requisicao.update({
@@ -451,12 +510,22 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           },
         });
 
-        return NextResponse.json({ message: "Requisição finalizada." });
+        return NextResponse.json({
+          message: "Requisição finalizada.",
+          resumo: {
+            numeroPedido,
+            itens: summaryItems,
+            movimentacoes: movements,
+          },
+        });
       }
 
       return NextResponse.json({ message: "Ação registrada.", evento: event });
     });
   } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "SALDO_INSUFICIENTE") {
+      return badRequest(error instanceof Error ? error.message : "Saldo insuficiente para finalizar.", 409);
+    }
     console.error("Falha ao alterar requisição:", error instanceof Error ? error.message : "erro");
     return badRequest("Não foi possível registrar a ação.", 500);
   }

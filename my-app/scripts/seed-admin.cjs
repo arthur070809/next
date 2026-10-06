@@ -1,7 +1,7 @@
 /**
  * Cria ou atualiza a conta do Administrador real do sistema.
  * Uso:
- *   ADMIN_LOGIN="admin" ADMIN_PASSWORD="sua-senha-forte" npm run seed:admin
+ *   ADMIN_LOGIN="admin" ADMIN_PASSWORD="sua-senha-forte" npm run seed:admin -- --yes
  */
 const { config } = require("dotenv");
 config({ path: ".env.local" });
@@ -10,6 +10,7 @@ config({ path: ".env" });
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("../generated/prisma/client");
 const { PrismaMariaDb } = require("@prisma/adapter-mariadb");
+const { assertSafeDemoScript } = require("./demo-script-safety.cjs");
 
 const mariadb = require("mariadb");
 
@@ -33,6 +34,8 @@ function getPrismaClient() {
 }
 
 async function main() {
+  assertSafeDemoScript(process.argv.slice(2));
+  console.log("Ação: criar/atualizar a conta administrativa indicada pelas variáveis ADMIN_LOGIN e ADMIN_PASSWORD.");
   const { ADMIN_LOGIN, ADMIN_PASSWORD } = process.env;
   if (!ADMIN_LOGIN || !ADMIN_PASSWORD) {
     throw new Error(
