@@ -13,6 +13,7 @@
     "seed:demo": "tsx scripts/seed-demo.ts",
     "reset:demo": "tsx scripts/reset-demo.ts",
     "qr:etiqueta": "tsx scripts/gerar-qr-etiqueta.ts",
+    "qr:demo": "tsx scripts/gerar-qr-demo.ts",
     "admin:reset-password": "tsx scripts/reset-admin-password.cjs",
     "test": "vitest run --exclude tests/integration-tidb.test.ts",
     "test:integration": "vitest run tests/integration-tidb.test.ts",
