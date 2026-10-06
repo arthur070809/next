@@ -5,6 +5,7 @@ import type {
   ClasseRessuprimento,
   SugestaoRessuprimento,
 } from "@/lib/ressuprimento/analise";
+import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
 
 const classes: Array<{ value: ClasseRessuprimento | "TODAS"; label: string }> = [
   { value: "TODAS", label: "Todas as classes" },
@@ -53,7 +54,7 @@ export default function RessuprimentoTabela({
     .filter((item) => classeFiltro === "TODAS" || item.classe === classeFiltro)
     .sort(compararCobertura), [sugestoes, classeFiltro]);
   const itensNoPonto = useMemo(() => sugestoes
-    .filter((item) => item.estoque <= item.pontoAtual)
+    .filter((item) => isAtOrBelowReorderPoint(item.estoque, item.pontoAtual))
     .sort((a, b) => a.estoque - b.estoque || a.nome.localeCompare(b.nome)), [sugestoes]);
   const maxCobertura = Math.max(
     1,
@@ -143,7 +144,7 @@ export default function RessuprimentoTabela({
             <td className="px-4 py-3">{item.estoque}</td>
             <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
             <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>
-            <td className="px-4 py-3">{item.pontoAtual}</td>
+            <td className="px-4 py-3">{item.pontoAtual ?? "Não definido"}</td>
             <td className="px-4 py-3">{item.pontoSugerido ?? "Sem dados"}</td>
             <td className="px-4 py-3">
               <span className="inline-block rounded-md border border-slate-300 px-2 py-1" style={{ borderLeftColor: classeCor[item.classe], borderLeftWidth: 4 }}>

@@ -2,8 +2,17 @@ export const STOCK_STATUSES = ["SEM_ESTOQUE", "CRITICO", "REPOR", "DISPONIVEL"] 
 
 export type StockStatus = (typeof STOCK_STATUSES)[number];
 
-export function isAtOrBelowReorderPoint(quantidade: number, pontoPedido: number): boolean {
-  return quantidade <= pontoPedido;
+export function freeStock(quantidade: number, reservada: number): number {
+  return Math.max(0, quantidade - reservada);
+}
+
+export function isAtOrBelowReorderPoint(
+  quantidade: number,
+  pontoPedido: number | null | undefined,
+  reservada = 0,
+): boolean {
+  if (pontoPedido === null || pontoPedido === undefined || pontoPedido <= 0) return false;
+  return freeStock(quantidade, reservada) <= pontoPedido;
 }
 
 export function getStockStatus(quantidade: number, estoqueSeguranca: number, pontoPedido: number): StockStatus {

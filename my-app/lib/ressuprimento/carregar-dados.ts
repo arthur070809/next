@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
+import { freeStock } from "@/lib/stock-status";
 import {
   historicoRealSuficiente,
   JANELA_CONSUMO_PADRAO_DIAS,
@@ -68,7 +69,7 @@ export async function carregarDadosRessuprimento(hoje: Date): Promise<ResultadoD
       : "Dados simulados";
     const sugestoes = itens.map((item) => {
       const estoqueLivre = item.saldos.reduce(
-        (total, saldo) => total + Math.max(0, saldo.quantidade - saldo.reservada),
+        (total, saldo) => total + freeStock(saldo.quantidade, saldo.reservada),
         0,
       );
       const movimentosSaida = fonte === "Dados reais"

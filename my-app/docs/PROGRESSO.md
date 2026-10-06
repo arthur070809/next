@@ -15,6 +15,10 @@ Atualizado durante a revisão funcional do almoxarifado, QR e cadastro facial. N
 | Revisão e riscos | Disponíveis nos relatórios dedicados; viewport e câmera física seguem não verificados. | `docs/STATUS_ALMOXARIFADO.md`, `docs/RISCOS_ALMOXARIFADO.md`, `docs/DIAGNOSTICO_QR_FACIAL.md` |
 | O1 — descrição obrigatória para prioridade | Feita e testada: API rejeita prioridade vazia/com espaços antes da criação; pedido normal segue aceito sem descrição. | `app/api/requests/route.test.ts` |
 | O2 — minhas requisições | Feita e testada: corrigidos IDOR no detalhe e corte silencioso em 100; lista paginada, ordem determinística e labels de status centralizadas/exaustivas. Suíte: 81 arquivos/367 testes, tsc/lint verdes. | `app/api/minhas-requisicoes/route.ts`, `app/api/requests/[id]/route.ts`, `lib/requisition-status.ts` |
+| R1 — ressuprimento | Corrigido: dashboard, lista e ressuprimento agora usam saldo livre e o mesmo critério inclusivo. Ponto zero/nulo não é considerado configurado. | `lib/stock-status.ts`, `lib/ressuprimento/carregar-dados.ts` |
+| E1 — layout de estoque | Confirmado por CSS/código; viewport/captura não disponível, portanto 360/768/1440 não verificado em dispositivo. | `app/estoque/stock-list.module.css`, `app/estoque/page.tsx` |
+| E2 — QR no estoque | Scanner e fluxo conhecido/desconhecido permanecem na rota existente; entrada retry-idempotente segue bloqueada: `/api/estoque` não suporta idempotency key e mudar transação/schema está proibido. | `app/estoque/page.tsx`, `app/api/estoque/route.ts`, `lib/qr/localizarEstoqueItem.ts` |
+| O3 — fechamento/retorno do operador | Implementado best-effort com cookie de sessão existente, carência 60s, retorno/visibility e exclusão do scanner; limitação de eventos móveis documentada. | `app/components/PortalShell.tsx`, `lib/operator-session-lifecycle.ts` |
 
 ## Validação desta revisão
 

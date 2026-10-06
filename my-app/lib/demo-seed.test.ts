@@ -32,11 +32,10 @@ describe("demo data fixture", () => {
     ]);
   });
 
-  it("uses multiple stock locations, three near-reorder balances, and no implied lot minimum", () => {
+  it("uses multiple stock locations and exactly three central balances at or below reorder point", () => {
     expect(demoCatalog.every((item) => item.central >= 0 && item.importados >= 0)).toBe(true);
     expect(demoCatalog.filter((item) =>
-      item.central + item.importados >= item.pontoPedido &&
-      item.central + item.importados <= item.pontoPedido + 1,
+      item.central <= item.pontoPedido,
     ).map(({ codigo }) => codigo)).toEqual(["7988", "17940", "5746"]);
   });
 

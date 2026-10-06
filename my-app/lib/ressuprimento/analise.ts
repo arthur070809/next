@@ -18,7 +18,7 @@ export interface ItemRessuprimentoInput {
   nome: string;
   categoria?: string;
   estoque: number;
-  pontoAtual: number;
+  pontoAtual: number | null | undefined;
   movimentosSaida: readonly MovimentoHistoricoRessuprimento[];
 }
 
@@ -29,7 +29,7 @@ export interface SugestaoRessuprimento {
   estoque: number;
   consumoDiario: number | null;
   diasCobertura: number | null;
-  pontoAtual: number;
+  pontoAtual: number | null;
   pontoSugerido: number | null;
   classe: ClasseRessuprimento;
   confianca: ConfiancaRessuprimento;
@@ -145,7 +145,10 @@ export function sugestao(
   hoje = new Date(),
 ): SugestaoRessuprimento {
   inteiroNaoNegativo(item.estoque, "estoque");
-  inteiroNaoNegativo(item.pontoAtual, "pontoAtual");
+  const pontoAtual = item.pontoAtual === null || item.pontoAtual === undefined
+    ? null
+    : item.pontoAtual;
+  if (pontoAtual !== null) inteiroNaoNegativo(pontoAtual, "pontoAtual");
   const consumoDiario = consumoMedioDiario(item.movimentosSaida, JANELA_CONSUMO_PADRAO_DIAS, hoje);
   const cobertura = diasDeCobertura(item.estoque, consumoDiario);
   const movimentos = movimentosValidos(item.movimentosSaida, hoje, JANELA_CONSUMO_PADRAO_DIAS);
@@ -165,7 +168,7 @@ export function sugestao(
     estoque: item.estoque,
     consumoDiario,
     diasCobertura: Number.isFinite(cobertura) ? cobertura : Number.POSITIVE_INFINITY,
-    pontoAtual: item.pontoAtual,
+    pontoAtual,
     pontoSugerido: pontoSugerido(consumoDiario, prazoDias, margemDias),
     classe: classificar(consumoDiario === null ? null : cobertura, prazoDias),
     confianca,
