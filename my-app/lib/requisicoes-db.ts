@@ -78,6 +78,7 @@ export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
     itens: req.itens.map((ri) => ({
       id: ri.id,
       nome: ri.item?.nome ?? "Item",
+      descricao: decodeItemDescription(ri.descricao).descricao,
       quantidade: ri.quantidade,
       unidadeMedida: ri.unidadeMedida,
       setor: decodeItemDescription(ri.descricao).setor ?? undefined,

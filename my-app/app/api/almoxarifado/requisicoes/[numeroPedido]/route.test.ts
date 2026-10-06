@@ -10,11 +10,11 @@ vi.mock("@/lib/prisma", () => ({
     requisicaoItem: { updateMany: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     saldoEstoque: { findUnique: vi.fn() },
     movimentacao: { create: vi.fn() },
-    auditoria: { create: vi.fn() },
+    auditoria: { create: vi.fn(), findMany: vi.fn() },
   },
 }));
 
-import { PATCH } from "./route";
+import { GET, PATCH } from "./route";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -86,6 +86,41 @@ describe("atomic request claiming", () => {
       quantidade: 3,
     } as never);
     vi.mocked(prisma.requisicao.findUnique).mockResolvedValue(null as never);
+  });
+
+  describe("checklist request details", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(getAuthenticatedFuncionario).mockResolvedValue(stockkeeper as never);
+      vi.mocked(prisma.requisicao.findUnique).mockResolvedValue({
+        numeroPedido: "REQ-1",
+        status: StatusRequisicao.ASSUMIDA,
+        prioridade: "PRIORITARIO",
+        criadoEm: new Date("2026-10-01T12:00:00Z"),
+        solicitante: { nome: "Operador" },
+        atendente: { id: stockkeeper.id, nome: "Almoxarife" },
+        itens: [{
+          id: "req-item-1",
+          itemId: "item-1",
+          unidadeMedida: "UN",
+          quantidade: 2,
+          descricao: "[[setor:v1:setor2]]\nMontagem na linha",
+          status: StatusItemRequisicao.ASSUMIDO,
+          item: { id: "item-1", nome: "Arruela", codigo: "129", unidade: "UN" },
+        }],
+      } as never);
+      vi.mocked(prisma.auditoria.findMany).mockResolvedValue([] as never);
+    });
+
+    it("returns decoded item description without metadata markers", async () => {
+      const response = await GET(new Request("http://localhost"), context());
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.requisicao.itens[0].descricao).toBe("Montagem na linha");
+      expect(body.requisicao.itens[0].setor).toBe("setor2");
+      expect(JSON.stringify(body)).not.toContain("[[setor:");
+    });
   });
 
   it("claims a pending request through a conditional status update", async () => {

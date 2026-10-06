@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { stripIdempotencyMetadata } from "@/lib/requisition-metadata";
+import { decodeItemDescription, stripIdempotencyMetadata } from "@/lib/requisition-metadata";
 import { filterHistoricoEvents, paginateHistoricoEvents } from "@/lib/historico-filters";
 import type { EventoHistorico } from "@/lib/types/almoxarifado";
 import { PapelFuncionario } from "@/generated/prisma/client";
@@ -98,6 +98,7 @@ export async function GET(request: Request) {
       const products = req.itens.map((item) => ({
         codigo: item.item.codigo,
         nome: item.item.nome,
+        descricao: decodeItemDescription(item.descricao).descricao || undefined,
         quantidadePedida: item.quantidade,
         quantidadeSeparada: item.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0),
         motivo: item.motivoNaoAtendido ?? undefined,
@@ -111,6 +112,7 @@ export async function GET(request: Request) {
         codigoCracha: actor.cracha,
         funcionarioId: actor.id,
         funcionarioNome: actor.nome,
+        prioridade: req.prioridade === "PRIORITARIO" ? "prioridade" as const : "padrao" as const,
         produtos: products,
       };
 

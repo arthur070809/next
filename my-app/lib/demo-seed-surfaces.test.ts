@@ -17,7 +17,7 @@ describe("public queue representation of seeded requests", () => {
       assumidaEm: null,
       anuladaEm: null,
       itens: [{
-        descricao: encodeItemDescription(undefined, "setor2"),
+        descricao: encodeItemDescription("Uso na montagem", "setor2"),
         local: { slug: "estoque" },
         quantidade: 1,
         unidadeMedida: "UN",
@@ -29,6 +29,8 @@ describe("public queue representation of seeded requests", () => {
 
     expect(publicRequest.setor).toBe("setor2");
     expect(publicRequest.itens?.[0].setor).toBe("setor2");
+    expect(publicRequest.descricao).toBe("Uso na montagem");
+    expect(publicRequest.itens?.[0].descricao).toBe("Uso na montagem");
     expect(JSON.stringify(publicRequest)).not.toContain("[[setor:");
     expect(JSON.stringify(publicRequest)).not.toContain("[[idem:");
   });

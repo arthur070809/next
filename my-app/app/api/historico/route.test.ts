@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { stripIdempotencyMetadata } from "@/lib/requisition-metadata";
 import { getDemoSeedRequestObservation } from "@/lib/demo-seed";
+import { encodeItemDescription } from "@/lib/requisition-metadata";
 
 function request(query = "") {
   return new Request(`http://localhost/api/historico${query}`);
@@ -29,6 +30,7 @@ const closedRequest = {
   atendente: { id: 2, nome: "Demo Almoxarife", cracha: "2222" },
   itens: [{
     quantidade: 2,
+    descricao: encodeItemDescription("Montagem na linha", "setor2"),
     separado: false,
     motivoNaoAtendido: null,
     item: { codigo: "7988", nome: "GARFO GGMX 62" },
@@ -69,7 +71,7 @@ describe("GET /api/historico", () => {
       evento: "cancelada",
       funcionarioId: 2,
       funcionarioNome: "Demo Almoxarife",
-      produtos: [{ codigo: "7988", nome: "GARFO GGMX 62" }],
+      produtos: [{ codigo: "7988", nome: "GARFO GGMX 62", descricao: "Montagem na linha" }],
     });
     expect(JSON.stringify(body)).not.toContain("[[idem:");
     expect(body.eventos[0].descricaoMotivo).not.toBe(stripIdempotencyMetadata(closedRequest.observacao));
