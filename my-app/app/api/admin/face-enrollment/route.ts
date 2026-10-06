@@ -67,6 +67,13 @@ export async function POST(request: Request) {
         if (failure.count >= faceEnrollmentAttemptLimit) {
           return apiError(429, "FACE_ENROLLMENT_RATE_LIMITED", "Muitas tentativas. Aguarde e tente novamente.", undefined, { "Retry-After": String(failure.retryAfterSeconds) });
         }
+        if (error.code === "FACE_INCONSISTENT_SAMPLES") {
+          return NextResponse.json({
+            error: error.message,
+            code: error.code,
+            consistency: { source: "servico-facial" },
+          }, { status: 422 });
+        }
         return apiError(422, error.code, error.message);
       }
       throw error;
@@ -78,6 +85,7 @@ export async function POST(request: Request) {
         error: failure.count >= faceEnrollmentAttemptLimit ? "Muitas tentativas. Aguarde e tente novamente." : "As capturas ficaram diferentes. Tente novamente.",
         code: failure.count >= faceEnrollmentAttemptLimit ? "FACE_ENROLLMENT_RATE_LIMITED" : "FACE_INCONSISTENT_SAMPLES",
         consistency: {
+          source: "comparacao-local-com-mediana",
           threshold: faceEnrollmentConsistencyDistance,
           distances: consistency.distances.filter(Number.isFinite),
           discardedOutlier: false,

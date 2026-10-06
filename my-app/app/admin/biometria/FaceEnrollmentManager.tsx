@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
+import { faceCaptureQuality } from "@/lib/facial/config";
+import { inspectFaceCount } from "@/lib/facial/face-count";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import styles from "./face-enrollment.module.css";
 
 type Employee = { id: number; nome: string; cracha: string; enrolled: boolean };
 type Session = { id: string; token: string; expiraEm: string };
 type Stage = "front" | "left" | "right" | "blink" | "success" | "failed";
-type EnrollmentDiagnostics = { threshold?: number; distances?: number[]; discardedOutlier?: boolean; descriptorError?: string };
+type EnrollmentDiagnostics = { source?: string; threshold?: number; distances?: number[]; discardedOutlier?: boolean; descriptorError?: string };
 class EnrollmentResponseError extends Error {
   constructor(message: string, readonly code: string, readonly diagnostics?: EnrollmentDiagnostics) {
     super(message);
@@ -17,16 +19,6 @@ class EnrollmentResponseError extends Error {
 
 type FaceResult = { mesh?: Array<Array<number | undefined>>; boxRaw: [number, number, number, number]; score?: number; boxScore?: number; annotations?: Record<string, Array<Array<number | undefined>>>; rotation?: { angle: { roll: number; yaw: number; pitch: number } } | null };
 type HumanDetector = { detect(input: HTMLVideoElement): Promise<{ face?: FaceResult[] }> };
-const BRIGHTNESS_MIN = 42;
-const BRIGHTNESS_MAX = 218;
-const SHARPNESS_MIN = 16;
-const FACE_SIZE_MIN = 0.22;
-const FACE_SIZE_MAX = 0.72;
-const YAW_LIMIT = 15;
-const PITCH_LIMIT = 15;
-const ROLL_LIMIT = 12;
-const STABLE_MS = 1000;
-
 function eyesAreOpen(face: FaceResult) {
   const left = face.annotations?.leftEye ?? [];
   const right = face.annotations?.rightEye ?? [];
@@ -35,11 +27,13 @@ function eyesAreOpen(face: FaceResult) {
     const xs = eye.map((point) => point[0] ?? 0); const ys = eye.map((point) => point[1] ?? 0);
     return (Math.max(...ys) - Math.min(...ys)) / Math.max(1, Math.max(...xs) - Math.min(...xs));
   };
-  return ratio(left) > 0.12 && ratio(right) > 0.12;
+  return ratio(left) > faceCaptureQuality.eyeAspectRatioMin && ratio(right) > faceCaptureQuality.eyeAspectRatioMin;
 }
 
 function inspectLight(video: HTMLVideoElement) {
-  const canvas = document.createElement("canvas"); canvas.width = 96; canvas.height = 72;
+  const canvas = document.createElement("canvas");
+  canvas.width = faceCaptureQuality.lightSampleWidth;
+  canvas.height = faceCaptureQuality.lightSampleHeight;
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) return { brightness: 0, sharpness: 0 };
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -110,7 +104,7 @@ export default function FaceEnrollmentManager() {
       const loadBrowserModule = new Function("url", "return import(url)") as (url: string) => Promise<{ default: new (config: Record<string, unknown>) => HumanDetector & { load(): Promise<void>; warmup(): Promise<void> } }>;
       const { default: Human } = await loadBrowserModule("https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/dist/human.esm.js");
       const modelBasePath = "https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/";
-      const config = { modelBasePath, cacheModels: true, debug: false, face: { detector: { maxDetected: 2, minConfidence: 0.6, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } };
+      const config = { modelBasePath, cacheModels: true, debug: false, face: { detector: { maxDetected: faceCaptureQuality.detectorMaxFaces, minConfidence: faceCaptureQuality.detectorMinConfidence, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } };
       let human = new Human({ ...config, backend: "webgl" });
       try {
         await human.load();
@@ -195,7 +189,7 @@ export default function FaceEnrollmentManager() {
       const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: true, consentAt: new Date().toISOString(), samples: nextSamples }) });
       const data = await response.json() as { error?: string; code?: string; consistency?: EnrollmentDiagnostics };
       if (data.consistency) {
-        setConsistencyDiagnostics(`Limiar: ${data.consistency.threshold ?? "—"}; distâncias: ${data.consistency.distances?.join(", ") ?? "—"}; outlier descartado: ${data.consistency.discardedOutlier ? "sim" : "não"}${data.consistency.descriptorError ? `; descritor: ${data.consistency.descriptorError}` : ""}`);
+        setConsistencyDiagnostics(`${data.consistency.source ?? "origem não informada"}; limiar: ${data.consistency.threshold ?? "—"}; distâncias: ${data.consistency.distances?.join(", ") ?? "—"}; outlier descartado: ${data.consistency.discardedOutlier ? "sim" : "não"}${data.consistency.descriptorError ? `; descritor: ${data.consistency.descriptorError}` : ""}`);
         setDebugMetrics((currentMetrics) => ({
           ...currentMetrics,
           resultCode: data.code ?? (response.ok ? "FACE_ENROLLMENT_OK" : "FACE_ENROLLMENT_FAILED"),
@@ -219,7 +213,7 @@ export default function FaceEnrollmentManager() {
     setError(""); setCameraState("starting");
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("missing", "NotFoundError");
-      stopCamera(); streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+      stopCamera();       streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: faceCaptureQuality.cameraWidth }, height: { ideal: faceCaptureQuality.cameraHeight } }, audio: false });
       if (videoRef.current) { videoRef.current.srcObject = streamRef.current; await videoRef.current.play(); }
       setCameraState("ready"); setStage("front"); stageRef.current = "front"; capturedStageRef.current = null; setInstruction("Posicione o rosto na oval");
     } catch (cause) {
@@ -255,7 +249,8 @@ export default function FaceEnrollmentManager() {
         const result = await humanRef.current.detect(videoRef.current);
         const inferenceMs = Math.round(performance.now() - inferenceStarted);
         const faces = result.face ?? [];
-        const face = faces.length === 1 ? faces[0] : null;
+        const faceCheck = inspectFaceCount(faces);
+        const face = faceCheck.face;
         drawMesh(overlayRef.current!, videoRef.current, face);
         const light = inspectLight(videoRef.current);
         if (debug && time - lastDebugAtRef.current >= 500) {
@@ -272,43 +267,59 @@ export default function FaceEnrollmentManager() {
         }
         if (!face) {
           stableSinceRef.current = 0;
-          setInstruction(faces.length > 1 ? "Mais de um rosto na câmera" : "Nenhum rosto detectado. Posicione o rosto na oval");
+          setInstruction(faceCheck.message ?? "Nenhum rosto detectado. Posicione o rosto na oval");
           return;
         }
         const box = face.boxRaw;
-        const center = box[0] + box[2] / 2 > 0.35 && box[0] + box[2] / 2 < 0.65 && box[1] + box[3] / 2 > 0.25 && box[1] + box[3] / 2 < 0.75;
-        const size = box[2] > FACE_SIZE_MIN && box[2] < FACE_SIZE_MAX;
+        const centerX = box[0] + box[2] / 2;
+        const centerY = box[1] + box[3] / 2;
+        const center = centerX > faceCaptureQuality.centerXMin
+          && centerX < faceCaptureQuality.centerXMax
+          && centerY > faceCaptureQuality.centerYMin
+          && centerY < faceCaptureQuality.centerYMax;
+        const size = box[2] > faceCaptureQuality.faceWidthMin && box[2] < faceCaptureQuality.faceWidthMax;
         const rotation = face.rotation?.angle;
-        const front = rotation ? Math.abs(rotation.yaw) <= YAW_LIMIT && Math.abs(rotation.pitch) <= PITCH_LIMIT && Math.abs(rotation.roll) <= ROLL_LIMIT : true;
+        const front = rotation
+          ? Math.abs(rotation.yaw) <= faceCaptureQuality.yawLimitDegrees
+            && Math.abs(rotation.pitch) <= faceCaptureQuality.pitchLimitDegrees
+            && Math.abs(rotation.roll) <= faceCaptureQuality.rollLimitDegrees
+          : true;
         const eyesOpen = eyesAreOpen(face);
-        const ready = center && size && front && light.brightness >= BRIGHTNESS_MIN && light.brightness <= BRIGHTNESS_MAX && light.sharpness >= SHARPNESS_MIN && (face.boxScore === undefined || face.boxScore >= 0.6);
+        const ready = center && size && front
+          && light.brightness >= faceCaptureQuality.brightnessMin
+          && light.brightness <= faceCaptureQuality.brightnessMax
+          && light.sharpness >= faceCaptureQuality.sharpnessMin
+          && (face.boxScore === undefined || face.boxScore >= faceCaptureQuality.detectorMinConfidence);
         if (!ready) {
           stableSinceRef.current = 0;
           setInstruction(!center
             ? "Posicione o rosto na oval"
             : !size
-              ? (box[2] < FACE_SIZE_MIN ? "Rosto muito pequeno ou afastado: aproxime-se" : "Afaste-se um pouco")
+              ? (box[2] < faceCaptureQuality.faceWidthMin ? "Rosto muito pequeno ou afastado: aproxime-se" : "Afaste-se um pouco")
               : !front
                 ? "Olhe para a câmera"
-                : light.brightness < BRIGHTNESS_MIN
+                : light.brightness < faceCaptureQuality.brightnessMin
                   ? "Pouca luz: procure um local mais iluminado"
-                  : light.brightness > BRIGHTNESS_MAX
+                  : light.brightness > faceCaptureQuality.brightnessMax
                     ? "Imagem muito clara: evite a luz direta"
-                    : light.sharpness < SHARPNESS_MIN
+                    : light.sharpness < faceCaptureQuality.sharpnessMin
                       ? "Imagem sem nitidez: mantenha o aparelho firme"
                       : "Detecção facial abaixo do mínimo");
           return;
         }
         const currentStage = stageRef.current;
         const yaw = face.rotation?.angle.yaw ?? 0;
-        const stagePassed = currentStage === "front" || (currentStage === "left" && yaw < -8) || (currentStage === "right" && yaw > 8) || (currentStage === "blink" && !eyesOpen);
+        const stagePassed = currentStage === "front"
+          || (currentStage === "left" && yaw < -faceCaptureQuality.sideYawDegrees)
+          || (currentStage === "right" && yaw > faceCaptureQuality.sideYawDegrees)
+          || (currentStage === "blink" && !eyesOpen);
         setInstruction(currentStage === "front" ? "Fique parado" : currentStage === "blink" ? "Pisque" : currentStage === "left" ? "Vire levemente para a esquerda" : "Vire levemente para a direita");
         if (!stagePassed) {
           stableSinceRef.current = 0;
           return;
         }
         if (!stableSinceRef.current) stableSinceRef.current = time;
-        if (time - stableSinceRef.current >= STABLE_MS && capturedStageRef.current !== currentStage) {
+        if (time - stableSinceRef.current >= faceCaptureQuality.stableCaptureMs && capturedStageRef.current !== currentStage) {
           const image = captureFrame();
           if (!image) return;
           const next = [...samplesRef.current, image];

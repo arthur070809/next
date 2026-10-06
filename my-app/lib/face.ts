@@ -171,17 +171,18 @@ function validateEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddi
   return undefined;
 }
 
-function pairwiseConsistent(embeddings: number[][]) {
-  const distances: number[] = [];
-  let consistent = true;
-  for (let first = 0; first < embeddings.length; first += 1) {
-    for (let second = first + 1; second < embeddings.length; second += 1) {
-      const distance = faceEmbeddingDistance(embeddings[first], embeddings[second]);
-      distances.push(distance);
-      if (distance > faceEnrollmentConsistencyDistance) consistent = false;
-    }
-  }
-  return { consistent, distances };
+function medianEmbedding(embeddings: number[][]) {
+  const dimension = embeddings[0].length;
+  return Array.from({ length: dimension }, (_, component) => {
+    const values = embeddings.map((embedding) => embedding[component]).sort((a, b) => a - b);
+    const middle = Math.floor(values.length / 2);
+    return values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+  });
+}
+
+function distancesFromMedian(embeddings: number[][]) {
+  const median = medianEmbedding(embeddings);
+  return embeddings.map((embedding) => faceEmbeddingDistance(embedding, median));
 }
 
 export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddingAnalysis {
@@ -190,28 +191,27 @@ export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentE
     return { consistent: false, reason, distances: [], discardedOutlier: false, acceptedEmbeddings: [] };
   }
 
-  const all = pairwiseConsistent(embeddings);
-  if (all.consistent) {
-    return { consistent: true, distances: all.distances, discardedOutlier: false, acceptedEmbeddings: embeddings };
+  const distances = distancesFromMedian(embeddings);
+  const outlierIndexes = distances.flatMap((distance, index) =>
+    distance > faceEnrollmentConsistencyDistance ? [index] : [],
+  );
+  if (outlierIndexes.length === 0) {
+    return { consistent: true, distances, discardedOutlier: false, acceptedEmbeddings: embeddings };
   }
 
-  if (embeddings.length > 3) {
-    const validCores = embeddings.flatMap((_, excludedIndex) => {
-      const candidate = embeddings.filter((__, index) => index !== excludedIndex);
-      const result = pairwiseConsistent(candidate);
-      return result.consistent ? [{ candidate, distances: result.distances }] : [];
-    });
-    if (validCores.length === 1) {
+  if (embeddings.length > 3 && outlierIndexes.length === 1) {
+    const candidate = embeddings.filter((_, index) => index !== outlierIndexes[0]);
+    if (distancesFromMedian(candidate).every((distance) => distance <= faceEnrollmentConsistencyDistance)) {
       return {
         consistent: true,
-        distances: all.distances,
+        distances,
         discardedOutlier: true,
-        acceptedEmbeddings: validCores[0].candidate,
+        acceptedEmbeddings: candidate,
       };
     }
   }
 
-  return { consistent: false, distances: all.distances, discardedOutlier: false, acceptedEmbeddings: [] };
+  return { consistent: false, distances, discardedOutlier: false, acceptedEmbeddings: [] };
 }
 
 export function areEnrollmentEmbeddingsConsistent(embeddings: number[][]) {

@@ -4,8 +4,10 @@ import {
   decryptEmbedding,
   encryptEmbedding,
   faceEnrollmentConsistencyDistance,
+  faceEnrollmentDuplicateDistance,
   faceMatchThresholdDefault,
 } from "./face";
+import { faceCaptureQuality } from "./facial/config";
 
 function vector(value: number, length = 64) {
   return Array.from({ length }, (_, index) => value + index / 1000);
@@ -21,7 +23,31 @@ describe("facial enrollment embedding policy", () => {
 
   it("keeps the documented enrollment and provider match thresholds centralized", () => {
     expect(faceEnrollmentConsistencyDistance).toBe(0.35);
+    expect(faceEnrollmentDuplicateDistance).toBe(0.42);
     expect(faceMatchThresholdDefault).toBe(0.42);
+    expect(faceCaptureQuality).toEqual({
+      detectorMinConfidence: 0.6,
+      detectorMaxFaces: 2,
+      cameraWidth: 1280,
+      cameraHeight: 720,
+      lightSampleWidth: 96,
+      lightSampleHeight: 72,
+      brightnessMin: 42,
+      brightnessMax: 218,
+      sharpnessMin: 16,
+      faceWidthMin: 0.22,
+      faceWidthMax: 0.72,
+      centerXMin: 0.35,
+      centerXMax: 0.65,
+      centerYMin: 0.25,
+      centerYMax: 0.75,
+      eyeAspectRatioMin: 0.12,
+      yawLimitDegrees: 15,
+      pitchLimitDegrees: 15,
+      rollLimitDegrees: 12,
+      sideYawDegrees: 8,
+      stableCaptureMs: 1000,
+    });
   });
 
   it("accepts same-person synthetic captures with small descriptor noise", () => {
@@ -61,7 +87,16 @@ describe("facial enrollment embedding policy", () => {
 
     expect(result.consistent).toBe(true);
     expect(result.discardedOutlier).toBe(true);
-    expect(result.distances).toHaveLength(6);
+    expect(result.distances).toHaveLength(4);
+  });
+
+  it("measures each capture from a coordinate-wise median instead of every pair", () => {
+    const captures = [vector(0.1), vector(0.102), vector(0.098), vector(1.2)];
+    const result = analyzeEnrollmentEmbeddings(captures);
+
+    expect(result.consistent).toBe(true);
+    expect(result.discardedOutlier).toBe(true);
+    expect(result.distances).toHaveLength(captures.length);
   });
 
   it("round-trips the encrypted JSON descriptor and rejects mismatched dimensions", () => {
