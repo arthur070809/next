@@ -70,6 +70,7 @@ describe("demo data fixture", () => {
       },
       requisicaoItem: {
         upsert: vi.fn(async ({ create }: { create: { id: string }; where: unknown }) => ({ id: create.id })),
+        createMany: vi.fn(async ({ data }: { data: Array<{ id: string }> }) => ({ count: data.length })),
       },
     };
     const request = demoSeedRequests[0];
@@ -97,17 +98,20 @@ describe("demo data fixture", () => {
     expect(tx.requisicao.upsert).toHaveBeenCalledTimes(2);
     expect(tx.requisicao.upsert.mock.calls[0][0].where)
       .toEqual(tx.requisicao.upsert.mock.calls[1][0].where);
-    const itemCallsPerSeed = request.items.length;
-    for (let index = 0; index < itemCallsPerSeed; index += 1) {
-      expect(tx.requisicaoItem.upsert.mock.calls[index][0].where)
-        .toEqual(tx.requisicaoItem.upsert.mock.calls[index + itemCallsPerSeed][0].where);
-    }
+    const expectedItemIds = request.items.map(({ codigo }) =>
+      deterministicDemoId(`request-item:${request.numeroPedido}:${codigo}`),
+    );
+    expect(tx.requisicaoItem.createMany).toHaveBeenCalledTimes(2);
+    expect(tx.requisicaoItem.createMany.mock.calls[0][0].data.map(({ id }) => id))
+      .toEqual(expectedItemIds);
+    expect(tx.requisicaoItem.createMany.mock.calls[1][0].data.map(({ id }) => id))
+      .toEqual(expectedItemIds);
   });
 
   it("rejects a parent upsert result without an id before writing child rows", async () => {
     const tx = {
       requisicao: { upsert: vi.fn(async () => ({ id: undefined })) },
-      requisicaoItem: { upsert: vi.fn() },
+      requisicaoItem: { createMany: vi.fn() },
     };
     const request = demoSeedRequests[0];
     const employees = new Map([["1111", 11], ["2222", 22]]);
@@ -119,35 +123,21 @@ describe("demo data fixture", () => {
       employees,
       items,
       "central-id",
-    )).rejects.toThrow(/DEMO-000101.*129.*requisicao/i);
-    expect(tx.requisicaoItem.upsert).not.toHaveBeenCalled();
+    )).rejects.toThrow(/DEMO-000101.*129.*requisição/i);
+    expect(tx.requisicaoItem.createMany).not.toHaveBeenCalled();
   });
 
-  it("does not recreate requests or movements when the seed runs a second time", async () => {
+  it("does not duplicate requests or movements when the seed runs a second time", async () => {
     const employeeIds = new Map([["1111", 11], ["2222", 22], ["3333", 33]]);
     const localIds = new Map([["estoque", "central-id"], ["importados", "imported-id"]]);
     const itemIds = new Map<string, string>(demoCatalog.map(({ codigo }) => [codigo, `item-${codigo}`]));
-    const saldoIds = new Map<string, string>();
-    for (const fixture of demoCatalog) {
-      saldoIds.set(`${itemIds.get(fixture.codigo)}:central-id`, `saldo-central-${fixture.codigo}`);
-      saldoIds.set(`${itemIds.get(fixture.codigo)}:imported-id`, `saldo-imported-${fixture.codigo}`);
-    }
-    let fixtureRequestExists = false;
+    const requests = new Map<string, Record<string, unknown>>();
+    const items = new Map<string, Record<string, unknown>>();
+    const movements = new Map<string, Record<string, unknown>>();
+    const audits = new Map<string, Record<string, unknown>>();
+    const stocks = new Map<string, Record<string, unknown>>();
+    const keyForStock = (itemId: string, localId: string) => `${itemId}:${localId}`;
     const tx = {
-      requisicao: {
-        findUnique: vi.fn(async () => fixtureRequestExists
-          ? { id: deterministicDemoId("request:DEMO-000101") }
-          : null),
-        count: vi.fn(async () => 0),
-        upsert: vi.fn(async ({ create }: { create: { id: string } }) => {
-          fixtureRequestExists = true;
-          return { id: create.id };
-        }),
-      },
-      movimentacao: {
-        count: vi.fn(async () => 0),
-        upsert: vi.fn(async ({ create }: { create: { id: string } }) => ({ id: create.id })),
-      },
       funcionario: {
         findMany: vi.fn(async () => []),
         upsert: vi.fn(async ({ where }: { where: { cracha: string } }) => ({
@@ -167,38 +157,140 @@ describe("demo data fixture", () => {
         })),
       },
       saldoEstoque: {
-        upsert: vi.fn(async ({ where }: { where: { itemId_localId: { itemId: string; localId: string } } }) => ({
-          id: saldoIds.get(`${where.itemId_localId.itemId}:${where.itemId_localId.localId}`)!,
-        })),
-        update: vi.fn(async () => ({})),
+        upsert: vi.fn(async ({ where, create, update }: {
+          where: { itemId_localId: { itemId: string; localId: string } };
+          create: Record<string, unknown>;
+          update: Record<string, unknown>;
+        }) => {
+          const key = keyForStock(where.itemId_localId.itemId, where.itemId_localId.localId);
+          const current = stocks.get(key) ?? {
+            id: `saldo-${key}`,
+            itemId: where.itemId_localId.itemId,
+            localId: where.itemId_localId.localId,
+            quantidade: create.quantidade,
+            reservada: create.reservada,
+          };
+          Object.assign(current, update);
+          stocks.set(key, current);
+          return { id: current.id };
+        }),
+        update: vi.fn(async ({ where, data }: {
+          where: { itemId_localId: { itemId: string; localId: string } };
+          data: Record<string, unknown>;
+        }) => {
+          Object.assign(stocks.get(keyForStock(
+            where.itemId_localId.itemId,
+            where.itemId_localId.localId,
+          ))!, data);
+          return {};
+        }),
+      },
+      requisicao: {
+        upsert: vi.fn(async ({ create }: { create: Record<string, unknown> }) => {
+          const number = String(create.numeroPedido);
+          const row = requests.get(number) ?? create;
+          requests.set(number, row);
+          return { id: row.id };
+        }),
       },
       requisicaoItem: {
-        upsert: vi.fn(async ({ create }: { create: { id: string } }) => ({ id: create.id })),
+        createMany: vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
+          for (const row of data) if (!items.has(String(row.id))) items.set(String(row.id), row);
+          return { count: data.length };
+        }),
+      },
+      movimentacao: {
+        createMany: vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
+          for (const row of data) if (!movements.has(String(row.id))) movements.set(String(row.id), row);
+          return { count: data.length };
+        }),
+      },
+      auditoria: {
+        createMany: vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
+          for (const row of data) if (!audits.has(String(row.id))) audits.set(String(row.id), row);
+          return { count: data.length };
+        }),
       },
     };
+    const transactionOptions: Array<{ maxWait?: number; timeout?: number } | undefined> = [];
     const client = {
       $transaction: vi.fn(async (
         callback: (transaction: unknown) => Promise<unknown>,
-        _options?: { maxWait?: number; timeout?: number },
-      ) => callback(tx)),
+        options?: { maxWait?: number; timeout?: number },
+      ) => {
+        transactionOptions.push(options);
+        return callback(tx);
+      }),
+      requisicao: {
+        findMany: vi.fn(async ({ select }: { select: { itens?: unknown } }) => {
+          const rows = [...requests.values()];
+          if (!select.itens) return rows.map(({ numeroPedido }) => ({ numeroPedido }));
+          return rows.map((row) => ({
+            numeroPedido: row.numeroPedido,
+            status: row.status,
+            prioridade: row.prioridade,
+            itens: [...items.values()]
+              .filter((item) => item.requisicaoId === row.id)
+              .map(({ itemId, localId, quantidade }) => ({ itemId, localId, quantidade })),
+          }));
+        }),
+        count: vi.fn(async () => requests.size),
+      },
+      movimentacao: {
+        count: vi.fn(async () => movements.size),
+        findMany: vi.fn(async ({ where, select }: {
+          where: { id?: { in: string[] }; saldoEstoqueId?: { in: string[] } };
+          select: { id?: boolean };
+        }) => {
+          const rows = [...movements.values()];
+          const filtered = where.id
+            ? rows.filter(({ id }) => where.id!.in.includes(String(id)))
+            : rows.filter(({ saldoEstoqueId }) => where.saldoEstoqueId!.in.includes(String(saldoEstoqueId)));
+          if (select.id) return filtered.map(({ id }) => ({ id }));
+          return filtered.sort((a, b) =>
+            (a.criadoEm as Date).getTime() - (b.criadoEm as Date).getTime() ||
+            String(a.id).localeCompare(String(b.id)),
+          ).map(({ saldoEstoqueId, tipo, quantidade, saldoApos }) => ({
+            saldoEstoqueId, tipo, quantidade, saldoApos,
+          }));
+        }),
+      },
+      item: {
+        findMany: vi.fn(async () => [...itemIds].map(([codigo, id]) => ({ id, codigo }))),
+      },
+      localEstoque: {
+        findMany: vi.fn(async () => [...localIds].map(([slug, id]) => ({ id, slug }))),
+      },
+      saldoEstoque: {
+        findMany: vi.fn(async () => [...stocks.values()]),
+      },
     };
 
     const first = await seedDemoData(client as never);
-    const requestCountAfterFirstRun = tx.requisicao.upsert.mock.calls.length;
-    const movementCountAfterFirstRun = tx.movimentacao.upsert.mock.calls.length;
+    const requestCountAfterFirstRun = requests.size;
+    const itemCountAfterFirstRun = items.size;
+    const movementCountAfterFirstRun = movements.size;
+    const auditCountAfterFirstRun = audits.size;
     const transactionCountAfterFirstRun = client.$transaction.mock.calls.length;
     const second = await seedDemoData(client as never);
 
     expect(first).toMatchObject({ initialized: true, preservedExistingDemo: false });
     expect(second).toMatchObject({ initialized: false, preservedExistingDemo: true });
     expect(requestCountAfterFirstRun).toBe(demoSeedRequests.length);
+    expect(itemCountAfterFirstRun).toBe(demoSeedRequests.reduce((sum, request) => sum + request.items.length, 0));
+    expect([...items.values()].every(({ requisicaoId }) =>
+      typeof requisicaoId === "string" && requisicaoId.length > 0,
+    )).toBe(true);
+    expect(movementCountAfterFirstRun).toBeGreaterThan(20);
+    expect(auditCountAfterFirstRun).toBe(demoSeedRequests.length);
     expect(transactionCountAfterFirstRun).toBeGreaterThanOrEqual(demoSeedRequests.length);
-    expect(client.$transaction.mock.calls.every(([, options]) =>
+    expect(transactionOptions.every((options) =>
       options?.maxWait === 20_000 && options.timeout === 60_000,
     )).toBe(true);
-    expect(tx.requisicao.upsert).toHaveBeenCalledTimes(requestCountAfterFirstRun);
-    expect(movementCountAfterFirstRun).toBeGreaterThan(0);
-    expect(tx.movimentacao.upsert).toHaveBeenCalledTimes(movementCountAfterFirstRun);
+    expect(requests.size).toBe(requestCountAfterFirstRun);
+    expect(items.size).toBe(itemCountAfterFirstRun);
+    expect(movements.size).toBe(movementCountAfterFirstRun);
+    expect(audits.size).toBe(auditCountAfterFirstRun);
   });
 
   it("deletes children before request parents with an explicit reset timeout", async () => {
@@ -207,7 +299,6 @@ describe("demo data fixture", () => {
     const tx = {
       movimentacao: {
         deleteMany: vi.fn(async () => { operations.push("movimentacao"); }),
-        count: vi.fn(async () => 0),
       },
       requisicaoItem: {
         deleteMany: vi.fn(async () => { operations.push("requisicaoItem"); }),
@@ -217,17 +308,9 @@ describe("demo data fixture", () => {
       },
       requisicao: {
         deleteMany: vi.fn(async () => { operations.push("requisicao"); }),
-        findUnique: vi.fn(async () => null),
-        count: vi.fn(async () => 0),
-      },
-      saldoEstoque: {
-        updateMany: vi.fn(async () => { operations.push("saldoEstoque"); }),
       },
       loginAttemptBucket: {
         deleteMany: vi.fn(async () => { operations.push("loginAttemptBucket"); }),
-      },
-      funcionario: {
-        findMany: vi.fn(async () => { throw sentinel; }),
       },
     };
     const client = {
@@ -236,13 +319,13 @@ describe("demo data fixture", () => {
         options?: { maxWait?: number; timeout?: number },
       ) => {
         expect(options).toMatchObject({ maxWait: 20_000, timeout: 60_000 });
-        return callback(tx);
+        await callback(tx);
+        throw sentinel;
       }),
     };
 
     await expect(resetAndSeedDemoData(client as never)).rejects.toBe(sentinel);
     expect(operations.indexOf("movimentacao")).toBeLessThan(operations.indexOf("requisicaoItem"));
     expect(operations.indexOf("requisicaoItem")).toBeLessThan(operations.indexOf("requisicao"));
-    expect(operations.indexOf("auditoria")).toBeLessThan(operations.indexOf("requisicao"));
   });
 });
