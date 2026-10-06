@@ -30,6 +30,8 @@ type Stage = "code" | "totp" | "face";
 export default function LoginForm() {
   const router = useRouter();
   const [codigoCracha, setCodigoCracha] = useState("");
+  const [senha, setSenha] = useState("");
+  const [metodoCredencial, setMetodoCredencial] = useState<"badge" | "password">("badge");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState<Stage>("code");
@@ -115,7 +117,11 @@ export default function LoginForm() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoCracha }),
+        body: JSON.stringify({
+          codigoCracha,
+          credential: metodoCredencial,
+          ...(metodoCredencial === "password" ? { password: senha } : {}),
+        }),
       });
       await handleLoginResponse(response);
     } catch (cause) {
@@ -217,9 +223,15 @@ export default function LoginForm() {
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <div className="flex flex-col gap-3 sm:flex-row"><button type="button" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Voltar</button><button type="submit" disabled={loading || totpCode.length !== 6} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Verificando…" : "Verificar"}</button></div>
       </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-7 space-y-5" noValidate>
+        <div className="grid grid-cols-2 gap-2" role="group" aria-label="Método de credencial">
+          <button type="button" aria-pressed={metodoCredencial === "badge"} onClick={() => { setMetodoCredencial("badge"); setSenha(""); }} className={`min-h-10 rounded-lg border px-3 text-sm font-semibold ${metodoCredencial === "badge" ? "border-royal bg-blue-50 text-royal" : "border-slate-300 text-slate-700"}`}>Código do crachá</button>
+          <button type="button" aria-pressed={metodoCredencial === "password"} onClick={() => setMetodoCredencial("password")} className={`min-h-10 rounded-lg border px-3 text-sm font-semibold ${metodoCredencial === "password" ? "border-royal bg-blue-50 text-royal" : "border-slate-300 text-slate-700"}`}>Senha</button>
+        </div>
         <div><label htmlFor="codigo-cracha" className="text-sm font-semibold text-slate-800">Código do crachá</label><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></div>
+        {metodoCredencial === "password" && <div><label htmlFor="login-password" className="text-sm font-semibold text-slate-800">Senha cadastrada</label><input id="login-password" required type="password" autoComplete="current-password" maxLength={256} value={senha} onChange={(event) => setSenha(event.target.value)} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></div>}
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
-        <button type="submit" disabled={loading} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Continuar"}</button>
+        <p className="text-xs text-slate-500">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
+        <button type="submit" disabled={loading || (metodoCredencial === "password" && !senha)} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Continuar"}</button>
       </form>}
     </section>
   </main>;

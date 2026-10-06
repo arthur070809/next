@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
+import bcrypt from "bcryptjs";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
     if (!body) return invalidCodeResponse(startedAt, "", ipHash, false);
     const suppliedCode = typeof body.codigoCracha === "string" ? body.codigoCracha : "";
     const badge = normalizeLoginCode(suppliedCode);
+    const credential = body.credential;
     const validCode = /^\d{4,10}$/.test(badge);
     const testMode = isTestLoginEnabledForBadge(badge);
     const demoMode = !testMode && isDemoLoginEnabledForBadge(badge);
@@ -106,6 +108,10 @@ export async function POST(request: Request) {
       return invalidCodeResponse(startedAt, badge, ipHash, testMode, attemptPolicy);
     }
 
+    if (credential !== undefined && credential !== "badge" && credential !== "password") {
+      return invalidCodeResponse(startedAt, badge, ipHash, testMode, attemptPolicy);
+    }
+
     if (testMode || demoMode) {
       if (testMode) clearTestLoginBadgeFailures(badge);
       else await clearBadgeLoginFailures(badge);
@@ -117,6 +123,14 @@ export async function POST(request: Request) {
         console.warn(`[LOGIN DEMO] Login de demonstração para crachá ${maskDemoBadge(badge)}.`);
       }
       return session;
+    }
+
+    if (credential === "password") {
+      const password = typeof body.password === "string" ? body.password : "";
+      const isBcryptHash = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(funcionario.senha);
+      if (!password || password.length > 256 || !isBcryptHash || !(await bcrypt.compare(password, funcionario.senha))) {
+        return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
+      }
     }
 
     if (funcionario.papel === PapelFuncionario.ADMIN) {

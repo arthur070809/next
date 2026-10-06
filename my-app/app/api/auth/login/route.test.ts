@@ -14,10 +14,12 @@ vi.mock("@/lib/prisma", () => ({ prisma: {
   loginAttemptBucket: { findFirst: vi.fn(), deleteMany: vi.fn() },
   $executeRaw: vi.fn(),
 } }));
+vi.mock("bcryptjs", () => ({ default: { compare: vi.fn(async () => false) } }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })) }));
 
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { getLoginClientIpHash } from "@/lib/login-attempts";
 import { recordTestLoginFailure } from "@/lib/login-test-mode";
@@ -92,6 +94,7 @@ describe("login by badge code", () => {
     vi.mocked(prisma.webAuthnCredential.findMany).mockResolvedValue([]);
     vi.mocked(prisma.emergencyAccessGrant.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue(null);
+    vi.mocked(bcrypt.compare).mockResolvedValue(false);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(1);
     vi.mocked(prisma.$executeRaw).mockResolvedValue(1);
     vi.mocked(prisma.authChallenge.create).mockResolvedValue({ id: "face-challenge" } as never);
@@ -119,10 +122,59 @@ describe("login by badge code", () => {
 
     expect(response.status).toBe(200);
     expect(data.funcionario.role).toBe("operador");
+  });
+
+  it("accepts a valid password while preserving the configured profile checks", async () => {
+    const passwordHash = `$2b$12$${"a".repeat(53)}`;
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...operator, senha: passwordHash } as never);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true);
+
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "2000", credential: "password", password: "ValidPassword123" }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(bcrypt.compare).toHaveBeenCalledWith("ValidPassword123", passwordHash);
+    expect(prisma.sessao.create).toHaveBeenCalled();
     expect(prisma.sessao.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ funcionarioId: operator.id, accessArea: "operador" }) }),
     );
     expect(prisma.authChallenge.create).not.toHaveBeenCalled();
+  });
+
+  it("returns the generic invalid-code response for an incorrect password", async () => {
+    const passwordHash = `$2b$12$${"a".repeat(53)}`;
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...operator, senha: passwordHash } as never);
+    vi.mocked(bcrypt.compare).mockResolvedValue(false);
+
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "2000", credential: "password", password: "wrong" }),
+    }));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("keeps the admin second factor after password verification", async () => {
+    const passwordHash = `$2b$12$${"a".repeat(53)}`;
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...admin, senha: passwordHash } as never);
+    vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue({ enabledAt: new Date() } as never);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true);
+
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "1000", credential: "password", password: "ValidPassword123" }),
+    }));
+
+    expect(response.status).toBe(202);
+    expect(await response.json()).toMatchObject({ step: "totp" });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
   it("allows an explicitly allowlisted development test badge through the normal session path", async () => {
@@ -134,7 +186,11 @@ describe("login by badge code", () => {
       .mockResolvedValueOnce(testAdmin as never);
     const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const response = await POST(request("3333"));
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "3333", credential: "password", password: "ignored-in-demo" }),
+    }));
 
     expect(response.status).toBe(200);
     expect(prisma.sessao.create).toHaveBeenCalledWith(
@@ -143,6 +199,7 @@ describe("login by badge code", () => {
     expect(prisma.authChallenge.create).not.toHaveBeenCalled();
     expect(prisma.adminTotpCredential.findUnique).not.toHaveBeenCalled();
     expect(prisma.funcionario.findFirst).toHaveBeenCalledTimes(2);
+    expect(bcrypt.compare).not.toHaveBeenCalled();
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(response.headers.get("set-cookie")).toContain("Max-Age=28800");
     expect(warning).toHaveBeenCalledWith(expect.stringContaining("crachá **33"));
@@ -191,7 +248,11 @@ describe("login by badge code", () => {
     vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue({ enabledAt: new Date() } as never);
 
     const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const response = await POST(request("3333"));
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "3333", credential: "password", password: "ignored-in-demo" }),
+    }));
 
     expect(response.status).toBe(200);
     expect(prisma.sessao.create).toHaveBeenCalledWith(expect.objectContaining({
@@ -202,6 +263,7 @@ describe("login by badge code", () => {
     expect(prisma.trustedDevice.findUnique).not.toHaveBeenCalled();
     expect(prisma.webAuthnCredential.findMany).not.toHaveBeenCalled();
     expect(prisma.funcionario.findFirst).toHaveBeenCalledTimes(2);
+    expect(bcrypt.compare).not.toHaveBeenCalled();
     expect(warning.mock.calls.flat().join(" ")).toContain("**33");
     expect(warning.mock.calls.flat().join(" ")).not.toContain("3333");
     warning.mockRestore();
