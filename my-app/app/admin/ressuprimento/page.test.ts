@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 
 import { prisma } from "@/lib/prisma";
 import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
-import { carregarDadosRessuprimento } from "./page";
+import { carregarDadosRessuprimento } from "@/lib/ressuprimento/carregar-dados";
 
 describe("carregarDadosRessuprimento", () => {
   beforeEach(() => {
