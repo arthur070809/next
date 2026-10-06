@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { areEnrollmentEmbeddingsConsistent, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentDuplicateDistance, FaceEnrollmentVerificationError, faceConsentVersion } from "@/lib/face";
+import { analyzeEnrollmentEmbeddings, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentConsistencyDistance, faceEnrollmentDuplicateDistance, FaceEnrollmentVerificationError, faceConsentVersion } from "@/lib/face";
 import { faceEnrollmentAttemptLimit, getFaceEnrollmentLimit, recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 import { createFaceEnrollmentSession, findFaceEnrollmentSession, renewFaceEnrollmentSession } from "@/lib/face-enrollment-session";
 import { prisma } from "@/lib/prisma";
@@ -71,10 +71,24 @@ export async function POST(request: Request) {
       }
       throw error;
     }
-    if (!areEnrollmentEmbeddingsConsistent(embeddings)) {
+    const consistency = analyzeEnrollmentEmbeddings(embeddings);
+    if (!consistency.consistent) {
       const failure = await recordFaceEnrollmentFailure(auth.funcionario.id, employee.id);
-      return apiError(failure.count >= faceEnrollmentAttemptLimit ? 429 : 422, failure.count >= faceEnrollmentAttemptLimit ? "FACE_ENROLLMENT_RATE_LIMITED" : "FACE_INCONSISTENT_SAMPLES", failure.count >= faceEnrollmentAttemptLimit ? "Muitas tentativas. Aguarde e tente novamente." : "As capturas ficaram diferentes. Tente novamente.", undefined, failure.count >= faceEnrollmentAttemptLimit ? { "Retry-After": String(failure.retryAfterSeconds) } : undefined);
+      return NextResponse.json({
+        error: failure.count >= faceEnrollmentAttemptLimit ? "Muitas tentativas. Aguarde e tente novamente." : "As capturas ficaram diferentes. Tente novamente.",
+        code: failure.count >= faceEnrollmentAttemptLimit ? "FACE_ENROLLMENT_RATE_LIMITED" : "FACE_INCONSISTENT_SAMPLES",
+        consistency: {
+          threshold: faceEnrollmentConsistencyDistance,
+          distances: consistency.distances.filter(Number.isFinite),
+          discardedOutlier: false,
+          descriptorError: consistency.reason,
+        },
+      }, {
+        status: failure.count >= faceEnrollmentAttemptLimit ? 429 : 422,
+        headers: failure.count >= faceEnrollmentAttemptLimit ? { "Retry-After": String(failure.retryAfterSeconds) } : undefined,
+      });
     }
+    embeddings = consistency.acceptedEmbeddings;
     const otherTemplates = await prisma.faceTemplate.findMany({ where: { funcionarioId: { not: employee.id }, revogadoEm: null }, select: { embeddingEncrypted: true, iv: true, tag: true, funcionario: { select: { nome: true } } } });
     for (const template of otherTemplates) {
       if (embeddings.some((embedding) => faceEmbeddingDistance(embedding, decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag)) <= faceEnrollmentDuplicateDistance)) {
@@ -103,7 +117,16 @@ export async function POST(request: Request) {
       return true;
     });
     if (!saved) return apiError(409, "FACE_ENROLLMENT_SESSION_EXPIRED", "A sessão expirou. Reinicie a captura.");
-    return NextResponse.json({ message: "Biometria cadastrada com sucesso.", code: "FACE_ENROLLMENT_CREATED", samples: embeddings.length }, { status: 201 });
+    return NextResponse.json({
+      message: "Biometria cadastrada com sucesso.",
+      code: "FACE_ENROLLMENT_CREATED",
+      samples: embeddings.length,
+      consistency: {
+        threshold: faceEnrollmentConsistencyDistance,
+        distances: consistency.distances.filter(Number.isFinite),
+        discardedOutlier: consistency.discardedOutlier,
+      },
+    }, { status: 201 });
   } catch (error) {
     const errorId = randomUUID();
     console.error("Falha no cadastro facial", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });

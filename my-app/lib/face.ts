@@ -1,14 +1,21 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import {
+  faceEnrollmentConsistencyDistance,
+  faceEnrollmentDuplicateDistance,
+  faceMatchThresholdDefault,
+} from "./facial/config";
 
 export { faceConsentVersion } from "./face-consent";
+export {
+  faceEnrollmentConsistencyDistance,
+  faceEnrollmentDuplicateDistance,
+  faceMatchThresholdDefault,
+};
 
 export const livenessChallengeTtlMs = 60 * 1000;
 export const faceAttemptLimit = 3;
 export const faceBlockDurationMs = 15 * 60 * 1000;
 export const faceEnrollmentNonceTtlMs = 2 * 60 * 1000;
-export const faceEnrollmentConsistencyDistance = 0.35;
-export const faceEnrollmentDuplicateDistance = 0.42;
-
 type FaceServiceEmbeddingResponse = { embeddings?: number[][]; reason?: string; code?: string };
 type FaceServiceVerifyResponse = { livenessPassed?: boolean; matched?: boolean };
 
@@ -120,7 +127,7 @@ export async function verifyFaceCapture(capture: unknown, challenge: { tipo: str
     challenge: challenge.tipo,
     nonce: challenge.nonce,
     templates,
-    threshold: Number(process.env.FACE_MATCH_THRESHOLD ?? "0.42"),
+    threshold: Number(process.env.FACE_MATCH_THRESHOLD ?? faceMatchThresholdDefault),
   });
   return result.livenessPassed === true && result.matched === true;
 }
@@ -140,10 +147,73 @@ export function consumeFaceEnrollmentNonce(nonce: string, adminId: number, emplo
 }
 
 export function faceEmbeddingDistance(first: number[], second: number[]) {
-  if (first.length !== second.length || first.length === 0) return Number.POSITIVE_INFINITY;
+  if (first.length < 32 || first.length !== second.length) return Number.POSITIVE_INFINITY;
+  if (first.some((value) => !Number.isFinite(value)) || second.some((value) => !Number.isFinite(value))) {
+    return Number.POSITIVE_INFINITY;
+  }
   return Math.sqrt(first.reduce((sum, value, index) => sum + (value - second[index]) ** 2, 0));
 }
 
+export type EnrollmentEmbeddingAnalysis = {
+  consistent: boolean;
+  reason?: "INVALID_DIMENSION" | "INVALID_VALUE" | "ZERO_NORM";
+  distances: number[];
+  discardedOutlier: boolean;
+  acceptedEmbeddings: number[][];
+};
+
+function validateEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddingAnalysis["reason"] | undefined {
+  if (embeddings.length < 3 || embeddings.some((embedding) => embedding.length < 32)) return "INVALID_DIMENSION";
+  const dimension = embeddings[0].length;
+  if (embeddings.some((embedding) => embedding.length !== dimension)) return "INVALID_DIMENSION";
+  if (embeddings.some((embedding) => embedding.some((value) => !Number.isFinite(value)))) return "INVALID_VALUE";
+  if (embeddings.some((embedding) => Math.hypot(...embedding) <= 1e-12)) return "ZERO_NORM";
+  return undefined;
+}
+
+function pairwiseConsistent(embeddings: number[][]) {
+  const distances: number[] = [];
+  let consistent = true;
+  for (let first = 0; first < embeddings.length; first += 1) {
+    for (let second = first + 1; second < embeddings.length; second += 1) {
+      const distance = faceEmbeddingDistance(embeddings[first], embeddings[second]);
+      distances.push(distance);
+      if (distance > faceEnrollmentConsistencyDistance) consistent = false;
+    }
+  }
+  return { consistent, distances };
+}
+
+export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddingAnalysis {
+  const reason = validateEnrollmentEmbeddings(embeddings);
+  if (reason) {
+    return { consistent: false, reason, distances: [], discardedOutlier: false, acceptedEmbeddings: [] };
+  }
+
+  const all = pairwiseConsistent(embeddings);
+  if (all.consistent) {
+    return { consistent: true, distances: all.distances, discardedOutlier: false, acceptedEmbeddings: embeddings };
+  }
+
+  if (embeddings.length > 3) {
+    const validCores = embeddings.flatMap((_, excludedIndex) => {
+      const candidate = embeddings.filter((__, index) => index !== excludedIndex);
+      const result = pairwiseConsistent(candidate);
+      return result.consistent ? [{ candidate, distances: result.distances }] : [];
+    });
+    if (validCores.length === 1) {
+      return {
+        consistent: true,
+        distances: all.distances,
+        discardedOutlier: true,
+        acceptedEmbeddings: validCores[0].candidate,
+      };
+    }
+  }
+
+  return { consistent: false, distances: all.distances, discardedOutlier: false, acceptedEmbeddings: [] };
+}
+
 export function areEnrollmentEmbeddingsConsistent(embeddings: number[][]) {
-  return embeddings.every((embedding, index) => index === 0 || faceEmbeddingDistance(embeddings[0], embedding) <= faceEnrollmentConsistencyDistance);
+  return analyzeEnrollmentEmbeddings(embeddings).consistent;
 }

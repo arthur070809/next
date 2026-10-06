@@ -2,13 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
+import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import styles from "./face-enrollment.module.css";
 
 type Employee = { id: number; nome: string; cracha: string; enrolled: boolean };
 type Session = { id: string; token: string; expiraEm: string };
 type Stage = "front" | "left" | "right" | "blink" | "success" | "failed";
+type EnrollmentDiagnostics = { threshold?: number; distances?: number[]; discardedOutlier?: boolean; descriptorError?: string };
+class EnrollmentResponseError extends Error {
+  constructor(message: string, readonly code: string, readonly diagnostics?: EnrollmentDiagnostics) {
+    super(message);
+  }
+}
 
-type FaceResult = { mesh?: Array<Array<number | undefined>>; boxRaw: [number, number, number, number]; annotations?: Record<string, Array<Array<number | undefined>>>; rotation?: { angle: { roll: number; yaw: number; pitch: number } } | null };
+type FaceResult = { mesh?: Array<Array<number | undefined>>; boxRaw: [number, number, number, number]; score?: number; boxScore?: number; annotations?: Record<string, Array<Array<number | undefined>>>; rotation?: { angle: { roll: number; yaw: number; pitch: number } } | null };
 type HumanDetector = { detect(input: HTMLVideoElement): Promise<{ face?: FaceResult[] }> };
 const BRIGHTNESS_MIN = 42;
 const BRIGHTNESS_MAX = 218;
@@ -68,6 +75,18 @@ export default function FaceEnrollmentManager() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [debug, setDebug] = useState(false);
+  const [backend, setBackend] = useState("—");
+  const [consistencyDiagnostics, setConsistencyDiagnostics] = useState("");
+  const [debugMetrics, setDebugMetrics] = useState({
+    inferenceMs: 0,
+    detectionScore: 0,
+    faceWidth: 0,
+    brightness: 0,
+    sharpness: 0,
+    faceCount: 0,
+    resultCode: "—",
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -78,6 +97,7 @@ export default function FaceEnrollmentManager() {
   const stableSinceRef = useRef(0);
   const capturedStageRef = useRef<Stage | null>(null);
   const submittingRef = useRef(false);
+  const lastDebugAtRef = useRef(0);
 
   function stopCamera() {
     streamRef.current?.getTracks().forEach((track) => track.stop()); streamRef.current = null;
@@ -89,13 +109,63 @@ export default function FaceEnrollmentManager() {
     try {
       const loadBrowserModule = new Function("url", "return import(url)") as (url: string) => Promise<{ default: new (config: Record<string, unknown>) => HumanDetector & { load(): Promise<void>; warmup(): Promise<void> } }>;
       const { default: Human } = await loadBrowserModule("https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/dist/human.esm.js");
-      let human = new Human({ backend: "webgl", modelBasePath: "https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/", cacheModels: true, debug: false, face: { detector: { maxDetected: 2, minConfidence: 0.6, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } });
-      try { await human.load(); await human.warmup(); } catch { human = new Human({ backend: "cpu", modelBasePath: "https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/", cacheModels: true, debug: false }); await human.load(); await human.warmup(); }
-      humanRef.current = human; setModelState("ready"); setInstruction("Selecione o funcionário e confirme a pessoa diante da câmera");
-    } catch { setModelState("error"); setInstruction("Não foi possível carregar os modelos. Tente novamente."); }
+      const modelBasePath = "https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/";
+      const config = { modelBasePath, cacheModels: true, debug: false, face: { detector: { maxDetected: 2, minConfidence: 0.6, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } };
+      let human = new Human({ ...config, backend: "webgl" });
+      try {
+        await human.load();
+        await human.warmup();
+        setBackend("webgl");
+      } catch {
+        human = new Human({ ...config, backend: "cpu" });
+        await human.load();
+        await human.warmup();
+        setBackend("cpu (fallback)");
+      }
+      humanRef.current = human;
+      setModelState("ready");
+      setInstruction("Selecione o funcionário e confirme a pessoa diante da câmera");
+    } catch (cause) {
+      setModelState("error");
+      setInstruction("Modelo facial indisponível. Verifique a rede e tente novamente.");
+      setDebugMetrics((current) => ({ ...current, resultCode: cause instanceof Error ? cause.name : "MODEL_LOAD_FAILED" }));
+    }
   }
 
-  useEffect(() => { const timer = window.setTimeout(() => { void loadModels(); void fetch("/api/admin/face-enrollment").then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar os funcionários."); setEmployees(data.employees ?? []); const saved = localStorage.getItem("marcon-face-enrollment-session"); if (saved) { try { const restored = JSON.parse(saved) as { employeeId: string; session: Session }; const renewed = await fetch("/api/admin/face-enrollment", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(restored.employeeId), sessionId: restored.session.id, sessionToken: restored.session.token }) }); if (renewed.ok) { const renewal = await renewed.json(); const nextSession = { ...restored.session, expiraEm: renewal.expiraEm }; sessionRef.current = nextSession; setEmployeeId(restored.employeeId); setSession(nextSession); } else localStorage.removeItem("marcon-face-enrollment-session"); } catch { localStorage.removeItem("marcon-face-enrollment-session"); } } }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar os funcionários.")); }, 0); return () => { window.clearTimeout(timer); stopCamera(); }; }, []);
+  useEffect(() => {
+    queueMicrotask(() => setDebug(new URLSearchParams(window.location.search).get("debug") === "1"));
+    const timer = window.setTimeout(() => {
+      void loadModels();
+      void fetch("/api/admin/face-enrollment").then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar os funcionários.");
+        setEmployees(data.employees ?? []);
+        const saved = localStorage.getItem("marcon-face-enrollment-session");
+        if (saved) {
+          try {
+            const restored = JSON.parse(saved) as { employeeId: string; session: Session };
+            const renewed = await fetch("/api/admin/face-enrollment", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ funcionarioId: Number(restored.employeeId), sessionId: restored.session.id, sessionToken: restored.session.token }),
+            });
+            if (renewed.ok) {
+              const renewal = await renewed.json();
+              const nextSession = { ...restored.session, expiraEm: renewal.expiraEm };
+              sessionRef.current = nextSession;
+              setEmployeeId(restored.employeeId);
+              setSession(nextSession);
+            } else {
+              localStorage.removeItem("marcon-face-enrollment-session");
+            }
+          } catch {
+            localStorage.removeItem("marcon-face-enrollment-session");
+          }
+        }
+      }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar os funcionários."));
+    }, 0);
+    return () => { window.clearTimeout(timer); stopCamera(); };
+  }, []);
 
   useEffect(() => { sessionRef.current = session; }, [session]);
   useEffect(() => { if (session && employeeId) localStorage.setItem("marcon-face-enrollment-session", JSON.stringify({ employeeId, session })); }, [employeeId, session]);
@@ -123,12 +193,24 @@ export default function FaceEnrollmentManager() {
     const current = sessionRef.current;
     try {
       const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: true, consentAt: new Date().toISOString(), samples: nextSamples }) });
-      const data = await response.json();
+      const data = await response.json() as { error?: string; code?: string; consistency?: EnrollmentDiagnostics };
+      if (data.consistency) {
+        setConsistencyDiagnostics(`Limiar: ${data.consistency.threshold ?? "—"}; distâncias: ${data.consistency.distances?.join(", ") ?? "—"}; outlier descartado: ${data.consistency.discardedOutlier ? "sim" : "não"}${data.consistency.descriptorError ? `; descritor: ${data.consistency.descriptorError}` : ""}`);
+        setDebugMetrics((currentMetrics) => ({
+          ...currentMetrics,
+          resultCode: data.code ?? (response.ok ? "FACE_ENROLLMENT_OK" : "FACE_ENROLLMENT_FAILED"),
+        }));
+      }
       if (response.status === 409 && data.code === "FACE_ENROLLMENT_SESSION_EXPIRED" && await renewSession()) { submittingRef.current = false; setBusy(false); await submitEnrollmentImpl(nextSamples); return; }
       if (response.status === 429) { setError(`${data.error} Tente novamente em ${Math.ceil(Number(response.headers.get("Retry-After") ?? 60) / 60)} minutos.`); setStage("failed"); return; }
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível concluir o cadastro.");
+      if (!response.ok) throw new EnrollmentResponseError(data.error ?? "Não foi possível concluir o cadastro.", data.code ?? "FACE_ENROLLMENT_FAILED", data.consistency);
       setMessage("Cadastro concluído"); setInstruction("Cadastro concluído"); setStage("success"); localStorage.removeItem("marcon-face-enrollment-session"); stopCamera(); setEmployees((currentEmployees) => currentEmployees.map((item) => item.id === Number(employeeId) ? { ...item, enrolled: true } : item));
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível concluir o cadastro."); setInstruction("Tente novamente"); setStage("failed"); }
+    } catch (cause) {
+      if (cause instanceof EnrollmentResponseError) setDebugMetrics((currentMetrics) => ({ ...currentMetrics, resultCode: cause.code }));
+      setError(cause instanceof Error ? cause.message : "Não foi possível concluir o cadastro.");
+      setInstruction("Tente novamente");
+      setStage("failed");
+    }
     finally { submittingRef.current = false; setBusy(false); }
   }, [employeeId, renewSession]);
 
@@ -140,35 +222,177 @@ export default function FaceEnrollmentManager() {
       stopCamera(); streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
       if (videoRef.current) { videoRef.current.srcObject = streamRef.current; await videoRef.current.play(); }
       setCameraState("ready"); setStage("front"); stageRef.current = "front"; capturedStageRef.current = null; setInstruction("Posicione o rosto na oval");
-    } catch (cause) { const name = cause instanceof DOMException ? cause.name : ""; setCameraState(name === "NotFoundError" ? "missing" : "denied"); setError(name === "NotFoundError" ? "Nenhuma câmera foi encontrada." : "Permita a câmera nas configurações do navegador e tente novamente."); }
+    } catch (cause) {
+      const name = cause instanceof DOMException ? cause.name : "";
+      setCameraState(name === "NotFoundError" ? "missing" : "denied");
+      setError(cameraErrorMessage(cause));
+      setDebugMetrics((metrics) => ({ ...metrics, resultCode: name || "CAMERA_START_FAILED" }));
+    }
   }
 
   function captureFrame() {
     const video = videoRef.current; if (!video) return null;
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) return null;
     const canvas = document.createElement("canvas"); canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height); return canvas.toDataURL("image/jpeg", 0.86);
   }
 
   useEffect(() => {
     if (cameraState !== "ready" || modelState !== "ready") return;
-    let stopped = false; let pending = false; let lastRun = 0; let frame = 0;
+    let stopped = false;
+    let pending = false;
+    let lastRun = 0;
+    let frame = 0;
     const stages: Stage[] = ["front", ...(Math.random() > 0.5 ? ["left", "right"] as Stage[] : ["right", "left"] as Stage[]), "blink"];
     const detect = async (time: number) => {
-      if (stopped) return; frame = requestAnimationFrame(detect); if (document.hidden || pending || time - lastRun < 33 || !videoRef.current || !humanRef.current) return; lastRun = time; pending = true;
+      if (stopped) return;
+      frame = requestAnimationFrame(detect);
+      if (document.hidden || pending || time - lastRun < 100 || !videoRef.current || !humanRef.current) return;
+      if (videoRef.current.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !videoRef.current.videoWidth) return;
+      lastRun = time;
+      pending = true;
       try {
-        const result = await humanRef.current.detect(videoRef.current); const face = result.face?.length === 1 ? result.face[0] : null; drawMesh(overlayRef.current!, videoRef.current, face);
-        if (!face) { stableSinceRef.current = 0; setInstruction(result.face?.length ? "Mais de um rosto na câmera" : "Posicione o rosto na oval"); return; }
-        const light = inspectLight(videoRef.current); const box = face.boxRaw; const center = box[0] + box[2] / 2 > 0.35 && box[0] + box[2] / 2 < 0.65 && box[1] + box[3] / 2 > 0.25 && box[1] + box[3] / 2 < 0.75; const size = box[2] > FACE_SIZE_MIN && box[2] < FACE_SIZE_MAX; const rotation = face.rotation?.angle; const front = rotation ? Math.abs(rotation.yaw) <= YAW_LIMIT && Math.abs(rotation.pitch) <= PITCH_LIMIT && Math.abs(rotation.roll) <= ROLL_LIMIT : true; const eyesOpen = eyesAreOpen(face); const ready = center && size && front && light.brightness >= BRIGHTNESS_MIN && light.brightness <= BRIGHTNESS_MAX && light.sharpness >= SHARPNESS_MIN;
-        if (!ready) { stableSinceRef.current = 0; setInstruction(!center ? "Posicione o rosto na oval" : !size ? (box[2] < FACE_SIZE_MIN ? "Aproxime-se" : "Afaste-se um pouco") : !front ? "Olhe para a câmera" : light.brightness < BRIGHTNESS_MIN ? "Procure um local mais iluminado" : "Fique parado"); return; }
-        const currentStage = stageRef.current; const yaw = face.rotation?.angle.yaw ?? 0; const stagePassed = currentStage === "front" || (currentStage === "left" && yaw < -8) || (currentStage === "right" && yaw > 8) || (currentStage === "blink" && !eyesOpen);
+        const inferenceStarted = performance.now();
+        const result = await humanRef.current.detect(videoRef.current);
+        const inferenceMs = Math.round(performance.now() - inferenceStarted);
+        const faces = result.face ?? [];
+        const face = faces.length === 1 ? faces[0] : null;
+        drawMesh(overlayRef.current!, videoRef.current, face);
+        const light = inspectLight(videoRef.current);
+        if (debug && time - lastDebugAtRef.current >= 500) {
+          lastDebugAtRef.current = time;
+          setDebugMetrics((current) => ({
+            ...current,
+            inferenceMs,
+            detectionScore: face?.boxScore ?? 0,
+            faceWidth: face ? Math.round(face.boxRaw[2] * 100) : 0,
+            brightness: Math.round(light.brightness),
+            sharpness: Math.round(light.sharpness),
+            faceCount: faces.length,
+          }));
+        }
+        if (!face) {
+          stableSinceRef.current = 0;
+          setInstruction(faces.length > 1 ? "Mais de um rosto na câmera" : "Nenhum rosto detectado. Posicione o rosto na oval");
+          return;
+        }
+        const box = face.boxRaw;
+        const center = box[0] + box[2] / 2 > 0.35 && box[0] + box[2] / 2 < 0.65 && box[1] + box[3] / 2 > 0.25 && box[1] + box[3] / 2 < 0.75;
+        const size = box[2] > FACE_SIZE_MIN && box[2] < FACE_SIZE_MAX;
+        const rotation = face.rotation?.angle;
+        const front = rotation ? Math.abs(rotation.yaw) <= YAW_LIMIT && Math.abs(rotation.pitch) <= PITCH_LIMIT && Math.abs(rotation.roll) <= ROLL_LIMIT : true;
+        const eyesOpen = eyesAreOpen(face);
+        const ready = center && size && front && light.brightness >= BRIGHTNESS_MIN && light.brightness <= BRIGHTNESS_MAX && light.sharpness >= SHARPNESS_MIN && (face.boxScore === undefined || face.boxScore >= 0.6);
+        if (!ready) {
+          stableSinceRef.current = 0;
+          setInstruction(!center
+            ? "Posicione o rosto na oval"
+            : !size
+              ? (box[2] < FACE_SIZE_MIN ? "Rosto muito pequeno ou afastado: aproxime-se" : "Afaste-se um pouco")
+              : !front
+                ? "Olhe para a câmera"
+                : light.brightness < BRIGHTNESS_MIN
+                  ? "Pouca luz: procure um local mais iluminado"
+                  : light.brightness > BRIGHTNESS_MAX
+                    ? "Imagem muito clara: evite a luz direta"
+                    : light.sharpness < SHARPNESS_MIN
+                      ? "Imagem sem nitidez: mantenha o aparelho firme"
+                      : "Detecção facial abaixo do mínimo");
+          return;
+        }
+        const currentStage = stageRef.current;
+        const yaw = face.rotation?.angle.yaw ?? 0;
+        const stagePassed = currentStage === "front" || (currentStage === "left" && yaw < -8) || (currentStage === "right" && yaw > 8) || (currentStage === "blink" && !eyesOpen);
         setInstruction(currentStage === "front" ? "Fique parado" : currentStage === "blink" ? "Pisque" : currentStage === "left" ? "Vire levemente para a esquerda" : "Vire levemente para a direita");
-        if (stagePassed) { if (!stableSinceRef.current) stableSinceRef.current = time; if (time - stableSinceRef.current >= STABLE_MS && capturedStageRef.current !== currentStage) { const image = captureFrame(); if (image) { const next = [...samplesRef.current, image]; capturedStageRef.current = currentStage; samplesRef.current = next; setSamples(next); const nextStage = stages[stages.indexOf(currentStage) + 1] ?? "success"; stageRef.current = nextStage; setStage(nextStage); if (nextStage === "success") void submitEnrollment(next); else { stableSinceRef.current = 0; capturedStageRef.current = null; } } } } else stableSinceRef.current = 0;
-      } catch { setInstruction("Não foi possível processar o quadro. Tente novamente"); } finally { pending = false; }
+        if (!stagePassed) {
+          stableSinceRef.current = 0;
+          return;
+        }
+        if (!stableSinceRef.current) stableSinceRef.current = time;
+        if (time - stableSinceRef.current >= STABLE_MS && capturedStageRef.current !== currentStage) {
+          const image = captureFrame();
+          if (!image) return;
+          const next = [...samplesRef.current, image];
+          capturedStageRef.current = currentStage;
+          samplesRef.current = next;
+          setSamples(next);
+          const nextStage = stages[stages.indexOf(currentStage) + 1] ?? "success";
+          stageRef.current = nextStage;
+          setStage(nextStage);
+          if (nextStage === "success") void submitEnrollment(next);
+          else {
+            stableSinceRef.current = 0;
+            capturedStageRef.current = null;
+          }
+        }
+      } catch {
+        setInstruction("Não foi possível processar o quadro. Tente novamente");
+        setDebugMetrics((metrics) => ({ ...metrics, resultCode: "INFERENCE_FAILED" }));
+      } finally {
+        pending = false;
+      }
     };
     frame = requestAnimationFrame(detect); return () => { stopped = true; cancelAnimationFrame(frame); };
-  }, [cameraState, modelState, employeeId, submitEnrollment]);
+  }, [cameraState, modelState, employeeId, submitEnrollment, debug]);
 
   useEffect(() => { if (cameraState !== "ready") return; const timer = window.setInterval(() => { void renewSession(); }, 60_000); return () => window.clearInterval(timer); }, [cameraState, employeeId, renewSession]);
 
   const employee = employees.find((item) => item.id === Number(employeeId)); const progress = Math.min(100, samples.length * 20);
-  return <main className={styles.page}><header className={styles.header}><p className={styles.eyebrow}>Administração</p><h1>Cadastro facial presencial</h1><p>Imagens processadas em memória. Apenas o template matemático cifrado é mantido.</p></header>{(error || message) && <p role={error ? "alert" : "status"} className={error ? styles.error : styles.success}>{error || message}</p>}<section className={styles.panel} aria-busy={busy}><label className={styles.field}>Funcionário<select value={employeeId} disabled={cameraState === "ready" || busy} onChange={(event) => void selectEmployee(event.target.value)}><option value="">Selecione</option>{employees.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.cracha}{item.enrolled ? " · rosto cadastrado" : " · pendente"}</option>)}</select></label>{employee && <p className={styles.target}><strong>{employee.nome}</strong> · crachá {employee.cracha}</p>}{modelState === "loading" && <p className={styles.modelStatus}>Carregando modelos de visão...</p>}{modelState === "error" && <button type="button" onClick={() => void loadModels()}>Tentar carregar modelos</button>}<div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}><video ref={videoRef} muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" /><canvas ref={overlayRef} className={styles.overlay} aria-hidden="true" /><div className={styles.oval} aria-hidden="true" style={{ "--progress": `${progress}%` } as CSSProperties} /><p className={styles.instruction} aria-live="polite">{cameraState === "starting" ? "Pedindo permissão da câmera" : instruction}</p>{stage === "success" && <span className={styles.check} aria-label="Cadastro concluído">✓</span>}</div><label className={styles.consent}><input type="checkbox" checked={confirmedPerson} onChange={(event) => setConfirmedPerson(event.target.checked)} /><span>Confirmo que a pessoa diante da câmera é {employee?.nome ?? "o funcionário selecionado"} ({employee?.cracha ?? "crachá"}).</span></label><label className={styles.consent}><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>{faceConsentText}</span></label><div className={styles.actions}><button type="button" className={styles.primary} disabled={!employee || !confirmedPerson || !consent || modelState !== "ready" || cameraState === "starting"} onClick={() => void startCamera()}>{cameraState === "ready" ? "Reiniciar" : "Iniciar captura"}</button><button type="button" onClick={stopCamera}>Cancelar</button></div></section></main>;
+  return (
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <p className={styles.eyebrow}>Administração</p>
+        <h1>Cadastro facial presencial</h1>
+        <p>Imagens processadas em memória. Apenas o template matemático cifrado é mantido.</p>
+      </header>
+      {(error || message) && <p role={error ? "alert" : "status"} className={error ? styles.error : styles.success}>{error || message}</p>}
+      <section className={styles.panel} aria-busy={busy}>
+        <label className={styles.field}>
+          Funcionário
+          <select value={employeeId} disabled={cameraState === "ready" || busy} onChange={(event) => void selectEmployee(event.target.value)}>
+            <option value="">Selecione</option>
+            {employees.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.cracha}{item.enrolled ? " · rosto cadastrado" : " · pendente"}</option>)}
+          </select>
+        </label>
+        {employee && <p className={styles.target}><strong>{employee.nome}</strong> · crachá {employee.cracha}</p>}
+        {modelState === "loading" && <p className={styles.modelStatus}>Carregando modelos de visão...</p>}
+        {modelState === "error" && <button type="button" onClick={() => void loadModels()}>Tentar carregar modelos</button>}
+        <div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}>
+          <video ref={videoRef} muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" />
+          <canvas ref={overlayRef} className={styles.overlay} aria-hidden="true" />
+          <div className={styles.oval} aria-hidden="true" style={{ "--progress": `${progress}%` } as CSSProperties} />
+          <p className={styles.instruction} aria-live="polite">{cameraState === "starting" ? "Pedindo permissão da câmera" : instruction}</p>
+          {stage === "success" && <span className={styles.check} aria-label="Cadastro concluído">✓</span>}
+        </div>
+        {debug && (
+          <section aria-label="Diagnóstico facial" className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-800 sm:grid-cols-3">
+            <p>Modelos: {modelState}</p>
+            <p>Backend: {backend}</p>
+            <p>Câmera: {cameraState}</p>
+            <p>Inferência: {debugMetrics.inferenceMs} ms</p>
+            <p>Faces detectadas: {debugMetrics.faceCount}</p>
+            <p>Pontuação detecção: {debugMetrics.detectionScore.toFixed(3)}</p>
+            <p>Tamanho do rosto: {debugMetrics.faceWidth}% do quadro</p>
+            <p>Brilho médio: {debugMetrics.brightness}</p>
+            <p>Nitidez: {debugMetrics.sharpness}</p>
+            <p className="col-span-2 break-words sm:col-span-3">Resultado/erro: {debugMetrics.resultCode}</p>
+            {consistencyDiagnostics && <p className="col-span-2 break-words sm:col-span-3">{consistencyDiagnostics}</p>}
+          </section>
+        )}
+        <label className={styles.consent}>
+          <input type="checkbox" checked={confirmedPerson} onChange={(event) => setConfirmedPerson(event.target.checked)} />
+          <span>Confirmo que a pessoa diante da câmera é {employee?.nome ?? "o funcionário selecionado"} ({employee?.cracha ?? "crachá"}).</span>
+        </label>
+        <label className={styles.consent}>
+          <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+          <span>{faceConsentText}</span>
+        </label>
+        <div className={styles.actions}>
+          <button type="button" className={styles.primary} disabled={!employee || !confirmedPerson || !consent || modelState !== "ready" || cameraState === "starting"} onClick={() => void startCamera()}>
+            {cameraState === "ready" ? "Reiniciar" : "Iniciar captura"}
+          </button>
+          <button type="button" onClick={stopCamera}>Cancelar</button>
+        </div>
+      </section>
+    </main>
+  );
 }
