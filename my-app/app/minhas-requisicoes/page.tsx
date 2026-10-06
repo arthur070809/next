@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import PriorityBadge from "../components/PriorityBadge";
+import ItemDescription from "../components/ItemDescription";
 
 type RequestItem = {
   nome: string;
   codigo: string | null;
+  categoria?: string;
   quantidadePedida: number;
   quantidadeSeparada: number;
   unidadeMedida: string;
@@ -68,7 +70,7 @@ export default function MinhasRequisicoesPage() {
               <ul className="mt-3 divide-y divide-slate-100">
                 {request.itens.map((item, index) => <li key={`${item.codigo ?? item.nome}-${index}`} className="py-3 text-sm">
                   <p className="font-semibold text-slate-900">{item.codigo ? `${item.codigo} · ` : ""}{item.nome}</p>
-                  {item.descricao && <p className="mt-1 text-slate-600">{item.descricao}</p>}
+                  <ItemDescription className="mt-1 text-slate-600" categoria={item.categoria} descricao={item.descricao} />
                   <p className="mt-1 text-slate-700">Pedido {item.quantidadePedida} {item.unidadeMedida} × separado {item.quantidadeSeparada} {item.unidadeMedida}</p>
                   {item.motivo && <p className="mt-1 text-amber-800">Motivo da divergência: {item.motivo.replaceAll("_", " ").toLocaleLowerCase("pt-BR")}</p>}
                 </li>)}

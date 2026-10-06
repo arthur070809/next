@@ -2,6 +2,7 @@
 
 import React from "react"
 import PriorityBadge from "./PriorityBadge"
+import TextoDescricao from "./TextoDescricao"
 import type { ItemFormData } from "./FormularioItem"
 
 export default function ListaItensRequisicao({
@@ -34,7 +35,7 @@ export default function ListaItensRequisicao({
             <tr key={idx} className="odd:bg-slate-50">
               <td className="py-3">
                 <div className="font-medium text-slate-800">{it.itemNome}</div>
-                <div className="text-sm text-slate-500">{it.descricao}</div>
+                <div className="text-sm text-slate-500"><TextoDescricao value={it.descricao} /></div>
               </td>
               <td>{it.quantidade} {it.unidadeMedida}</td>
               <td>{it.setor}</td>

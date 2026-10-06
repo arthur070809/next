@@ -5,12 +5,14 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
 import PriorityBadge from "../../../components/PriorityBadge";
+import ItemDescription from "../../../components/ItemDescription";
 import { parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
 
 type ChecklistItem = {
   id: string;
   itemId: string;
   nome: string;
+  categoria?: string;
   descricao: string;
   codigo: string | null;
   unidadeMedida: string;
@@ -318,7 +320,7 @@ export default function ChecklistRequisicaoPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="font-semibold text-slate-950">{item.nome}</h2>
-                  {item.descricao && <p className="mt-1 text-sm text-slate-600">{item.descricao}</p>}
+                  <ItemDescription className="mt-1 text-sm text-slate-600" categoria={item.categoria} descricao={item.descricao} />
                   <p className="mt-1 text-sm text-slate-600">Código {item.codigo ?? "não cadastrado"} · Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.conferido ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{item.conferido ? "Conferido" : "Pendente"}</span>

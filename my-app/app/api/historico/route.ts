@@ -71,7 +71,7 @@ export async function GET(request: Request) {
           atendente: { select: { id: true, nome: true, cracha: true } },
           itens: {
             include: {
-              item: { select: { codigo: true, nome: true } },
+              item: { select: { codigo: true, nome: true, categoria: true } },
               movimentacoes: {
                 where: { tipo: "SAIDA" },
                 select: { quantidade: true },
@@ -98,6 +98,7 @@ export async function GET(request: Request) {
       const products = req.itens.map((item) => ({
         codigo: item.item.codigo,
         nome: item.item.nome,
+        categoria: item.item.categoria,
         descricao: decodeItemDescription(item.descricao).descricao || undefined,
         quantidadePedida: item.quantidade,
         quantidadeSeparada: item.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0),

@@ -30,7 +30,7 @@ export async function GET() {
             unidadeMedida: true,
             descricao: true,
             motivoNaoAtendido: true,
-            item: { select: { nome: true, codigo: true } },
+            item: { select: { nome: true, codigo: true, categoria: true } },
             movimentacoes: {
               where: { tipo: "SAIDA" },
               select: { quantidade: true },
@@ -49,6 +49,7 @@ export async function GET() {
         itens: requisicao.itens.map((item) => ({
           nome: item.item.nome,
           codigo: item.item.codigo,
+          categoria: item.item.categoria,
           quantidadePedida: item.quantidade,
           quantidadeSeparada: item.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0),
           unidadeMedida: item.unidadeMedida,

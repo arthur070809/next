@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
 import PriorityBadge from "../components/PriorityBadge";
+import ItemDescription from "../components/ItemDescription";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 import { startVisibilityPolling } from "../../lib/visibility-polling";
@@ -19,6 +20,7 @@ import {
   ExecutorAssuncaoLote,
   type ResultadoAssuncaoLote,
 } from "../../lib/viagem/assumir-lote";
+import { ordenarRequisicoes } from "./utils";
 
 const podeAtivarDemonstracao = viagemDemoDisponivel(
   process.env.NODE_ENV,
@@ -153,10 +155,9 @@ export default function RequisicoesQueuePage() {
     };
   }, [mostrarViagens, modoDemonstracao]);
 
-  const filtradas = useMemo(() => requisicoes
+  const filtradas = useMemo(() => ordenarRequisicoes(requisicoes
     .filter((request) => `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase()))
-    .sort((first, second) => Number(second.prioridade === "prioridade") - Number(first.prioridade === "prioridade"))
-  , [requisicoes, busca]);
+  ), [requisicoes, busca]);
 
   async function assumirRequisicao(requisicao: RequisicaoMock, codigoCracha: string) {
     if (assumindo) return;
@@ -365,7 +366,12 @@ export default function RequisicoesQueuePage() {
                 <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                   <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td>
                   <td className="px-4 py-3 text-slate-600">{request.setor}</td>
-                  <td className="px-4 py-3">{request.itens?.length ?? 0}</td>
+                  <td className="max-w-sm break-words px-4 py-3">
+                    <span className="font-medium">{request.itens?.length ?? 0} {request.itens?.length === 1 ? "item" : "itens"}</span>
+                    {request.itens?.map((item) => <div key={item.id} className="mt-1 text-xs text-slate-600">
+                      {item.nome}<ItemDescription className="mt-1" categoria={item.categoria} descricao={item.descricao} />
+                    </div>)}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3">{formatarIdade(request.data)}</td>
                   <td className="px-4 py-3"><PriorityBadge priority={request.prioridade} /></td>
                   <td className="px-4 py-3"><StatusBadge label={request.status === "pendente" ? "Aguardando" : "Em atendimento"} tone={request.status === "pendente" ? "warning" : "brand"} /></td>

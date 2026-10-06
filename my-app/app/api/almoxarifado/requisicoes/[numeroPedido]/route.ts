@@ -57,7 +57,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         atendente: { select: { id: true, nome: true } },
         itens: {
           include: {
-            item: { select: { id: true, nome: true, codigo: true, unidade: true } },
+            item: { select: { id: true, nome: true, categoria: true, codigo: true, unidade: true } },
           },
         },
       },
@@ -91,6 +91,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
             id: item.id,
             itemId: item.item.id,
             nome: item.item.nome,
+            categoria: item.item.categoria,
             descricao: metadata.descricao,
             setor: metadata.setor,
             codigo: item.item.codigo,
