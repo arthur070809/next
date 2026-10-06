@@ -274,11 +274,6 @@ export default function RequisicoesQueuePage() {
             )}
           </div>
 
-          {modoDemonstracao && (
-            <p role="status" className="sticky top-0 z-10 mb-4 border-y-2 border-amber-700 bg-amber-100 px-3 py-3 text-center font-bold tracking-wide text-amber-950 shadow-sm">
-              DADOS SIMULADOS
-            </p>
-          )}
           {erroViagens && <p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erroViagens}</p>}
           {carregandoViagens && !planoViagensExibido ? (
             <p role="status" className="py-6 text-center text-sm text-slate-500">Montando viagens…</p>
