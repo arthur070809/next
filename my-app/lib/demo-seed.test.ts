@@ -186,6 +186,7 @@ describe("demo data fixture", () => {
         }),
       },
       requisicao: {
+        deleteMany: vi.fn(async () => { requests.clear(); }),
         upsert: vi.fn(async ({ create }: { create: Record<string, unknown> }) => {
           const number = String(create.numeroPedido);
           const row = requests.get(number) ?? create;
@@ -194,22 +195,28 @@ describe("demo data fixture", () => {
         }),
       },
       requisicaoItem: {
+        deleteMany: vi.fn(async () => { items.clear(); }),
         createMany: vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
           for (const row of data) if (!items.has(String(row.id))) items.set(String(row.id), row);
           return { count: data.length };
         }),
       },
       movimentacao: {
+        deleteMany: vi.fn(async () => { movements.clear(); }),
         createMany: vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
           for (const row of data) if (!movements.has(String(row.id))) movements.set(String(row.id), row);
           return { count: data.length };
         }),
       },
       auditoria: {
+        deleteMany: vi.fn(async () => { audits.clear(); }),
         createMany: vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
           for (const row of data) if (!audits.has(String(row.id))) audits.set(String(row.id), row);
           return { count: data.length };
         }),
+      },
+      loginAttemptBucket: {
+        deleteMany: vi.fn(async () => ({ count: 0 })),
       },
     };
     const transactionOptions: Array<{ maxWait?: number; timeout?: number } | undefined> = [];
@@ -291,6 +298,13 @@ describe("demo data fixture", () => {
     expect(items.size).toBe(itemCountAfterFirstRun);
     expect(movements.size).toBe(movementCountAfterFirstRun);
     expect(audits.size).toBe(auditCountAfterFirstRun);
+
+    const firstReset = await resetAndSeedDemoData(client as never);
+    const countsAfterFirstReset = [requests.size, items.size, movements.size, audits.size];
+    const secondReset = await resetAndSeedDemoData(client as never);
+    expect(firstReset).toMatchObject({ initialized: true, preservedExistingDemo: false });
+    expect(secondReset).toMatchObject({ initialized: true, preservedExistingDemo: false });
+    expect([requests.size, items.size, movements.size, audits.size]).toEqual(countsAfterFirstReset);
   });
 
   it("deletes children before request parents with an explicit reset timeout", async () => {
