@@ -57,7 +57,7 @@ export async function getAuthenticatedSession(options: { now?: Date; touch?: boo
   if (!validation.valid) return null;
 
   const shouldWriteSignal = options.touch !== false && (
-    session.ultimoSinalEm.getTime() <= now.getTime() - SESSION_SIGNAL_WRITE_INTERVAL_MS ||
+    session.ultimoSinalEm.getTime() < now.getTime() - SESSION_SIGNAL_WRITE_INTERVAL_MS ||
     session.saidaEm !== null
   );
   if (shouldWriteSignal) {

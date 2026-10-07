@@ -62,11 +62,20 @@ describe("central session validation and renewal", () => {
 
   it("does not write another signal within the five-second write interval", async () => {
     vi.mocked(prisma.sessao.findUnique).mockResolvedValueOnce(session({
-      ultimoSinalEm: new Date(now.getTime() - 4_999),
+      ultimoSinalEm: new Date(now.getTime() - 5_000),
     }) as never);
 
     expect(await getAuthenticatedSession({ now })).not.toBeNull();
     expect(prisma.sessao.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("writes a signal after more than five seconds", async () => {
+    vi.mocked(prisma.sessao.findUnique).mockResolvedValueOnce(session({
+      ultimoSinalEm: new Date(now.getTime() - 5_001),
+    }) as never);
+
+    expect(await getAuthenticatedSession({ now })).not.toBeNull();
+    expect(prisma.sessao.updateMany).toHaveBeenCalledTimes(1);
   });
 
   it("rejects an expired session without refreshing it", async () => {
