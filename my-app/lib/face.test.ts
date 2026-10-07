@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   analyzeEnrollmentEmbeddings,
   decryptEmbedding,
@@ -6,6 +6,10 @@ import {
   faceEnrollmentConsistencyDistance,
   faceEnrollmentDuplicateDistance,
   faceMatchThresholdDefault,
+  FaceServiceUnavailableError,
+  getFaceMatchThreshold,
+  enrollFaceSamples,
+  verifyFaceCapture,
 } from "./face";
 import { faceCaptureQuality } from "./facial/config";
 
@@ -17,6 +21,8 @@ describe("facial enrollment embedding policy", () => {
   const previousEncryptionKey = process.env.FACE_EMBEDDING_ENCRYPTION_KEY;
 
   afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
     if (previousEncryptionKey === undefined) delete process.env.FACE_EMBEDDING_ENCRYPTION_KEY;
     else process.env.FACE_EMBEDDING_ENCRYPTION_KEY = previousEncryptionKey;
   });
@@ -107,5 +113,63 @@ describe("facial enrollment embedding policy", () => {
 
     expect(restored).toEqual(embedding);
     expect(analyzeEnrollmentEmbeddings([embedding, vector(0.25, 63), vector(0.25)]).consistent).toBe(false);
+  });
+
+  it("validates the match threshold without changing the configured default", () => {
+    expect(getFaceMatchThreshold(undefined)).toBe(faceMatchThresholdDefault);
+    expect(getFaceMatchThreshold("0.51")).toBe(0.51);
+    expect(getFaceMatchThreshold("0")).toBe(0);
+    for (const invalid of ["", "NaN", "Infinity", "-0.1"]) {
+      expect(() => getFaceMatchThreshold(invalid)).toThrow(FaceServiceUnavailableError);
+    }
+  });
+
+  it("does not call the provider for missing or malformed templates", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
+
+    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [])).resolves.toBe(false);
+    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1, 31)])).resolves.toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when facial provider is unavailable and accepts only its explicit match result", async () => {
+    vi.stubEnv("FACE_SERVICE_URL", "https://face-service.invalid");
+    vi.stubEnv("FACE_SERVICE_TOKEN", "test-token");
+    vi.stubEnv("FACE_MATCH_THRESHOLD", "0.42");
+    const fetchMock = vi.fn(async () => new Response("unavailable", { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
+
+    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
+      .rejects.toBeInstanceOf(FaceServiceUnavailableError);
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
+      livenessPassed: true,
+      matched: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })));
+    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
+      .resolves.toBe(false);
+  });
+
+  it("treats malformed provider output as a technical failure", async () => {
+    vi.stubEnv("FACE_SERVICE_URL", "https://face-service.invalid");
+    vi.stubEnv("FACE_SERVICE_TOKEN", "test-token");
+    vi.stubEnv("FACE_MATCH_THRESHOLD", "0.42");
+    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ matched: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    })));
+    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
+      .rejects.toBeInstanceOf(FaceServiceUnavailableError);
+
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
+      embeddings: [[1, 2], [1, 2], [1, 2]],
+    }), { status: 200, headers: { "content-type": "application/json" } })));
+    await expect(enrollFaceSamples([capture, capture, capture], { nonce: "nonce" }))
+      .rejects.toBeInstanceOf(FaceServiceUnavailableError);
   });
 });

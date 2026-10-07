@@ -11,6 +11,7 @@ vi.mock("@/lib/face", () => ({
   decryptEmbedding: vi.fn(() => [1, 2, 3]),
   encryptEmbedding: vi.fn(() => ({ ciphertext: "cipher", iv: "iv", tag: "tag" })),
   enrollFaceSamples: vi.fn(async () => [[1, 2, 3]]),
+  FaceServiceUnavailableError: class FaceServiceUnavailableError extends Error {},
   faceEmbeddingDistance: vi.fn(() => 0),
   faceEnrollmentConsistencyDistance: 0.35,
   faceEnrollmentDuplicateDistance: 0.1,
@@ -23,7 +24,7 @@ vi.mock("@/lib/webauthn", () => ({ getClientIpHash: vi.fn(() => "client-hash"), 
 
 import { GET, POST } from "./route";
 import { requireAdmin } from "@/lib/auth";
-import { analyzeEnrollmentEmbeddings, enrollFaceSamples, FaceEnrollmentVerificationError } from "@/lib/face";
+import { analyzeEnrollmentEmbeddings, enrollFaceSamples, FaceEnrollmentVerificationError, FaceServiceUnavailableError } from "@/lib/face";
 import { prisma } from "@/lib/prisma";
 
 describe("admin face enrollment route", () => {
@@ -77,6 +78,17 @@ describe("admin face enrollment route", () => {
     expect(body.consistency.source).toBe("comparacao-local-com-mediana");
     expect(body.consistency.distances).toEqual([0.1, 0.4, 0.2]);
     expect(JSON.stringify(body)).not.toMatch(/\[\[|\d{10,}/);
+  });
+
+  it("reports provider outage as technical and does not present it as a failed identity", async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
+    vi.mocked(enrollFaceSamples).mockRejectedValueOnce(new FaceServiceUnavailableError());
+
+    const response = await POST(enrollmentRequest());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ code: "FACE_SERVICE_UNAVAILABLE" });
   });
 });
 

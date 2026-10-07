@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { analyzeEnrollmentEmbeddings, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentConsistencyDistance, faceEnrollmentDuplicateDistance, FaceEnrollmentVerificationError, faceConsentVersion } from "@/lib/face";
+import { analyzeEnrollmentEmbeddings, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentConsistencyDistance, faceEnrollmentDuplicateDistance, FaceEnrollmentVerificationError, FaceServiceUnavailableError, faceConsentVersion } from "@/lib/face";
 import { faceEnrollmentAttemptLimit, getFaceEnrollmentLimit, recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 import { createFaceEnrollmentSession, findFaceEnrollmentSession, renewFaceEnrollmentSession } from "@/lib/face-enrollment-session";
 import { prisma } from "@/lib/prisma";
@@ -136,6 +136,9 @@ export async function POST(request: Request) {
       },
     }, { status: 201 });
   } catch (error) {
+    if (error instanceof FaceServiceUnavailableError) {
+      return apiError(503, "FACE_SERVICE_UNAVAILABLE", "O serviço de reconhecimento facial está temporariamente indisponível. Tente novamente.");
+    }
     const errorId = randomUUID();
     console.error("Falha no cadastro facial", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return apiError(500, "FACE_ENROLLMENT_SAVE_FAILED", "Não foi possível concluir o cadastro. Tente novamente.", errorId);
