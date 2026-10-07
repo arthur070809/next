@@ -41,6 +41,7 @@ export default function LoginForm() {
   const [preAuthToken, setPreAuthToken] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [faceChallenge, setFaceChallenge] = useState<FaceChallenge | null>(null);
+  const [identifyMode, setIdentifyMode] = useState(false);
   const codeInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const totpInputRef = useRef<HTMLInputElement>(null);
@@ -147,14 +148,25 @@ export default function LoginForm() {
   }
 
   async function startFaceLogin() {
-    if (loading || !codigoCracha.trim()) {
-      setError("Informe o crachá para iniciar o reconhecimento facial.");
-      codeInputRef.current?.focus();
-      return;
-    }
+    const useIdentifyFlow = !codigoCracha.trim();
+    setIdentifyMode(useIdentifyFlow);
     setError("");
     setLoading(true);
     try {
+      if (useIdentifyFlow) {
+        const response = await fetch("/api/auth/login/face/identify/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = await readResponse(response);
+        acceptFaceChallenge(data);
+        return;
+      }
+      if (!codigoCracha.trim()) {
+        setError("Informe o crachá para iniciar o reconhecimento facial.");
+        codeInputRef.current?.focus();
+        return;
+      }
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -180,7 +192,7 @@ export default function LoginForm() {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const response = await fetch("/api/auth/login/face/verify", {
+      const response = await fetch(identifyMode ? "/api/auth/login/face/identify" : "/api/auth/login/face/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -223,6 +235,7 @@ export default function LoginForm() {
   function cancelFace() {
     stopFaceCamera();
     setFaceChallenge(null);
+    setIdentifyMode(false);
     setStage("code");
     setError("");
   }
@@ -278,7 +291,7 @@ export default function LoginForm() {
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <p className="text-xs text-slate-500">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
         <button type="submit" disabled={loading || !codigoCracha.trim() || !senha} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Entrar com senha"}</button>
-        <button type="button" disabled={loading || !codigoCracha.trim()} onClick={() => void startFaceLogin()} className="min-h-11 w-full rounded-lg border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-50">
+        <button type="button" disabled={loading} onClick={() => void startFaceLogin()} className="min-h-11 w-full rounded-lg border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-50">
           {loading ? "Preparando câmera…" : "Entrar com reconhecimento facial"}
         </button>
       </form>}
