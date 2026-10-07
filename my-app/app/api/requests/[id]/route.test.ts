@@ -88,4 +88,25 @@ describe("GET /api/requests/[id] metadata presentation", () => {
       where: { id: "demo-request", solicitanteId: 17 },
     }));
   });
+
+  it("uses request-level legacy description when the first item has none", async () => {
+    vi.mocked(prisma.requisicao.findUnique).mockResolvedValueOnce({
+      id: "legacy-request",
+      numeroPedido: "REQ-LEGACY",
+      solicitanteId: 17,
+      observacao: "Descrição antiga do pedido",
+      itens: [{
+        descricao: null,
+        item: { id: "item-1", nome: "Item antigo", codigo: "129" },
+        local: { slug: "estoque" },
+      }],
+    } as never);
+
+    const response = await GET(new Request("http://localhost/api/requests/legacy-request"), {
+      params: Promise.resolve({ id: "legacy-request" }),
+    });
+    const body = await response.json();
+
+    expect(body.requisicao.itens[0].descricao).toBe("Descrição antiga do pedido");
+  });
 });

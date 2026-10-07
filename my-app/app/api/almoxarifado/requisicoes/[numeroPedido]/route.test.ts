@@ -121,6 +121,32 @@ describe("atomic request claiming", () => {
       expect(body.requisicao.itens[0].setor).toBe("setor2");
       expect(JSON.stringify(body)).not.toContain("[[setor:");
     });
+
+    it("falls back to the legacy request observation when the item has no description", async () => {
+      vi.mocked(prisma.requisicao.findUnique).mockResolvedValueOnce({
+        numeroPedido: "REQ-1",
+        observacao: "Descrição antiga do pedido",
+        status: StatusRequisicao.ASSUMIDA,
+        prioridade: "PADRAO",
+        criadoEm: new Date("2026-10-01T12:00:00Z"),
+        solicitante: { nome: "Operador" },
+        atendente: { id: stockkeeper.id, nome: "Almoxarife" },
+        itens: [{
+          id: "req-item-1",
+          itemId: "item-1",
+          unidadeMedida: "UN",
+          quantidade: 2,
+          descricao: null,
+          status: StatusItemRequisicao.ASSUMIDO,
+          item: { id: "item-1", nome: "Arruela", codigo: "129", unidade: "UN" },
+        }],
+      } as never);
+
+      const response = await GET(new Request("http://localhost"), context());
+      const body = await response.json();
+
+      expect(body.requisicao.itens[0].descricao).toBe("Descrição antiga do pedido");
+    });
   });
 
   it("claims a pending request through a conditional status update", async () => {

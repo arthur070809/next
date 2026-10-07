@@ -25,7 +25,7 @@ describe("ItemDescription", () => {
       descricao: `[[setor:v1:setor1]][[idem:v1:${"a".repeat(64)}:${"b".repeat(64)}]]`,
     }));
     expect(markup).toContain("Categoria: —");
-    expect(renderedText(markup)).toContain("Descrição do pedido: —");
+    expect(renderedText(markup)).toContain("Descrição do pedido: Sem descrição");
     expect(markup).not.toContain("undefined");
   });
 
@@ -35,5 +35,29 @@ describe("ItemDescription", () => {
     }));
     expect(markup).toContain("Reparo – revisão");
     expect(markup).not.toContain("[[");
+  });
+
+  it.each([null, undefined, "", "   "])("renders an honest fallback for absent descriptions (%s)", (description) => {
+    const markup = renderToStaticMarkup(createElement(ItemDescription, {
+      categoria: "Fixadores",
+      descricao: description,
+    }));
+
+    expect(renderedText(markup)).toContain("Descrição do pedido: Sem descrição");
+    expect(markup).toContain("text-slate-500");
+    expect(markup).not.toContain(">null<");
+    expect(markup).not.toContain(">undefined<");
+  });
+
+  it("preserves plain text and line breaks while allowing unspaced descriptions to wrap", () => {
+    const longText = "x".repeat(300);
+    const markup = renderToStaticMarkup(createElement(ItemDescription, {
+      descricao: `${longText}\nsegunda linha`,
+    }));
+
+    expect(renderedText(markup)).toContain(`Descrição do pedido: ${longText}\nsegunda linha`);
+    expect(markup).toContain("whitespace-pre-wrap");
+    expect(markup).toContain("[overflow-wrap:anywhere]");
+    expect(markup).not.toContain("dangerouslySetInnerHTML");
   });
 });

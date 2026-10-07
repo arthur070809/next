@@ -34,4 +34,30 @@ describe("public queue representation of seeded requests", () => {
     expect(JSON.stringify(publicRequest)).not.toContain("[[setor:");
     expect(JSON.stringify(publicRequest)).not.toContain("[[idem:");
   });
+
+  it("keeps legacy request-level description when item-level description is absent", () => {
+    const request = {
+      numeroPedido: "REQ-LEGACY",
+      status: "PENDENTE",
+      prioridade: "PADRAO",
+      criadoEm: new Date("2026-10-05T00:00:00.000Z"),
+      observacao: "Descrição antiga do pedido",
+      solicitante: { nome: "Operador", cracha: "1111" },
+      atendente: null,
+      assumidaEm: null,
+      anuladaEm: null,
+      itens: [{
+        descricao: null,
+        local: { slug: "estoque" },
+        quantidade: 1,
+        unidadeMedida: "UN",
+        item: { nome: "Item antigo" },
+      }],
+    };
+
+    const publicRequest = toRequisicaoMock(request as never);
+
+    expect(publicRequest.descricao).toBe("Descrição antiga do pedido");
+    expect(publicRequest.itens?.[0].descricao).toBe("Descrição antiga do pedido");
+  });
 });
