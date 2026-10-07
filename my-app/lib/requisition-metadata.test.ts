@@ -25,6 +25,20 @@ describe("request item metadata", () => {
     });
   });
 
+  it("removes internal markers while preserving Unicode and multiline user text", () => {
+    const idem = `[[idem:v1:${"a".repeat(64)}:${"b".repeat(64)}]]`;
+    const value = `[[setor:v1:setor3]]${idem}\nRevisão — estação 4\nAção: conferir`;
+    expect(decodeItemDescription(value)).toEqual({
+      setor: "setor3",
+      descricao: "Revisão — estação 4\nAção: conferir",
+    });
+    expect(decodeItemDescription(`[[setor:v1:setor1]]${idem}`)).toEqual({
+      setor: "setor1",
+      descricao: "",
+    });
+    expect(decodeItemDescription("  \n")).toEqual({ setor: null, descricao: "" });
+  });
+
   it("does not expose internal idempotency markers as user observations", () => {
     const marker = `[[idem:v1:${"a".repeat(64)}:${"b".repeat(64)}]]`;
 

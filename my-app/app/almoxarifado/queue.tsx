@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
 import PriorityBadge from "../components/PriorityBadge";
+import ItemDescription from "../components/ItemDescription";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 import { startVisibilityPolling } from "../../lib/visibility-polling";
@@ -19,6 +20,7 @@ import {
   ExecutorAssuncaoLote,
   type ResultadoAssuncaoLote,
 } from "../../lib/viagem/assumir-lote";
+import { ordenarRequisicoes } from "./utils";
 
 const podeAtivarDemonstracao = viagemDemoDisponivel(
   process.env.NODE_ENV,
@@ -153,10 +155,9 @@ export default function RequisicoesQueuePage() {
     };
   }, [mostrarViagens, modoDemonstracao]);
 
-  const filtradas = useMemo(() => requisicoes
+  const filtradas = useMemo(() => ordenarRequisicoes(requisicoes
     .filter((request) => `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase()))
-    .sort((first, second) => Number(second.prioridade === "prioridade") - Number(first.prioridade === "prioridade"))
-  , [requisicoes, busca]);
+  ), [requisicoes, busca]);
 
   async function assumirRequisicao(requisicao: RequisicaoMock, codigoCracha: string) {
     if (assumindo) return;
@@ -263,7 +264,7 @@ export default function RequisicoesQueuePage() {
                   onChange={(event) => setModoDemonstracao(event.target.checked)}
                   className="size-4 accent-blue-700"
                 />
-                Ver com dados de demonstração
+                Ver dados simulados
               </label>
             )}
             {planoViagensExibido && (
@@ -274,11 +275,6 @@ export default function RequisicoesQueuePage() {
             )}
           </div>
 
-          {modoDemonstracao && (
-            <p role="status" className="sticky top-0 z-10 mb-4 border-y-2 border-amber-700 bg-amber-100 px-3 py-3 text-center font-bold tracking-wide text-amber-950 shadow-sm">
-              DADOS SIMULADOS (demonstração)
-            </p>
-          )}
           {erroViagens && <p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erroViagens}</p>}
           {carregandoViagens && !planoViagensExibido ? (
             <p role="status" className="py-6 text-center text-sm text-slate-500">Montando viagens…</p>
@@ -370,7 +366,12 @@ export default function RequisicoesQueuePage() {
                 <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                   <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td>
                   <td className="px-4 py-3 text-slate-600">{request.setor}</td>
-                  <td className="px-4 py-3">{request.itens?.length ?? 0}</td>
+                  <td className="max-w-sm break-words px-4 py-3">
+                    <span className="font-medium">{request.itens?.length ?? 0} {request.itens?.length === 1 ? "item" : "itens"}</span>
+                    {request.itens?.map((item) => <div key={item.id} className="mt-1 text-xs text-slate-600">
+                      {item.nome}<ItemDescription className="mt-1" categoria={item.categoria} descricao={item.descricao} />
+                    </div>)}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3">{formatarIdade(request.data)}</td>
                   <td className="px-4 py-3"><PriorityBadge priority={request.prioridade} /></td>
                   <td className="px-4 py-3"><StatusBadge label={request.status === "pendente" ? "Aguardando" : "Em atendimento"} tone={request.status === "pendente" ? "warning" : "brand"} /></td>
@@ -381,13 +382,13 @@ export default function RequisicoesQueuePage() {
                         <button
                           type="button"
                           disabled={modoDemonstracao}
-                          title={modoDemonstracao ? "As requisições não podem ser assumidas durante a demonstração." : undefined}
+                          title={modoDemonstracao ? "As requisições não podem ser assumidas durante a simulação." : undefined}
                           onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }}
                           className="font-semibold text-blue-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Assumir
                         </button>
-                        {modoDemonstracao && <span className="ml-2 text-xs text-slate-600">Indisponível na demonstração</span>}
+                        {modoDemonstracao && <span className="ml-2 text-xs text-slate-600">Indisponível durante a simulação</span>}
                       </>
                     ) : (
                       <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="font-semibold text-blue-800 hover:underline">

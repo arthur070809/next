@@ -31,7 +31,7 @@ export default function LoginForm() {
   const router = useRouter();
   const [codigoCracha, setCodigoCracha] = useState("");
   const [senha, setSenha] = useState("");
-  const [metodoCredencial, setMetodoCredencial] = useState<"badge" | "password">("badge");
+  const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState<Stage>("code");
@@ -39,6 +39,7 @@ export default function LoginForm() {
   const [totpCode, setTotpCode] = useState("");
   const [faceChallenge, setFaceChallenge] = useState<FaceChallenge | null>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const totpInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -117,16 +118,35 @@ export default function LoginForm() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          codigoCracha,
-          credential: metodoCredencial,
-          ...(metodoCredencial === "password" ? { password: senha } : {}),
-        }),
+        body: JSON.stringify({ codigoCracha, credential: "password", password: senha }),
       });
       await handleLoginResponse(response);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível comunicar com o servidor.");
+      (senha ? passwordInputRef.current : codeInputRef.current)?.focus();
+    } finally {
+      setLoading(false);
+    }
+
+  }
+
+  async function startFaceLogin() {
+    if (loading || !codigoCracha.trim()) {
+      setError("Informe o crachá para iniciar o reconhecimento facial.");
       codeInputRef.current?.focus();
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigoCracha, credential: "face" }),
+      });
+      await handleLoginResponse(response);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o reconhecimento facial.");
     } finally {
       setLoading(false);
     }
@@ -223,15 +243,22 @@ export default function LoginForm() {
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <div className="flex flex-col gap-3 sm:flex-row"><button type="button" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Voltar</button><button type="submit" disabled={loading || totpCode.length !== 6} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Verificando…" : "Verificar"}</button></div>
       </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-7 space-y-5" noValidate>
-        <div className="grid grid-cols-2 gap-2" role="group" aria-label="Método de credencial">
-          <button type="button" aria-pressed={metodoCredencial === "badge"} onClick={() => { setMetodoCredencial("badge"); setSenha(""); }} className={`min-h-10 rounded-lg border px-3 text-sm font-semibold ${metodoCredencial === "badge" ? "border-royal bg-blue-50 text-royal" : "border-slate-300 text-slate-700"}`}>Código do crachá</button>
-          <button type="button" aria-pressed={metodoCredencial === "password"} onClick={() => setMetodoCredencial("password")} className={`min-h-10 rounded-lg border px-3 text-sm font-semibold ${metodoCredencial === "password" ? "border-royal bg-blue-50 text-royal" : "border-slate-300 text-slate-700"}`}>Senha</button>
-        </div>
         <div><label htmlFor="codigo-cracha" className="text-sm font-semibold text-slate-800">Código do crachá</label><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></div>
-        {metodoCredencial === "password" && <div><label htmlFor="login-password" className="text-sm font-semibold text-slate-800">Senha cadastrada</label><input id="login-password" required type="password" autoComplete="current-password" maxLength={256} value={senha} onChange={(event) => setSenha(event.target.value)} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></div>}
+        <div>
+          <label htmlFor="login-password" className="text-sm font-semibold text-slate-800">Senha</label>
+          <div className="mt-2 flex gap-2">
+            <input ref={passwordInputRef} id="login-password" required type={senhaVisivel ? "text" : "password"} autoComplete="current-password" maxLength={256} value={senha} onChange={(event) => setSenha(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+            <button type="button" onClick={() => setSenhaVisivel((visible) => !visible)} aria-label={senhaVisivel ? "Ocultar senha" : "Mostrar senha"} className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-royal">
+              {senhaVisivel ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
+        </div>
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <p className="text-xs text-slate-500">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
-        <button type="submit" disabled={loading || (metodoCredencial === "password" && !senha)} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Continuar"}</button>
+        <button type="submit" disabled={loading || !codigoCracha.trim() || !senha} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Entrar com senha"}</button>
+        <button type="button" disabled={loading || !codigoCracha.trim()} onClick={() => void startFaceLogin()} className="min-h-11 w-full rounded-lg border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-50">
+          {loading ? "Preparando câmera…" : "Entrar com reconhecimento facial"}
+        </button>
       </form>}
     </section>
   </main>;

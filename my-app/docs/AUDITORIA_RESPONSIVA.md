@@ -2,33 +2,39 @@
 
 ## Escopo e método
 
-Revisão estática dos layouts e breakpoints das telas principais, sem iniciar o servidor nem acessar banco. Não foram feitas capturas renderizadas em dispositivo; as dimensões abaixo são cenários para validação manual, não resultados de browser.
+Revisão estática dos componentes, classes Tailwind e breakpoints. Não foi iniciado um servidor nem feita validação renderizada em Playwright, browser ou aparelho. Todos os resultados abaixo são expectativas inferidas do código e ficam **não verificados em dispositivo**.
 
-## Verificação por largura
+## Viewports solicitados
 
-| Viewport | Comportamento esperado no código | Evidência |
+| Largura | Cobertura estática e expectativa | Estado |
 |---|---|---|
-| 360 px | Menu lateral inicia fora do viewport e é aberto pelo botão do header; formulário de requisição e formulário de estoque empilham em uma coluna. A lista de estoque tem altura máxima de `60dvh` e é a única área vertical interna dessa tela. | `app/components/PortalShell.tsx`, `app/requisicao/page.tsx`, `app/estoque/page.tsx`, `app/estoque/stock-list.module.css` |
-| 767 px | Continua no layout estreito; a lista vem depois do formulário de estoque e permite rolagem própria, sem rolagem interna do formulário. | `app/estoque/page.tsx`, `app/estoque/stock-list.module.css` |
-| 768 px | O layout de estoque passa a duas colunas. A lista fica sticky abaixo do header e sua altura máxima é `100dvh - 6rem`; somente a lista de itens rola. | `app/estoque/page.tsx`, `app/estoque/stock-list.module.css` |
-| 1440 px | O conteúdo é limitado por `max-w-7xl`; o painel lateral é reservado em desktop; grids de dashboard e fila expandem progressivamente. | `app/components/PortalShell.tsx`, `app/admin/dashboard.tsx`, `app/almoxarifado/queue.tsx` |
+| 360 px | Layout estreito; formulário de estoque antes da lista; lista limitada a cerca de `60dvh`; tabelas largas contidas em seus próprios wrappers. Conferir também teclado virtual e câmera. | Não verificado em dispositivo |
+| 390 px | Mesmo breakpoint estreito de 360 px; conferir quebra de texto, botões e inputs com teclado. | Não verificado em dispositivo |
+| 768 px | Limite do layout da tela de estoque: duas colunas; formulário não deve esticar com a lista; painel/lista tem altura limitada e rolagem dos produtos. | Não verificado em dispositivo |
+| 1024 px | Layout intermediário; validar menu lateral, colunas, tabelas contidas e sticky sem cobrir conteúdo. | Não verificado em dispositivo |
+| 1440 px | Layout amplo limitado pelos containers da aplicação; validar alinhamento de grids e painel sticky. | Não verificado em dispositivo |
 
-## Telas examinadas
+## Cobertura por tela
 
-- **Shell/menu:** navegação móvel por drawer com overlay e fechamento por botão; em desktop o menu fixo tem largura reservada no conteúdo. Ver [PortalShell.tsx](../app/components/PortalShell.tsx).
-- **Nova requisição:** coluna única até o breakpoint `lg`, duas colunas em telas maiores; controles ocupam a largura disponível. Ver [page.tsx](../app/requisicao/page.tsx).
-- **Estoque:** formulário e lista empilhados abaixo de 768 px; acima disso, duas colunas. O painel de lista é sticky em desktop e tem rolagem interna apenas em seus resultados. O menu de sugestões de material não tem uma região de scroll independente. Ver [page.tsx](../app/estoque/page.tsx) e [stock-list.module.css](../app/estoque/stock-list.module.css).
-- **Fila do almoxarifado:** filtros passam de coluna única para linha; tabela mantém largura mínima de 900 px e rolagem horizontal explícita em telas menores. Ver [queue.tsx](../app/almoxarifado/queue.tsx).
-- **Histórico:** filtros passam de uma para duas/três colunas; cartões de eventos são fluidos. Ver [page.tsx](../app/historico/page.tsx).
-- **Ressuprimento:** gráfico e tabela preservam legibilidade com rolagem horizontal explícita quando necessário. Ver [RessuprimentoTabela.tsx](../app/admin/ressuprimento/RessuprimentoTabela.tsx).
-- **Checklist e câmera QR:** captura usa modal de viewport inteiro; a tela de checklist e os cartões devem ser conferidos com teclado virtual aberto em dispositivo móvel. Ver [page.tsx](../app/almoxarifado/requisicoes/[numeroPedido]/page.tsx) e [ProductEtiquetaScanner.tsx](../app/components/ProductEtiquetaScanner.tsx).
+| Tela | Achado estático/correção presente | Arquivos examinados | Estado |
+|---|---|---|---|
+| Login | Formulário em coluna, senha com mostrar/ocultar, botão de atalho facial e botões de pelo menos 44 px (`min-h-11`). Não há input de arquivo; login facial mantém câmera. | `app/login/LoginForm.tsx`, `app/login/LoginForm.test.ts` | Não verificado em dispositivo |
+| Operador — nova requisição | Grid responsivo; conferir selects, tabela/lista de itens e ação de prioridade com teclado aberto e largura estreita. | `app/requisicao/page.tsx` | Não verificado em dispositivo |
+| Operador — Minhas Requisições | Conferir cartões/listagem, estado vazio, textos longos e largura da navegação em 360/390 px. | `app/requisicao/minhas/page.tsx` | Não verificado em dispositivo |
+| Fila do almoxarifado | A tabela possui largura mínima e wrapper com rolagem horizontal contida; testar filtros e prioridade. | `app/almoxarifado/queue.tsx` | Não verificado em dispositivo |
+| Checklist e scanner | Conferir checklist com teclado virtual; modal do scanner usa viewport cheio e depende de HTTPS/permissão de câmera. Não foi testado em telefone. | `app/almoxarifado/requisicoes/[numeroPedido]/page.tsx`, `app/components/ProductEtiquetaScanner.tsx` | Não verificado em dispositivo |
+| Estoque | Em telas abaixo de 768 px, formulário primeiro e lista depois com máximo próximo de `60dvh`; em 768 px ou mais, duas colunas com alinhamento no início, lista sticky e rolagem interna dos resultados. | `app/estoque/page.tsx`, `app/estoque/stock-list.module.css` | Não verificado em dispositivo |
+| Histórico | Filtros usam grids responsivos e cartões devem se ajustar; conferir textos longos e a tabela/rolagem no celular. | `app/historico/page.tsx` | Não verificado em dispositivo |
+| Dashboard | Cards/grids são responsivos; conferir gráficos, ações administrativas e textos em telas estreitas. | `app/admin/dashboard.tsx` | Não verificado em dispositivo |
+| Ressuprimento | Lista/tabela com rolagem horizontal própria quando necessário; conferir filtros, sugestões e cards de alerta. | `app/admin/ressuprimento/page.tsx`, `app/admin/ressuprimento/RessuprimentoTabela.tsx` | Não verificado em dispositivo |
+| Biometria | Fluxo existente usa captura guiada; revisar câmera, consentimento e controles em viewport baixo. Cadastro por uma única foto não foi implementado. | `app/admin/biometria/page.tsx`, `app/api/admin/face-enrollment/route.ts` | Não verificado em dispositivo |
 
-## Riscos restantes e roteiro manual
+## Verificações pendentes em aparelho/browser
 
-1. Em 360×800, abrir/fechar o menu, rolar a página e verificar que o foco não fica preso atrás do drawer.
-2. Em 360×800 e 767×900, completar o formulário de estoque com teclado virtual aberto; confirmar que não há rolagem interna no formulário e que a lista permanece alcançável abaixo dele.
-3. Em 768×900 e 1440×900, percorrer muitos itens na lista e confirmar que o painel sticky não fica escondido pelo header fixo nem impede a rolagem principal da página.
-4. Em 360 px, testar a tabela da fila e ressuprimento por rolagem horizontal sem deslocar o layout inteiro.
-5. Em telefone real, testar permissão, orientação e fechamento da câmera QR; o acesso à câmera exige HTTPS ou localhost.
+1. Em 360×800 e 390×844, testar menu, foco, teclado virtual, login, nova requisição e **Minhas Requisições**.
+2. Em 360 px, conferir que a rolagem da página não fica presa no formulário e que apenas a lista de estoque rola internamente; testar também o scanner em HTTPS.
+3. Em 768×900, 1024×900 e 1440×900, conferir a altura/sticky da lista e se header fixo não cobre conteúdo.
+4. Testar fila e ressuprimento por rolagem horizontal confinada, checklist com teclado aberto e navegação de histórico/dashboard.
+5. Em dispositivo real, validar permissão, orientação, câmera e fechamento do scanner e da captura facial (Safari/iOS e Android).
 
-Não foi possível confirmar sobreposição de teclado móvel, alturas reais de conteúdo, comportamento de Safari/iOS ou Android por inspeção estática. A validação final de publicação deve incluir esses cinco passos em browser e telefone reais.
+Contraste e foco visível foram examinados apenas por classes/fontes no código, não medidos por ferramenta de acessibilidade. Alvos comuns do login usam altura mínima de 44 px; não foi feita medição automatizada de todos os alvos de toque.

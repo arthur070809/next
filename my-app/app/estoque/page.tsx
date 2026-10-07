@@ -3,9 +3,10 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./stock-list.module.css";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
-import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
+import { freeStock, isAtOrBelowReorderPoint } from "@/lib/stock-status";
 import ProductEtiquetaScanner from "@/app/components/ProductEtiquetaScanner";
-import { normalizarCodigoEtiqueta, parseEtiqueta } from "@/lib/qr/parseEtiqueta";
+import { parseEtiqueta } from "@/lib/qr/parseEtiqueta";
+import { localizarItemEstoquePorCodigo } from "@/lib/qr/localizarEstoqueItem";
 
 type EstoqueItem = {
   id: string;
@@ -14,6 +15,7 @@ type EstoqueItem = {
   categoria: string;
   unidade: string;
   quantidade: number;
+  reservada: number;
   pontoPedido: number;
   quantidadeDeposito: number;
   tipoUnidade: StockUnit | null;
@@ -77,6 +79,7 @@ export default function EstoquePage() {
   const [nomeAberto, setNomeAberto] = useState(false);
   const [cameraAberta, setCameraAberta] = useState(false);
   const [qrMatchedItem, setQrMatchedItem] = useState<EstoqueItem | null>(null);
+  const [codigoNovoPorQr, setCodigoNovoPorQr] = useState(false);
   const salvandoRef = useRef(false);
   const listaRef = useRef<HTMLDivElement>(null);
 
@@ -95,23 +98,27 @@ export default function EstoquePage() {
       setErro(message);
       return message;
     }
-    const codigoNormalizado = normalizarCodigoEtiqueta(parsed.codigo);
-    const matches = itens.filter((item) =>
-      item.codigo !== null && normalizarCodigoEtiqueta(item.codigo) === codigoNormalizado,
-    );
     setErro("");
     setMensagem("");
     setCameraAberta(false);
-    if (matches.length > 1) {
+    const result = localizarItemEstoquePorCodigo(parsed.codigo, itens);
+    if (result.type === "ambiguous") {
       setQrMatchedItem(null);
+      setCodigoNovoPorQr(false);
       setForm((current) => ({ ...current, codigo: parsed.codigo }));
       const message = `O código ${parsed.codigo} corresponde a mais de um material. Resolva a duplicidade antes de registrar uma entrada.`;
       setErro(message);
       return message;
     }
-    if (matches.length === 1) {
-      const item = matches[0];
+    if (result.type === "found") {
+      const item = itens.find(({ id }) => id === result.item.id);
+      if (!item) {
+        const message = "O material lido não está disponível na lista atual. Atualize o estoque e tente novamente.";
+        setErro(message);
+        return message;
+      }
       setQrMatchedItem(item);
+      setCodigoNovoPorQr(false);
       setBusca("");
       setCategoriaBusca("");
       setForm((current) => ({
@@ -130,8 +137,18 @@ export default function EstoquePage() {
     }
 
     setQrMatchedItem(null);
-    setForm((current) => ({ ...current, codigo: parsed.codigo }));
-    return `Código ${parsed.codigo} não cadastrado. Selecione a categoria e o material para criar um item com esta etiqueta.`;
+    setCodigoNovoPorQr(true);
+    setForm((current) => ({
+      ...current,
+      nome: "",
+      categoria: "",
+      codigo: parsed.codigo,
+      tipoUnidade: "unidade",
+      quantidadePorEmbalagem: "1",
+      quantidadeEmbalagens: "",
+    }));
+    window.requestAnimationFrame(() => document.getElementById("categoria")?.focus());
+    return `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`;
   }, [itens]);
 
   const carregarItens = async () => {
@@ -179,7 +196,7 @@ export default function EstoquePage() {
 
   const itensFiltrados = useMemo(
     () => itens.filter((item) => {
-      const correspondeBusca = `${item.nome} ${item.categoria}`.toLowerCase().includes(busca.toLowerCase());
+      const correspondeBusca = `${item.nome} ${item.categoria} ${item.codigo ?? ""}`.toLowerCase().includes(busca.toLowerCase());
       const correspondeCategoria = !categoriaBusca || item.categoria === categoriaBusca;
       return correspondeBusca && correspondeCategoria;
     }),
@@ -202,7 +219,7 @@ export default function EstoquePage() {
         && form.codigo === qrMatchedItem.codigo
         && form.nome === qrMatchedItem.nome
         && form.categoria === qrMatchedItem.categoria;
-      if (!isMatchedQrItem && !materiaisDaCategoria.includes(form.nome as never)) {
+      if (!isMatchedQrItem && !codigoNovoPorQr && !materiaisDaCategoria.includes(form.nome as never)) {
         setErro("Selecione uma categoria e um material disponível nessa categoria.");
         return;
       }
@@ -265,6 +282,7 @@ export default function EstoquePage() {
         quantidadeEmbalagens: "",
       }));
       setQrMatchedItem(null);
+      setCodigoNovoPorQr(false);
       setErrosQuantidade({});
       setNomeAberto(false);
       setMensagem("Item cadastrado no estoque.");
@@ -336,7 +354,10 @@ export default function EstoquePage() {
                 <input id="codigo" inputMode="numeric" maxLength={8} value={form.codigo} onChange={(event) => {
                   const codigo = event.target.value;
                   setForm((current) => ({ ...current, codigo }));
-                  if (codigo !== qrMatchedItem?.codigo) setQrMatchedItem(null);
+                  if (codigo !== qrMatchedItem?.codigo) {
+                    setQrMatchedItem(null);
+                    setCodigoNovoPorQr(false);
+                  }
                 }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
               </div>
               <div>
@@ -401,7 +422,7 @@ export default function EstoquePage() {
               {erro && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
               {mensagem && <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{mensagem}</p>}
               <p aria-live="polite" className="min-h-5 text-sm font-medium text-slate-600">{resumo}</p>
-              <button type="submit" disabled={salvando} className="mt-2 min-h-10 w-full rounded-lg bg-royal px-5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-300">{salvando ? "Salvando..." : "Cadastrar item"}</button>
+              <button type="submit" disabled={salvando} className="mt-2 min-h-10 w-full rounded-lg bg-royal px-5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-300">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
               </div>
             </form>
           </section>
@@ -423,9 +444,9 @@ export default function EstoquePage() {
               {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
                 const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
                 return <article id={`stock-item-${item.id}`} key={item.id} tabIndex={0} data-qr-selected={qrMatchedItem?.id === item.id || undefined} className={`flex flex-col gap-4 rounded-lg border p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between ${qrMatchedItem?.id === item.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200"}`}>
-                  <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p><p className="mt-1 text-sm text-slate-600">Ponto de pedido: {item.pontoPedido} {item.unidade}</p>{isAtOrBelowReorderPoint(item.quantidade, item.pontoPedido) && <span className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">Repor · saldo no ponto de pedido ou abaixo</span>}{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-emerald-700">No depósito: {item.quantidadeDeposito} un</p>}</div>
+                  <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p><p className="mt-1 text-sm text-slate-600">Ponto de pedido: {item.pontoPedido} {item.unidade}</p>{isAtOrBelowReorderPoint(item.quantidade, item.pontoPedido, item.reservada) && <span className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">Repor · saldo livre no ponto de pedido ou abaixo</span>}{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-emerald-700">No depósito: {item.quantidadeDeposito} un</p>}</div>
                   {tipoUltimaEntrada && item.ultimaEntradaEmbalagens !== null && item.quantidadePorEmbalagem !== null && <p className="text-sm text-slate-500">Última entrada: {item.ultimaEntradaEmbalagens} {item.ultimaEntradaEmbalagens === 1 ? tipoUltimaEntrada.singular : tipoUltimaEntrada.plural}{item.tipoUnidade === "unidade" ? "" : ` de ${item.quantidadePorEmbalagem}`}</p>}
-                  <div className="text-sm font-semibold text-slate-700">Disponível</div>
+                  <div className="text-sm font-semibold text-slate-700">Disponível: {freeStock(item.quantidade, item.reservada)} {item.unidade}</div>
                 </article>;
               })}
             </div>

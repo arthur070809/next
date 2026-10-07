@@ -15,6 +15,11 @@ Configure os nomes abaixo sem compartilhar valores ou credenciais.
 | `LOGIN_DEMO_TENTATIVAS_LIMITE` | Opcional; limite de falhas do login demo | Opcional |
 | `LOGIN_DEMO_JANELA_MS` | Opcional; janela de tentativas em milissegundos | Opcional |
 | `LOGIN_DEMO_BLOQUEIO_MS` | Opcional; duração do bloqueio em milissegundos | Opcional |
+| `LOGIN_TENTATIVAS_LIMITE` | Opcional; limite normal de tentativas de login | Opcional |
+| `LOGIN_JANELA_MS` | Opcional; janela normal de tentativas | Opcional |
+| `LOGIN_BLOQUEIO_MS` | Opcional; bloqueio normal de login | Opcional |
+| `LOGIN_MODO_TESTE` | Somente ambiente local de teste; não usar em produção | Não habilitar |
+| `LOGIN_TESTE_CRACHAS` | Somente allowlist local de teste | Não habilitar |
 | `LOGIN_CHALLENGE_SECRET` | Segredo local com pelo menos 32 caracteres | Environment Variable; manter segredo forte e estável entre deploys |
 | `TOTP_ENCRYPTION_KEY` | Chave de 32 bytes em hexadecimal ou Base64, se TOTP for usado | Environment Variable protegida |
 | `FACE_EMBEDDING_ENCRYPTION_KEY` | Chave de 32 bytes em hexadecimal ou Base64, se biometria facial for usada | Environment Variable protegida |
@@ -30,6 +35,9 @@ Configure os nomes abaixo sem compartilhar valores ou credenciais.
 | `TRUSTED_DEVICE_LIMIT` | Opcional; limite de dispositivos confiáveis | Opcional |
 | `DEV_EXTRA_ORIGINS` | Somente desenvolvimento; origens adicionais locais | Não necessário; ignorado em produção |
 | `NODE_ENV` | Controlado pelo runtime local | Controlado pela Vercel |
+| `ADMIN_NAME` | Somente script administrativo específico | Não necessário para a aplicação |
+| `CONFIRM_ADMIN_RESET` | Somente script administrativo específico | Não necessário para a aplicação |
+| `SEED_DEFAULT_PASSWORD` | Somente script de seed específico | Não necessário para a aplicação |
 
 `LOGIN_MODO_TESTE` e `LOGIN_TESTE_CRACHAS` são parte do modo de teste existente e não devem ser usados para ativar o demo em produção. O modo demo usa uma allowlist explícita; `"*"` não é suportado.
 
@@ -67,14 +75,16 @@ Configure os nomes abaixo sem compartilhar valores ou credenciais.
 
 ## Roteiro manual para jurados — 7 minutos
 
-1. **0:00–0:40 — Acesso.** Abra o domínio HTTPS demo e entre como admin demo (`3333`). A apresentação não usa mais uma faixa global; confira os indicadores locais de dados simulados onde forem exibidos.
-2. **0:40–1:20 — Visão geral.** Mostre o indicador de itens no ponto de pedido ou abaixo, além do acesso ao histórico e ressuprimento.
-3. **1:20–2:20 — Solicitação.** Saia, entre como operador (`1111`), escolha produto, quantidade e setor, confira saldo livre/reservado e envie uma requisição.
-4. **2:20–3:10 — Fila e responsável.** Entre como almoxarife (`2222`), localize a requisição e assuma. Mostre que a fila indica o responsável pelo atendimento.
-5. **3:10–4:30 — Conferência.** Abra o checklist, confira o item e informe quantidade real. Para uma divergência, selecione um motivo suportado e mostre que a quantidade pedida e a separada ficam distintas.
-6. **4:30–5:20 — Finalização.** Finalize a requisição. Mostre o resumo de baixa e as movimentações geradas; não envie a ação novamente.
-7. **5:20–6:20 — Histórico.** Filtre por produto, funcionário e período; mostre o pedido versus separado e o motivo da divergência.
-8. **6:20–7:00 — Segurança e recuperação.** Mostre a restrição de acesso do histórico e, se apropriado, a confirmação do botão de reset demo. Não confirme reset durante a apresentação, a menos que se queira apagar/recriar o fixture naquele momento.
+Preparação recomendada: antes da sessão, crie no demo um usuário não allowlisted com senha válida para mostrar o login por senha. Os três crachás seed (`1111`, `2222`, `3333`) entram pelo atalho demo por código e não validam a senha; a hash gerada pelo seed é aleatória. O botão facial depende de template facial ativo para o crachá.
+
+1. **0:00–0:35 — Login e ambiente.** Abra HTTPS, entre como admin demo (`3333`) e confirme que não há faixa global amarela. Os rótulos locais "Dados simulados" continuam informando quando valores não são reais.
+2. **0:35–1:05 — Senha.** Saia, informe crachá e senha do usuário de apresentação não allowlisted e entre; mostre mostrar/ocultar. Em seguida, demonstre o botão de reconhecimento facial somente se o usuário tiver template ativo.
+3. **1:05–1:45 — Dashboard.** Mostre itens no ponto de pedido ou abaixo e ressuprimento, incluindo a indicação de dados simulados quando aplicável.
+4. **1:45–2:35 — Operador e prioridade.** Entre como operador, escolha setor/produto, veja saldo livre/reservado, escreva justificativa e envie uma requisição prioritária. Abra **Minhas Requisições** para confirmar o estado e os itens.
+5. **2:35–3:25 — Fila e QR.** Entre como almoxarife, assuma o pedido e abra o checklist. Use o QR para localizar item existente (ou digite um código novo e preencha produto/categoria para testar o cadastro).
+6. **3:25–4:25 — Checklist/finalização.** Registre quantidade real e motivo de divergência, finalize uma vez e confira pedido x separado e movimentações geradas.
+7. **4:25–5:20 — Histórico e sobras.** Filtre por produto/funcionário/período; abra o resumo de excedentes, confira total por setor e explique que excedente entregue não é retorno físico ao depósito.
+8. **5:20–7:00 — Estoque/limitações.** Em 360 px, mostre formulário acima da lista rolável, escaneie uma etiqueta e consulte o alerta de ponto de pedido. Não confirme reset durante a apresentação.
 
 Os crachás acima são credenciais demonstrativas de baixa confiança: só devem existir no banco descartável e somente a allowlist configurada pode usar o atalho de login demo.
 
@@ -91,6 +101,10 @@ Os crachás acima são credenciais demonstrativas de baixa confiança: só devem
 - O cadastro facial exige de 3 a 5 capturas guiadas e análise de consistência; uma única foto não é aceita. O login facial não virou um fluxo sem crachá: o desafio depende da identidade e do contexto de autenticação.
 - A senha pode validar a credencial antes do fluxo normal de fatores do perfil. Não remove TOTP, WebAuthn ou facial; a allowlist demo continua entrando pelo caminho de código.
 - A apresentação não inclui a faixa global de demonstração. O painel de reset e os rótulos locais de dados simulados permanecem identificados.
+- O schema contém `Funcionario.senha` e o fluxo normal espera um hash bcrypt. O seed cria hash aleatória, não uma senha inicial igual ao crachá. Os crachás allowlisted do demo continuam ignorando senha conforme o contrato do modo demo.
+- A tela de cadastro facial não oferece uma única foto de galeria/câmera. O endpoint e o serviço de enrollment existentes exigem 3–5 capturas consistentes; imagens são enviadas ao servidor/serviço para gerar embeddings. Aceitar uma imagem sem alterar esse contrato e sem enviar a imagem exigiria novo pipeline local/servidor e revalidação de segurança. Não foi simulado o cumprimento de consistência duplicando uma imagem.
+- No perfil operador, o cookie de sessão é não persistente; ao retornar de segundo plano após 60 segundos a aplicação tenta encerrar a sessão, e `pagehide` tenta logout com `sendBeacon` quando não há uma transição recente dentro da carência. Navegadores móveis podem suspender/encerrar o processo sem emitir `visibilitychange` ou `pagehide`, e `sendBeacon` pode falhar; o timeout de inatividade do servidor continua sendo a proteção efetiva. O scanner QR e o diálogo de permissão da câmera suprimem o logout por troca de foco enquanto ativos.
+- Entrada de estoque por QR usa a rota/transação existente, mas ela não persiste uma chave de idempotência. Se uma requisição de entrada sofrer timeout após ser aplicada, confirme estoque/histórico antes de repetir; deduplicação persistente exige suporte server-side e alteração transacional/schema, que não foi feita.
 
 ## Build na Vercel
 

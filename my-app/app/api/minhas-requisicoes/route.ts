@@ -5,18 +5,27 @@ import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { decodeItemDescription } from "@/lib/requisition-metadata";
 
-export async function GET() {
+const PAGE_SIZE = 20;
+
+export async function GET(request: Request) {
   const funcionario = await getAuthenticatedFuncionario();
   if (!funcionario) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   if (funcionario.papel !== PapelFuncionario.OPERADOR) {
     return NextResponse.json({ error: "Acesso permitido apenas ao operador." }, { status: 403 });
   }
 
+  const rawPage = new URL(request.url).searchParams.get("page");
+  const page = rawPage === null ? 1 : Number(rawPage);
+  if (!Number.isSafeInteger(page) || page < 1 || page > 10_000) {
+    return NextResponse.json({ error: "Página inválida." }, { status: 400 });
+  }
+
   try {
-    const requisicoes = await prisma.requisicao.findMany({
+    const requisicoesComMais = await prisma.requisicao.findMany({
       where: { solicitanteId: funcionario.id },
-      orderBy: { criadoEm: "desc" },
-      take: 100,
+      orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE + 1,
       select: {
         id: true,
         numeroPedido: true,
@@ -30,7 +39,7 @@ export async function GET() {
             unidadeMedida: true,
             descricao: true,
             motivoNaoAtendido: true,
-            item: { select: { nome: true, codigo: true } },
+            item: { select: { nome: true, codigo: true, categoria: true } },
             movimentacoes: {
               where: { tipo: "SAIDA" },
               select: { quantidade: true },
@@ -39,6 +48,8 @@ export async function GET() {
         },
       },
     });
+    const temMais = requisicoesComMais.length > PAGE_SIZE;
+    const requisicoes = requisicoesComMais.slice(0, PAGE_SIZE);
 
     return NextResponse.json({
       requisicoes: requisicoes.map((requisicao) => ({
@@ -49,6 +60,7 @@ export async function GET() {
         itens: requisicao.itens.map((item) => ({
           nome: item.item.nome,
           codigo: item.item.codigo,
+          categoria: item.item.categoria,
           quantidadePedida: item.quantidade,
           quantidadeSeparada: item.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0),
           unidadeMedida: item.unidadeMedida,
@@ -56,7 +68,10 @@ export async function GET() {
           motivo: item.motivoNaoAtendido,
         })),
       })),
-      limite: 100,
+      pagina: page,
+      limite: PAGE_SIZE,
+      temMais,
+      temAnterior: page > 1,
     });
   } catch (error) {
     const errorId = randomUUID();

@@ -30,7 +30,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  getAuthenticatedFuncionario: vi.fn(async () => ({ id: 1 })),
+  getAuthenticatedFuncionario: vi.fn(async () => ({ id: 1, papel: "ALMOXARIFE" })),
 }));
 
 vi.mock("@/lib/security", () => ({
@@ -39,6 +39,8 @@ vi.mock("@/lib/security", () => ({
 
 import { GET, PATCH, POST } from "./route";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedFuncionario } from "@/lib/auth";
+import { PapelFuncionario } from "@/generated/prisma/client";
 
 function request(body: Record<string, unknown>) {
   return new Request("http://localhost/api/estoque", {
@@ -237,6 +239,26 @@ describe("POST /api/estoque", () => {
     expect(await response.json()).toMatchObject({
       error: "O código da etiqueta deve conter de 1 a 8 dígitos.",
     });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("denies operators access to stock creation and adjustment", async () => {
+    vi.mocked(getAuthenticatedFuncionario).mockResolvedValue({ id: 2, papel: PapelFuncionario.OPERADOR } as never);
+    const post = await POST(request({
+      nome: "Rodízio",
+      categoria: "Rodízios e Pés",
+      codigo: "129",
+      tipoUnidade: "unidade",
+      quantidadeEmbalagens: 2,
+    }));
+    const patch = await PATCH(new Request("http://localhost/api/estoque", {
+      method: "PATCH",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ id: "item-1", quantidade: 2 }),
+    }));
+
+    expect(post.status).toBe(403);
+    expect(patch.status).toBe(403);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 

@@ -149,6 +149,17 @@ describe("POST /api/requests", () => {
     expect(criarRequisicaoIdempotente).not.toHaveBeenCalled();
   });
 
+  it("rejects a priority request with an empty description before any write", async () => {
+    const response = await POST(request(
+      { "Idempotency-Key": badge },
+      { prioridade: "prioridade", descricao: "" },
+    ));
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toContain("prioritários");
+    expect(criarRequisicaoIdempotente).not.toHaveBeenCalled();
+  });
+
   it("accepts a priority request when a description is supplied", async () => {
     const response = await POST(request(
       { "Idempotency-Key": badge },

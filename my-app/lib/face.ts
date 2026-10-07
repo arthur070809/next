@@ -19,18 +19,6 @@ export const faceEnrollmentNonceTtlMs = 2 * 60 * 1000;
 type FaceServiceEmbeddingResponse = { embeddings?: number[][]; reason?: string; code?: string };
 type FaceServiceVerifyResponse = { livenessPassed?: boolean; matched?: boolean };
 
-export type FaceEnrollmentErrorCode = "FACE_SERVICE_NOT_CONFIGURED" | "FACE_ENCRYPTION_NOT_CONFIGURED" | "FACE_SERVICE_UNAVAILABLE" | "FACE_SERVICE_REJECTED" | "FACE_EMBEDDING_INVALID" | "FACE_CAPTURE_INVALID";
-
-export class FaceEnrollmentRuntimeError extends Error {
-  readonly code: FaceEnrollmentErrorCode;
-
-  constructor(code: FaceEnrollmentErrorCode, message: string) {
-    super(message);
-    this.name = "FaceEnrollmentRuntimeError";
-    this.code = code;
-  }
-}
-
 export class FaceEnrollmentVerificationError extends Error {
   readonly code: string;
 
@@ -43,51 +31,16 @@ export class FaceEnrollmentVerificationError extends Error {
 
 function faceEncryptionKey() {
   const raw = process.env.FACE_EMBEDDING_ENCRYPTION_KEY;
-  if (!raw) throw new FaceEnrollmentRuntimeError("FACE_ENCRYPTION_NOT_CONFIGURED", "A chave de cifragem facial não está configurada.");
+  if (!raw) throw new Error("FACE_EMBEDDING_ENCRYPTION_KEY is not configured.");
   const key = /^[0-9a-fA-F]{64}$/.test(raw) ? Buffer.from(raw, "hex") : Buffer.from(raw, "base64");
-  if (key.length !== 32) throw new FaceEnrollmentRuntimeError("FACE_ENCRYPTION_NOT_CONFIGURED", "A chave de cifragem facial é inválida.");
+  if (key.length !== 32) throw new Error("FACE_EMBEDDING_ENCRYPTION_KEY must decode to 32 bytes.");
   return key;
 }
 
 function serviceUrl() {
   const value = process.env.FACE_SERVICE_URL?.trim();
-  if (!value) throw new FaceEnrollmentRuntimeError("FACE_SERVICE_NOT_CONFIGURED", "O serviço facial não está configurado.");
+  if (!value) throw new Error("FACE_SERVICE_URL is not configured.");
   return value.replace(/\/$/, "");
-}
-
-export function isFaceValidationLocalMode() {
-  const configuredMode = process.env.FACE_VALIDATION_MODE?.trim().toLowerCase();
-  return configuredMode === "local" || !process.env.FACE_SERVICE_URL?.trim();
-}
-
-function shouldUseLocalFaceValidation() {
-  return isFaceValidationLocalMode();
-}
-
-export function getFaceEnrollmentConsistencyThreshold() {
-  const value = Number(process.env.FACE_ENROLL_CONSISTENCY_THRESHOLD ?? "0.6");
-  return Number.isFinite(value) && value > 0 ? value : 0.6;
-}
-
-function localFaceEmbeddingFromCapture(capture: string) {
-  const payload = capture.includes(",") ? capture.split(",")[1] : capture;
-  const raw = Buffer.from(payload, "base64");
-  const vector = new Array<number>(64).fill(0);
-
-  for (let index = 0; index < 64; index += 1) {
-    const offset = Math.floor((index / 64) * raw.length);
-    const sample = raw[offset] ?? 0;
-    const luminance = 0.2126 * sample + 0.7152 * (raw[offset + 1] ?? sample) + 0.0722 * (raw[offset + 2] ?? sample);
-    vector[index] = (luminance / 255) * 2 - 1;
-  }
-
-  const hash = createHash("sha256").update(raw).digest();
-  for (let index = 0; index < 64; index += 1) {
-    const hashBias = ((hash[index % hash.length] ?? 0) / 255) * 0.25 - 0.125;
-    vector[index] += hashBias;
-  }
-
-  return vector.map((value) => Number(value.toFixed(6)));
 }
 
 export function hashFaceNonce(nonce: string) {
@@ -129,33 +82,14 @@ function validateCapture(value: unknown) {
 }
 
 async function callFaceService<T>(path: string, body: Record<string, unknown>) {
-  if (shouldUseLocalFaceValidation()) {
-    if (path === "/v1/enroll") {
-      const captures = Array.isArray(body.captures) ? body.captures.map((capture) => String(capture)) : [];
-      return { embeddings: captures.map((capture) => localFaceEmbeddingFromCapture(capture)) } as T;
-    }
-    if (path === "/v1/verify") {
-      const candidate = localFaceEmbeddingFromCapture(String(body.capture ?? ""));
-      const templates = Array.isArray(body.templates) ? body.templates as number[][] : [];
-      const threshold = typeof body.threshold === "number" ? body.threshold : Number(process.env.FACE_MATCH_THRESHOLD ?? "0.42");
-      return { livenessPassed: true, matched: templates.some((template) => faceEmbeddingDistance(candidate, template) <= threshold) } as T;
-    }
-    return { ok: true } as T;
-  }
-
-  try {
-    const response = await fetch(`${serviceUrl()}${path}`, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${process.env.FACE_SERVICE_TOKEN ?? ""}` },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) throw new FaceEnrollmentRuntimeError("FACE_SERVICE_REJECTED", `O serviço facial rejeitou a solicitação (${response.status}).`);
-    return await response.json() as T;
-  } catch (error) {
-    if (error instanceof FaceEnrollmentRuntimeError) throw error;
-    throw new FaceEnrollmentRuntimeError("FACE_SERVICE_UNAVAILABLE", "O serviço de validação facial está indisponível.");
-  }
+  const response = await fetch(`${serviceUrl()}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${process.env.FACE_SERVICE_TOKEN ?? ""}` },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) throw new Error(`Face service returned ${response.status}.`);
+  return await response.json() as T;
 }
 
 function enrollmentVerificationMessage(code: string | undefined, reason: string | undefined) {
@@ -173,16 +107,15 @@ function enrollmentVerificationMessage(code: string | undefined, reason: string 
 }
 
 export async function enrollFaceSamples(samples: unknown[], options: { nonce?: string } = {}) {
-  if (samples.length < 3 || samples.length > 5) throw new FaceEnrollmentRuntimeError("FACE_CAPTURE_INVALID", "É necessário enviar de 3 a 5 capturas válidas.");
-  let captures: string[];
-  try { captures = samples.map(validateCapture); } catch { throw new FaceEnrollmentRuntimeError("FACE_CAPTURE_INVALID", "As capturas recebidas são inválidas."); }
+  if (samples.length < 3 || samples.length > 5) throw new Error("Enrollment requires 3 to 5 captures.");
+  const captures = samples.map(validateCapture);
   const result = await callFaceService<FaceServiceEmbeddingResponse>("/v1/enroll", { captures, nonce: options.nonce });
   if (result.code || result.reason) {
     const failure = enrollmentVerificationMessage(result.code, result.reason);
     throw new FaceEnrollmentVerificationError(failure.message, failure.code);
   }
   if (!Array.isArray(result.embeddings) || result.embeddings.length !== captures.length || result.embeddings.some((embedding) => !Array.isArray(embedding) || embedding.length < 32)) {
-    throw new FaceEnrollmentRuntimeError("FACE_EMBEDDING_INVALID", "O serviço facial não retornou um template válido.");
+    throw new Error("Face service returned invalid embeddings.");
   }
   return result.embeddings;
 }
@@ -238,17 +171,18 @@ function validateEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddi
   return undefined;
 }
 
-function pairwiseConsistent(embeddings: number[][]) {
-  const distances: number[] = [];
-  let consistent = true;
-  for (let first = 0; first < embeddings.length; first += 1) {
-    for (let second = first + 1; second < embeddings.length; second += 1) {
-      const distance = faceEmbeddingDistance(embeddings[first], embeddings[second]);
-      distances.push(distance);
-      if (distance > faceEnrollmentConsistencyDistance) consistent = false;
-    }
-  }
-  return { consistent, distances };
+function medianEmbedding(embeddings: number[][]) {
+  const dimension = embeddings[0].length;
+  return Array.from({ length: dimension }, (_, component) => {
+    const values = embeddings.map((embedding) => embedding[component]).sort((a, b) => a - b);
+    const middle = Math.floor(values.length / 2);
+    return values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+  });
+}
+
+function distancesFromMedian(embeddings: number[][]) {
+  const median = medianEmbedding(embeddings);
+  return embeddings.map((embedding) => faceEmbeddingDistance(embedding, median));
 }
 
 export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddingAnalysis {
@@ -257,28 +191,27 @@ export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentE
     return { consistent: false, reason, distances: [], discardedOutlier: false, acceptedEmbeddings: [] };
   }
 
-  const all = pairwiseConsistent(embeddings);
-  if (all.consistent) {
-    return { consistent: true, distances: all.distances, discardedOutlier: false, acceptedEmbeddings: embeddings };
+  const distances = distancesFromMedian(embeddings);
+  const outlierIndexes = distances.flatMap((distance, index) =>
+    distance > faceEnrollmentConsistencyDistance ? [index] : [],
+  );
+  if (outlierIndexes.length === 0) {
+    return { consistent: true, distances, discardedOutlier: false, acceptedEmbeddings: embeddings };
   }
 
-  if (embeddings.length > 3) {
-    const validCores = embeddings.flatMap((_, excludedIndex) => {
-      const candidate = embeddings.filter((__, index) => index !== excludedIndex);
-      const result = pairwiseConsistent(candidate);
-      return result.consistent ? [{ candidate, distances: result.distances }] : [];
-    });
-    if (validCores.length === 1) {
+  if (embeddings.length > 3 && outlierIndexes.length === 1) {
+    const candidate = embeddings.filter((_, index) => index !== outlierIndexes[0]);
+    if (distancesFromMedian(candidate).every((distance) => distance <= faceEnrollmentConsistencyDistance)) {
       return {
         consistent: true,
-        distances: all.distances,
+        distances,
         discardedOutlier: true,
-        acceptedEmbeddings: validCores[0].candidate,
+        acceptedEmbeddings: candidate,
       };
     }
   }
 
-  return { consistent: false, distances: all.distances, discardedOutlier: false, acceptedEmbeddings: [] };
+  return { consistent: false, distances, discardedOutlier: false, acceptedEmbeddings: [] };
 }
 
 export function areEnrollmentEmbeddingsConsistent(embeddings: number[][]) {

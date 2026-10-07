@@ -15,11 +15,6 @@
 .oval::before { content: ""; position: absolute; inset: -8px; border: 4px solid transparent; border-radius: 50%; background: conic-gradient(#d28b19 var(--progress, 0%), transparent 0) border-box; mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0); mask-composite: exclude; }
 .scannerReady .oval { border-color: #d28b19; }
 .instruction { position: absolute; z-index: 4; left: 16px; right: 16px; bottom: 22px; margin: 0; color: #fff; text-align: center; font-size: clamp(1rem, 3vw, 1.35rem); font-weight: 800; }
-.cameraStart { position: absolute; z-index: 6; top: 50%; left: 50%; min-height: 46px; padding: 0 18px; border: 1px solid #fff; border-radius: 6px; background: #315fc5; color: #fff; font: inherit; font-weight: 800; transform: translate(-50%, -50%); cursor: pointer; }
-.cameraStart:disabled { cursor: not-allowed; opacity: .6; }
-.cameraRequirement, .cameraError { position: absolute; z-index: 6; left: 16px; right: 16px; bottom: 54px; margin: 0; color: #fff; text-align: center; font-size: .85rem; font-weight: 700; }
-.cameraError { top: 16px; bottom: auto; padding: 8px; border-radius: 5px; background: rgb(115 20 20 / 88%); }
-.cameraSelector { min-height: 42px; padding: 0 10px; border: 1px solid #b9c3d3; border-radius: 6px; background: #fff; color: inherit; font: inherit; }
 .progress { position: absolute; z-index: 3; top: 16px; right: 16px; min-width: 48px; padding: 8px; border: 2px solid #fff; border-radius: 50%; color: #fff; text-align: center; font-weight: 800; }
 .hint { color: #5a6475; font-size: .9rem; line-height: 1.5; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
@@ -34,9 +29,6 @@
 .error { background: #fff1f1; color: #a73535; }
 .success { background: #ecf8f1; color: #19633d; }
 .modelStatus { margin: 12px 0; color: #5a6475; }
-.debugPanel { display: grid; gap: 4px; margin-top: 12px; padding: 10px; border: 1px solid #b9c3d3; border-radius: 6px; background: #f5f7fa; color: #172033; font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
-.debugPass { color: #19633d; }
-.debugFail { color: #a73535; font-weight: 700; }
 .scannerSuccess .oval { border-color: #32b86b; }
 .check { position: absolute; z-index: 5; top: 38%; left: 50%; display: grid; width: 64px; height: 64px; place-items: center; border-radius: 50%; background: #32b86b; color: #fff; font-size: 2rem; font-weight: 800; transform: translateX(-50%); }
 @media (max-width: 520px) { .page { padding: 12px; } .panel { padding: 12px; } .scanner { width: 100%; max-height: 70dvh; } .oval { inset: 13% 14%; } .actions button { width: 100%; } }

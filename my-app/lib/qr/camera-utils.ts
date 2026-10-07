@@ -31,8 +31,19 @@ export async function requestScannerStream(
   }
 }
 
-export function cameraErrorMessage(error: unknown): string {
+export function cameraErrorMessage(error: unknown, userAgent?: string): string {
   if (!(error instanceof Error)) return "Não foi possível iniciar a câmera.";
+  const browser = userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent);
+  const embeddedBrowser = /Instagram/i.test(browser)
+    ? "Instagram"
+    : /WhatsApp/i.test(browser)
+      ? "WhatsApp"
+      : /FBAN|FBAV/i.test(browser)
+        ? "Facebook"
+        : /Line\//i.test(browser)
+          ? "LINE"
+          : null;
+  if (embeddedBrowser) return `O navegador integrado do ${embeddedBrowser} pode bloquear a câmera. Abra o link no Chrome, Safari ou outro navegador e permita o acesso à câmera.`;
   switch (error.name) {
     case "NotAllowedError":
     case "PermissionDeniedError":
@@ -63,4 +74,27 @@ export function shouldAcceptScan(
 
 export function stopCameraStream(stream: CameraStreamLike | null): void {
   stream?.getTracks().forEach((track) => track.stop());
+}
+
+export function createCameraLease() {
+  let active = true;
+  let stream: CameraStreamLike | null = null;
+  return {
+    isActive: () => active,
+    attach(next: CameraStreamLike) {
+      if (!active) {
+        stopCameraStream(next);
+        return false;
+      }
+      stream = next;
+      return true;
+    },
+    close() {
+      active = false;
+      const ownedStream = stream;
+      stream = null;
+      stopCameraStream(ownedStream);
+      return ownedStream;
+    },
+  };
 }

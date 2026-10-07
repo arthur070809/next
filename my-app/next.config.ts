@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
       },
       {
+        source: "/estoque/:path*",
+        headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
+      },
+      {
+        source: "/admin/estoque/:path*",
+        headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
+      },
+      {
+        source: "/almoxarifado/estoque/:path*",
+        headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
+      },
+      {
         source: "/admin/biometria/:path*",
         headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
       },

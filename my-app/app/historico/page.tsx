@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { EventoHistorico } from "@/lib/types/almoxarifado";
 import PriorityBadge from "../components/PriorityBadge";
+import ItemDescription from "../components/ItemDescription";
 
 const labels: Record<EventoHistorico["evento"], string> = {
   assumida: "Assumida",
@@ -38,12 +39,11 @@ type HistoryResponse = {
 function eventProducts(event: EventoHistorico) {
   if (event.produtos.length) {
     return event.produtos.map((product) => (
-      <p key={`${product.codigo ?? ""}-${product.nome}`} className="text-sm leading-6 text-slate-600">
-        {product.codigo ? `${product.codigo} · ` : ""}
-        {product.nome}: pedido {product.quantidadePedida}, separado {product.quantidadeSeparada}
-        {product.descricao ? ` · ${product.descricao}` : ""}
-        {product.motivo ? ` · Motivo: ${product.motivo}` : ""}
-      </p>
+      <div key={`${product.codigo ?? ""}-${product.nome}`} className="text-sm leading-6 text-slate-600">
+        <p>{product.codigo ? `${product.codigo} · ` : ""}{product.nome}: pedido {product.quantidadePedida}, separado {product.quantidadeSeparada}</p>
+        <ItemDescription categoria={product.categoria} descricao={product.descricao} />
+        {product.motivo && <p>Motivo: {product.motivo}</p>}
+      </div>
     ));
   }
   return event.descricaoMotivo

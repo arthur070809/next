@@ -30,6 +30,7 @@ export async function GET() {
             id: true,
             codigo: true,
             nome: true,
+            categoria: true,
             saldos: {
               where: { local: { slug: { in: [LOCAL_ESTOQUE_SLUG, LOCAL_DEPOSITO_SLUG] } } },
               select: { quantidade: true, reservada: true, local: { select: { slug: true } } },
@@ -48,6 +49,7 @@ export async function GET() {
       itemId: string;
       codigo: string | null;
       produto: string;
+      categoria: string;
       setor: string;
       quantidadePedida: number;
       quantidadeSeparada: number;
@@ -70,6 +72,7 @@ export async function GET() {
         itemId: row.item.id,
         codigo: row.item.codigo,
         produto: row.item.nome,
+        categoria: row.item.categoria,
         setor,
         quantidadePedida: 0,
         quantidadeSeparada: 0,
@@ -85,9 +88,35 @@ export async function GET() {
       agrupados.set(key, registro);
     }
 
+    const registros = [...agrupados.values()].sort((a, b) =>
+      a.setor.localeCompare(b.setor) || a.produto.localeCompare(b.produto));
+    const totaisPorSetor = [...agrupados.values()].reduce((totals, registro) => {
+      const total = totals.get(registro.setor) ?? { setor: registro.setor, quantidadePedida: 0, quantidadeSeparada: 0, quantidadeExcedente: 0 };
+      total.quantidadePedida += registro.quantidadePedida;
+      total.quantidadeSeparada += registro.quantidadeSeparada;
+      total.quantidadeExcedente += registro.quantidadeExcedente;
+      totals.set(registro.setor, total);
+      return totals;
+    }, new Map<string, { setor: string; quantidadePedida: number; quantidadeSeparada: number; quantidadeExcedente: number }>());
+    const totaisPorProduto = [...agrupados.values()].reduce((totals, registro) => {
+      const total = totals.get(registro.itemId) ?? {
+        itemId: registro.itemId,
+        produto: registro.produto,
+        quantidadePedida: 0,
+        quantidadeSeparada: 0,
+        quantidadeExcedente: 0,
+      };
+      total.quantidadePedida += registro.quantidadePedida;
+      total.quantidadeSeparada += registro.quantidadeSeparada;
+      total.quantidadeExcedente += registro.quantidadeExcedente;
+      totals.set(registro.itemId, total);
+      return totals;
+    }, new Map<string, { itemId: string; produto: string; quantidadePedida: number; quantidadeSeparada: number; quantidadeExcedente: number }>());
+
     return NextResponse.json({
-      registros: [...agrupados.values()].sort((a, b) =>
-        a.setor.localeCompare(b.setor) || a.produto.localeCompare(b.produto)),
+      registros,
+      totaisPorSetor: [...totaisPorSetor.values()],
+      totaisPorProduto: [...totaisPorProduto.values()],
       aviso: "Excedente por lote mínimo é quantidade entregue ao solicitante, não uma sobra física registrada. O saldo do depósito é global por produto e não tem vínculo com setor.",
     });
   } catch (error) {

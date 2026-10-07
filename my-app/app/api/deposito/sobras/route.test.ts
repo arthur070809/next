@@ -30,6 +30,7 @@ describe("GET /api/deposito/sobras", () => {
         id: "item-1",
         codigo: "129",
         nome: "Rodízio",
+        categoria: "Rodízios",
         saldos: [
           { quantidade: 10, reservada: 2, local: { slug: "estoque" } },
           { quantidade: 1, reservada: 0, local: { slug: "deposito" } },
@@ -52,6 +53,18 @@ describe("GET /api/deposito/sobras", () => {
         pedidos: ["REQ-1"],
         estoqueLivre: 8,
         saldoDeposito: 1,
+        categoria: "Rodízios",
+      }],
+      totaisPorSetor: [{
+        setor: "setor2",
+        quantidadePedida: 2,
+        quantidadeSeparada: 5,
+        quantidadeExcedente: 3,
+      }],
+      totaisPorProduto: [{
+        itemId: "item-1",
+        produto: "Rodízio",
+        quantidadeExcedente: 3,
       }],
       aviso: expect.stringContaining("não uma sobra física registrada"),
     });
@@ -65,5 +78,39 @@ describe("GET /api/deposito/sobras", () => {
     vi.mocked(prisma.requisicaoItem.findMany).mockResolvedValueOnce([] as never);
     const response = await GET();
     expect(await response.json()).toMatchObject({ registros: [] });
+  });
+
+  it("keeps the total by sector equal to the total by product", async () => {
+    vi.mocked(prisma.requisicaoItem.findMany).mockResolvedValue([
+      {
+        id: "a",
+        quantidade: 1,
+        descricao: encodeItemDescription(undefined, "setor1"),
+        item: { id: "p1", codigo: "129", nome: "Rodízio", categoria: "Rodízios", saldos: [] },
+        requisicao: { numeroPedido: "REQ-1" },
+        movimentacoes: [{ quantidade: 4 }],
+      },
+      {
+        id: "b",
+        quantidade: 2,
+        descricao: encodeItemDescription(undefined, "setor2"),
+        item: { id: "p1", codigo: "129", nome: "Rodízio", categoria: "Rodízios", saldos: [] },
+        requisicao: { numeroPedido: "REQ-2" },
+        movimentacoes: [{ quantidade: 5 }],
+      },
+    ] as never);
+    const body = await (await GET()).json();
+    const bySector = body.totaisPorSetor.reduce((sum: number, row: { quantidadeExcedente: number }) => sum + row.quantidadeExcedente, 0);
+    const byProduct = body.totaisPorProduto.reduce((sum: number, row: { quantidadeExcedente: number }) => sum + row.quantidadeExcedente, 0);
+    expect(bySector).toBe(6);
+    expect(byProduct).toBe(bySector);
+  });
+
+  it("distinguishes unauthenticated users and rejects direct operator requests", async () => {
+    vi.mocked(requireAlmoxarife).mockResolvedValueOnce({ funcionario: null, status: 401 } as never);
+    expect((await GET()).status).toBe(401);
+    vi.mocked(requireAlmoxarife).mockResolvedValueOnce({ funcionario: null, status: 403 } as never);
+    expect((await GET()).status).toBe(403);
+    expect(prisma.requisicaoItem.findMany).not.toHaveBeenCalled();
   });
 });

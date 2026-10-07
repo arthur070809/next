@@ -1,6 +1,7 @@
 export type ItemChecklist = {
   id: string
   nome: string
+  categoria?: string
   descricao?: string
   quantidade: number
   unidadeMedida: string
@@ -41,6 +42,7 @@ export type EventoHistorico = {
   produtos: Array<{
     codigo: string | null
     nome: string
+    categoria?: string
     descricao?: string
     quantidadePedida: number
     quantidadeSeparada: number

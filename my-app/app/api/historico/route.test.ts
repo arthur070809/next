@@ -30,10 +30,10 @@ const closedRequest = {
   atendente: { id: 2, nome: "Demo Almoxarife", cracha: "2222" },
   itens: [{
     quantidade: 2,
-    descricao: encodeItemDescription("Montagem na linha", "setor2"),
+    descricao: `${encodeItemDescription("Montagem na linha", "setor2")}\n[[idem:v1:${"a".repeat(64)}:${"b".repeat(64)}]]`,
     separado: false,
     motivoNaoAtendido: null,
-    item: { codigo: "7988", nome: "GARFO GGMX 62" },
+    item: { codigo: "7988", nome: "GARFO GGMX 62", categoria: "Rodízios" },
     movimentacoes: [],
   }],
 };
@@ -71,7 +71,7 @@ describe("GET /api/historico", () => {
       evento: "cancelada",
       funcionarioId: 2,
       funcionarioNome: "Demo Almoxarife",
-      produtos: [{ codigo: "7988", nome: "GARFO GGMX 62", descricao: "Montagem na linha" }],
+      produtos: [{ codigo: "7988", nome: "GARFO GGMX 62", categoria: "Rodízios", descricao: "Montagem na linha" }],
     });
     expect(JSON.stringify(body)).not.toContain("[[idem:");
     expect(body.eventos[0].descricaoMotivo).not.toBe(stripIdempotencyMetadata(closedRequest.observacao));

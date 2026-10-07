@@ -67,6 +67,13 @@ export async function POST(request: Request) {
         if (failure.count >= faceEnrollmentAttemptLimit) {
           return apiError(429, "FACE_ENROLLMENT_RATE_LIMITED", "Muitas tentativas. Aguarde e tente novamente.", undefined, { "Retry-After": String(failure.retryAfterSeconds) });
         }
+        if (error.code === "FACE_INCONSISTENT_SAMPLES") {
+          return NextResponse.json({
+            error: error.message,
+            code: error.code,
+            consistency: { source: "servico-facial" },
+          }, { status: 422 });
+        }
         return apiError(422, error.code, error.message);
       }
       throw error;
@@ -78,6 +85,7 @@ export async function POST(request: Request) {
         error: failure.count >= faceEnrollmentAttemptLimit ? "Muitas tentativas. Aguarde e tente novamente." : "As capturas ficaram diferentes. Tente novamente.",
         code: failure.count >= faceEnrollmentAttemptLimit ? "FACE_ENROLLMENT_RATE_LIMITED" : "FACE_INCONSISTENT_SAMPLES",
         consistency: {
+          source: "comparacao-local-com-mediana",
           threshold: faceEnrollmentConsistencyDistance,
           distances: consistency.distances.filter(Number.isFinite),
           discardedOutlier: false,
@@ -129,9 +137,8 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     const errorId = randomUUID();
-    const code = error instanceof FaceEnrollmentRuntimeError ? error.code : "ENROLLMENT_UNAVAILABLE";
-    console.error("[face-enroll]", code, { errorId, errorName: error instanceof Error ? error.name : "UnknownError", message: error instanceof Error ? error.message : "Unknown error" });
-    return apiError(code === "FACE_SERVICE_NOT_CONFIGURED" || code === "FACE_ENCRYPTION_NOT_CONFIGURED" || code === "FACE_SERVICE_UNAVAILABLE" ? 503 : 500, code, code === "FACE_SERVICE_NOT_CONFIGURED" || code === "FACE_SERVICE_UNAVAILABLE" ? "O serviço de validação facial está indisponível." : "Não foi possível concluir o cadastro. Tente novamente.", errorId);
+    console.error("Falha no cadastro facial", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
+    return apiError(500, "FACE_ENROLLMENT_SAVE_FAILED", "Não foi possível concluir o cadastro. Tente novamente.", errorId);
   }
 }
 

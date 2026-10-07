@@ -14,7 +14,6 @@ export function aplicarFiltros(list: RequisicaoMock[], filters: { almoxarifado?:
 }
 
 export function ordenarRequisicoes(list: RequisicaoMock[]) {
-  const prioridade = list.filter((l) => l.prioridade === "prioridade").sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
-  const padrao = list.filter((l) => l.prioridade === "padrao").sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
-  return [...prioridade, ...padrao]
+  return list.filter((requisicao) => requisicao.prioridade === "prioridade")
+    .concat(list.filter((requisicao) => requisicao.prioridade !== "prioridade"))
 }

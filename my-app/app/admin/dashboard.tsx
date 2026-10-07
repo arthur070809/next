@@ -33,7 +33,7 @@ export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; 
 
   async function resetDemo() {
     if (resettingDemo || !canResetDemo) return;
-    if (!window.confirm("Resetar os dados operacionais da demonstração? As requisições e movimentações serão removidas e o fixture será recriado.")) return;
+    if (!window.confirm("Restaurar os dados operacionais da apresentação? As requisições e movimentações serão removidas e o fixture será recriado.")) return;
     setResettingDemo(true);
     setDemoResetError("");
     setDemoResetMessage("");
@@ -44,11 +44,11 @@ export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; 
         body: "{}",
       });
       const data = await response.json() as { error?: string; message?: string };
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível resetar a demonstração.");
-      setDemoResetMessage(data.message ?? "Demonstração resetada.");
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível restaurar os dados da apresentação.");
+      setDemoResetMessage(data.message ?? "Dados de apresentação restaurados.");
       router.refresh();
     } catch (error) {
-      setDemoResetError(error instanceof Error ? error.message : "Não foi possível resetar a demonstração.");
+      setDemoResetError(error instanceof Error ? error.message : "Não foi possível restaurar os dados da apresentação.");
     } finally {
       setResettingDemo(false);
     }
@@ -83,13 +83,13 @@ export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; 
           <ActionTile href="/admin/deposito" title="Depósito de sobras" description="Consulte saldos e movimentações do depósito." icon="◇" tone="success" />
         </div>
       </section>
-      {canResetDemo && <section aria-labelledby="demo-reset-heading" className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5">
-        <h2 id="demo-reset-heading" className="font-bold text-amber-950">Ambiente de demonstração</h2>
-        <p className="mt-1 text-sm text-amber-900">Restaura as requisições, movimentos e saldos do fixture. Usuários e catálogo são preservados.</p>
+      {canResetDemo && <section aria-labelledby="demo-reset-heading" className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <h2 id="demo-reset-heading" className="font-semibold text-slate-800">Ferramentas de manutenção</h2>
+        <p className="mt-1 text-sm text-slate-600">Restaura requisições, movimentos e saldos da apresentação. Usuários e catálogo são preservados.</p>
         {demoResetError && <p role="alert" className="mt-3 rounded-lg bg-red-100 p-3 text-sm text-red-800">{demoResetError}</p>}
         {demoResetMessage && <p role="status" className="mt-3 rounded-lg bg-emerald-100 p-3 text-sm text-emerald-900">{demoResetMessage}</p>}
-        <button type="button" onClick={() => void resetDemo()} disabled={resettingDemo} className="mt-4 min-h-11 rounded-lg border border-amber-700 px-4 py-2 text-sm font-semibold text-amber-950 disabled:cursor-wait disabled:opacity-60">
-          {resettingDemo ? "Resetando…" : "Resetar demonstração"}
+        <button type="button" onClick={() => void resetDemo()} disabled={resettingDemo} className="mt-4 min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60">
+          {resettingDemo ? "Restaurando…" : "Restaurar dados da apresentação"}
         </button>
       </section>}
     </div>

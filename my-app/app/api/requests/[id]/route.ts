@@ -3,15 +3,25 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { decodeItemDescription, stripIdempotencyMetadata } from "@/lib/requisition-metadata";
+import { PapelFuncionario } from "@/generated/prisma/client";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: RouteContext) {
-  if (!(await getAuthenticatedFuncionario())) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const funcionario = await getAuthenticatedFuncionario();
+  if (!funcionario) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const isOperator = funcionario.papel === PapelFuncionario.OPERADOR;
+  if (
+    !isOperator
+    && funcionario.papel !== PapelFuncionario.ADMIN
+    && funcionario.papel !== PapelFuncionario.ALMOXARIFE
+  ) {
+    return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
+  }
   const { id } = await params;
   try {
     const requisicao = await prisma.requisicao.findUnique({
-      where: { id },
+      where: isOperator ? { id, solicitanteId: funcionario.id } : { id },
       include: {
         solicitante: { select: { nome: true, cracha: true } },
         atendente: { select: { nome: true, cracha: true } },

@@ -14,7 +14,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: {
   loginAttemptBucket: { findFirst: vi.fn(), deleteMany: vi.fn() },
   $executeRaw: vi.fn(),
 } }));
-vi.mock("bcryptjs", () => ({ default: { compare: vi.fn(async () => false) } }));
+vi.mock("bcryptjs", () => ({ default: { compare: vi.fn(async (): Promise<boolean> => false) } }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })) }));
 
 import { POST } from "./route";
@@ -24,13 +24,14 @@ import { PapelFuncionario } from "@/generated/prisma/client";
 import { getLoginClientIpHash } from "@/lib/login-attempts";
 import { recordTestLoginFailure } from "@/lib/login-test-mode";
 
+const passwordHash = `$2b$12$${"a".repeat(53)}`;
 const admin = {
   id: 1,
   nome: "Admin",
   email: "admin@local.invalid",
   cracha: "1000",
   papel: PapelFuncionario.ADMIN,
-  senha: "unused",
+  senha: passwordHash,
   ativo: true,
   cargo: "admin",
   mustChangePassword: false,
@@ -42,7 +43,7 @@ const operator = {
   email: "operator@local.invalid",
   cracha: "2000",
   papel: PapelFuncionario.OPERADOR,
-  senha: "unused",
+  senha: passwordHash,
   ativo: true,
   cargo: "operador",
   mustChangePassword: false,
@@ -57,7 +58,7 @@ const stockkeeper = {
   email: "stockkeeper@local.invalid",
   cracha: "2222",
   papel: PapelFuncionario.ALMOXARIFE,
-  senha: "unused",
+  senha: passwordHash,
   ativo: true,
   cargo: "almoxarife",
   mustChangePassword: false,
@@ -67,7 +68,7 @@ function request(codigoCracha: string, ip = "192.0.2.10") {
   return new Request("http://localhost/api/auth/login", {
     method: "POST",
     headers: { "content-type": "application/json", origin: "http://localhost", "x-real-ip": ip },
-    body: JSON.stringify({ codigoCracha }),
+    body: JSON.stringify({ codigoCracha, credential: "password", password: "ValidPassword123" }),
   });
 }
 
@@ -94,7 +95,7 @@ describe("login by badge code", () => {
     vi.mocked(prisma.webAuthnCredential.findMany).mockResolvedValue([]);
     vi.mocked(prisma.emergencyAccessGrant.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue(null);
-    vi.mocked(bcrypt.compare).mockResolvedValue(false);
+    vi.mocked(bcrypt.compare).mockImplementation(() => Promise.resolve(true));
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(1);
     vi.mocked(prisma.$executeRaw).mockResolvedValue(1);
     vi.mocked(prisma.authChallenge.create).mockResolvedValue({ id: "face-challenge" } as never);
@@ -127,7 +128,7 @@ describe("login by badge code", () => {
   it("accepts a valid password while preserving the configured profile checks", async () => {
     const passwordHash = `$2b$12$${"a".repeat(53)}`;
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...operator, senha: passwordHash } as never);
-    vi.mocked(bcrypt.compare).mockResolvedValue(true);
+    vi.mocked(bcrypt.compare).mockImplementation(() => Promise.resolve(true));
 
     const response = await POST(new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -147,7 +148,7 @@ describe("login by badge code", () => {
   it("returns the generic invalid-code response for an incorrect password", async () => {
     const passwordHash = `$2b$12$${"a".repeat(53)}`;
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...operator, senha: passwordHash } as never);
-    vi.mocked(bcrypt.compare).mockResolvedValue(false);
+    vi.mocked(bcrypt.compare).mockImplementation(() => Promise.resolve(false));
 
     const response = await POST(new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -160,11 +161,24 @@ describe("login by badge code", () => {
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
+  it("requires password in the ordinary login path", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
+
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "2000" }),
+    }));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
   it("keeps the admin second factor after password verification", async () => {
-    const passwordHash = `$2b$12$${"a".repeat(53)}`;
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...admin, senha: passwordHash } as never);
     vi.mocked(prisma.adminTotpCredential.findUnique).mockResolvedValue({ enabledAt: new Date() } as never);
-    vi.mocked(bcrypt.compare).mockResolvedValue(true);
+    vi.mocked(bcrypt.compare).mockImplementation(() => Promise.resolve(true));
 
     const response = await POST(new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -174,6 +188,41 @@ describe("login by badge code", () => {
 
     expect(response.status).toBe(202);
     expect(await response.json()).toMatchObject({ step: "totp" });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("starts the existing 1:1 face challenge for an explicitly selected badge with an enrolled template", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(1);
+
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "2000", credential: "face" }),
+    }));
+
+    expect(response.status).toBe(202);
+    expect(await response.json()).toMatchObject({ step: "face" });
+    expect(prisma.faceTemplate.count).toHaveBeenCalledWith({
+      where: { funcionarioId: operator.id, revogadoEm: null },
+    });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("explains when the selected badge has no active face template", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
+
+    const response = await POST(new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ codigoCracha: "2000", credential: "face" }),
+    }));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({
+      error: "Não há cadastro facial ativo para este funcionário. Procure o administrador.",
+    });
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
@@ -189,7 +238,7 @@ describe("login by badge code", () => {
     const response = await POST(new Request("http://localhost/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "http://localhost" },
-      body: JSON.stringify({ codigoCracha: "3333", credential: "password", password: "ignored-in-demo" }),
+      body: JSON.stringify({ codigoCracha: "3333" }),
     }));
 
     expect(response.status).toBe(200);

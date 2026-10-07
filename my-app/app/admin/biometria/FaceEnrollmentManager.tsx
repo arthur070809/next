@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
+import { faceCaptureQuality } from "@/lib/facial/config";
+import { inspectFaceCount } from "@/lib/facial/face-count";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import styles from "./face-enrollment.module.css";
 
 type Employee = { id: number; nome: string; cracha: string; enrolled: boolean };
 type Session = { id: string; token: string; expiraEm: string };
 type Stage = "front" | "left" | "right" | "blink" | "success" | "failed";
-type EnrollmentDiagnostics = { threshold?: number; distances?: number[]; discardedOutlier?: boolean; descriptorError?: string };
+type EnrollmentDiagnostics = { source?: string; threshold?: number; distances?: number[]; discardedOutlier?: boolean; descriptorError?: string };
 class EnrollmentResponseError extends Error {
   constructor(message: string, readonly code: string, readonly diagnostics?: EnrollmentDiagnostics) {
     super(message);
@@ -17,30 +19,53 @@ class EnrollmentResponseError extends Error {
 
 type FaceResult = { mesh?: Array<Array<number | undefined>>; boxRaw: [number, number, number, number]; score?: number; boxScore?: number; annotations?: Record<string, Array<Array<number | undefined>>>; rotation?: { angle: { roll: number; yaw: number; pitch: number } } | null };
 type HumanDetector = { detect(input: HTMLVideoElement): Promise<{ face?: FaceResult[] }> };
-type DebugCheck = { name: string; value: string; threshold: string; pass: boolean };
-type DebugSnapshot = { checks: DebugCheck[]; stabilityMs: number; requiredMs: number; stage: string; model: string; session: string; service: string; firstFail: string };
+function eyesAreOpen(face: FaceResult) {
+  const left = face.annotations?.leftEye ?? [];
+  const right = face.annotations?.rightEye ?? [];
+  const ratio = (eye: Array<Array<number | undefined>>) => {
+    if (eye.length < 4) return 1;
+    const xs = eye.map((point) => point[0] ?? 0); const ys = eye.map((point) => point[1] ?? 0);
+    return (Math.max(...ys) - Math.min(...ys)) / Math.max(1, Math.max(...xs) - Math.min(...xs));
+  };
+  return ratio(left) > faceCaptureQuality.eyeAspectRatioMin && ratio(right) > faceCaptureQuality.eyeAspectRatioMin;
+}
 
-const REQUIRED_SAMPLES = 3;
-const DEBUG_REQUIRED_STABLE_MS = faceStabilityRequiredMs;
-const DEBUG_BRIGHTNESS_MIN = 24;
-const DEBUG_CONTRAST_MIN = 6;
-const DEBUG_SHARPNESS_MIN = 4;
-const DEBUG_MOVEMENT_MAX_RATIO = 0.08;
-const DEBUG_MOVEMENT_EMA_ALPHA = 0.25;
-const DEBUG_CAPTURE_TIMEOUT_MS = 20_000;
+function inspectLight(video: HTMLVideoElement) {
+  const canvas = document.createElement("canvas");
+  canvas.width = faceCaptureQuality.lightSampleWidth;
+  canvas.height = faceCaptureQuality.lightSampleHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return { brightness: 0, sharpness: 0 };
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  let sum = 0; let edge = 0; let previous = 0;
+  for (let index = 0; index < data.length; index += 4) {
+    const value = 0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2];
+    sum += value; if (index) edge += Math.abs(value - previous); previous = value;
+  }
+  return { brightness: sum / (data.length / 4), sharpness: edge / (data.length / 4) };
+}
+
+function drawMesh(canvas: HTMLCanvasElement, video: HTMLVideoElement, face: FaceResult | null) {
+  const context = canvas.getContext("2d"); if (!context) return;
+  canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (!face?.mesh?.length) return;
+  context.fillStyle = "rgb(255 255 255 / 70%)";
+  for (const point of face.mesh) { context.beginPath(); context.arc(point[0] ?? 0, point[1] ?? 0, 1.2, 0, Math.PI * 2); context.fill(); }
+}
 
 export default function FaceEnrollmentManager() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeId, setEmployeeId] = useState("");
   const [session, setSession] = useState<Session | null>(null);
-  const [confirmedPerson, setConfirmedPerson] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [confirmedPerson, setConfirmedPerson] = useState(false);
   const [samples, setSamples] = useState<string[]>([]);
-  const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready">("idle");
-  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
-  const [cameraDeviceId, setCameraDeviceId] = useState("");
+  const [stage, setStage] = useState<Stage>("front");
   const [modelState, setModelState] = useState<"loading" | "ready" | "error">("loading");
-  const [instruction, setInstruction] = useState("Selecione o funcionário e confirme a pessoa diante da câmera");
+  const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready" | "denied" | "missing">("idle");
+  const [instruction, setInstruction] = useState("Carregando modelos de visão");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -60,22 +85,18 @@ export default function FaceEnrollmentManager() {
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const humanRef = useRef<HumanDetector | null>(null);
+  const stageRef = useRef<Stage>("front");
   const sessionRef = useRef<Session | null>(null);
   const samplesRef = useRef<string[]>([]);
-  const stabilityRef = useRef<FaceStabilityState>({ accumulatedMs: 0, lastAt: 0, badSince: 0 });
-  const movementEmaRef = useRef(0);
-  const captureStartedAtRef = useRef(0);
-  const previousBoxRef = useRef<[number, number, number, number] | null>(null);
-  const lastDebugAtRef = useRef(0);
+  const stableSinceRef = useRef(0);
+  const capturedStageRef = useRef<Stage | null>(null);
   const submittingRef = useRef(false);
   const lastDebugAtRef = useRef(0);
 
   function stopCamera() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+    streamRef.current?.getTracks().forEach((track) => track.stop()); streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraState("idle");
-    setCameraDevices([]);
   }
 
   async function loadModels() {
@@ -83,7 +104,7 @@ export default function FaceEnrollmentManager() {
       const loadBrowserModule = new Function("url", "return import(url)") as (url: string) => Promise<{ default: new (config: Record<string, unknown>) => HumanDetector & { load(): Promise<void>; warmup(): Promise<void> } }>;
       const { default: Human } = await loadBrowserModule("https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/dist/human.esm.js");
       const modelBasePath = "https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/";
-      const config = { modelBasePath, cacheModels: true, debug: false, face: { detector: { maxDetected: 2, minConfidence: 0.6, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } };
+      const config = { modelBasePath, cacheModels: true, debug: false, face: { detector: { maxDetected: faceCaptureQuality.detectorMaxFaces, minConfidence: faceCaptureQuality.detectorMinConfidence, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } };
       let human = new Human({ ...config, backend: "webgl" });
       try {
         await human.load();
@@ -141,17 +162,17 @@ export default function FaceEnrollmentManager() {
   }, []);
 
   useEffect(() => { sessionRef.current = session; }, [session]);
+  useEffect(() => { if (session && employeeId) localStorage.setItem("marcon-face-enrollment-session", JSON.stringify({ employeeId, session })); }, [employeeId, session]);
   useEffect(() => { samplesRef.current = samples; }, [samples]);
-  useEffect(() => {
-    if (!session || !employeeId) return;
-    localStorage.setItem("marcon-face-enrollment-session", JSON.stringify({ employeeId, session }));
-  }, [employeeId, session]);
 
-  function selectEmployee(value: string) {
-    stopCamera();
-    setEmployeeId(value); setSession(null); sessionRef.current = null;
-    setSamples([]); samplesRef.current = []; setConfirmedPerson(false); setConsent(false); setError(""); setMessage("");
-    if (value) void createEnrollmentSession(value);
+  async function selectEmployee(value: string) {
+    stopCamera(); setEmployeeId(value); setSession(null); localStorage.removeItem("marcon-face-enrollment-session"); setSamples([]); samplesRef.current = []; setConfirmedPerson(false); setConsent(false); setError(""); setMessage("");
+    if (!value) return;
+    const response = await fetch(`/api/admin/face-enrollment?funcionarioId=${encodeURIComponent(value)}`); const data = await response.json();
+    if (!response.ok) { setError(data.error ?? "Não foi possível iniciar a sessão."); return; }
+    const nextSession = data.session as Session;
+    sessionRef.current = nextSession;
+    setSession(nextSession);
   }
 
   const renewSession = useCallback(async () => {
@@ -168,7 +189,7 @@ export default function FaceEnrollmentManager() {
       const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: true, consentAt: new Date().toISOString(), samples: nextSamples }) });
       const data = await response.json() as { error?: string; code?: string; consistency?: EnrollmentDiagnostics };
       if (data.consistency) {
-        setConsistencyDiagnostics(`Limiar: ${data.consistency.threshold ?? "—"}; distâncias: ${data.consistency.distances?.join(", ") ?? "—"}; outlier descartado: ${data.consistency.discardedOutlier ? "sim" : "não"}${data.consistency.descriptorError ? `; descritor: ${data.consistency.descriptorError}` : ""}`);
+        setConsistencyDiagnostics(`${data.consistency.source ?? "origem não informada"}; limiar: ${data.consistency.threshold ?? "—"}; distâncias: ${data.consistency.distances?.join(", ") ?? "—"}; outlier descartado: ${data.consistency.discardedOutlier ? "sim" : "não"}${data.consistency.descriptorError ? `; descritor: ${data.consistency.descriptorError}` : ""}`);
         setDebugMetrics((currentMetrics) => ({
           ...currentMetrics,
           resultCode: data.code ?? (response.ok ? "FACE_ENROLLMENT_OK" : "FACE_ENROLLMENT_FAILED"),
@@ -188,13 +209,11 @@ export default function FaceEnrollmentManager() {
   }, [employeeId, renewSession]);
 
   async function startCamera() {
-    if (!employeeId || !confirmedPerson || !consent) return;
-    if (cameraStartInFlightRef.current || cameraState === "ready") return;
-    cameraStartInFlightRef.current = true;
-    setError(""); setCameraState("starting"); setInstruction("Ativando câmera...");
+    if (!confirmedPerson || !consent || modelState !== "ready") return;
+    setError(""); setCameraState("starting");
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("missing", "NotFoundError");
-      stopCamera(); streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+      stopCamera();       streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: faceCaptureQuality.cameraWidth }, height: { ideal: faceCaptureQuality.cameraHeight } }, audio: false });
       if (videoRef.current) { videoRef.current.srcObject = streamRef.current; await videoRef.current.play(); }
       setCameraState("ready"); setStage("front"); stageRef.current = "front"; capturedStageRef.current = null; setInstruction("Posicione o rosto na oval");
     } catch (cause) {
@@ -204,10 +223,6 @@ export default function FaceEnrollmentManager() {
       setDebugMetrics((metrics) => ({ ...metrics, resultCode: name || "CAMERA_START_FAILED" }));
     }
   }
-
-  useEffect(() => {
-    if (employeeId && confirmedPerson && consent && cameraState === "idle") void startCamera();
-  }, [employeeId, confirmedPerson, consent, cameraState]);
 
   function captureFrame() {
     const video = videoRef.current; if (!video) return null;
@@ -234,7 +249,8 @@ export default function FaceEnrollmentManager() {
         const result = await humanRef.current.detect(videoRef.current);
         const inferenceMs = Math.round(performance.now() - inferenceStarted);
         const faces = result.face ?? [];
-        const face = faces.length === 1 ? faces[0] : null;
+        const faceCheck = inspectFaceCount(faces);
+        const face = faceCheck.face;
         drawMesh(overlayRef.current!, videoRef.current, face);
         const light = inspectLight(videoRef.current);
         if (debug && time - lastDebugAtRef.current >= 500) {
@@ -251,43 +267,59 @@ export default function FaceEnrollmentManager() {
         }
         if (!face) {
           stableSinceRef.current = 0;
-          setInstruction(faces.length > 1 ? "Mais de um rosto na câmera" : "Nenhum rosto detectado. Posicione o rosto na oval");
+          setInstruction(faceCheck.message ?? "Nenhum rosto detectado. Posicione o rosto na oval");
           return;
         }
         const box = face.boxRaw;
-        const center = box[0] + box[2] / 2 > 0.35 && box[0] + box[2] / 2 < 0.65 && box[1] + box[3] / 2 > 0.25 && box[1] + box[3] / 2 < 0.75;
-        const size = box[2] > FACE_SIZE_MIN && box[2] < FACE_SIZE_MAX;
+        const centerX = box[0] + box[2] / 2;
+        const centerY = box[1] + box[3] / 2;
+        const center = centerX > faceCaptureQuality.centerXMin
+          && centerX < faceCaptureQuality.centerXMax
+          && centerY > faceCaptureQuality.centerYMin
+          && centerY < faceCaptureQuality.centerYMax;
+        const size = box[2] > faceCaptureQuality.faceWidthMin && box[2] < faceCaptureQuality.faceWidthMax;
         const rotation = face.rotation?.angle;
-        const front = rotation ? Math.abs(rotation.yaw) <= YAW_LIMIT && Math.abs(rotation.pitch) <= PITCH_LIMIT && Math.abs(rotation.roll) <= ROLL_LIMIT : true;
+        const front = rotation
+          ? Math.abs(rotation.yaw) <= faceCaptureQuality.yawLimitDegrees
+            && Math.abs(rotation.pitch) <= faceCaptureQuality.pitchLimitDegrees
+            && Math.abs(rotation.roll) <= faceCaptureQuality.rollLimitDegrees
+          : true;
         const eyesOpen = eyesAreOpen(face);
-        const ready = center && size && front && light.brightness >= BRIGHTNESS_MIN && light.brightness <= BRIGHTNESS_MAX && light.sharpness >= SHARPNESS_MIN && (face.boxScore === undefined || face.boxScore >= 0.6);
+        const ready = center && size && front
+          && light.brightness >= faceCaptureQuality.brightnessMin
+          && light.brightness <= faceCaptureQuality.brightnessMax
+          && light.sharpness >= faceCaptureQuality.sharpnessMin
+          && (face.boxScore === undefined || face.boxScore >= faceCaptureQuality.detectorMinConfidence);
         if (!ready) {
           stableSinceRef.current = 0;
           setInstruction(!center
             ? "Posicione o rosto na oval"
             : !size
-              ? (box[2] < FACE_SIZE_MIN ? "Rosto muito pequeno ou afastado: aproxime-se" : "Afaste-se um pouco")
+              ? (box[2] < faceCaptureQuality.faceWidthMin ? "Rosto muito pequeno ou afastado: aproxime-se" : "Afaste-se um pouco")
               : !front
                 ? "Olhe para a câmera"
-                : light.brightness < BRIGHTNESS_MIN
+                : light.brightness < faceCaptureQuality.brightnessMin
                   ? "Pouca luz: procure um local mais iluminado"
-                  : light.brightness > BRIGHTNESS_MAX
+                  : light.brightness > faceCaptureQuality.brightnessMax
                     ? "Imagem muito clara: evite a luz direta"
-                    : light.sharpness < SHARPNESS_MIN
+                    : light.sharpness < faceCaptureQuality.sharpnessMin
                       ? "Imagem sem nitidez: mantenha o aparelho firme"
                       : "Detecção facial abaixo do mínimo");
           return;
         }
         const currentStage = stageRef.current;
         const yaw = face.rotation?.angle.yaw ?? 0;
-        const stagePassed = currentStage === "front" || (currentStage === "left" && yaw < -8) || (currentStage === "right" && yaw > 8) || (currentStage === "blink" && !eyesOpen);
+        const stagePassed = currentStage === "front"
+          || (currentStage === "left" && yaw < -faceCaptureQuality.sideYawDegrees)
+          || (currentStage === "right" && yaw > faceCaptureQuality.sideYawDegrees)
+          || (currentStage === "blink" && !eyesOpen);
         setInstruction(currentStage === "front" ? "Fique parado" : currentStage === "blink" ? "Pisque" : currentStage === "left" ? "Vire levemente para a esquerda" : "Vire levemente para a direita");
         if (!stagePassed) {
           stableSinceRef.current = 0;
           return;
         }
         if (!stableSinceRef.current) stableSinceRef.current = time;
-        if (time - stableSinceRef.current >= STABLE_MS && capturedStageRef.current !== currentStage) {
+        if (time - stableSinceRef.current >= faceCaptureQuality.stableCaptureMs && capturedStageRef.current !== currentStage) {
           const image = captureFrame();
           if (!image) return;
           const next = [...samplesRef.current, image];
@@ -313,9 +345,7 @@ export default function FaceEnrollmentManager() {
     frame = requestAnimationFrame(detect); return () => { stopped = true; cancelAnimationFrame(frame); };
   }, [cameraState, modelState, employeeId, submitEnrollment, debug]);
 
-  const employee = employees.find((item) => item.id === Number(employeeId));
-  const requirement = !employeeId ? "Selecione o funcionário" : !confirmedPerson ? "Marque a confirmação da pessoa" : !consent ? "Marque o consentimento" : "";
-  const progress = Math.min(100, samples.length * 20);
+  useEffect(() => { if (cameraState !== "ready") return; const timer = window.setInterval(() => { void renewSession(); }, 60_000); return () => window.clearInterval(timer); }, [cameraState, employeeId, renewSession]);
 
   const employee = employees.find((item) => item.id === Number(employeeId)); const progress = Math.min(100, samples.length * 20);
   return (

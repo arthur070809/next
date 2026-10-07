@@ -32,9 +32,10 @@ export function decodeItemDescription(value: string | null | undefined): {
   descricao: string;
 } {
   const match = value?.match(sectorPrefix);
+  const descricao = value?.replace(sectorPrefix, "").replace(idempotencyMarker, "").trim() ?? "";
   return {
     setor: match ? match[1] as SetorRequisicao : null,
-    descricao: value?.replace(sectorPrefix, "") ?? "",
+    descricao,
   };
 }
 

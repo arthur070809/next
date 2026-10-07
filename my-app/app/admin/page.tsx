@@ -40,12 +40,14 @@ export default async function AdminPage() {
       },
       select: {
         quantidade: true,
+        reservada: true,
         item: { select: { nome: true, codigo: true, pontoPedido: true } },
       },
     }),
   ]);
   const itensParaRepor = saldosParaRepor
-    .filter(({ quantidade, item }) => isAtOrBelowReorderPoint(quantidade, item.pontoPedido))
+    .filter(({ quantidade, reservada, item }) =>
+      isAtOrBelowReorderPoint(quantidade, item.pontoPedido, reservada))
     .map(({ item }) => ({ nome: item.nome, codigo: item.codigo }));
   return (
     <AdminDashboard

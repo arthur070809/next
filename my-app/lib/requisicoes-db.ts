@@ -29,7 +29,7 @@ const REQUISICAO_INCLUDE = {
   atendente: { select: { nome: true, cracha: true } },
   itens: {
     include: {
-      item: { select: { nome: true } },
+      item: { select: { nome: true, categoria: true } },
       local: { select: { slug: true } },
     },
   },
@@ -78,6 +78,7 @@ export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
     itens: req.itens.map((ri) => ({
       id: ri.id,
       nome: ri.item?.nome ?? "Item",
+      categoria: ri.item?.categoria ?? undefined,
       descricao: decodeItemDescription(ri.descricao).descricao,
       quantidade: ri.quantidade,
       unidadeMedida: ri.unidadeMedida,

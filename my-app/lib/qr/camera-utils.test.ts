@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   cameraErrorMessage,
+  createCameraLease,
   requestScannerStream,
   shouldAcceptScan,
   stopCameraStream,
@@ -29,6 +30,15 @@ describe("camera scanner helpers", () => {
     expect(cameraErrorMessage(new DOMException("", "SecurityError"))).toContain("HTTPS");
   });
 
+  it("explains that embedded social-media browsers must open the link externally", () => {
+    const message = cameraErrorMessage(
+      new DOMException("", "NotAllowedError"),
+      "Mozilla/5.0 Instagram 300.0.0 Android",
+    );
+    expect(message).toContain("Instagram");
+    expect(message).toContain("navegador");
+  });
+
   it.each(["NotAllowedError", "NotFoundError"] as const)(
     "propagates getUserMedia failure %s for a clear user-facing message",
     async (name) => {
@@ -55,5 +65,22 @@ describe("camera scanner helpers", () => {
     stopCameraStream({ getTracks: () => [{ stop: stop1 }, { stop: stop2 }] });
     expect(stop1).toHaveBeenCalledOnce();
     expect(stop2).toHaveBeenCalledOnce();
+  });
+
+  it("keeps async camera streams owned by their mount during a StrictMode remount", () => {
+    const firstMount = createCameraLease();
+    const secondMount = createCameraLease();
+    const stopLateStream = vi.fn();
+    const stopCurrentStream = vi.fn();
+
+    firstMount.close();
+    expect(firstMount.attach({ getTracks: () => [{ stop: stopLateStream }] })).toBe(false);
+    expect(secondMount.attach({ getTracks: () => [{ stop: stopCurrentStream }] })).toBe(true);
+    expect(firstMount.isActive()).toBe(false);
+    expect(secondMount.isActive()).toBe(true);
+    expect(stopLateStream).toHaveBeenCalledOnce();
+    expect(stopCurrentStream).not.toHaveBeenCalled();
+    secondMount.close();
+    expect(stopCurrentStream).toHaveBeenCalledOnce();
   });
 });
