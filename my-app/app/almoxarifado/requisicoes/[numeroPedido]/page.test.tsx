@@ -68,6 +68,9 @@ vi.mock("../../../../lib/qr/decoder", async (importOriginal) => {
 });
 
 import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
+import PriorityBadge from "../../../components/PriorityBadge";
+import ItemDescription from "../../../components/ItemDescription";
+import ProductCode from "../../../components/ProductCode";
 import ChecklistRequisicaoPage from "./page";
 import type { ScannerReadResult } from "../../../../lib/qr/camera-utils";
 
@@ -98,6 +101,13 @@ function findElement(node: unknown, type: unknown): { type: unknown; props: Reco
     return findElement(children, type);
   }
   return null;
+}
+
+function nodeText(node: unknown): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (!node || typeof node !== "object") return "";
+  return nodeText((node as { props?: { children?: unknown } }).props?.children);
 }
 
 async function flushPromises() {
@@ -182,6 +192,26 @@ describe("checklist QR scanner integration", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it("shows the product code prominently while retaining the description and priority badge", () => {
+    resetRenderState({
+      numeroPedido: "REQ-1",
+      status: "ASSUMIDA",
+      prioridade: "PRIORITARIO",
+      criadoEm: "2026-10-06T12:00:00Z",
+      solicitante: "Operador",
+      atendente: "Almoxarife",
+      podeFinalizar: true,
+      itens: [{ ...requestItem, descricao: "Montagem na linha" }],
+    });
+
+    const tree = ChecklistRequisicaoPage();
+
+    expect(findElement(tree, ProductCode)?.props.code).toBe("129");
+    expect(findElement(tree, ItemDescription)?.props.descricao).toBe("Montagem na linha");
+    expect(findElement(tree, PriorityBadge)?.props.priority).toBe("prioridade");
+    expect(nodeText(findElement(tree, "h1")?.props.children)).toContain("Checklist de separação");
   });
 
   it("checks a valid item once and closes the real checklist scanner after success feedback", async () => {

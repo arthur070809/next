@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
 import PriorityBadge from "../../../components/PriorityBadge";
 import ItemDescription from "../../../components/ItemDescription";
+import ProductCode from "../../../components/ProductCode";
 import { normalizarCodigoEtiqueta, parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
 import { shouldCloseCamera, type ScannerReadKind, type ScannerReadResult } from "../../../../lib/qr/camera-utils";
 
@@ -347,10 +348,11 @@ export default function ChecklistRequisicaoPage() {
           return (
             <article key={item.id} className={`rounded-xl border bg-white p-4 ${item.conferido ? "border-emerald-300" : "border-slate-200"}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="font-semibold text-slate-950">{item.nome}</h2>
+                  <ProductCode code={item.codigo} />
                   <ItemDescription className="mt-1 text-sm text-slate-600" categoria={item.categoria} descricao={item.descricao} />
-                  <p className="mt-1 text-sm text-slate-600">Código {item.codigo ?? "não cadastrado"} · Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
+                  <p className="mt-1 text-sm text-slate-600">Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.conferido ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{item.conferido ? "Conferido" : "Pendente"}</span>
               </div>
