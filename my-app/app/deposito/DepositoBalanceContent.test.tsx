@@ -5,16 +5,19 @@ import DepositoBalanceContent from "./DepositoBalanceContent";
 
 const add = vi.fn();
 
-function renderState(overrides: Partial<Parameters<typeof DepositoBalanceContent>[0]>) {
-  return renderToStaticMarkup(createElement(DepositoBalanceContent, {
-    loading: false,
-    error: "",
-    empty: false,
-    filtered: false,
-    onAdd: add,
-    children: createElement("article", null, "Arruela · 3 un"),
-    ...overrides,
-  }));
+function renderState(overrides: Partial<Omit<Parameters<typeof DepositoBalanceContent>[0], "children">>) {
+  return renderToStaticMarkup(createElement(
+    DepositoBalanceContent,
+    {
+      loading: false,
+      error: "",
+      empty: false,
+      filtered: false,
+      onAdd: add,
+      ...overrides,
+    },
+    createElement("article", null, "Arruela · 3 un"),
+  ));
 }
 
 describe("DepositoBalanceContent", () => {

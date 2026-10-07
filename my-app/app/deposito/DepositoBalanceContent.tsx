@@ -14,7 +14,7 @@ export default function DepositoBalanceContent({
   empty: boolean;
   filtered: boolean;
   onAdd: () => void;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   if (loading) {
     return <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando saldos…</p>;
