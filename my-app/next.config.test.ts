@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import nextConfig from "./next.config";
 
 describe("camera permissions policy", () => {
+  it("serves the pinned local face model files with a long immutable cache policy", async () => {
+    const rules = await nextConfig.headers?.();
+    expect(rules?.find((rule) => rule.source === "/models/human/:path*")?.headers).toContainEqual({
+      key: "Cache-Control",
+      value: "public, max-age=31536000, immutable",
+    });
+  });
+
   it("grants camera access only to the inventory, checklist, and enrollment routes that use it", async () => {
     const rules = await nextConfig.headers?.();
     const cameraRules = rules?.filter((rule) =>

@@ -39,6 +39,9 @@ describe("camera scanner helpers", () => {
     expect(cameraErrorMessage(new DOMException("", "NotAllowedError"))).toContain("Permissão");
     expect(cameraErrorMessage(new DOMException("", "NotFoundError"))).toContain("Nenhuma câmera");
     expect(cameraErrorMessage(new DOMException("", "NotReadableError"))).toContain("em uso");
+    expect(cameraErrorMessage(new DOMException("", "OverconstrainedError"))).toContain("não suporta");
+    expect(cameraErrorMessage(new DOMException("", "AbortError"))).toContain("interrompida");
+    expect(cameraErrorMessage(new TypeError("missing API"))).toContain("navegador");
     await expect(requestScannerStream(undefined, false)).rejects.toHaveProperty("name", "SecurityError");
     expect(cameraErrorMessage(new DOMException("", "SecurityError"))).toContain("HTTPS");
   });

@@ -70,6 +70,10 @@ export function cameraErrorMessage(error: unknown, userAgent?: string): string {
       return "A câmera exige HTTPS ou acesso por localhost. Abra esta página em uma conexão segura.";
     case "OverconstrainedError":
       return "A câmera não suporta a configuração solicitada.";
+    case "AbortError":
+      return "A inicialização da câmera foi interrompida. Toque em Recomeçar.";
+    case "TypeError":
+      return "Este navegador não disponibiliza a câmera. Abra o site no Chrome ou Safari e tente novamente.";
     default:
       return "Não foi possível iniciar a câmera. Verifique a permissão e tente novamente.";
   }

@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/models/human/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
         source: "/almoxarifado/requisicoes/:path*",
         headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
       },

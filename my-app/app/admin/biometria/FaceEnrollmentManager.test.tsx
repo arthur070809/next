@@ -13,6 +13,7 @@ describe("automatic facial enrollment UI", () => {
     expect(markup).not.toContain('type="file"');
     expect(markup).toContain("salvo automaticamente");
     expect(markup).toContain("uma foto ou vídeo pode passar");
+    expect(markup).toContain("autoPlay");
   });
 
   it("shows only the optional privacy checkbox when explicitly enabled", () => {
