@@ -19,7 +19,6 @@ const config: Config = {
         "error-surface": "var(--error-surface)",
         priority: "var(--priority)",
         "priority-surface": "var(--priority-surface)",
-        royal: "var(--brand)",
       },
     },
   },

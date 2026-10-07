@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Card, StatusBadge } from "./ui";
+import { Card, Icon, StatusBadge, type IconName } from "./ui";
 
 export function PageHeader({
   eyebrow,
@@ -53,6 +53,18 @@ export function SummaryCard({
   );
 }
 
+const tileIcons: Record<string, IconName> = {
+  "⌂": "home",
+  "▤": "list",
+  "◷": "history",
+  "↗": "route",
+  "▦": "inventory",
+  "◇": "package",
+  "◉": "users",
+  "◌": "face",
+  "＋": "plus",
+};
+
 export function ActionTile({
   href,
   title,
@@ -67,21 +79,21 @@ export function ActionTile({
   tone?: "default" | "success" | "warning" | "danger" | "brand";
 }) {
   const tones = {
-    default: "hover:border-brand/50",
-    success: "hover:border-success/50",
-    warning: "hover:border-warning/50",
-    danger: "hover:border-error/50",
-    brand: "hover:border-brand/50",
+    default: "bg-priority-surface text-brand",
+    success: "bg-success-surface text-success",
+    warning: "bg-warning-surface text-warning",
+    danger: "bg-error-surface text-error",
+    brand: "bg-priority-surface text-brand",
   };
 
   return (
     <Link
       href={href}
-      className={`block rounded-card border border-border-subtle bg-surface p-4 shadow-card transition-colors hover:bg-background sm:p-5 ${tones[tone]}`}
+      className="group block rounded-card bg-surface p-4 shadow-card transition-shadow hover:shadow-overlay sm:p-5"
     >
       <div className="flex items-center justify-between gap-4">
-        <span aria-hidden="true" className="inline-flex size-11 items-center justify-center rounded-control bg-brand text-lg font-semibold text-white">
-          {icon}
+        <span className={`inline-flex size-11 items-center justify-center rounded-control ${tones[tone]}`}>
+          <Icon name={tileIcons[icon] ?? "info"} />
         </span>
       </div>
       <p className="mt-4 text-lg font-bold text-foreground">{title}</p>

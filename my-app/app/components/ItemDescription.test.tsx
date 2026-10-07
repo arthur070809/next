@@ -44,7 +44,7 @@ describe("ItemDescription", () => {
     }));
 
     expect(renderedText(markup)).toContain("Descrição do pedido: Sem descrição");
-    expect(markup).toContain("text-slate-500");
+    expect(markup).toContain("text-text-secondary");
     expect(markup).not.toContain(">null<");
     expect(markup).not.toContain(">undefined<");
   });

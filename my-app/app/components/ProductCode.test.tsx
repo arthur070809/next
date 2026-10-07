@@ -11,7 +11,7 @@ describe("ProductCode", () => {
     expect(markup).toContain(">00129</span>");
     expect(markup).toContain("font-mono");
     expect(markup).toContain("text-base");
-    expect(markup).toContain("text-slate-950");
+    expect(markup).toContain("text-foreground");
   });
 
   it.each([null, undefined, "", "   "])("shows a safe fallback for an absent product code (%s)", (code) => {

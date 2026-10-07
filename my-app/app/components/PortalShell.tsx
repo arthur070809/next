@@ -6,33 +6,34 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import SessionHeartbeat from "./SessionHeartbeat";
-import { Button } from "./ui";
+import { Button, Icon, type IconName } from "./ui";
 
 type PortalRole = "admin" | "almoxarifado" | "operador";
+type ShellMenuItem = { href: string; label: string; icon: IconName };
 
 const adminMenu = [
-  { href: "/admin", label: "Início", icon: "⌂" },
-  { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
-  { href: "/historico", label: "Histórico", icon: "◷" },
-  { href: "/admin/ressuprimento", label: "Ressuprimento", icon: "↗" },
-  { href: "/admin/estoque", label: "Estoque", icon: "▦" },
-  { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
-  { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
-  { href: "/admin/biometria", label: "Biometria facial", icon: "◌" },
-];
+  { href: "/admin", label: "Início", icon: "home" },
+  { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "list" },
+  { href: "/historico", label: "Histórico", icon: "history" },
+  { href: "/admin/ressuprimento", label: "Ressuprimento", icon: "route" },
+  { href: "/admin/estoque", label: "Estoque", icon: "inventory" },
+  { href: "/admin/deposito", label: "Depósito de sobras", icon: "package" },
+  { href: "/admin/usuarios", label: "Usuários", icon: "users" },
+  { href: "/admin/biometria", label: "Biometria facial", icon: "face" },
+] satisfies ShellMenuItem[];
 
 const warehouseMenu = [
   { href: "/almoxarifado", label: "Início", icon: adminMenu[0].icon },
-  { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "▤" },
-  { href: "/historico", label: "Histórico", icon: "◷" },
-  { href: "/almoxarifado/estoque", label: "Estoque", icon: "▦" },
-  { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: "◇" },
-];
+  { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "list" },
+  { href: "/historico", label: "Histórico", icon: "history" },
+  { href: "/almoxarifado/estoque", label: "Estoque", icon: "inventory" },
+  { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: "package" },
+] satisfies ShellMenuItem[];
 
 const operatorMenu = [
-  { href: "/requisicao", label: "Nova requisição", icon: "＋" },
-  { href: "/minhas-requisicoes", label: "Minhas Requisições", icon: "▤" },
-];
+  { href: "/requisicao", label: "Nova requisição", icon: "plus" },
+  { href: "/minhas-requisicoes", label: "Minhas Requisições", icon: "list" },
+] satisfies ShellMenuItem[];
 
 export default function PortalShell({
   children,
@@ -85,12 +86,12 @@ export default function PortalShell({
             className="min-h-11 min-w-11 rounded-control border border-white/30 p-2 text-white hover:bg-white/10 lg:hidden"
             aria-label="Fechar menu"
           >
-            ×
+            <Icon name="close" />
           </button>
         </div>
 
         <div className="mt-6 rounded-panel border border-white/20 bg-white/10 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75">Operação</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/75">Operação</p>
           <p className="mt-2 text-sm font-semibold text-white">{roleLabel}</p>
           <p className="mt-1 truncate text-xs text-white/80">{userName}</p>
         </div>
@@ -113,8 +114,8 @@ export default function PortalShell({
                     : "text-white/85 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <span aria-hidden="true" className="w-5 text-center text-lg">
-                  {item.icon}
+                <span aria-hidden="true" className="flex w-5 justify-center">
+                  <Icon name={item.icon} size={20} />
                 </span>
                 {item.label}
               </Link>
@@ -139,11 +140,12 @@ export default function PortalShell({
               <Button
                 variant="secondary"
                 onClick={() => setOpen(true)}
-                className="shrink-0 px-3 lg:hidden"
+                className="min-w-11 shrink-0 px-3 lg:hidden"
                 aria-label="Abrir menu"
                 aria-expanded={open}
               >
-                Menu
+                <Icon name="menu" size={18} />
+                <span className="hidden sm:inline">Menu</span>
               </Button>
               <Link href={homeHref} className="inline-flex rounded-control bg-white p-1.5 lg:hidden" aria-label="Marcon Metalúrgicos, início">
                 <Image src="/marcon-logo.svg" width={143} height={28} alt="Marcon Metalúrgicos" priority />
@@ -158,7 +160,7 @@ export default function PortalShell({
               <span className="hidden rounded-full bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary sm:inline-flex">
                 {roleLabel}
               </span>
-              <span className="max-w-32 truncate text-sm font-semibold text-foreground">{userName}</span>
+              <span className="hidden max-w-32 truncate text-sm font-semibold text-foreground sm:inline">{userName}</span>
               <Button
                 disabled={loggingOut}
                 onClick={() => void logout()}
@@ -192,14 +194,14 @@ export default function PortalShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center rounded-control px-2 py-1.5 text-[11px] font-semibold ${
+                className={`flex min-h-11 flex-col items-center justify-center rounded-control px-2 py-1.5 text-sm font-semibold ${
                   isActive ? "bg-brand text-white" : "text-text-secondary hover:bg-background"
                 }`}
               >
-                <span aria-hidden="true" className="mb-1 text-lg">
-                  {item.icon}
+                <span aria-hidden="true" className="mb-1">
+                  <Icon name={item.icon} size={18} />
                 </span>
-                {item.label.replace("Fila de requisições", "Requisições").split(" ")[0]}
+                {item.href.endsWith("/ressuprimento") ? "Reposição" : item.label.replace("Fila de requisições", "Fila").split(" ")[0]}
               </Link>
             );
           })}

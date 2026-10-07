@@ -17,7 +17,7 @@ describe("RequisitionDescription queue variant", () => {
     expect(renderedText(markup)).toContain("DescriçãoParada de máquina");
     expect(markup).toContain("text-sm");
     expect(markup).toContain("leading-5");
-    expect(markup).toContain("text-slate-900");
+    expect(markup).toContain("text-foreground");
     expect(markup).toContain('aria-label="Descrição: Parada de máquina"');
   });
 

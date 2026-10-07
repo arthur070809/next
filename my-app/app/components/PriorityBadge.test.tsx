@@ -13,8 +13,10 @@ describe("PriorityBadge", () => {
     expect(PRIORITY_BADGE_CLASS).toContain("bg-priority-surface");
   });
 
-  it("renders nothing for a normal request", () => {
-    expect(renderToStaticMarkup(createElement(PriorityBadge, { priority: "padrao" }))).toBe("");
+  it("labels normal priority with an icon instead of relying on absence of color", () => {
+    const markup = renderToStaticMarkup(createElement(PriorityBadge, { priority: "padrao" }));
+    expect(markup).toContain("Padrão");
+    expect(markup).toContain('aria-hidden="true"');
   });
 
   it("exposes a shared tinted row treatment for the priority queue", () => {

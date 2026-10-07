@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import FormularioItem, { type ItemFormData } from "../components/FormularioItem";
 import ListaItensRequisicao from "../components/ListaItensRequisicao";
 import PriorityBadge from "../components/PriorityBadge";
+import { Button, Card, ErrorState, Toast } from "../components/ui";
+import { PageHeader } from "../components/industrial";
 import type { RequisicaoPayload } from "../../lib/types/requisicao";
 
 type CreatedRequest = { numeroPedido: string; totalItens: number };
@@ -65,17 +67,17 @@ export default function RequisicaoPage() {
     }
   }
 
-  return <main className="mx-auto max-w-5xl p-4">
-    <div className="mb-5"><h1 className="text-2xl font-semibold text-[#212529]">Nova requisição</h1><p className="mt-1 text-sm text-slate-600">Envie seu pedido para atendimento pelo almoxarifado.</p></div>
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <section className="rounded-lg bg-white p-4 shadow-sm"><h2 className="mb-3 text-lg font-medium">Adicionar item</h2><FormularioItem key={editingIndex ?? "new"} onAdd={handleAddItem} editingItem={editingIndex !== null ? itens[editingIndex] : undefined} /></section>
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-medium">Resumo da requisição</h2><PriorityBadge priority={itens.some((item) => item.prioridade === "prioridade") ? "prioridade" : "padrao"} /></div>
+  return <main className="min-w-0">
+    <PageHeader eyebrow="Área do operador" title="Nova requisição" description="Monte o pedido de materiais para atendimento pelo almoxarifado." />
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <Card className="min-w-0 p-4 sm:p-6"><h2 className="mb-4 text-lg font-semibold">Adicionar item</h2><FormularioItem key={editingIndex ?? "new"} onAdd={handleAddItem} editingItem={editingIndex !== null ? itens[editingIndex] : undefined} /></Card>
+      <Card className="min-w-0 p-4 sm:p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Resumo da requisição</h2><PriorityBadge priority={itens.some((item) => item.prioridade === "prioridade") ? "prioridade" : "padrao"} /></div>
         <ListaItensRequisicao itens={itens} onEdit={(index) => { idempotencyKey.current = null; setEditingIndex(index); }} onRemove={(index) => { idempotencyKey.current = null; setItens((current) => current.filter((_, itemIndex) => itemIndex !== index)); setEditingIndex(null); }} />
-        {submitError && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{submitError}</p>}
-        {resultado.length > 0 && <div role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900"><p className="font-semibold">Requisição enviada ao almoxarifado.</p>{resultado.map((request) => <p key={request.numeroPedido} className="mt-1">Pedido #{request.numeroPedido} · {request.totalItens} {request.totalItens === 1 ? "item" : "itens"} aguardando atendimento.</p>)}</div>}
-        <button className="mt-4 min-h-11 w-full rounded-lg bg-royal py-3 font-semibold text-white disabled:cursor-wait disabled:opacity-50" disabled={!itens.length || isSubmitting} onClick={() => void handleEnviarRequisicao()}>{isSubmitting ? "Enviando…" : "Enviar requisição"}</button>
-      </section>
+        {submitError && <div className="mt-4"><ErrorState message={submitError} onRetry={() => void handleEnviarRequisicao()} /></div>}
+        {resultado.map((request) => <div key={request.numeroPedido} className="mt-4"><Toast tone="success" message={`Requisição #${request.numeroPedido} enviada. ${request.totalItens} ${request.totalItens === 1 ? "item aguardando" : "itens aguardando"} atendimento.`} /></div>)}
+        <Button className="mt-4 w-full" disabled={!itens.length} loading={isSubmitting} loadingLabel="Enviando requisição…" onClick={() => void handleEnviarRequisicao()}>Enviar requisição</Button>
+      </Card>
     </div>
   </main>;
 }
