@@ -23,3 +23,7 @@ Atualizado durante a revisão funcional do almoxarifado, QR e cadastro facial. N
 ## Validação desta revisão
 
 TypeScript, lint e a suíte padrão passaram; o build isolado compilou e verificou TypeScript, mas não concluiu coleta de rotas sem `DATABASE_URL`. O resultado está em `docs/RELATORIO_ALMOXARIFADO.md`. `tests/integration-tidb.test.ts` foi excluído pelo script padrão e não foi executado.
+
+## Fechamento operador/estoque/ressuprimento
+
+O relatório detalhado está em `docs/RELATORIO_OPERADOR_ESTOQUE.md`. Estado final: O1/O2/R1 testados e corrigidos; O3 best-effort; E1 estruturalmente testado, não verificado visualmente; E2 parcial por falta de idempotência persistente permitida no escopo. Validação final deste trabalho: 83 arquivos e 376 testes passaram; tsc/lint passaram; build isolado compilou, mas foi bloqueado por falta de `DATABASE_URL` na coleta das rotas.
