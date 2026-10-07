@@ -11,6 +11,8 @@ import { canStartAutomaticAttempt, FACE_QUALITY_LIMITS, evaluateFaceQuality, sel
 import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
 import { extractFaceEmbedding, loadBrowserHuman, loadFaceDescriptor, loadFaceEmotion, type BrowserHuman } from "@/lib/facial/human-browser";
+import BadgeBarcodeScanner from "@/app/components/BadgeBarcodeScanner";
+import { advanceFromBadgeFieldOnEnter, isValidBadgeCode, normalizeBadgeCode } from "@/lib/badge-code";
 import {
   createFaceLoadDiagnostics,
   faceCameraConstraintFallbacks,
@@ -92,6 +94,12 @@ export default function LoginForm({
   const leftTurnObservedRef = useRef(false);
   const faceLoadDiagnosticsRef = useRef(createFaceLoadDiagnostics());
   const faceLoadWatchdogRef = useRef<ReturnType<typeof startFaceLoadWatchdog> | null>(null);
+
+  useEffect(() => {
+    if (stage === "code" && window.matchMedia("(min-width: 768px)").matches) {
+      codeInputRef.current?.focus();
+    }
+  }, [stage]);
 
   function stopFaceCamera() {
     const camera = faceCameraRef.current;
@@ -264,12 +272,18 @@ export default function LoginForm({
     event.preventDefault();
     if (loading) return;
     setError("");
+    const normalizedCode = normalizeBadgeCode(codigoCracha);
+    if (!isValidBadgeCode(normalizedCode)) {
+      setError("O crachá deve conter de 4 a 10 dígitos.");
+      codeInputRef.current?.focus();
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoCracha, credential: "password", password: senha }),
+        body: JSON.stringify({ codigoCracha: normalizedCode, credential: "password", password: senha }),
       });
       await handleLoginResponse(response);
     } catch (cause) {
@@ -305,7 +319,7 @@ export default function LoginForm({
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigoCracha, credential: "face" }),
+      body: JSON.stringify({ codigoCracha: normalizeBadgeCode(codigoCracha), credential: "face" }),
     });
     const data = await response.json() as LoginResponse;
     if (!response.ok || response.status !== 202 || data.step !== "face") {
@@ -721,7 +735,10 @@ export default function LoginForm({
         {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
         <div className="flex flex-col gap-2 sm:flex-row"><Button variant="secondary" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="flex-1">Voltar</Button><Button type="submit" disabled={totpCode.length !== 6} loading={loading} loadingLabel="Verificando…" className="flex-1">Verificar</Button></div>
       </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-4 grid grid-cols-1 gap-3" noValidate>
-        <Field label="Código do crachá" htmlFor="codigo-cracha"><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 text-base text-foreground" /></Field>
+        <Field label="Código do crachá" htmlFor="codigo-cracha"><div className="mt-1 flex min-w-0 gap-2">
+          <input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={20} value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} onKeyDown={(event) => { advanceFromBadgeFieldOnEnter(event, passwordInputRef.current); }} className="min-h-11 min-w-0 flex-1 rounded-control border border-border bg-surface px-4 text-base text-foreground" />
+          <BadgeBarcodeScanner label="Ler o código de barras do crachá" validate={isValidBadgeCode} onDetect={(value) => { setCodigoCracha(value); setError(""); passwordInputRef.current?.focus(); }} onManual={() => codeInputRef.current?.focus()} />
+        </div></Field>
         <div>
           <label htmlFor="login-password" className="text-sm font-semibold text-foreground">Senha</label>
           <div className="mt-1 flex gap-2">

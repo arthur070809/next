@@ -19,4 +19,13 @@ describe("login form", () => {
     expect(loginFormSource).not.toContain("Entrar com reconhecimento facial");
     expect(loginFormSource).not.toContain("Modo demonstração: reconhecimento simulado");
   });
+
+  it("uses the shared badge scanner and moves scanner/keyboard input to the password field", () => {
+    expect(loginFormSource).toContain("<BadgeBarcodeScanner");
+    expect(loginFormSource).toContain("isValidBadgeCode");
+    expect(loginFormSource).toContain("setCodigoCracha(value)");
+    expect(loginFormSource).toContain("passwordInputRef.current?.focus()");
+    expect(loginFormSource).toContain("advanceFromBadgeFieldOnEnter(event, passwordInputRef.current)");
+    expect(loginFormSource).toContain("normalizeBadgeCode(codigoCracha)");
+  });
 });
