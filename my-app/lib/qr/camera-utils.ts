@@ -1,7 +1,17 @@
 export type CameraTrackLike = Pick<MediaStreamTrack, "stop">;
 export type CameraStreamLike = { getTracks(): CameraTrackLike[] };
-export type ScannerReadResult = { message: string; success: boolean };
+export type ScannerReadKind = "confirmed" | "already-confirmed" | "wrong-item" | "invalid-format" | "error";
+export type ScannerReadResult =
+  | { kind: "confirmed"; message: string }
+  | { kind: "already-confirmed"; message: string }
+  | { kind: "wrong-item"; message: string }
+  | { kind: "invalid-format"; message: string }
+  | { kind: "error"; message: string };
 export const SCANNER_SUCCESS_FEEDBACK_MS = 650;
+
+export function shouldCloseCamera(kind: ScannerReadKind): boolean {
+  return kind === "confirmed" || kind === "already-confirmed";
+}
 
 export const scannerVideoConstraints: MediaTrackConstraints = {
   facingMode: { ideal: "environment" },

@@ -97,7 +97,7 @@ export default function EstoquePage() {
     if (!parsed.ok) {
       const message = `QR não reconhecido: ${parsed.motivo}`;
       setErro(message);
-      return { message, success: false };
+      return { message, kind: "invalid-format" };
     }
     setErro("");
     setMensagem("");
@@ -108,14 +108,14 @@ export default function EstoquePage() {
       setForm((current) => ({ ...current, codigo: parsed.codigo }));
       const message = `O código ${parsed.codigo} corresponde a mais de um material. Resolva a duplicidade antes de registrar uma entrada.`;
       setErro(message);
-      return { message, success: false };
+      return { message, kind: "error" };
     }
     if (result.type === "found") {
       const item = itens.find(({ id }) => id === result.item.id);
       if (!item) {
         const message = "O material lido não está disponível na lista atual. Atualize o estoque e tente novamente.";
         setErro(message);
-        return { message, success: false };
+        return { message, kind: "error" };
       }
       setQrMatchedItem(item);
       setCodigoNovoPorQr(false);
@@ -133,7 +133,7 @@ export default function EstoquePage() {
       window.requestAnimationFrame(() => {
         document.getElementById(`stock-item-${item.id}`)?.scrollIntoView({ block: "nearest" });
       });
-      return { message: `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`, success: true };
+      return { message: `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`, kind: "confirmed" };
     }
 
     setQrMatchedItem(null);
@@ -148,7 +148,7 @@ export default function EstoquePage() {
       quantidadeEmbalagens: "",
     }));
     window.requestAnimationFrame(() => document.getElementById("categoria")?.focus());
-    return { message: `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`, success: true };
+    return { message: `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`, kind: "confirmed" };
   }, [itens]);
 
   const carregarItens = async () => {

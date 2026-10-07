@@ -11,7 +11,9 @@ import {
   cameraErrorMessage,
   createScannerSession,
   requestScannerStream,
+  shouldCloseCamera,
   shouldAcceptScan,
+  type ScannerReadKind,
   type ScannerReadResult,
 } from "../../lib/qr/camera-utils";
 import BuildIdentifier from "./BuildIdentifier";
@@ -31,6 +33,7 @@ export default function ProductEtiquetaScanner({
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("Procurando QR… Aponte a câmera para a etiqueta.");
   const [successFeedback, setSuccessFeedback] = useState(false);
+  const [feedbackKind, setFeedbackKind] = useState<ScannerReadKind>("error");
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -43,12 +46,14 @@ export default function ProductEtiquetaScanner({
   const sessionRef = useRef<ReturnType<typeof createScannerSession> | null>(null);
   const onCloseRef = useRef(onClose);
   const diagnosticsEnabledRef = useRef(false);
+  const terminalReadRef = useRef(false);
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
   useEffect(() => {
+    let effectActive = true;
     const setScannerActive = (active: boolean) => {
       if (active) document.documentElement.dataset.qrScannerActive = "true";
       else delete document.documentElement.dataset.qrScannerActive;
@@ -67,7 +72,9 @@ export default function ProductEtiquetaScanner({
         getUserMedia: () => requestScannerStream(navigator.mediaDevices, secureContext),
       },
       secureContext,
-      onStateChange: setCameraState,
+      onStateChange: (state) => {
+        if (effectActive) setCameraState(state);
+      },
       onLifecycleStop: (reason) => {
         if (diagnosticsEnabledRef.current) setLastLifecycleReason(reason);
         sessionRef.current?.close();
@@ -78,6 +85,7 @@ export default function ProductEtiquetaScanner({
     let effectStream: MediaStream | null = null;
     let effectScanner: ReturnType<typeof createScanner> | null = null;
     queueMicrotask(() => {
+      if (!effectActive) return;
       const enabled = new URLSearchParams(window.location.search).get("debug") === "1";
       diagnosticsEnabledRef.current = enabled;
       setDebug(enabled);
@@ -100,9 +108,11 @@ export default function ProductEtiquetaScanner({
         }
         if (!camera.isActive()) return;
         const scanner = createScanner(video, {
-          onDiagnostics: setDiagnostics,
+          onDiagnostics: (next) => {
+            if (effectActive) setDiagnostics(next);
+          },
           onDecode: async (detected) => {
-            if (!camera.isActive() || session.hasSucceeded() || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
+            if (!camera.isActive() || terminalReadRef.current || session.hasSucceeded() || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
             previousRef.current = { value: detected.rawValue, at: Date.now() };
             busyRef.current = true;
             setFeedback(`QR lido (${detected.rawValue.slice(0, 50)}). Conferindo…`);
@@ -110,10 +120,12 @@ export default function ProductEtiquetaScanner({
             let succeeded = false;
             try {
               const result = await onRead(detected.rawValue, detected.format);
+              if (shouldCloseCamera(result.kind)) terminalReadRef.current = true;
               if (camera.isActive()) {
                 setFeedback(result.message);
-                setSuccessFeedback(result.success);
-                succeeded = session.completeRead(result.success);
+                setFeedbackKind(result.kind);
+                setSuccessFeedback(result.kind === "confirmed");
+                succeeded = session.completeRead(shouldCloseCamera(result.kind));
               }
             } finally {
               if (!succeeded) {
@@ -130,7 +142,7 @@ export default function ProductEtiquetaScanner({
         session.setScanner(scanner);
         await scanner.start();
       } catch (cause) {
-        if (!(cause instanceof DOMException && cause.name === "AbortError")) setError(cameraErrorMessage(cause));
+        if (effectActive && !(cause instanceof DOMException && cause.name === "AbortError")) setError(cameraErrorMessage(cause));
         session.dispose();
         camera.dispose();
         const stream = effectStream;
@@ -140,6 +152,7 @@ export default function ProductEtiquetaScanner({
 
     void start();
     return () => {
+      effectActive = false;
       if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
       unlockTimerRef.current = null;
       session.dispose();
@@ -167,6 +180,8 @@ export default function ProductEtiquetaScanner({
     setError("");
     setFeedback("Procurando QR… Aponte a câmera para a etiqueta.");
     setSuccessFeedback(false);
+    setFeedbackKind("error");
+    terminalReadRef.current = false;
     previousRef.current = null;
     busyRef.current = false;
     setRetryKey((value) => value + 1);
@@ -187,20 +202,24 @@ export default function ProductEtiquetaScanner({
         {error && <div role="alert" className="absolute mx-5 max-w-lg rounded-xl bg-white p-5 text-slate-900 shadow-xl"><p>{error}</p><button type="button" onClick={retryCamera} className="mt-4 rounded-lg bg-royal px-4 py-2 font-semibold text-white">Tentar novamente</button></div>}
       </div>
       <footer className="space-y-3 px-4 py-4">
-        <p aria-live="polite" className={`text-center text-sm ${successFeedback ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : ""}`}>{feedback}</p>
+        <p aria-live="polite" className={`text-center text-sm ${successFeedback ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : feedbackKind === "already-confirmed" ? "rounded-lg bg-blue-900 p-3 font-semibold text-blue-100" : ""}`}>
+          {feedbackKind === "already-confirmed" ? <><span aria-hidden="true">ℹ </span><span>Informação: </span></> : null}{feedback}
+        </p>
         <BuildIdentifier />
         <form
           className="mx-auto flex max-w-lg gap-2"
           onSubmit={async (event) => {
             event.preventDefault();
-            if (!manualValue.trim() || busyRef.current || sessionRef.current?.hasSucceeded()) return;
+            if (!manualValue.trim() || busyRef.current || terminalReadRef.current || sessionRef.current?.hasSucceeded()) return;
             busyRef.current = true;
             try {
               const result = await onRead(manualValue, "manual");
+              if (shouldCloseCamera(result.kind)) terminalReadRef.current = true;
               setFeedback(result.message);
-              setSuccessFeedback(result.success);
+              setFeedbackKind(result.kind);
+              setSuccessFeedback(result.kind === "confirmed");
               setManualValue("");
-              if (sessionRef.current?.completeRead(result.success)) return;
+              if (sessionRef.current?.completeRead(shouldCloseCamera(result.kind))) return;
             } finally {
               if (!sessionRef.current?.hasSucceeded()) busyRef.current = false;
             }

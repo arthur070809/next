@@ -5,11 +5,22 @@ import {
   createScannerSession,
   SCANNER_SUCCESS_FEEDBACK_MS,
   requestScannerStream,
+  shouldCloseCamera,
   shouldAcceptScan,
   stopCameraStream,
 } from "./camera-utils";
 
 describe("camera scanner helpers", () => {
+  it.each([
+    ["confirmed", true],
+    ["already-confirmed", true],
+    ["wrong-item", false],
+    ["invalid-format", false],
+    ["error", false],
+  ] as const)("closes the camera for %s outcomes according to the decision table", (kind, expected) => {
+    expect(shouldCloseCamera(kind)).toBe(expected);
+  });
+
   it("requests rear camera at high resolution and retries unconstrained on constraint error", async () => {
     const stream = {} as MediaStream;
     const getUserMedia = vi.fn()

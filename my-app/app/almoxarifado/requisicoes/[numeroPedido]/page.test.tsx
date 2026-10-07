@@ -69,6 +69,7 @@ vi.mock("../../../../lib/qr/decoder", async (importOriginal) => {
 
 import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
 import ChecklistRequisicaoPage from "./page";
+import type { ScannerReadResult } from "../../../../lib/qr/camera-utils";
 
 const requestItem = {
   id: "request-item-1",
@@ -122,8 +123,8 @@ function resetRenderState(request: object) {
   runtime.states = [];
   runtime.stateOverrides = {
     0: request,
-    6: false,
-    7: true,
+    7: false,
+    8: true,
   };
   runtime.stateIndex = 0;
   runtime.refs = [];
@@ -137,7 +138,7 @@ function getScannerProps() {
   const scannerElement = findElement(tree, ProductEtiquetaScanner);
   expect(scannerElement).not.toBeNull();
   return scannerElement!.props as {
-    onRead: (raw: string, format: string) => Promise<{ message: string; success: boolean }>;
+    onRead: (raw: string, format: string) => Promise<ScannerReadResult>;
     onClose: () => void;
   };
 }
@@ -227,26 +228,144 @@ describe("checklist QR scanner integration", () => {
     const { cleanup, readResults } = mountScanner(props);
     await flushPromises();
 
-    const firstRead = runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
-    const duplicateRead = runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
-    await Promise.all([firstRead, duplicateRead]);
+    await runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
+    vi.advanceTimersByTime(50);
+    await runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
+    vi.advanceTimersByTime(50);
+    await runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
+    vi.advanceTimersByTime(50);
+    await runtime.decodeCallbacks[0]({ rawValue: "130", format: "qr_code" });
     expect(readResults[0]).toEqual({
       message: "Item conferido. Informe a quantidade real.",
-      success: true,
+      kind: "confirmed",
     });
+    expect(readResults).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledOnce();
     expect((pageStates[0] as typeof pageState).itens[0].conferido).toBe(true);
-    expect(pageStates[7]).toBe(true);
+    expect(pageStates[8]).toBe(true);
 
-    vi.advanceTimersByTime(649);
-    expect(pageStates[7]).toBe(true);
+    vi.advanceTimersByTime(499);
+    expect(pageStates[8]).toBe(true);
     vi.advanceTimersByTime(1);
     expect(trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
     expect(runtime.scannerStops[0]).toHaveBeenCalledOnce();
     expect(runtime.video?.srcObject).toBeNull();
-    expect(pageStates[7]).toBe(false);
+    expect(pageStates[8]).toBe(false);
     expect((document.documentElement as HTMLElement).dataset.qrScannerActive).toBeUndefined();
     cleanup.forEach((dispose) => dispose());
+  });
+
+  it("cancels the feedback timer and stops tracks without state updates when unmounted", async () => {
+    const { stream, trackStops } = createMediaStream();
+    resetRenderState({
+      numeroPedido: "REQ-1",
+      status: "ASSUMIDA",
+      prioridade: "PADRAO",
+      criadoEm: "2026-10-06T12:00:00Z",
+      solicitante: "Operador",
+      atendente: "Almoxarife",
+      podeFinalizar: true,
+      itens: [requestItem],
+    });
+    vi.stubGlobal("document", { documentElement: { dataset: {} }, getElementById: () => null });
+    vi.stubGlobal("window", {
+      isSecureContext: true,
+      location: { hostname: "localhost", search: "" },
+      dispatchEvent: vi.fn(),
+      requestAnimationFrame: vi.fn(),
+      setTimeout,
+      clearTimeout,
+    });
+    vi.stubGlobal("navigator", {
+      mediaDevices: { getUserMedia: vi.fn(async () => stream) },
+      vibrate: vi.fn(),
+    });
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        message: "Item conferido. Informe a quantidade real.",
+        itemId: requestItem.id,
+        jaConferido: false,
+      }),
+    })));
+    const props = getScannerProps();
+    const pageStates = runtime.states;
+    const { cleanup } = mountScanner(props);
+    await flushPromises();
+    await runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
+    const cameraStateBeforeUnmount = runtime.states[7];
+
+    cleanup.forEach((dispose) => dispose());
+    vi.advanceTimersByTime(650);
+
+    expect(trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
+    expect(runtime.video?.srcObject).toBeNull();
+    expect(runtime.states[7]).toBe(cameraStateBeforeUnmount);
+    expect(pageStates[8]).toBe(true);
+    expect((document.documentElement as HTMLElement).dataset.qrScannerActive).toBeUndefined();
+  });
+
+  it("keeps the second checklist camera stream alive across a StrictMode-style remount", async () => {
+    const lateFirstStream = createMediaStream();
+    const activeSecondStream = createMediaStream();
+    let resolveFirstStream!: (stream: MediaStream) => void;
+    const getUserMedia = vi.fn()
+      .mockImplementationOnce(() => new Promise<MediaStream>((resolve) => { resolveFirstStream = resolve; }))
+      .mockResolvedValueOnce(activeSecondStream.stream);
+    resetRenderState({
+      numeroPedido: "REQ-1",
+      status: "ASSUMIDA",
+      prioridade: "PADRAO",
+      criadoEm: "2026-10-06T12:00:00Z",
+      solicitante: "Operador",
+      atendente: "Almoxarife",
+      podeFinalizar: true,
+      itens: [requestItem],
+    });
+    vi.stubGlobal("document", { documentElement: { dataset: {} }, getElementById: () => null });
+    vi.stubGlobal("window", {
+      isSecureContext: true,
+      location: { hostname: "localhost", search: "" },
+      dispatchEvent: vi.fn(),
+      requestAnimationFrame: vi.fn(),
+      setTimeout,
+      clearTimeout,
+    });
+    vi.stubGlobal("navigator", { mediaDevices: { getUserMedia }, vibrate: vi.fn() });
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({}) })));
+
+    const firstProps = getScannerProps();
+    const pageStates = runtime.states;
+    const firstMount = mountScanner(firstProps);
+    await flushPromises();
+    expect(getUserMedia).toHaveBeenCalledOnce();
+    firstMount.cleanup.forEach((dispose) => dispose());
+
+    runtime.states = pageStates;
+    pageStates[8] = true;
+    runtime.stateIndex = 0;
+    runtime.refs = [];
+    runtime.refIndex = 0;
+    runtime.effects = [];
+    runtime.video = {
+      srcObject: null,
+      play: vi.fn(async () => undefined),
+      pause: vi.fn(),
+      removeAttribute: vi.fn(),
+    };
+    const secondProps = getScannerProps();
+    const secondMount = mountScanner(secondProps);
+    await flushPromises();
+    expect(runtime.video?.srcObject).toBe(activeSecondStream.stream);
+
+    resolveFirstStream(lateFirstStream.stream as unknown as MediaStream);
+    await flushPromises();
+    expect(lateFirstStream.trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
+    expect(activeSecondStream.trackStops.every((stop) => stop.mock.calls.length === 0)).toBe(true);
+    expect(runtime.video?.srcObject).toBe(activeSecondStream.stream);
+
+    secondMount.cleanup.forEach((dispose) => dispose());
+    expect(activeSecondStream.trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
   });
 
   it("keeps the real checklist camera open when the scanned product is not in the request", async () => {
@@ -291,7 +410,7 @@ describe("checklist QR scanner integration", () => {
     await runtime.decodeCallbacks[0]({ rawValue: "texto sem formato de etiqueta", format: "qr_code" });
 
     vi.advanceTimersByTime(1300);
-    expect(pageStates[7]).toBe(true);
+    expect(pageStates[8]).toBe(true);
     expect((pageStates[0] as { itens: Array<{ conferido: boolean }> }).itens[0].conferido).toBe(false);
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(trackStops.every((stop) => stop.mock.calls.length === 0)).toBe(true);
@@ -346,10 +465,10 @@ describe("checklist QR scanner integration", () => {
     vi.advanceTimersByTime(650);
     firstMount.cleanup.forEach((dispose) => dispose());
     expect(firstStream.trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
-    expect(pageStates[7]).toBe(false);
+    expect(pageStates[8]).toBe(false);
 
     runtime.states = pageStates;
-    pageStates[7] = true;
+    pageStates[8] = true;
     runtime.stateIndex = 0;
     runtime.refs = [];
     runtime.refIndex = 0;
@@ -368,8 +487,89 @@ describe("checklist QR scanner integration", () => {
     expect(runtime.decodeCallbacks).toHaveLength(2);
     expect(runtime.video?.srcObject).toBe(nextStream.stream);
     await runtime.decodeCallbacks[1]({ rawValue: "129", format: "qr_code" });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(secondMount.readResults[0]).toMatchObject({ kind: "already-confirmed" });
+    vi.advanceTimersByTime(649);
+    expect(pageStates[8]).toBe(true);
+    vi.advanceTimersByTime(1);
+    expect(pageStates[8]).toBe(false);
     secondMount.cleanup.forEach((dispose) => dispose());
     expect(nextStream.trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
+  });
+
+  it("reports an item checked before this scanner session without calling the check endpoint", async () => {
+    const { stream, trackStops } = createMediaStream();
+    resetRenderState({
+      numeroPedido: "REQ-1",
+      status: "ASSUMIDA",
+      prioridade: "PADRAO",
+      criadoEm: "2026-10-06T12:00:00Z",
+      solicitante: "Operador",
+      atendente: "Almoxarife",
+      podeFinalizar: true,
+      itens: [{ ...requestItem, conferido: true }],
+    });
+    vi.stubGlobal("document", { documentElement: { dataset: {} }, getElementById: () => null });
+    vi.stubGlobal("window", {
+      isSecureContext: true,
+      location: { hostname: "localhost", search: "" },
+      dispatchEvent: vi.fn(),
+      requestAnimationFrame: vi.fn(),
+      setTimeout,
+      clearTimeout,
+    });
+    vi.stubGlobal("navigator", {
+      mediaDevices: { getUserMedia: vi.fn(async () => stream) },
+      vibrate: vi.fn(),
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const props = getScannerProps();
+    const pageStates = runtime.states;
+    const { cleanup, readResults } = mountScanner(props);
+    await flushPromises();
+
+    await runtime.decodeCallbacks[0]({ rawValue: "129", format: "qr_code" });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(readResults[0]).toMatchObject({
+      kind: "already-confirmed",
+      message: "Esse item já foi conferido",
+    });
+    vi.advanceTimersByTime(649);
+    expect(pageStates[8]).toBe(true);
+    vi.advanceTimersByTime(1);
+    expect(trackStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
+    expect(runtime.video?.srcObject).toBeNull();
+    expect(pageStates[8]).toBe(false);
+    expect((document.documentElement as HTMLElement).dataset.qrScannerActive).toBeUndefined();
+    cleanup.forEach((dispose) => dispose());
+  });
+
+  it("uses the same no-write informational outcome for a typed code and closes an open scanner", async () => {
+    resetRenderState({
+      numeroPedido: "REQ-1",
+      status: "ASSUMIDA",
+      prioridade: "PADRAO",
+      criadoEm: "2026-10-06T12:00:00Z",
+      solicitante: "Operador",
+      atendente: "Almoxarife",
+      podeFinalizar: true,
+      itens: [{ ...requestItem, conferido: true }],
+    });
+    runtime.stateOverrides[3] = "129";
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const tree = ChecklistRequisicaoPage();
+    const form = findElement(tree, "form");
+    expect(form).not.toBeNull();
+    const submit = form!.props.onSubmit as (event: { preventDefault(): void }) => Promise<void>;
+
+    await submit({ preventDefault: vi.fn() });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(runtime.states[4]).toBe("Esse item já foi conferido");
+    expect(runtime.states[5]).toBe("already-confirmed");
+    expect(runtime.states[8]).toBe(false);
   });
 });
