@@ -8,6 +8,7 @@ import ProductEtiquetaScanner from "@/app/components/ProductEtiquetaScanner";
 import type { ScannerReadResult } from "@/lib/qr/camera-utils";
 import { parseEtiqueta } from "@/lib/qr/parseEtiqueta";
 import { localizarItemEstoquePorCodigo } from "@/lib/qr/localizarEstoqueItem";
+import { EmptyState, ErrorState, LoadingState } from "@/app/components/ui";
 
 type EstoqueItem = {
   id: string;
@@ -317,40 +318,40 @@ export default function EstoquePage() {
     : unidadeSelecionada ? "Informe as quantidades válidas para ver o total." : "Selecione o tipo de unidade.";
 
   return (
-    <main className={`${styles.stockPage} bg-[#f5f7fb] px-4 py-6 sm:px-8 md:px-12`}>
+    <main className={`${styles.stockPage} bg-background px-4 py-6 sm:px-8 md:px-12`}>
       <div className={`${styles.stockContent} mx-auto w-full max-w-7xl`}>
-        <header className="shrink-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">Almoxarifado Marcon</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Estoque</h1>
-          <p className="mt-2 text-sm text-slate-600">Cadastre e acompanhe os materiais disponíveis com uma visão mais clara da operação.</p>
+        <header className="shrink-0 rounded-2xl bg-white p-5 shadow-card">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Almoxarifado Marcon</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">Estoque</h1>
+          <p className="mt-2 text-sm text-text-secondary">Cadastre e acompanhe os materiais disponíveis com uma visão mais clara da operação.</p>
         </header>
 
         <section className="grid shrink-0 gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-            <p className="text-sm text-slate-500">Itens cadastrados</p>
-            <p className="text-2xl font-black text-slate-900">{itens.length}</p>
+          <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-card">
+            <p className="text-sm text-text-secondary">Itens cadastrados</p>
+            <p className="text-2xl font-black text-foreground">{itens.length}</p>
           </div>
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-            <p className="text-sm text-slate-500">Categorias</p>
-            <p className="text-2xl font-black text-slate-900">{new Set(itens.map((item) => item.categoria)).size}</p>
+          <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-card">
+            <p className="text-sm text-text-secondary">Categorias</p>
+            <p className="text-2xl font-black text-foreground">{new Set(itens.map((item) => item.categoria)).size}</p>
           </div>
         </section>
 
         <div className="mt-4 grid items-start gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:mt-0 lg:min-h-0 lg:flex-1 lg:items-stretch">
-          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm`}>
+          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl bg-white p-4 shadow-card`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-slate-950">{qrMatchedItem ? "Entrada do item identificado" : "Novo item / registrar entrada"}</h2>
-              <button type="button" onClick={() => setCameraAberta(true)} className="min-h-10 rounded-lg border border-blue-700 px-4 text-sm font-semibold text-blue-800 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+              <h2 className="text-lg font-bold text-foreground">{qrMatchedItem ? "Entrada do item identificado" : "Novo item / registrar entrada"}</h2>
+              <button type="button" onClick={() => setCameraAberta(true)} className="min-h-11 rounded-lg border border-brand px-4 text-sm font-semibold text-brand hover:bg-priority-surface">
                 Ler etiqueta QR
               </button>
             </div>
-            {qrMatchedItem && <p role="status" className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900">
+            {qrMatchedItem && <p role="status" className="mt-2 rounded-lg bg-priority-surface px-3 py-2 text-sm text-brand">
               {qrMatchedItem.nome} · código {qrMatchedItem.codigo}. Informe a quantidade abaixo; a entrada será registrada pela operação existente.
             </p>}
             <form onSubmit={cadastrarItem} noValidate className={`${styles.formLayout} mt-2`}>
               <div className={`${styles.formBody} space-y-2`}>
               <div>
-                <label htmlFor="codigo" className="text-xs font-semibold text-slate-800">Código da etiqueta (opcional)</label>
+                <label htmlFor="codigo" className="text-xs font-semibold text-foreground">Código da etiqueta (opcional)</label>
                 <input id="codigo" inputMode="numeric" maxLength={8} value={form.codigo} onChange={(event) => {
                   const codigo = event.target.value;
                   setForm((current) => ({ ...current, codigo }));
@@ -358,30 +359,30 @@ export default function EstoquePage() {
                     setQrMatchedItem(null);
                     setCodigoNovoPorQr(false);
                   }
-                }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
+                }} className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm" />
               </div>
               <div>
-                <label htmlFor="categoria" className="text-xs font-semibold text-slate-800">Categoria</label>
+                <label htmlFor="categoria" className="text-xs font-semibold text-foreground">Categoria</label>
                 <select id="categoria" required value={form.categoria} onChange={(event) => {
                   setForm({ ...form, categoria: event.target.value, nome: "" });
                   setQrMatchedItem(null);
-                }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
+                }} className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm">
                   <option value="">Selecione uma categoria</option>
                   {form.categoria && !categorias.includes(form.categoria) && <option value={form.categoria}>{form.categoria}</option>}
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="nome" className="text-xs font-semibold text-slate-800">Nome do material</label>
+                <label htmlFor="nome" className="text-xs font-semibold text-foreground">Nome do material</label>
                 <div className="relative mt-1">
-                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setQrMatchedItem(null); setNomeAberto(true); }} className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 disabled:cursor-not-allowed disabled:bg-slate-100" />
-                  {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-slate-300 bg-white p-1 shadow-lg">
-                    {materiaisSugeridos.map((material) => <button key={material} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setForm({ ...form, nome: material }); setNomeAberto(false); }} className="block w-full rounded-md px-3 py-2 text-left text-sm leading-5 text-slate-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none">{material}</button>)}
+                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setQrMatchedItem(null); setNomeAberto(true); }} className="block w-full rounded-lg border border-border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-background" />
+                  {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-border bg-white p-1 shadow-lg">
+                    {materiaisSugeridos.map((material) => <button key={material} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setForm({ ...form, nome: material }); setNomeAberto(false); }} className="block w-full rounded-md px-3 py-2 text-left text-sm leading-5 text-foreground hover:bg-priority-surface focus:bg-priority-surface focus:outline-none">{material}</button>)}
                   </div>}
                 </div>
               </div>
               <div>
-                <label htmlFor="tipoUnidade" className="text-xs font-semibold text-slate-800">Tipo de unidade</label>
+                <label htmlFor="tipoUnidade" className="text-xs font-semibold text-foreground">Tipo de unidade</label>
                 <select id="tipoUnidade" required value={form.tipoUnidade} onChange={(event) => {
                   const tipoUnidade = event.target.value as StockUnit | "";
                   setForm((current) => ({
@@ -392,7 +393,7 @@ export default function EstoquePage() {
                   }));
                   setErrosQuantidade({});
                   setErro("");
-                }} className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20">
+                }} className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm">
                   <option value="">Selecione o tipo de unidade</option>
                   {STOCK_UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
                 </select>
@@ -400,60 +401,63 @@ export default function EstoquePage() {
               <div key={form.tipoUnidade} className={styles.quantityFields}>
                 {!unidadeSelecionada ? null : <div className={form.tipoUnidade === "unidade" ? "" : "grid gap-2 md:grid-cols-2"}>
                   {form.tipoUnidade !== "unidade" && <div>
-                    <label htmlFor="quantidadePorEmbalagem" className="text-xs font-semibold text-slate-800">Quantidade por {unidadeSelecionada.singular}</label>
+                    <label htmlFor="quantidadePorEmbalagem" className="text-xs font-semibold text-foreground">Quantidade por {unidadeSelecionada.singular}</label>
                     <input id="quantidadePorEmbalagem" required type="number" inputMode="numeric" min={1} max={MAX_STOCK_INPUT} step={1} value={form.quantidadePorEmbalagem} aria-invalid={Boolean(errosQuantidade.quantidadePorEmbalagem)} aria-describedby={errosQuantidade.quantidadePorEmbalagem ? "quantidadePorEmbalagem-erro" : undefined} onChange={(event) => {
                       setForm((current) => ({ ...current, quantidadePorEmbalagem: event.target.value }));
                       setErrosQuantidade((current) => ({ ...current, quantidadePorEmbalagem: undefined }));
-                    }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 aria-invalid:border-red-500 aria-invalid:focus:ring-red-500/20" />
-                    {errosQuantidade.quantidadePorEmbalagem && <p id="quantidadePorEmbalagem-erro" className="mt-1 text-xs text-red-700">{errosQuantidade.quantidadePorEmbalagem}</p>}
+                    }} className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm aria-invalid:border-error" />
+                    {errosQuantidade.quantidadePorEmbalagem && <p id="quantidadePorEmbalagem-erro" className="mt-1 text-xs text-error">{errosQuantidade.quantidadePorEmbalagem}</p>}
                   </div>}
                   <div>
-                    <label htmlFor="quantidadeEmbalagens" className="text-xs font-semibold text-slate-800">Quantidade de {unidadeSelecionada.countLabel}</label>
+                    <label htmlFor="quantidadeEmbalagens" className="text-xs font-semibold text-foreground">Quantidade de {unidadeSelecionada.countLabel}</label>
                     <input id="quantidadeEmbalagens" required type="number" inputMode="numeric" min={1} max={MAX_STOCK_INPUT} step={1} value={form.quantidadeEmbalagens} aria-invalid={Boolean(errosQuantidade.quantidadeEmbalagens)} aria-describedby={errosQuantidade.quantidadeEmbalagens ? "quantidadeEmbalagens-erro" : undefined} onChange={(event) => {
                       setForm((current) => ({ ...current, quantidadeEmbalagens: event.target.value }));
                       setErrosQuantidade((current) => ({ ...current, quantidadeEmbalagens: undefined }));
-                    }} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal focus:ring-2 focus:ring-royal/20 aria-invalid:border-red-500 aria-invalid:focus:ring-red-500/20" />
-                    {errosQuantidade.quantidadeEmbalagens && <p id="quantidadeEmbalagens-erro" className="mt-1 text-xs text-red-700">{errosQuantidade.quantidadeEmbalagens}</p>}
+                    }} className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm aria-invalid:border-error" />
+                    {errosQuantidade.quantidadeEmbalagens && <p id="quantidadeEmbalagens-erro" className="mt-1 text-xs text-error">{errosQuantidade.quantidadeEmbalagens}</p>}
                   </div>
                 </div>}
               </div>
               </div>
               <div className={styles.formFooter}>
-              {erro && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
-              {mensagem && <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{mensagem}</p>}
-              <p aria-live="polite" className="min-h-5 text-sm font-medium text-slate-600">{resumo}</p>
-              <button type="submit" disabled={salvando} className="mt-2 min-h-10 w-full rounded-lg bg-royal px-5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-300">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
+              {erro && <p role="alert" className="rounded-lg bg-error-surface px-3 py-2 text-sm text-error">{erro}</p>}
+              {mensagem && <p role="status" className="rounded-lg bg-success-surface px-3 py-2 text-sm text-success">{mensagem}</p>}
+              <p aria-live="polite" className="min-h-5 text-sm font-medium text-text-secondary">{resumo}</p>
+              <button type="submit" disabled={salvando} className="mt-2 min-h-11 w-full rounded-lg bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-wait disabled:bg-border-subtle">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
               </div>
             </form>
           </section>
 
-          <section className={`${styles.stockPanel} min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm`}>
+          <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-white p-5 shadow-card`}>
             <div className={styles.stockHeader}>
               <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-              <h2 className="text-center text-xl font-bold text-slate-950 sm:col-start-2">Itens do estoque</h2>
+              <h2 className="text-center text-xl font-bold text-foreground sm:col-start-2">Itens do estoque</h2>
               <div className="flex flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
-                <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-royal">
+                <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand">
                   <option value="">Todas as categorias</option>
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
-                <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-royal sm:w-48" />
+                <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand sm:w-48" />
               </div>
             </div>
             </div>
-            <div ref={listaRef} tabIndex={0} role="region" aria-label="Lista de itens do estoque" data-list-empty={!carregando && !erroLista && itensFiltrados.length === 0} className={`${styles.stockBody} mt-5 min-w-0 space-y-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal`}>
-              {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
+            <div ref={listaRef} tabIndex={0} role="region" aria-label="Lista de itens do estoque" data-list-empty={!carregando && !erroLista && itensFiltrados.length === 0} className={`${styles.stockBody} mt-5 min-w-0 space-y-3`}>
+              {carregando ? <LoadingState label="Carregando estoque…" rows={4} /> : erroLista ? <ErrorState message={erroLista} onRetry={() => {
+                setCarregando(true);
+                void carregarItens();
+              }} /> : itensFiltrados.length === 0 ? <EmptyState title={busca || categoriaBusca ? "Nenhum material encontrado" : "Estoque sem itens"} message={busca || categoriaBusca ? "Ajuste a busca ou a categoria para encontrar materiais." : "Cadastre um item para começar a controlar o estoque."} /> : itensFiltrados.map((item) => {
                 const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
-                return <article id={`stock-item-${item.id}`} key={item.id} tabIndex={0} data-qr-selected={qrMatchedItem?.id === item.id || undefined} className={`flex flex-col gap-4 rounded-lg border p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between ${qrMatchedItem?.id === item.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200"}`}>
-                  <div><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-slate-600">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p><p className="mt-1 text-sm text-slate-600">Ponto de pedido: {item.pontoPedido} {item.unidade}</p>{isAtOrBelowReorderPoint(item.quantidade, item.pontoPedido, item.reservada) && <span className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">Repor · saldo livre no ponto de pedido ou abaixo</span>}{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-emerald-700">No depósito: {item.quantidadeDeposito} un</p>}</div>
-                  {tipoUltimaEntrada && item.ultimaEntradaEmbalagens !== null && item.quantidadePorEmbalagem !== null && <p className="text-sm text-slate-500">Última entrada: {item.ultimaEntradaEmbalagens} {item.ultimaEntradaEmbalagens === 1 ? tipoUltimaEntrada.singular : tipoUltimaEntrada.plural}{item.tipoUnidade === "unidade" ? "" : ` de ${item.quantidadePorEmbalagem}`}</p>}
-                  <div className="text-sm font-semibold text-slate-700">Disponível: {freeStock(item.quantidade, item.reservada)} {item.unidade}</div>
+                return <article id={`stock-item-${item.id}`} key={item.id} tabIndex={0} data-qr-selected={qrMatchedItem?.id === item.id || undefined} className={`flex flex-col gap-4 rounded-lg bg-surface p-4 shadow-card sm:flex-row sm:items-center sm:justify-between ${qrMatchedItem?.id === item.id ? "ring-2 ring-brand bg-priority-surface" : ""}`}>
+                  <div><p className="font-semibold text-foreground">{item.nome}</p><p className="mt-1 text-sm text-text-secondary">{item.categoria} · unidade: {item.unidade}</p><p className="mt-2 text-sm text-text-secondary">Em estoque: <strong>{item.quantidade} {item.unidade}</strong></p><p className="mt-1 text-sm text-text-secondary">Ponto de pedido: {item.pontoPedido} {item.unidade}</p>{isAtOrBelowReorderPoint(item.quantidade, item.pontoPedido, item.reservada) && <span className="mt-2 inline-flex rounded-full bg-warning-surface px-3 py-1 text-xs font-bold text-warning">Repor · saldo livre no ponto de pedido ou abaixo</span>}{item.quantidadeDeposito > 0 && <p className="mt-1 text-sm font-medium text-success">No depósito: {item.quantidadeDeposito} un</p>}</div>
+                  {tipoUltimaEntrada && item.ultimaEntradaEmbalagens !== null && item.quantidadePorEmbalagem !== null && <p className="text-sm text-text-secondary">Última entrada: {item.ultimaEntradaEmbalagens} {item.ultimaEntradaEmbalagens === 1 ? tipoUltimaEntrada.singular : tipoUltimaEntrada.plural}{item.tipoUnidade === "unidade" ? "" : ` de ${item.quantidadePorEmbalagem}`}</p>}
+                  <div className="text-sm font-semibold text-foreground">Disponível: {freeStock(item.quantidade, item.reservada)} {item.unidade}</div>
                 </article>;
               })}
             </div>
           </section>
         </div>
       </div>
-      <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-slate-200 pt-4 text-center text-xs text-slate-400 md:mt-auto md:shrink-0">
+      <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-border-subtle pt-4 text-center text-xs text-text-secondary md:mt-auto md:shrink-0">
         Almoxarifado Marcon
       </footer>
       {cameraAberta && <ProductEtiquetaScanner onRead={handleQrRead} onClose={() => setCameraAberta(false)} />}

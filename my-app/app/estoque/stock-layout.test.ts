@@ -65,7 +65,8 @@ describe("stock page scroll layout contract", () => {
     expect(page).toContain("aria-label=\"Lista de itens do estoque\"");
     expect(page).toContain("aria-label=\"Buscar item por nome ou categoria\"");
     expect(page).toContain("Ler etiqueta QR");
-    expect(page).toContain("Nenhum item encontrado.");
+    expect(page).toContain('itensFiltrados.length === 0 ? <EmptyState');
+    expect(page).toContain('title={busca || categoriaBusca ? "Nenhum material encontrado" : "Estoque sem itens"}');
     expect(page).toContain("role=\"region\"");
     expect(page).toContain("styles.stockBody");
     expect(page).not.toContain("h-screen");
@@ -73,7 +74,8 @@ describe("stock page scroll layout contract", () => {
   });
 
   it("keeps the empty-filter state inside the same bounded list region", () => {
-    expect(page).toMatch(/itensFiltrados\.length === 0 \? <p[^>]*>Nenhum item encontrado\.<\/p> : itensFiltrados\.map/);
+    expect(page).toContain("itensFiltrados.length === 0 ? <EmptyState");
+    expect(page).toContain(" : itensFiltrados.map((item) => {");
     expect(page).toContain('aria-label="Lista de itens do estoque"');
     expect(page).toContain("className={`${styles.stockBody}");
     expect(styles).toMatch(/\.stockBody\s*\{[^}]*max-height:\s*70dvh/);

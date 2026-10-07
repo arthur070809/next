@@ -7,6 +7,7 @@ import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
 import PriorityBadge from "../../../components/PriorityBadge";
 import ItemDescription from "../../../components/ItemDescription";
 import ProductCode from "../../../components/ProductCode";
+import { ErrorState, LoadingState } from "../../../components/ui";
 import { normalizarCodigoEtiqueta, parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
 import { shouldCloseCamera, type ScannerReadKind, type ScannerReadResult } from "../../../../lib/qr/camera-utils";
 
@@ -69,6 +70,7 @@ export default function ChecklistRequisicaoPage() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [cameraAberta, setCameraAberta] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [finalizando, setFinalizando] = useState(false);
   const [finalizado, setFinalizado] = useState<NonNullable<FinalizeResponse["resumo"]> | null>(null);
   const quantidadeRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -95,7 +97,7 @@ export default function ChecklistRequisicaoPage() {
       })
       .finally(() => { if (active) setCarregando(false); });
     return () => { active = false; };
-  }, [numeroPedido]);
+  }, [numeroPedido, retryCount]);
 
   const totalConferidos = useMemo(
     () => requisicao?.itens.filter((item) => item.conferido).length ?? 0,
@@ -262,37 +264,41 @@ export default function ChecklistRequisicaoPage() {
   }
 
   if (carregando) {
-    return <main className="mx-auto max-w-4xl p-4"><p role="status" className="rounded-xl bg-white p-8 text-center text-slate-500">Carregando checklist…</p></main>;
+    return <main className="min-w-0"><LoadingState label="Carregando checklist…" rows={4} /></main>;
   }
   if (!requisicao) {
-    return <main className="mx-auto max-w-4xl p-4"><p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{erro || "Requisição não encontrada."}</p><Link href="/almoxarifado/requisicoes" className="mt-4 inline-block font-semibold text-royal">Voltar à fila</Link></main>;
+    return <main className="grid min-w-0 gap-4"><ErrorState message={erro || "Requisição não encontrada."} onRetry={() => {
+      setErro("");
+      setCarregando(true);
+      setRetryCount((current) => current + 1);
+    }} /><Link href="/almoxarifado/requisicoes" className="inline-flex min-h-11 items-center font-semibold text-brand">Voltar à fila</Link></main>;
   }
 
   if (finalizado) {
     const itensSeparados = finalizado.itens.filter((item) => item.quantidadeSeparada > 0).length;
     return <main className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
-      <section role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-6">
-        <h1 className="text-2xl font-bold text-emerald-950">Requisição finalizada</h1>
-        <p className="mt-2 text-sm text-emerald-900">Pedido {finalizado.numeroPedido} · {itensSeparados} itens com separação · {finalizado.movimentacoes.length} movimentações registradas.</p>
+      <section role="status" className="rounded-xl border border-success/30 bg-success-surface p-6">
+        <h1 className="text-2xl font-bold text-success">Requisição finalizada</h1>
+        <p className="mt-2 text-sm text-success">Pedido {finalizado.numeroPedido} · {itensSeparados} itens com separação · {finalizado.movimentacoes.length} movimentações registradas.</p>
       </section>
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="font-semibold text-slate-900">Resumo por item</h2>
-        <ul className="mt-3 divide-y divide-slate-100">
+      <section className="rounded-xl border border-border-subtle bg-white p-5">
+        <h2 className="font-semibold text-foreground">Resumo por item</h2>
+        <ul className="mt-3 divide-y divide-border-subtle">
           {finalizado.itens.map((item) => <li key={item.id} className="py-3 text-sm">
             <span className="font-medium">{item.nome}</span>: pedido {item.quantidadePedida} {item.unidadeMedida}, separado {item.quantidadeSeparada} {item.unidadeMedida}
-            {item.motivo && <span className="text-slate-600"> · {item.motivo.replaceAll("_", " ").toLowerCase()}</span>}
+            {item.motivo && <span className="text-text-secondary"> · {item.motivo.replaceAll("_", " ").toLowerCase()}</span>}
           </li>)}
         </ul>
       </section>
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="font-semibold text-slate-900">Movimentações geradas</h2>
-        <ul className="mt-2 space-y-1 text-sm text-slate-700">
+      <section className="rounded-xl border border-border-subtle bg-white p-5">
+        <h2 className="font-semibold text-foreground">Movimentações geradas</h2>
+        <ul className="mt-2 space-y-1 text-sm text-foreground">
           {finalizado.movimentacoes.map((movement) => <li key={movement.id}>{movement.tipo === "SAIDA" ? "Saída" : "Liberação de reserva"} · {movement.quantidade} {movement.unidadeMedida}</li>)}
         </ul>
       </section>
       <div className="flex flex-wrap gap-3">
-        <Link href="/almoxarifado/requisicoes" className="rounded-lg bg-royal px-4 py-2 font-semibold text-white">Voltar à fila</Link>
-        <Link href="/historico" className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-800">Ver histórico</Link>
+        <Link href="/almoxarifado/requisicoes" className="rounded-lg bg-brand px-4 py-2 font-semibold text-white">Voltar à fila</Link>
+        <Link href="/historico" className="rounded-lg border border-border px-4 py-2 font-semibold text-foreground">Ver histórico</Link>
       </div>
     </main>;
   }
@@ -300,24 +306,24 @@ export default function ChecklistRequisicaoPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/almoxarifado/requisicoes" className="text-sm font-semibold text-royal hover:underline">← Voltar à fila</Link>
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-800">{totalConferidos} de {requisicao.itens.length} conferidos</span>
+        <Link href="/almoxarifado/requisicoes" className="text-sm font-semibold text-brand hover:underline">← Voltar à fila</Link>
+        <span className="rounded-full bg-priority-surface px-3 py-1 text-sm font-semibold text-brand">{totalConferidos} de {requisicao.itens.length} conferidos</span>
       </div>
-      <header className="rounded-xl border border-slate-200 bg-white p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-royal">{requisicao.numeroPedido}</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-950">Checklist de separação</h1>
-        <p className="mt-2 text-sm text-slate-600">Solicitante: {requisicao.solicitante} · Atendimento: {requisicao.atendente ?? "—"}</p>
+      <header className="rounded-xl border border-border-subtle bg-white p-5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand">{requisicao.numeroPedido}</p>
+        <h1 className="mt-1 text-2xl font-bold text-foreground">Checklist de separação</h1>
+        <p className="mt-2 text-sm text-text-secondary">Solicitante: {requisicao.solicitante} · Atendimento: {requisicao.atendente ?? "—"}</p>
         <div className="mt-3"><PriorityBadge priority={requisicao.prioridade === "PRIORITARIO" ? "prioridade" : "padrao"} /></div>
-        {!requisicaoAtiva && <p role="status" className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Esta requisição não está em atendimento. A conferência só pode ser registrada enquanto estiver assumida.</p>}
+        {!requisicaoAtiva && <p role="status" className="mt-3 rounded-lg bg-warning-surface p-3 text-sm text-warning">Esta requisição não está em atendimento. A conferência só pode ser registrada enquanto estiver assumida.</p>}
       </header>
 
-      <section aria-labelledby="etiqueta-heading" className="rounded-xl border border-slate-200 bg-white p-5">
+      <section aria-labelledby="etiqueta-heading" className="rounded-xl border border-border-subtle bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 id="etiqueta-heading" className="text-lg font-bold text-slate-900">Conferir por etiqueta</h2>
-            <p className="mt-1 text-sm text-slate-600">Leia o QR do código ERP/TOTVS ou digite o número impresso.</p>
+            <h2 id="etiqueta-heading" className="text-lg font-bold text-foreground">Conferir por etiqueta</h2>
+            <p className="mt-1 text-sm text-text-secondary">Leia o QR do código ERP/TOTVS ou digite o número impresso.</p>
           </div>
-          <button type="button" onClick={() => setCameraAberta(true)} disabled={!requisicaoAtiva} className="min-h-11 rounded-lg bg-royal px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Ler etiqueta</button>
+          <button type="button" onClick={() => setCameraAberta(true)} disabled={!requisicaoAtiva} className="min-h-11 rounded-lg bg-brand px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Ler etiqueta</button>
         </div>
         <form onSubmit={(event) => void submitManual(event)} className="mt-4 flex flex-col gap-3 sm:flex-row">
           <label htmlFor="codigo-etiqueta" className="sr-only">Número impresso na etiqueta</label>
@@ -331,12 +337,12 @@ export default function ChecklistRequisicaoPage() {
             onChange={(event) => setCodigoManual(event.target.value)}
             placeholder="Digite ou leia o código (ex.: 6687)"
             disabled={!requisicaoAtiva}
-            className="min-h-11 flex-1 rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100"
+            className="min-h-11 flex-1 rounded-lg border border-border px-3 py-2 disabled:bg-background"
           />
-          <button type="submit" disabled={!codigoManual.trim() || !requisicaoAtiva} className="min-h-11 rounded-lg border border-slate-300 px-5 py-2 font-semibold text-slate-800 disabled:opacity-50">Confirmar código</button>
+          <button type="submit" disabled={!codigoManual.trim() || !requisicaoAtiva} className="min-h-11 rounded-lg border border-border px-5 py-2 font-semibold text-foreground disabled:opacity-50">Confirmar código</button>
         </form>
-        {erro && <p role="alert" aria-live="assertive" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{erro}</p>}
-        {mensagem && <p role="status" aria-live="polite" className={`mt-4 rounded-lg p-3 text-sm ${mensagemKind === "already-confirmed" ? "bg-blue-50 text-blue-900" : "bg-emerald-50 text-emerald-800"}`}>
+        {erro && <p role="alert" aria-live="assertive" className="mt-4 rounded-lg bg-error-surface p-3 text-sm text-error">{erro}</p>}
+        {mensagem && <p role="status" aria-live="polite" className={`mt-4 rounded-lg p-3 text-sm ${mensagemKind === "already-confirmed" ? "bg-priority-surface text-brand" : "bg-success-surface text-success"}`}>
           {mensagemKind === "already-confirmed" ? <><span aria-hidden="true">ℹ </span><span>Informação: </span></> : null}{mensagem}
         </p>}
       </section>
@@ -346,17 +352,17 @@ export default function ChecklistRequisicaoPage() {
           const quantidadeReal = quantidadesReais[item.id] ?? "";
           const diverge = quantidadeReal !== "" && Number(quantidadeReal) !== item.quantidadeSolicitada;
           return (
-            <article key={item.id} className={`rounded-xl border bg-white p-4 ${item.conferido ? "border-emerald-300" : "border-slate-200"}`}>
+            <article key={item.id} className={`rounded-xl border bg-white p-4 ${item.conferido ? "border-success/30" : "border-border-subtle"}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-semibold text-slate-950">{item.nome}</h2>
+                  <h2 className="font-semibold text-foreground">{item.nome}</h2>
                   <ProductCode code={item.codigo} />
-                  <ItemDescription className="mt-1 text-sm text-slate-600" categoria={item.categoria} descricao={item.descricao} />
-                  <p className="mt-1 text-sm text-slate-600">Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
+                  <ItemDescription className="mt-1 text-sm text-text-secondary" categoria={item.categoria} descricao={item.descricao} />
+                  <p className="mt-1 text-sm text-text-secondary">Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.conferido ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{item.conferido ? "Conferido" : "Pendente"}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.conferido ? "bg-success-surface text-success" : "bg-background text-foreground"}`}>{item.conferido ? "Conferido" : "Pendente"}</span>
               </div>
-              <label htmlFor={`qtd-real-${item.id}`} className="mt-4 block text-sm font-semibold text-slate-800">Quantidade real conferida
+              <label htmlFor={`qtd-real-${item.id}`} className="mt-4 block text-sm font-semibold text-foreground">Quantidade real conferida
                 <input
                   id={`qtd-real-${item.id}`}
                   ref={(element) => { quantidadeRefs.current[item.id] = element; }}
@@ -368,18 +374,18 @@ export default function ChecklistRequisicaoPage() {
                   onChange={(event) => setQuantidadesReais((current) => ({ ...current, [item.id]: event.target.value }))}
                   placeholder="Preencha após contar"
                   disabled={!item.conferido}
-                  className="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100 sm:max-w-xs"
+                  className="mt-1 block min-h-11 w-full rounded-lg border border-border px-3 py-2 disabled:bg-background sm:max-w-xs"
                 />
               </label>
-              {diverge && <p role="status" className="mt-2 text-sm font-semibold text-amber-800">Divergência: {Number(quantidadeReal) - item.quantidadeSolicitada} {item.unidadeMedida} em relação ao pedido. O valor ainda não é persistido.</p>}
-              {diverge && <label className="mt-3 block text-sm font-medium text-slate-800">Motivo da divergência
+              {diverge && <p role="status" className="mt-2 text-sm font-semibold text-warning">Divergência: {Number(quantidadeReal) - item.quantidadeSolicitada} {item.unidadeMedida} em relação ao pedido. O valor ainda não é persistido.</p>}
+              {diverge && <label className="mt-3 block text-sm font-medium text-foreground">Motivo da divergência
                 <select
                   value={motivosDivergencia[item.id] ?? ""}
                   onChange={(event) => setMotivosDivergencia((current) => ({
                     ...current,
                     [item.id]: event.target.value as MotivoDivergencia | "",
                   }))}
-                  className="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 sm:max-w-sm"
+                  className="mt-1 block min-h-11 w-full rounded-lg border border-border px-3 py-2 sm:max-w-sm"
                 >
                   <option value="">Selecione o motivo</option>
                   {Number(quantidadeReal) > item.quantidadeSolicitada
@@ -394,18 +400,18 @@ export default function ChecklistRequisicaoPage() {
           );
         })}
       </section>
-      {requisicao.podeFinalizar && <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <p className="text-sm text-slate-600">A quantidade real e os motivos serão gravados ao finalizar. As divergências serão baixadas pela quantidade efetivamente separada.</p>
-        {erro && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{erro}</p>}
+      {requisicao.podeFinalizar && <section className="rounded-xl border border-border-subtle bg-white p-5">
+        <p className="text-sm text-text-secondary">A quantidade real e os motivos serão gravados ao finalizar. As divergências serão baixadas pela quantidade efetivamente separada.</p>
+        {erro && <p role="alert" className="mt-3 rounded-lg bg-error-surface p-3 text-sm text-error">{erro}</p>}
         <button
           type="button"
           onClick={() => void finalizarRequisicao()}
           disabled={!requisicaoAtiva || !outcomesValidos || finalizando}
-          className="mt-4 min-h-11 rounded-lg bg-royal px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 min-h-11 rounded-lg bg-brand px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {finalizando ? "Finalizando…" : "Finalizar requisição"}
         </button>
-        {!outcomesValidos && <p className="mt-2 text-sm text-slate-600">Confira cada item e informe uma quantidade válida; selecione o motivo quando houver divergência.</p>}
+        {!outcomesValidos && <p className="mt-2 text-sm text-text-secondary">Confira cada item e informe uma quantidade válida; selecione o motivo quando houver divergência.</p>}
       </section>}
       {cameraAberta && <ProductEtiquetaScanner onRead={handleCameraRead} onClose={() => setCameraAberta(false)} />}
     </main>

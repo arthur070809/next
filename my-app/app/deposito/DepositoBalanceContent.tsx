@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import DepositoEmptyState from "./DepositoEmptyState";
+import { EmptyState, ErrorState, LoadingState } from "../components/ui";
 
 export default function DepositoBalanceContent({
   loading,
@@ -7,6 +8,7 @@ export default function DepositoBalanceContent({
   empty,
   filtered,
   onAdd,
+  onRetry,
   children,
 }: {
   loading: boolean;
@@ -14,14 +16,17 @@ export default function DepositoBalanceContent({
   empty: boolean;
   filtered: boolean;
   onAdd: () => void;
+  onRetry?: () => void;
   children?: ReactNode;
 }) {
   if (loading) {
-    return <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando saldos…</p>;
+    return <LoadingState label="Carregando saldos do depósito…" rows={4} />;
   }
   if (error) {
-    return <p role="alert" className="my-6 rounded-lg border border-red-200 bg-red-50 p-5 text-red-800">{error}</p>;
+    return <ErrorState message={error} onRetry={onRetry} />;
   }
-  if (empty) return <DepositoEmptyState filtered={filtered} onAdd={onAdd} />;
-  return <div className="divide-y divide-slate-200">{children}</div>;
+  if (empty) return filtered
+    ? <EmptyState title="Nenhum saldo encontrado" message="Altere a busca ou os filtros para encontrar materiais." />
+    : <DepositoEmptyState filtered={filtered} onAdd={onAdd} />;
+  return <div className="divide-y divide-border-subtle">{children}</div>;
 }
