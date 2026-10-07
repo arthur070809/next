@@ -49,7 +49,7 @@ describe("stock page scroll layout contract", () => {
   it("keeps vertical scrolling on the document and bounds only the fixed sidebar menu", () => {
     expect(rootLayout).not.toContain("h-full");
     expect(rootLayout).toContain('<body className="min-h-dvh">');
-    expect(shell).toContain('className="min-h-dvh bg-slate-100 text-slate-900"');
+    expect(shell).toContain('className="min-h-dvh bg-background text-foreground"');
     expect(shell).toContain("fixed left-0 top-0");
     expect(shell).toContain("h-dvh");
     expect(shell).toContain("min-h-0 flex-1 space-y-1 overflow-y-auto");

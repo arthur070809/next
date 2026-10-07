@@ -22,12 +22,12 @@
   --priority-surface: #e8eef8;
   --space-page: 1rem;
   --space-section: 1.5rem;
-  --radius-control: 0.625rem;
-  --radius-card: 1rem;
-  --radius-panel: 1.25rem;
-  --shadow-card: 0 1px 3px rgb(23 32 51 / 8%), 0 1px 2px rgb(23 32 51 / 5%);
-  --shadow-overlay: 0 20px 50px rgb(16 33 63 / 20%);
-  --font-ui: var(--font-geist-sans), sans-serif;
+  --ui-radius-control: 0.625rem;
+  --ui-radius-card: 1rem;
+  --ui-radius-panel: 1.25rem;
+  --ui-shadow-card: 0 1px 3px rgb(23 32 51 / 8%), 0 1px 2px rgb(23 32 51 / 5%);
+  --ui-shadow-overlay: 0 20px 50px rgb(16 33 63 / 20%);
+  --font-family-ui: var(--font-geist-sans), sans-serif;
   --font-data: var(--font-geist-mono), monospace;
 }
 
@@ -49,12 +49,15 @@
   --color-error-surface: var(--error-surface);
   --color-priority: var(--priority);
   --color-priority-surface: var(--priority-surface);
-  --radius-control: var(--radius-control);
-  --radius-card: var(--radius-card);
-  --radius-panel: var(--radius-panel);
-  --shadow-card: var(--shadow-card);
-  --shadow-overlay: var(--shadow-overlay);
+  --radius-control: var(--ui-radius-control);
+  --radius-card: var(--ui-radius-card);
+  --radius-panel: var(--ui-radius-panel);
+  --shadow-card: var(--ui-shadow-card);
+  --shadow-overlay: var(--ui-shadow-overlay);
+  --spacing-page: var(--space-page);
+  --spacing-section: var(--space-section);
   --font-sans: var(--font-geist-sans);
+  --font-ui: var(--font-family-ui);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -65,10 +68,16 @@
   }
 }
 
+@layer components {
+  .safe-area-inset {
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-ui);
+  font-family: var(--font-family-ui);
 }
 
 @media (prefers-reduced-motion: reduce) {

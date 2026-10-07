@@ -6,12 +6,11 @@ import PriorityBadge, { PRIORITY_BADGE_CLASS, PRIORITY_QUEUE_ROW_CLASS } from ".
 describe("PriorityBadge", () => {
   it("shows a textual priority label and a decorative icon", () => {
     const markup = renderToStaticMarkup(createElement(PriorityBadge, { priority: "prioridade" }));
-    expect(markup).toContain("PRIORIDADE");
-    expect(markup).toContain('aria-label="Pedido prioritário"');
+    expect(markup).toContain("Prioridade");
     expect(markup).toContain('aria-hidden="true"');
     expect(markup).toContain(PRIORITY_BADGE_CLASS);
-    expect(PRIORITY_BADGE_CLASS).toContain("text-amber-950");
-    expect(PRIORITY_BADGE_CLASS).toContain("dark:text-amber-100");
+    expect(PRIORITY_BADGE_CLASS).toContain("text-priority");
+    expect(PRIORITY_BADGE_CLASS).toContain("bg-priority-surface");
   });
 
   it("renders nothing for a normal request", () => {
@@ -19,8 +18,7 @@ describe("PriorityBadge", () => {
   });
 
   it("exposes a shared tinted row treatment for the priority queue", () => {
-    expect(PRIORITY_QUEUE_ROW_CLASS).toContain("border-l-amber-700");
-    expect(PRIORITY_QUEUE_ROW_CLASS).toContain("bg-amber-50/80");
-    expect(PRIORITY_QUEUE_ROW_CLASS).toContain("dark:bg-amber-950/40");
+    expect(PRIORITY_QUEUE_ROW_CLASS).toContain("border-l-priority");
+    expect(PRIORITY_QUEUE_ROW_CLASS).toContain("bg-priority-surface/70");
   });
 });
