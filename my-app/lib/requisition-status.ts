@@ -1,8 +1,8 @@
-import { StatusRequisicao } from "@/generated/prisma/client";
+import type { StatusRequisicao } from "@/generated/prisma/client";
 
 export const REQUISITION_STATUS_LABELS = {
-  [StatusRequisicao.PENDENTE]: "Aguardando atendimento",
-  [StatusRequisicao.ASSUMIDA]: "Em atendimento",
-  [StatusRequisicao.CONCLUIDA]: "Concluída",
-  [StatusRequisicao.ANULADA]: "Cancelada",
+  PENDENTE: "Aguardando atendimento",
+  ASSUMIDA: "Em atendimento",
+  CONCLUIDA: "Concluída",
+  ANULADA: "Cancelada",
 } satisfies Record<StatusRequisicao, string>;
