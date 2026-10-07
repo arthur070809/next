@@ -746,7 +746,7 @@ export default function FaceEnrollmentManager({
           </div>
         )}
         {debug && (
-          <section aria-label="Diagnóstico facial" className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-800 sm:grid-cols-3">
+          <section aria-label="Diagnóstico facial" className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-border-subtle bg-background p-4 text-xs text-foreground sm:grid-cols-3">
             <p>Modelos: {modelState}</p>
             <p>Etapa de carga: {loadDiagnostics.stage}</p>
             <p>Progresso: {faceLoadProgress(loadDiagnostics)}%</p>
@@ -777,7 +777,7 @@ export default function FaceEnrollmentManager({
                 Erro original de carga: {loadDiagnostics.loadError.errorName}: {loadDiagnostics.loadError.errorMessage}
               </p>
             )}
-            <button type="button" className="col-span-2 min-h-11 rounded border border-slate-300 px-3 py-2 font-semibold sm:col-span-3" onClick={() => void copyDiagnostics()}>
+            <button type="button" className="col-span-2 min-h-11 rounded border border-border-subtle px-3 py-2 font-semibold sm:col-span-3" onClick={() => void copyDiagnostics()}>
               Copiar diagnóstico
             </button>
             <p>Inferência: {debugMetrics.inferenceMs} ms</p>
