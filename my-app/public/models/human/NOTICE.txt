@@ -1,0 +1,14 @@
+Human library: Copyright (c) Vladimir Mandic; MIT License.
+https://github.com/vladmandic/Human/blob/master/LICENSE
+
+Emotion model: bundled with @vladmandic/human 3.3.6 under its package
+license; used locally to preserve the existing smile liveness challenge.
+
+MobileFace model: BecauseofAI MobileFace, converted for TensorFlow.js by
+Vladimir Mandic; model definitions and weights from vladmandic/human-models
+commit a4bcf70ece5f57a53fb45984d76a9ca143206eca.
+https://github.com/becauseofAI/MobileFace/blob/master/LICENSE
+https://github.com/vladmandic/Human-models/blob/main/LICENSE
+
+Both source repositories declare the MIT License. Verify original model and
+training-data terms for the intended commercial deployment before production.

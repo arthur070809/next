@@ -1,5 +1,7 @@
 # Diagnóstico inicial: QR e reconhecimento facial
 
+> Nota de atualização: as observações abaixo registram o estado anterior à implementação local descrita em `README.md`. O código atual usa MobileFace no navegador, modelos locais em `public/models/human/` e comparação server-side; não depende de `FACE_SERVICE_URL` nem de endpoints externos `/v1/*`.
+
 ## Escopo e restrições
 
 Leitura estática da branch `feat/inventario-invisivel`; nenhum banco ou arquivo `.env*` foi aberto. Nenhum seed, reset ou migration foi executado. O estado inicial do worktree estava limpo no commit `273b768`.

@@ -10,4 +10,12 @@ describe("login form capabilities", () => {
     expect(loginFormSource).toContain("camera.start(");
     expect(loginFormSource).toContain("/api/auth/login/face/verify");
   });
+
+  it("starts login attempts automatically with bounded retries and no manual verify control", () => {
+    expect(loginFormSource).toContain("submitAutomaticFaceAttempt");
+    expect(loginFormSource).toContain("canStartAutomaticAttempt");
+    expect(loginFormSource).toContain("requestFreshFaceChallenge");
+    expect(loginFormSource).not.toContain("enableCamera()");
+    expect(loginFormSource).not.toContain("onSubmit={(event) => void submitFace");
+  });
 });

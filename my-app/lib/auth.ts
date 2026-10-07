@@ -1,28 +1,49 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
+import {
+  SESSION_POLICIES,
+  SESSION_SIGNAL_WRITE_INTERVAL_MS,
+  sessionProfileForRole,
+  validateSessionLifecycle,
+} from "@/lib/session-policy";
 
 export const sessionCookieName = "marcon_session";
 
-export async function getAuthenticatedSession() {
+function isMissingSessionLifecycleSchema(error: unknown) {
+  if (!error || typeof error !== "object" || !("code" in error)) return false;
+  return error.code === "P2021" || error.code === "P2022";
+}
+
+function logMissingSessionLifecycleSchema(error: unknown) {
+  const code = error && typeof error === "object" && "code" in error
+    ? error.code
+    : "unknown";
+  console.error("[auth] Sessão indisponível: aplique a migration add_session_lifecycle.", { code });
+}
+
+export async function getAuthenticatedSession(options: { now?: Date; touch?: boolean } = {}) {
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookieName)?.value;
 
   if (!token) return null;
 
-  const session = await prisma.sessao.findUnique({
-    where: { token },
-    include: { funcionario: true, trustedDevice: true },
-  });
+  const now = options.now ?? new Date();
+  let session;
+  try {
+    session = await prisma.sessao.findUnique({
+      where: { token },
+      include: { funcionario: true, trustedDevice: true },
+    });
+  } catch (error) {
+    if (isMissingSessionLifecycleSchema(error)) {
+      logMissingSessionLifecycleSchema(error);
+      return null;
+    }
+    throw error;
+  }
 
   if (!session) return null;
-
-  const now = new Date();
-  if (session.expiresAt <= now) {
-    await prisma.sessao.delete({ where: { id: session.id } });
-    return null;
-  }
 
   if (session.trustedDeviceId && (!session.trustedDevice || session.trustedDevice.revogadoEm)) {
     await prisma.sessao.deleteMany({ where: { id: session.id } });
@@ -31,12 +52,69 @@ export async function getAuthenticatedSession() {
 
   if (!session.funcionario.ativo) return null;
 
-  if (session.funcionario.papel === PapelFuncionario.OPERADOR) {
-    const expiresAt = new Date(now.getTime() + OPERATOR_IDLE_TIMEOUT_MS);
-    await prisma.sessao.update({
-      where: { id: session.id },
-      data: { expiresAt },
-    });
+  const profile = sessionProfileForRole(session.funcionario.papel);
+  const validation = validateSessionLifecycle(session, profile, now);
+  if (!validation.valid) return null;
+
+  const shouldWriteSignal = options.touch !== false && (
+    session.ultimoSinalEm.getTime() < now.getTime() - SESSION_SIGNAL_WRITE_INTERVAL_MS ||
+    session.saidaEm !== null
+  );
+  if (shouldWriteSignal) {
+    const policy = SESSION_POLICIES[profile];
+    const expiresAt = profile === "operador"
+      ? new Date(now.getTime() + policy.idleTimeoutMs)
+      : session.expiresAt;
+    let result;
+    try {
+      result = await prisma.sessao.updateMany({
+        where: {
+          id: session.id,
+          token,
+          expiresAt: { gt: now },
+          ultimoSinalEm: session.ultimoSinalEm,
+          saidaEm: session.saidaEm,
+          revogadaEm: null,
+        },
+        data: {
+          ultimoSinalEm: now,
+          saidaEm: null,
+          ...(profile === "operador" ? { expiresAt } : {}),
+        },
+      });
+    } catch (error) {
+      if (isMissingSessionLifecycleSchema(error)) {
+        logMissingSessionLifecycleSchema(error);
+        return null;
+      }
+      throw error;
+    }
+    if (result.count !== 1) {
+      try {
+        const latest = await prisma.sessao.findUnique({
+          where: { token },
+          include: { funcionario: true, trustedDevice: true },
+        });
+        if (
+          !latest ||
+          !latest.funcionario.ativo ||
+          (latest.trustedDeviceId && (!latest.trustedDevice || latest.trustedDevice.revogadoEm)) ||
+          !validateSessionLifecycle(latest, profile, now).valid
+        ) {
+          return null;
+        }
+        session = latest;
+      } catch (error) {
+        if (isMissingSessionLifecycleSchema(error)) {
+          logMissingSessionLifecycleSchema(error);
+          return null;
+        }
+        throw error;
+      }
+      return session;
+    }
+    session.ultimoSinalEm = now;
+    session.saidaEm = null;
     session.expiresAt = expiresAt;
   }
 

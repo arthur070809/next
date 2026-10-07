@@ -94,4 +94,20 @@ describe("admin TOTP login without a face template", () => {
     }));
     expect(prisma.authChallenge.create).not.toHaveBeenCalled();
   });
+
+  it("keeps the TOTP fallback available if the face-template migration is absent", async () => {
+    vi.mocked(prisma.faceTemplate.count).mockRejectedValueOnce({ code: "P2021" } as never);
+    const request = new Request("http://localhost/api/auth/login/totp", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ preAuthToken: "temporary-token", code: "123456" }),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(prisma.sessao.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ funcionarioId: admin.id, accessArea: "admin" }),
+    }));
+  });
 });

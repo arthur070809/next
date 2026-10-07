@@ -1,175 +1,110 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  aggregateEnrollmentEmbeddings,
   analyzeEnrollmentEmbeddings,
+  areFaceTemplateVersionsCompatible,
   decryptEmbedding,
   encryptEmbedding,
-  faceEnrollmentConsistencyDistance,
-  faceEnrollmentDuplicateDistance,
-  faceMatchThresholdDefault,
-  FaceServiceUnavailableError,
+  FaceEncryptionKeyUnavailableError,
+  FaceEnrollmentVerificationError,
+  FaceRecognitionUnavailableError,
+  faceEmbeddingDistance,
+  faceEmbeddingModelVersion,
+  getFaceEmbeddingModelVersion,
   getFaceMatchThreshold,
-  enrollFaceSamples,
-  verifyFaceCapture,
+  isFaceEmbeddingMatch,
+  validateFaceEmbedding,
 } from "./face";
-import { faceCaptureQuality } from "./facial/config";
+import { faceEmbeddingDimension, getFaceEnrollmentFrameCount } from "./facial/config";
 
-function vector(value: number, length = 64) {
-  return Array.from({ length }, (_, index) => value + index / 1000);
-}
+const unitVector = (first = 1, second = 0) => [
+  first,
+  second,
+  ...Array.from({ length: faceEmbeddingDimension - 2 }, () => 0),
+];
 
-describe("facial enrollment embedding policy", () => {
-  const previousEncryptionKey = process.env.FACE_EMBEDDING_ENCRYPTION_KEY;
-
+describe("local facial recognition", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
-    if (previousEncryptionKey === undefined) delete process.env.FACE_EMBEDDING_ENCRYPTION_KEY;
-    else process.env.FACE_EMBEDDING_ENCRYPTION_KEY = previousEncryptionKey;
   });
 
-  it("keeps the documented enrollment and provider match thresholds centralized", () => {
-    expect(faceEnrollmentConsistencyDistance).toBe(0.35);
-    expect(faceEnrollmentDuplicateDistance).toBe(0.42);
-    expect(faceMatchThresholdDefault).toBe(0.42);
-    expect(faceCaptureQuality).toEqual({
-      detectorMinConfidence: 0.6,
-      detectorMaxFaces: 2,
-      cameraWidth: 1280,
-      cameraHeight: 720,
-      lightSampleWidth: 96,
-      lightSampleHeight: 72,
-      brightnessMin: 42,
-      brightnessMax: 218,
-      sharpnessMin: 16,
-      faceWidthMin: 0.22,
-      faceWidthMax: 0.72,
-      centerXMin: 0.35,
-      centerXMax: 0.65,
-      centerYMin: 0.25,
-      centerYMax: 0.75,
-      eyeAspectRatioMin: 0.12,
-      yawLimitDegrees: 15,
-      pitchLimitDegrees: 15,
-      rollLimitDegrees: 12,
-      sideYawDegrees: 8,
-      stableCaptureMs: 1000,
-    });
+  it("validates finite, normalized MobileFace vectors at the expected dimension", () => {
+    expect(validateFaceEmbedding(unitVector())).toHaveLength(faceEmbeddingDimension);
+    expect(() => validateFaceEmbedding(unitVector().slice(1))).toThrow(FaceEnrollmentVerificationError);
+    expect(() => validateFaceEmbedding(unitVector(Number.NaN))).toThrow(FaceEnrollmentVerificationError);
+    expect(() => validateFaceEmbedding(Array(faceEmbeddingDimension).fill(0))).toThrow(FaceEnrollmentVerificationError);
+    expect(() => validateFaceEmbedding(Array(faceEmbeddingDimension).fill(0.5))).toThrow(FaceEnrollmentVerificationError);
   });
 
-  it("accepts same-person synthetic captures with small descriptor noise", () => {
-    const result = analyzeEnrollmentEmbeddings([
-      vector(0.1),
-      vector(0.105),
-      vector(0.098),
-      vector(0.102),
-    ]);
-
-    expect(result.consistent).toBe(true);
-    expect(result.discardedOutlier).toBe(false);
+  it("uses strict L2 distance matching and treats the boundary as rejected", () => {
+    const first = unitVector();
+    const second = unitVector(0.8, 0.6);
+    const distance = faceEmbeddingDistance(first, second);
+    expect(distance).toBeCloseTo(Math.sqrt(0.2 ** 2 + 0.6 ** 2), 12);
+    expect(isFaceEmbeddingMatch(distance - 0.01, distance)).toBe(true);
+    expect(isFaceEmbeddingMatch(distance, distance)).toBe(false);
+    expect(faceEmbeddingDistance(first, unitVector(0, 1).slice(1))).toBe(Number.POSITIVE_INFINITY);
   });
 
-  it("rejects embeddings that represent different people", () => {
-    const first = vector(0.1);
-    const second = vector(0.9);
-    const third = vector(-0.8);
-    expect(analyzeEnrollmentEmbeddings([first, second, third]).consistent).toBe(false);
-  });
-
-  it.each([
-    { embeddings: [Array(64).fill(0), vector(0.1), vector(0.1)], reason: "ZERO_NORM" },
-    { embeddings: [vector(0.1), vector(0.1).map((value, index) => index === 3 ? Number.NaN : value), vector(0.1)], reason: "INVALID_VALUE" },
-    { embeddings: [vector(0.1), vector(0.1, 63), vector(0.1)], reason: "INVALID_DIMENSION" },
-  ])("rejects invalid descriptors with a specific reason", ({ embeddings, reason }) => {
-    expect(analyzeEnrollmentEmbeddings(embeddings).reason).toBe(reason);
-  });
-
-  it("discards one outlier only when at least three captures form a consistent core", () => {
-    const result = analyzeEnrollmentEmbeddings([
-      vector(0.1),
-      vector(0.102),
-      vector(0.098),
-      vector(1.2),
-    ]);
-
-    expect(result.consistent).toBe(true);
-    expect(result.discardedOutlier).toBe(true);
-    expect(result.distances).toHaveLength(4);
-  });
-
-  it("measures each capture from a coordinate-wise median instead of every pair", () => {
-    const captures = [vector(0.1), vector(0.102), vector(0.098), vector(1.2)];
-    const result = analyzeEnrollmentEmbeddings(captures);
-
-    expect(result.consistent).toBe(true);
-    expect(result.discardedOutlier).toBe(true);
-    expect(result.distances).toHaveLength(captures.length);
-  });
-
-  it("round-trips the encrypted JSON descriptor and rejects mismatched dimensions", () => {
-    process.env.FACE_EMBEDDING_ENCRYPTION_KEY = "a".repeat(64);
-    const embedding = vector(0.25);
-    const encrypted = encryptEmbedding(embedding);
-    const restored = decryptEmbedding(encrypted.ciphertext, encrypted.iv, encrypted.tag);
-
-    expect(restored).toEqual(embedding);
-    expect(analyzeEnrollmentEmbeddings([embedding, vector(0.25, 63), vector(0.25)]).consistent).toBe(false);
-  });
-
-  it("validates the match threshold without changing the configured default", () => {
-    expect(getFaceMatchThreshold(undefined)).toBe(faceMatchThresholdDefault);
-    expect(getFaceMatchThreshold("0.51")).toBe(0.51);
-    expect(getFaceMatchThreshold("0")).toBe(0);
-    for (const invalid of ["", "NaN", "Infinity", "-0.1"]) {
-      expect(() => getFaceMatchThreshold(invalid)).toThrow(FaceServiceUnavailableError);
+  it("requires a measured MobileFace threshold and rejects invalid configurations", () => {
+    expect(() => getFaceMatchThreshold(undefined)).toThrow(FaceRecognitionUnavailableError);
+    expect(getFaceMatchThreshold("0.87")).toBe(0.87);
+    for (const value of ["", "0", "2.01", "-1", "NaN", "Infinity"]) {
+      expect(() => getFaceMatchThreshold(value)).toThrow(FaceRecognitionUnavailableError);
     }
   });
 
-  it("does not call the provider for missing or malformed templates", async () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
-
-    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [])).resolves.toBe(false);
-    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1, 31)])).resolves.toBe(false);
-    expect(fetchMock).not.toHaveBeenCalled();
+  it("requires exactly the configured model version and rejects legacy templates", () => {
+    expect(getFaceEmbeddingModelVersion(faceEmbeddingModelVersion)).toBe(faceEmbeddingModelVersion);
+    expect(() => getFaceEmbeddingModelVersion(undefined)).toThrow(FaceRecognitionUnavailableError);
+    expect(areFaceTemplateVersionsCompatible([faceEmbeddingModelVersion], faceEmbeddingModelVersion)).toBe(true);
+    expect(areFaceTemplateVersionsCompatible(["legacy-unknown"], faceEmbeddingModelVersion)).toBe(false);
+    expect(areFaceTemplateVersionsCompatible(["old-model"], faceEmbeddingModelVersion)).toBe(false);
+    expect(areFaceTemplateVersionsCompatible([faceEmbeddingModelVersion, "legacy-unknown"], faceEmbeddingModelVersion)).toBe(false);
   });
 
-  it("fails closed when facial provider is unavailable and accepts only its explicit match result", async () => {
-    vi.stubEnv("FACE_SERVICE_URL", "https://face-service.invalid");
-    vi.stubEnv("FACE_SERVICE_TOKEN", "test-token");
-    vi.stubEnv("FACE_MATCH_THRESHOLD", "0.42");
-    const fetchMock = vi.fn(async () => new Response("unavailable", { status: 503 }));
-    vi.stubGlobal("fetch", fetchMock);
-    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
-
-    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
-      .rejects.toBeInstanceOf(FaceServiceUnavailableError);
-    expect(fetchMock).toHaveBeenCalledOnce();
-
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
-      livenessPassed: true,
-      matched: false,
-    }), { status: 200, headers: { "content-type": "application/json" } })));
-    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
-      .resolves.toBe(false);
+  it("encrypts and decrypts one normalized vector with AES-GCM", () => {
+    vi.stubEnv("FACE_EMBEDDING_ENCRYPTION_KEY", "a".repeat(64));
+    const vector = unitVector(0.8, 0.6);
+    const encrypted = encryptEmbedding(vector);
+    expect(decryptEmbedding(encrypted.ciphertext, encrypted.iv, encrypted.tag)).toEqual(vector);
   });
 
-  it("treats malformed provider output as a technical failure", async () => {
-    vi.stubEnv("FACE_SERVICE_URL", "https://face-service.invalid");
-    vi.stubEnv("FACE_SERVICE_TOKEN", "test-token");
-    vi.stubEnv("FACE_MATCH_THRESHOLD", "0.42");
-    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ matched: true }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    })));
-    await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
-      .rejects.toBeInstanceOf(FaceServiceUnavailableError);
+  it("fails closed when the encryption key is missing or malformed", () => {
+    vi.stubEnv("FACE_EMBEDDING_ENCRYPTION_KEY", "");
+    expect(() => encryptEmbedding(unitVector())).toThrow(FaceEncryptionKeyUnavailableError);
+    vi.stubEnv("FACE_EMBEDDING_ENCRYPTION_KEY", "invalid");
+    expect(() => encryptEmbedding(unitVector())).toThrow(FaceEncryptionKeyUnavailableError);
+  });
 
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
-      embeddings: [[1, 2], [1, 2], [1, 2]],
-    }), { status: 200, headers: { "content-type": "application/json" } })));
-    await expect(enrollFaceSamples([capture, capture, capture], { nonce: "nonce" }))
-      .rejects.toBeInstanceOf(FaceServiceUnavailableError);
+  it("keeps single-frame enrollment free of median/outlier aggregation", () => {
+    vi.stubEnv("FACE_ENROLL_FRAMES", "1");
+    const result = aggregateEnrollmentEmbeddings([unitVector()]);
+    expect(getFaceEnrollmentFrameCount()).toBe(1);
+    expect(result.consistent).toBe(true);
+    expect(result.distances).toEqual([]);
+    expect(result.embedding).toEqual(unitVector());
+  });
+
+  it("continues median aggregation for three configured frames", () => {
+    vi.stubEnv("FACE_ENROLL_FRAMES", "3");
+    const result = aggregateEnrollmentEmbeddings([
+      unitVector(),
+      unitVector(0.99995, 0.01),
+      unitVector(0.9998, 0.02),
+    ]);
+    expect(getFaceEnrollmentFrameCount()).toBe(3);
+    expect(result.consistent).toBe(true);
+    expect(result.distances).toHaveLength(3);
+    expect(Math.hypot(...(result.embedding ?? []))).toBeCloseTo(1, 12);
+  });
+
+  it("drops one discrepant frame only after a consistent median core", () => {
+    const outlier = unitVector(-1, 0);
+    const embeddings = [unitVector(), unitVector(1, 0.01), unitVector(1, -0.01), outlier];
+    const result = analyzeEnrollmentEmbeddings(embeddings);
+    expect(result.consistent).toBe(true);
+    expect(result.discardedOutlier).toBe(true);
+    expect(result.acceptedEmbeddings).toHaveLength(3);
   });
 });

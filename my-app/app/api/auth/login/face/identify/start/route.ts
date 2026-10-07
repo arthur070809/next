@@ -2,10 +2,14 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getLoginClientIpHash } from "@/lib/login-attempts";
 import { createIdentifyFaceChallenge } from "@/lib/login-flow";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import { isSameOrigin } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
+    if (!isFaceLoginEnabled()) {
+      return NextResponse.json({ error: "Reconhecimento facial desativado." }, { status: 404 });
+    }
     if (!isSameOrigin(request)) {
       return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     }

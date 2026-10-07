@@ -23,15 +23,16 @@ Configure os nomes abaixo sem compartilhar valores ou credenciais.
 | `LOGIN_CHALLENGE_SECRET` | Segredo local com pelo menos 32 caracteres | Environment Variable; manter segredo forte e estável entre deploys |
 | `TOTP_ENCRYPTION_KEY` | Chave de 32 bytes em hexadecimal ou Base64, se TOTP for usado | Environment Variable protegida |
 | `FACE_EMBEDDING_ENCRYPTION_KEY` | Chave de 32 bytes em hexadecimal ou Base64, se biometria facial for usada | Environment Variable protegida |
-| `FACE_SERVICE_URL` | URL do serviço facial, se habilitado | Environment Variable do serviço facial |
-| `FACE_MATCH_THRESHOLD` | Opcional; limiar de comparação facial | Opcional |
+| `FACE_EMBEDDING_MODEL_VERSION` | `human-3.3.6-mobileface-v3-a4bcf70` para os modelos locais fixados | Mesmo valor exato |
+| `FACE_MOBILEFACE_MATCH_THRESHOLD` | Obrigatório para login facial; definir somente após medir distâncias reais | Environment Variable definida após calibração |
+| `FACE_LOGIN_ENABLED` | `true` por padrão; `false` esconde e bloqueia login facial | `true` ou `false` |
+| `FACE_DIAGNOSTICS_ENABLED` | Opcional; habilita distâncias apenas para admin autenticado | `true` somente durante diagnóstico controlado |
 | `LOGIN_FACIAL_OBRIGATORIO` | Configuração existente; não alterada por este roteiro | Configuração existente; não alterada por este roteiro |
 | `NEXT_PUBLIC_APP_URL` | URL HTTPS local/de teste conforme o cenário | URL pública HTTPS da aplicação |
 | `WEBAUTHN_ORIGIN` | Origem HTTPS usada para WebAuthn | Origem HTTPS exata do domínio publicado |
 | `WEBAUTHN_RP_ID` | Host correspondente à origem WebAuthn | Host correspondente à origem WebAuthn |
 | `WEBAUTHN_RP_NAME` | Nome apresentado pelo navegador | Opcional; nome apresentado pelo navegador |
 | `NEXT_PUBLIC_VIAGEM_DEMO` | Recurso demo existente da viagem; manter configuração atual | Recurso demo existente da viagem; manter configuração atual |
-| `FACE_SERVICE_TOKEN` | Token do serviço facial, se habilitado | Environment Variable protegida |
 | `TRUSTED_DEVICE_LIMIT` | Opcional; limite de dispositivos confiáveis | Opcional |
 | `DEV_EXTRA_ORIGINS` | Somente desenvolvimento; origens adicionais locais | Não necessário; ignorado em produção |
 | `NODE_ENV` | Controlado pelo runtime local | Controlado pela Vercel |
@@ -83,7 +84,7 @@ Preparação recomendada: antes da sessão, crie no demo um usuário não allowl
 4. **1:45–2:35 — Operador e prioridade.** Entre como operador, escolha setor/produto, veja saldo livre/reservado, escreva justificativa e envie uma requisição prioritária. Abra **Minhas Requisições** para confirmar o estado e os itens.
 5. **2:35–3:25 — Fila e QR.** Entre como almoxarife, assuma o pedido e abra o checklist. Use o QR para localizar item existente (ou digite um código novo e preencha produto/categoria para testar o cadastro).
 6. **3:25–4:25 — Checklist/finalização.** Registre quantidade real e motivo de divergência, finalize uma vez e confira pedido x separado e movimentações geradas.
-7. **4:25–5:20 — Histórico e sobras.** Filtre por produto/funcionário/período; abra o resumo de excedentes, confira total por setor e explique que excedente entregue não é retorno físico ao depósito.
+7. **4:25–5:20 — Histórico.** Filtre por produto/funcionário/período e confira as movimentações registradas.
 8. **5:20–7:00 — Estoque/limitações.** Em 360 px, mostre formulário acima da lista rolável, escaneie uma etiqueta e consulte o alerta de ponto de pedido. Não confirme reset durante a apresentação.
 
 Os crachás acima são credenciais demonstrativas de baixa confiança: só devem existir no banco descartável e somente a allowlist configurada pode usar o atalho de login demo.
@@ -95,7 +96,7 @@ Os crachás acima são credenciais demonstrativas de baixa confiança: só devem
 - A divergência `AVARIA` registra o motivo no fluxo de requisição, mas não há baixa separada para sucata nem processo próprio de descarte.
 - Se o histórico real disponível não atender ao mínimo, o ressuprimento usa e identifica dados de consumo simulados; esses valores não são medição operacional.
 - Funcionários, saldos, requisições, motivos e movimentações do fixture são fictícios/simulados para demonstração; não representam operação ou saldo real.
-- A visão **Resumo de excedentes** agrega quantidades efetivamente entregues além do pedido por setor/produto. Isso não prova que o material voltou ao depósito; o saldo do depósito é global por produto, sem setor e sem associação às requisições.
+- O endpoint `/api/deposito/sobras` agrega quantidades efetivamente entregues além do pedido por setor/produto; a página de resumo não está disponível na interface. Isso não prova que o material voltou ao depósito; o saldo do depósito é global por produto, sem setor e sem associação às requisições.
 - O seed dedicado usa somente os dez códigos descritos em `lib/demo-seed.ts` quando parte de um banco demo operacionalmente vazio. Ele não apaga itens antigos do catálogo. O reset preserva funcionários e catálogo e recria os dados operacionais do fixture.
 - A facial não é solicitada ao assumir requisição. O fluxo facial existente está acoplado ao login, prova de vida, desafios de uso único, dispositivos confiáveis, serviço externo e controle de tentativas. Reutilizá-lo na ação de assumir requer desenho de um desafio transacional separado; reaproveitar o desafio de login criaria risco de replay e acoplamento entre autenticação e operação.
 - O cadastro facial exige de 3 a 5 capturas guiadas e análise de consistência; uma única foto não é aceita. O login facial não virou um fluxo sem crachá: o desafio depende da identidade e do contexto de autenticação.

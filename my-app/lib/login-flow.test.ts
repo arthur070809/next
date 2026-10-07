@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import {
   createLoginFaceChallenge,
   createLoginSessionResponse,
+  createLoginSessionSuccessResponse,
   loginRequiresFace,
   verifyLoginFaceState,
 } from "@/lib/login-flow";
@@ -25,6 +26,7 @@ const admin = {
   mustChangePassword: false,
 };
 const operator = { ...admin, id: 2, nome: "Operador", papel: PapelFuncionario.OPERADOR };
+const warehouse = { ...admin, id: 3, nome: "Almoxarife", papel: PapelFuncionario.ALMOXARIFE };
 
 describe("login flow security", () => {
   const originalFaceSetting = process.env.LOGIN_FACIAL_OBRIGATORIO;
@@ -136,5 +138,23 @@ describe("login flow security", () => {
     expect(sessionExpiry.getTime()).toBeLessThanOrEqual(Date.now() + OPERATOR_IDLE_TIMEOUT_MS);
     expect(cookie).toContain("marcon_session=");
     expect(cookie.toLowerCase()).not.toContain("max-age");
+  });
+
+  it.each([admin, warehouse, operator])("sets only a browser-session cookie for %s", (employee) => {
+    const response = createLoginSessionSuccessResponse(employee, "opaque-token");
+    const cookie = response.headers.get("set-cookie") ?? "";
+
+    expect(cookie).toContain("marcon_session=opaque-token");
+    expect(cookie.toLowerCase()).toContain("httponly");
+    expect(cookie.toLowerCase()).toContain("samesite=lax");
+    expect(cookie.toLowerCase()).toContain("path=/");
+    expect(cookie.toLowerCase()).not.toContain("max-age");
+    expect(cookie.toLowerCase()).not.toContain("expires=");
+  });
+
+  it("sets Secure on session cookies in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const response = createLoginSessionSuccessResponse(admin, "opaque-token");
+    expect(response.headers.get("set-cookie")?.toLowerCase()).toContain("secure");
   });
 });

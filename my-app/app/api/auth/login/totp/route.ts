@@ -96,9 +96,20 @@ export async function POST(request: Request) {
     clearFactorFailures(factorKey);
 
     if (loginRequiresFace(challenge.funcionario.papel)) {
-      const faceTemplateCount = await prisma.faceTemplate.count({
-        where: { funcionarioId: challenge.funcionarioId, revogadoEm: null },
-      });
+      let faceTemplateCount = 0;
+      try {
+        faceTemplateCount = await prisma.faceTemplate.count({
+          where: { funcionarioId: challenge.funcionarioId, revogadoEm: null },
+        });
+      } catch (error) {
+        if (!error || typeof error !== "object" || !("code" in error) ||
+          (error.code !== "P2021" && error.code !== "P2022")) {
+          throw error;
+        }
+        console.error("[face] Templates indisponíveis; login administrativo continuará apenas com TOTP.", {
+          code: error.code,
+        });
+      }
       if (faceTemplateCount > 0) {
         return NextResponse.json(await createLoginFaceChallenge(challenge.funcionarioId, ipHash), { status: 202 });
       }

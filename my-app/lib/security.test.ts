@@ -1,9 +1,36 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isSameOrigin } from "@/lib/security";
+import { hasExactOrigin, isSameOrigin } from "@/lib/security";
 
 describe("same-origin request validation", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+
+  describe("strict Origin validation for session lifecycle endpoints", () => {
+    it("requires an exact matching Origin and Host", () => {
+      const request = new Request("https://app.example/api/auth/heartbeat", {
+        method: "POST",
+        headers: { origin: "https://app.example", host: "app.example" },
+      });
+      expect(hasExactOrigin(request)).toBe(true);
+    });
+
+    it("rejects a missing Origin header", () => {
+      const request = new Request("https://app.example/api/auth/leave", { method: "POST" });
+      expect(hasExactOrigin(request)).toBe(false);
+    });
+
+    it.each<HeadersInit>([
+      { origin: "https://evil.example", host: "app.example" },
+      { origin: "https://app.example", host: "evil.example" },
+      { origin: "https://app.example/path", host: "app.example" },
+    ])("rejects mismatched Origin/Host headers: %o", (headers) => {
+      const request = new Request("https://app.example/api/auth/leave", {
+        method: "POST",
+        headers,
+      });
+      expect(hasExactOrigin(request)).toBe(false);
+    });
   });
 
   it("accepts a matching Origin and Host", () => {

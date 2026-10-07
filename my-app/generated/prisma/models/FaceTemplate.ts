@@ -42,10 +42,12 @@ export type FaceTemplateMinAggregateOutputType = {
   embeddingEncrypted: runtime.Bytes | null
   iv: runtime.Bytes | null
   tag: runtime.Bytes | null
+  modelVersion: string | null
   consentVersion: string | null
   consentAt: Date | null
   criadoPorId: number | null
   criadoEm: Date | null
+  atualizadoEm: Date | null
   revogadoEm: Date | null
 }
 
@@ -55,10 +57,12 @@ export type FaceTemplateMaxAggregateOutputType = {
   embeddingEncrypted: runtime.Bytes | null
   iv: runtime.Bytes | null
   tag: runtime.Bytes | null
+  modelVersion: string | null
   consentVersion: string | null
   consentAt: Date | null
   criadoPorId: number | null
   criadoEm: Date | null
+  atualizadoEm: Date | null
   revogadoEm: Date | null
 }
 
@@ -68,10 +72,12 @@ export type FaceTemplateCountAggregateOutputType = {
   embeddingEncrypted: number
   iv: number
   tag: number
+  modelVersion: number
   consentVersion: number
   consentAt: number
   criadoPorId: number
   criadoEm: number
+  atualizadoEm: number
   revogadoEm: number
   _all: number
 }
@@ -93,10 +99,12 @@ export type FaceTemplateMinAggregateInputType = {
   embeddingEncrypted?: true
   iv?: true
   tag?: true
+  modelVersion?: true
   consentVersion?: true
   consentAt?: true
   criadoPorId?: true
   criadoEm?: true
+  atualizadoEm?: true
   revogadoEm?: true
 }
 
@@ -106,10 +114,12 @@ export type FaceTemplateMaxAggregateInputType = {
   embeddingEncrypted?: true
   iv?: true
   tag?: true
+  modelVersion?: true
   consentVersion?: true
   consentAt?: true
   criadoPorId?: true
   criadoEm?: true
+  atualizadoEm?: true
   revogadoEm?: true
 }
 
@@ -119,10 +129,12 @@ export type FaceTemplateCountAggregateInputType = {
   embeddingEncrypted?: true
   iv?: true
   tag?: true
+  modelVersion?: true
   consentVersion?: true
   consentAt?: true
   criadoPorId?: true
   criadoEm?: true
+  atualizadoEm?: true
   revogadoEm?: true
   _all?: true
 }
@@ -219,10 +231,12 @@ export type FaceTemplateGroupByOutputType = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion: string
   consentVersion: string
   consentAt: Date
   criadoPorId: number
   criadoEm: Date
+  atualizadoEm: Date
   revogadoEm: Date | null
   _count: FaceTemplateCountAggregateOutputType | null
   _avg: FaceTemplateAvgAggregateOutputType | null
@@ -255,10 +269,12 @@ export type FaceTemplateWhereInput = {
   embeddingEncrypted?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
   iv?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
   tag?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
+  modelVersion?: Prisma.StringFilter<"FaceTemplate"> | string
   consentVersion?: Prisma.StringFilter<"FaceTemplate"> | string
   consentAt?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
   criadoPorId?: Prisma.IntFilter<"FaceTemplate"> | number
   criadoEm?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
+  atualizadoEm?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
   revogadoEm?: Prisma.DateTimeNullableFilter<"FaceTemplate"> | Date | string | null
   funcionario?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
   criadoPor?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
@@ -270,10 +286,12 @@ export type FaceTemplateOrderByWithRelationInput = {
   embeddingEncrypted?: Prisma.SortOrder
   iv?: Prisma.SortOrder
   tag?: Prisma.SortOrder
+  modelVersion?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   consentAt?: Prisma.SortOrder
   criadoPorId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   revogadoEm?: Prisma.SortOrderInput | Prisma.SortOrder
   funcionario?: Prisma.FuncionarioOrderByWithRelationInput
   criadoPor?: Prisma.FuncionarioOrderByWithRelationInput
@@ -289,10 +307,12 @@ export type FaceTemplateWhereUniqueInput = Prisma.AtLeast<{
   embeddingEncrypted?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
   iv?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
   tag?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
+  modelVersion?: Prisma.StringFilter<"FaceTemplate"> | string
   consentVersion?: Prisma.StringFilter<"FaceTemplate"> | string
   consentAt?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
   criadoPorId?: Prisma.IntFilter<"FaceTemplate"> | number
   criadoEm?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
+  atualizadoEm?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
   revogadoEm?: Prisma.DateTimeNullableFilter<"FaceTemplate"> | Date | string | null
   funcionario?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
   criadoPor?: Prisma.XOR<Prisma.FuncionarioScalarRelationFilter, Prisma.FuncionarioWhereInput>
@@ -304,10 +324,12 @@ export type FaceTemplateOrderByWithAggregationInput = {
   embeddingEncrypted?: Prisma.SortOrder
   iv?: Prisma.SortOrder
   tag?: Prisma.SortOrder
+  modelVersion?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   consentAt?: Prisma.SortOrder
   criadoPorId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   revogadoEm?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FaceTemplateCountOrderByAggregateInput
   _avg?: Prisma.FaceTemplateAvgOrderByAggregateInput
@@ -325,10 +347,12 @@ export type FaceTemplateScalarWhereWithAggregatesInput = {
   embeddingEncrypted?: Prisma.BytesWithAggregatesFilter<"FaceTemplate"> | runtime.Bytes
   iv?: Prisma.BytesWithAggregatesFilter<"FaceTemplate"> | runtime.Bytes
   tag?: Prisma.BytesWithAggregatesFilter<"FaceTemplate"> | runtime.Bytes
+  modelVersion?: Prisma.StringWithAggregatesFilter<"FaceTemplate"> | string
   consentVersion?: Prisma.StringWithAggregatesFilter<"FaceTemplate"> | string
   consentAt?: Prisma.DateTimeWithAggregatesFilter<"FaceTemplate"> | Date | string
   criadoPorId?: Prisma.IntWithAggregatesFilter<"FaceTemplate"> | number
   criadoEm?: Prisma.DateTimeWithAggregatesFilter<"FaceTemplate"> | Date | string
+  atualizadoEm?: Prisma.DateTimeWithAggregatesFilter<"FaceTemplate"> | Date | string
   revogadoEm?: Prisma.DateTimeNullableWithAggregatesFilter<"FaceTemplate"> | Date | string | null
 }
 
@@ -337,9 +361,11 @@ export type FaceTemplateCreateInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
   funcionario: Prisma.FuncionarioCreateNestedOneWithoutTemplatesFaciaisInput
   criadoPor: Prisma.FuncionarioCreateNestedOneWithoutTemplatesFaciaisCriadosInput
@@ -351,10 +377,12 @@ export type FaceTemplateUncheckedCreateInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoPorId: number
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
 }
 
@@ -363,9 +391,11 @@ export type FaceTemplateUpdateInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutTemplatesFaciaisNestedInput
   criadoPor?: Prisma.FuncionarioUpdateOneRequiredWithoutTemplatesFaciaisCriadosNestedInput
@@ -377,10 +407,12 @@ export type FaceTemplateUncheckedUpdateInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoPorId?: Prisma.IntFieldUpdateOperationsInput | number
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -390,10 +422,12 @@ export type FaceTemplateCreateManyInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoPorId: number
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
 }
 
@@ -402,9 +436,11 @@ export type FaceTemplateUpdateManyMutationInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -414,10 +450,12 @@ export type FaceTemplateUncheckedUpdateManyInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoPorId?: Prisma.IntFieldUpdateOperationsInput | number
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -443,10 +481,12 @@ export type FaceTemplateCountOrderByAggregateInput = {
   embeddingEncrypted?: Prisma.SortOrder
   iv?: Prisma.SortOrder
   tag?: Prisma.SortOrder
+  modelVersion?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   consentAt?: Prisma.SortOrder
   criadoPorId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   revogadoEm?: Prisma.SortOrder
 }
 
@@ -461,10 +501,12 @@ export type FaceTemplateMaxOrderByAggregateInput = {
   embeddingEncrypted?: Prisma.SortOrder
   iv?: Prisma.SortOrder
   tag?: Prisma.SortOrder
+  modelVersion?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   consentAt?: Prisma.SortOrder
   criadoPorId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   revogadoEm?: Prisma.SortOrder
 }
 
@@ -474,10 +516,12 @@ export type FaceTemplateMinOrderByAggregateInput = {
   embeddingEncrypted?: Prisma.SortOrder
   iv?: Prisma.SortOrder
   tag?: Prisma.SortOrder
+  modelVersion?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   consentAt?: Prisma.SortOrder
   criadoPorId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
+  atualizadoEm?: Prisma.SortOrder
   revogadoEm?: Prisma.SortOrder
 }
 
@@ -575,9 +619,11 @@ export type FaceTemplateCreateWithoutFuncionarioInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
   criadoPor: Prisma.FuncionarioCreateNestedOneWithoutTemplatesFaciaisCriadosInput
 }
@@ -587,10 +633,12 @@ export type FaceTemplateUncheckedCreateWithoutFuncionarioInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoPorId: number
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
 }
 
@@ -609,9 +657,11 @@ export type FaceTemplateCreateWithoutCriadoPorInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
   funcionario: Prisma.FuncionarioCreateNestedOneWithoutTemplatesFaciaisInput
 }
@@ -622,9 +672,11 @@ export type FaceTemplateUncheckedCreateWithoutCriadoPorInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
 }
 
@@ -663,10 +715,12 @@ export type FaceTemplateScalarWhereInput = {
   embeddingEncrypted?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
   iv?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
   tag?: Prisma.BytesFilter<"FaceTemplate"> | runtime.Bytes
+  modelVersion?: Prisma.StringFilter<"FaceTemplate"> | string
   consentVersion?: Prisma.StringFilter<"FaceTemplate"> | string
   consentAt?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
   criadoPorId?: Prisma.IntFilter<"FaceTemplate"> | number
   criadoEm?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
+  atualizadoEm?: Prisma.DateTimeFilter<"FaceTemplate"> | Date | string
   revogadoEm?: Prisma.DateTimeNullableFilter<"FaceTemplate"> | Date | string | null
 }
 
@@ -691,10 +745,12 @@ export type FaceTemplateCreateManyFuncionarioInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoPorId: number
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
 }
 
@@ -704,9 +760,11 @@ export type FaceTemplateCreateManyCriadoPorInput = {
   embeddingEncrypted: runtime.Bytes
   iv: runtime.Bytes
   tag: runtime.Bytes
+  modelVersion?: string
   consentVersion: string
   consentAt: Date | string
   criadoEm?: Date | string
+  atualizadoEm?: Date | string
   revogadoEm?: Date | string | null
 }
 
@@ -715,9 +773,11 @@ export type FaceTemplateUpdateWithoutFuncionarioInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   criadoPor?: Prisma.FuncionarioUpdateOneRequiredWithoutTemplatesFaciaisCriadosNestedInput
 }
@@ -727,10 +787,12 @@ export type FaceTemplateUncheckedUpdateWithoutFuncionarioInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoPorId?: Prisma.IntFieldUpdateOperationsInput | number
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -739,10 +801,12 @@ export type FaceTemplateUncheckedUpdateManyWithoutFuncionarioInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoPorId?: Prisma.IntFieldUpdateOperationsInput | number
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -751,9 +815,11 @@ export type FaceTemplateUpdateWithoutCriadoPorInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   funcionario?: Prisma.FuncionarioUpdateOneRequiredWithoutTemplatesFaciaisNestedInput
 }
@@ -764,9 +830,11 @@ export type FaceTemplateUncheckedUpdateWithoutCriadoPorInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -776,9 +844,11 @@ export type FaceTemplateUncheckedUpdateManyWithoutCriadoPorInput = {
   embeddingEncrypted?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   iv?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
   tag?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  modelVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   consentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revogadoEm?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -790,10 +860,12 @@ export type FaceTemplateSelect<ExtArgs extends runtime.Types.Extensions.Internal
   embeddingEncrypted?: boolean
   iv?: boolean
   tag?: boolean
+  modelVersion?: boolean
   consentVersion?: boolean
   consentAt?: boolean
   criadoPorId?: boolean
   criadoEm?: boolean
+  atualizadoEm?: boolean
   revogadoEm?: boolean
   funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
   criadoPor?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
@@ -807,14 +879,16 @@ export type FaceTemplateSelectScalar = {
   embeddingEncrypted?: boolean
   iv?: boolean
   tag?: boolean
+  modelVersion?: boolean
   consentVersion?: boolean
   consentAt?: boolean
   criadoPorId?: boolean
   criadoEm?: boolean
+  atualizadoEm?: boolean
   revogadoEm?: boolean
 }
 
-export type FaceTemplateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "funcionarioId" | "embeddingEncrypted" | "iv" | "tag" | "consentVersion" | "consentAt" | "criadoPorId" | "criadoEm" | "revogadoEm", ExtArgs["result"]["faceTemplate"]>
+export type FaceTemplateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "funcionarioId" | "embeddingEncrypted" | "iv" | "tag" | "modelVersion" | "consentVersion" | "consentAt" | "criadoPorId" | "criadoEm" | "atualizadoEm" | "revogadoEm", ExtArgs["result"]["faceTemplate"]>
 export type FaceTemplateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   funcionario?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
   criadoPor?: boolean | Prisma.FuncionarioDefaultArgs<ExtArgs>
@@ -832,10 +906,12 @@ export type $FaceTemplatePayload<ExtArgs extends runtime.Types.Extensions.Intern
     embeddingEncrypted: runtime.Bytes
     iv: runtime.Bytes
     tag: runtime.Bytes
+    modelVersion: string
     consentVersion: string
     consentAt: Date
     criadoPorId: number
     criadoEm: Date
+    atualizadoEm: Date
     revogadoEm: Date | null
   }, ExtArgs["result"]["faceTemplate"]>
   composites: {}
@@ -1213,10 +1289,12 @@ export interface FaceTemplateFieldRefs {
   readonly embeddingEncrypted: Prisma.FieldRef<"FaceTemplate", 'Bytes'>
   readonly iv: Prisma.FieldRef<"FaceTemplate", 'Bytes'>
   readonly tag: Prisma.FieldRef<"FaceTemplate", 'Bytes'>
+  readonly modelVersion: Prisma.FieldRef<"FaceTemplate", 'String'>
   readonly consentVersion: Prisma.FieldRef<"FaceTemplate", 'String'>
   readonly consentAt: Prisma.FieldRef<"FaceTemplate", 'DateTime'>
   readonly criadoPorId: Prisma.FieldRef<"FaceTemplate", 'Int'>
   readonly criadoEm: Prisma.FieldRef<"FaceTemplate", 'DateTime'>
+  readonly atualizadoEm: Prisma.FieldRef<"FaceTemplate", 'DateTime'>
   readonly revogadoEm: Prisma.FieldRef<"FaceTemplate", 'DateTime'>
 }
     

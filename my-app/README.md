@@ -140,17 +140,38 @@ npm run build
 
 > Nota: ao rodar `npx tsc --noEmit` antes de qualquer `next build` ou `next dev`, o TypeScript pode reportar um falso positivo de `LayoutProps` em `app/layout.tsx` porque os tipos gerados pelo Next ainda não existem em `.next/types/`. Rodar `npx next typegen` (ou abrir o app com `next dev` uma vez) antes da checagem resolve o problema sem afetar a aplicação.
 
-## Autenticacao por aparelho e rosto
+## Autenticacao facial local
 
-Usuarios do almoxarifado passam por senha, aparelho confiavel/WebAuthn e, depois, desafio facial emitido pelo servidor. A sessao somente e criada por `app/api/auth/login/face/verify/route.ts`; nenhum resultado de comparacao enviado pelo navegador e aceito.
+Cadastro presencial em `/admin/biometria`, restrito a admin e aos funcionarios admin/almoxarife. A captura ao vivo e processada no navegador pelo `@vladmandic/human` 3.3.6 e pelo modelo BecauseofAI MobileFace V3 (256 dimensoes); a biblioteca e os modelos sao servidos do proprio app em `public/models/human/`, sem CDN ou servico facial externo. Os assets MobileFace opcionais estao fixados no commit `a4bcf70ece5f57a53fb45984d76a9ca143206eca`; seus SHA-256 sao `B62D89D9E1401A2572E011E8691699F2432C1A6F56CDA0DAD7DDBDECACF1BBAB` (`mobileface.json`) e `403B53D95120C93C8417951B05D816197AA1794372B47E7629801156C701BE5C` (`mobileface.bin`). O total de detector, malha, iris, emocao e embedding local e aproximadamente 7,6 MiB, carregado sob demanda nas telas faciais. `public/models/human/NOTICE.txt` registra as licencas declaradas; confirme tambem os termos do modelo original e de seus dados de treinamento para o uso comercial pretendido.
 
-O servico facial e externo ao Next.js e deve expor `POST /v1/enroll`, recebendo `{ "captures": [data-uri, ...] }` e retornando `{ "embeddings": [[...], ...] }`, e `POST /v1/verify`, retornando somente `{ "livenessPassed": boolean, "matched": boolean }`. Use HTTPS entre os servicos, `FACE_SERVICE_TOKEN`, validacao de tipo/tamanho/dimensoes e memoria volatil para imagens.
+O admin seleciona o funcionario; nome e cracha permanecem visiveis durante o cadastro. Nao ha galeria nem botao de captura: tocar em **Iniciar cadastro** liga a camera e envia automaticamente o melhor vetor utilizavel. Substituir template existente sempre exige confirmacao. Por padrao, as duas caixas de confirmacao nao sao exibidas durante esta fase de teste. `FACE_ENROLL_REQUIRE_CONSENT=true` restaura o aviso/checkbox e a validacao correspondente no servidor. Sem consentimento coletado, as colunas existentes recebem `consentVersion=not-collected` e a data do cadastro; nao ha mudanca de schema. **TODO LGPD: o aviso de privacidade precisa voltar e ser revisado pelo juridico antes de qualquer uso com funcionarios reais.**
 
-O cadastro oferece captura manual por etapa e aceita uma foto da galeria somente para a primeira amostra frontal (JPG/PNG/WebP, ate 5 MB). A imagem e orientada pelo EXIF, redimensionada/compactada no navegador para respeitar o limite de 1 KB a 2 MB do endpoint e validada pela mesma deteccao de rosto, enquadramento e qualidade; movimentos laterais e piscada ainda exigem capturas novas da camera. As amostras permanecem apenas no estado da pagina e continuam sujeitas a validacao de consistencia e ao nonce do servidor.
+`NEXT_PUBLIC_FACE_REQUIRE_BLINK=false` e o padrao de teste para cadastro e login; defina `true` para exigir o desafio de vivacidade que o cliente ja executa. Com a opcao desligada, uma foto ou video reproduzido pode passar pelas verificacoes do navegador. Isso nao remove nem reduz a decisao de identidade do servidor: nonce de uso unico, validade do desafio, limite de tentativas, validacao do vetor, chave AES-GCM, versao do modelo e `FACE_MOBILEFACE_MATCH_THRESHOLD` continuam obrigatorios. Ainda assim, a piscada no cliente nao e prova criptografica de uma camera real.
 
-O fornecedor deve confirmar licenca comercial do modelo e fornecer PAD/liveness adequado. Pesos do InsightFace/ArcFace nao devem ser tratados como liberados para uso comercial sem verificacao da licenca. O backend falha fechado quando `FACE_SERVICE_URL` ou a chave de embeddings nao estao configuradas.
+Os limites de captura estao centralizados em `lib/facial/face-quality.ts` (`FACE_QUALITY_LIMITS`):
 
-Uma indisponibilidade, resposta invalida ou threshold `FACE_MATCH_THRESHOLD` vazio/negativo/nao finito e reportada como indisponibilidade tecnica (HTTP 503), sem consumir uma tentativa de identidade. O threshold predefinido permanece `0.42`; nao o ajuste sem medicao FAR/FRR do fornecedor. Para diagnosticar qual deploy esta servindo as telas de camera, consulte `GET /api/diagnostics/build` (retorna apenas os primeiros oito caracteres hexadecimais do commit da Vercel ou `local`).
+| Medida | Valor inicial |
+|---|---:|
+| Confianca minima Human | 0,45 |
+| Largura do rosto / quadro | 15% a 90% |
+| Centro do rosto / quadro | X: 15% a 85%; Y: 10% a 90% |
+| Yaw, pitch e roll | ±25° |
+| Nitidez minima | 5,5 |
+| Brilho medio | 30 a 235 |
+| Dois rostos | aceita o maior so se a area for pelo menos 1,5× a do segundo |
+| Olhos para selecionar/enviar quadro | EAR ≥ 0,22; o olho pode fechar durante a piscada exigida |
+| Amostragem | a cada 150 ms (aprox. 6,7 quadros/s) |
+| Rajada | 3 quadros validos ou ate 5; captura imediata se o primeiro pontuar ≥0,92 |
+| Tentativas automaticas de login | 3 por sessao de camera, no minimo 2 s entre tentativas |
+| Orientacao ao usuario | uma mensagem generica apos 3 s sem quadro valido |
+
+A nitidez e a media da diferenca absoluta de luminancia entre pixels vizinhos, depois de reduzir o quadro a 96×72; e um filtro simples contra borrado severo, nao uma metrica biometrica. Calibre `minimumSharpness` usando os valores do painel de diagnostico em aparelhos reais, incluindo cenas nítidas e borradas, sem selecionar o limite com base apenas em uma camera. Se houver duvida, deixe o limite baixo e registre o efeito nos dados de calibracao; nao use esta metrica para inferir identidade. Os pesos Human sao carregados sob demanda na pagina facial e mantidos em cache para tentativas seguintes.
+
+Os templates anteriores, inclusive `legacy-unknown`, sao incompativeis e falham fechado; cada funcionario precisa de novo cadastro. O template novo e um vetor MobileFace de 256 componentes normalizados, cifrado AES-256-GCM com IV aleatorio. A versao exata a configurar e `FACE_EMBEDDING_MODEL_VERSION=human-3.3.6-mobileface-v3-a4bcf70`; a chave continua em `FACE_EMBEDDING_ENCRYPTION_KEY` (32 bytes hex ou Base64).
+
+`FACE_LOGIN_ENABLED` habilita o fluxo por padrao (`true`); definir `false` esconde o botao e bloqueia as APIs de login facial, deixando o login por codigo/senha disponivel. `FACE_DIAGNOSTICS_ENABLED=true` permite que o admin autenticado veja distancias reais de uma captura contra templates compativeis na tela de cadastro. Nenhum vetor, imagem, nonce ou distancia biometrica e registrado em logs.
+
+O valor anterior `FACE_MATCH_THRESHOLD=0.42` era do descritor anterior e nao e reutilizado. `FACE_MOBILEFACE_MATCH_THRESHOLD` nao tem default: ate ser definido a partir de testes controlados com capturas reais, o servidor recusa autenticar/fazer verificacao de duplicidade (HTTP 503). O benchmark upstream publicado para MobileFace V3 informa 95,466% de acuracia LFW, mas nao fornece FAR/FRR aplicavel a este sistema. As medidas da base de demonstração nao substituem calibracao. Nao habilite login facial em producao ate avaliar distancias de mesma pessoa e pessoas diferentes em condicoes reais e escolher o ponto operacional. O TOTP continua sendo usado somente se estiver configurado; admin sem template pode entrar com cracha e senha. Para diagnosticar o deploy, consulte `GET /api/diagnostics/build`.
 
 ### Migration e rollback
 
@@ -162,21 +183,21 @@ npx prisma migrate deploy --config prisma7.config.ts
 npx prisma generate
 ```
 
-A migration `20261002120000_add_auth_e_facial` cria templates criptografados, desafios e tentativas. O rollback recomendado e restaurar o backup. Em janela de manutencao, apos confirmar impacto, as tabelas podem ser removidas com `DROP TABLE face_auth_attempts, liveness_challenges, face_templates`.
+A migration `20261002120000_add_auth_e_facial` cria templates criptografados, desafios e tentativas. Esta alteracao adiciona `20261007150000_face_template_version`, que cria `model_version` e `atualizado_em`; o SQL para aplicacao manual esta em `prisma/manual_sql/face_template_version.sql` e a migration Prisma correspondente em `prisma/migrations/20261007150000_face_template_version/migration.sql`. Aplique o SQL manualmente no banco `marcon_demo` pelo DBeaver, depois de backup e antes de publicar o codigo que seleciona essas colunas. Nao use `migrate dev`, `migrate reset` nem `db push`. O rollback recomendado e restaurar o backup; nao remova colunas/tabelas biometricas sem avaliar os templates existentes.
 
 ### Operacao segura e LGPD
 
-Gere `FACE_EMBEDDING_ENCRYPTION_KEY` com 32 bytes aleatorios, armazene-a em Secret Manager/KMS e nunca a versione. Para rotacionar, mantenha a chave antiga somente durante a migracao, recripte todos os templates, valide a contagem e remova a antiga. O limiar `0.42` e ponto de partida, nao garantia: FAR/FRR precisam ser medidos pelo fornecedor no ambiente real.
+Gere `FACE_EMBEDDING_ENCRYPTION_KEY` com 32 bytes aleatorios, armazene-a em Secret Manager/KMS e nunca a versione. Para rotacionar, mantenha a chave antiga somente durante a migracao, recripte todos os templates, valide a contagem e remova a antiga. O limiar `0.42` de login e mantido sem alteracao e e ponto de partida, nao garantia: FAR/FRR precisam ser medidos pelo fornecedor no ambiente real.
 
 A finalidade e autenticar funcionarios do almoxarifado. O dado sensivel e o embedding facial; fotos nao sao armazenadas. Templates ficam cifrados no MySQL, com acesso restrito, retencao enquanto o acesso for necessario e exclusao no desligamento ou revogacao. O termo deve registrar consentimento especifico, versao, data, coletor, finalidade, prazo e direito de revogacao. Riscos principais: falsos positivos/negativos, deepfake, falha de camera e comprometimento da chave. Controles: aparelho confiavel, WebAuthn, desafio ativo, nonce, rate limit, bloqueio, auditoria sem biometria e acesso emergencial auditado. RH/juridico deve aprovar a base legal e o RIPD antes da ativacao.
 
 ### Validacao manual
 
-1. Admin cria um aparelho, mostra o codigo de uso unico e conclui o pareamento no celular.
-2. Admin coleta 3 a 5 amostras com consentimento, frente/giro/iluminacao adequada; capturas escuras, borradas, cortadas ou com varios rostos devem ser rejeitadas pelo servico.
-3. Usuario entra com cracha e senha, confirma o aparelho, executa o desafio facial e chega ao Almoxarifado.
-4. Repita com foto de foto, outra pessoa, nonce expirado/reutilizado e aparelho revogado; todos devem falhar com mensagem generica.
-5. Admin concede acesso emergencial com justificativa e valide uso unico/expiracao.
-6. Desative o usuario e confirme exclusao dos templates, desafios e sessoes; usuario comum recebe 403 nas rotas administrativas e visitante 401.
+1. Admin seleciona o funcionario, confere nome e cracha presencialmente; se houver template, confirma a substituicao antes de iniciar a camera. Ative consentimento apenas com aviso revisado pelo juridico.
+2. Em aparelho com camera, inicie o cadastro e posicione o rosto com iluminacao suficiente. A captura melhor avaliada deve ser enviada e salva automaticamente. Se `NEXT_PUBLIC_FACE_REQUIRE_BLINK=true`, conclua a piscada. Verifique que o banco guarda apenas vetor cifrado e que recarregar a pagina nao exige nova captura.
+3. Almoxarife entra com cracha/senha, confirma o aparelho e, se habilitado, executa o desafio facial; admin sem template continua podendo entrar com cracha/senha; operador continua sem login facial; contas demo continuam no fluxo demo.
+4. Repita com outra pessoa, nonce expirado/reutilizado e aparelho revogado; todos devem falhar de forma segura.
+5. Com `FACE_DIAGNOSTICS_ENABLED=true`, admin verifica distancias de mesmo/diferente usuario em conjunto controlado. Nao habilite correspondencia facial em producao antes de medir FAR/FRR e escolher o limiar operacional.
+6. Admin concede acesso emergencial com justificativa e valide uso unico/expiracao. Desative um usuario e confirme exclusao de templates, desafios e sessoes; usuario comum recebe 403 nas rotas administrativas e visitante 401.
 
-Pendencias de producao: validar PAD certificado contra deepfakes, medir FAR/FRR com dados reais, manter contingencia quando a camera falhar e manter TOTP habilitado para o admin. WebAuthn local e vinculo do aparelho, nao prova de identidade facial.
+Pendencias de producao: medir FAR/FRR com dados reais, validar PAD contra deepfakes, testar a captura em aparelhos reais e escolher um limiar seguro antes de definir `FACE_MOBILEFACE_MATCH_THRESHOLD`. Qualidade mais permissiva e piscada desligada podem ampliar variacao na distribuicao de distancias e aumentar falsas recusas ou aceitacoes; os dados coletados em modo de teste precisam ser identificados com os limites e flags usados e nao devem ser misturados sem controle. Nenhum resultado em celular e afirmado sem teste fisico.

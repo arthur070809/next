@@ -24,6 +24,7 @@ import {
 } from "@/lib/login-test-mode";
 import { isDemoLoginEnabledForBadge, maskDemoBadge } from "@/lib/demo-mode";
 import { getLoginAttemptPolicy } from "@/lib/login-attempt-policy";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { createSecret, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
 
@@ -151,7 +152,8 @@ export async function POST(request: Request) {
     }
 
     if (credential === "face") {
-      if (funcionario.papel !== PapelFuncionario.ADMIN && funcionario.papel !== PapelFuncionario.OPERADOR) {
+      if (!isFaceLoginEnabled()) return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
+      if (funcionario.papel !== PapelFuncionario.ADMIN) {
         return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
       }
       const faceTemplateCount = await prisma.faceTemplate.count({
@@ -170,13 +172,9 @@ export async function POST(request: Request) {
       const faceTemplateCount = await prisma.faceTemplate.count({
         where: { funcionarioId: funcionario.id, revogadoEm: null },
       });
-      if (faceTemplateCount === 0) {
-        return NextResponse.json(
-          { error: "O administrador precisa cadastrar a biometria facial ou habilitar o TOTP antes de entrar." },
-          { status: 503 },
-        );
+      if (faceTemplateCount > 0) {
+        return NextResponse.json(await createLoginFaceChallenge(funcionario.id, ipHash), { status: 202 });
       }
-      return NextResponse.json(await createLoginFaceChallenge(funcionario.id, ipHash), { status: 202 });
     }
 
     if (funcionario.papel === PapelFuncionario.ALMOXARIFE) {
@@ -248,6 +246,13 @@ export async function POST(request: Request) {
     return session ?? invalidCode();
   } catch (error) {
     if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
+    if (error && typeof error === "object" && "code" in error && (error.code === "P2021" || error.code === "P2022")) {
+      console.error("[face] Login indisponível: aplique a migration de templates faciais.", { code: error.code });
+      return NextResponse.json(
+        { error: "O login está temporariamente indisponível. A configuração facial do banco precisa de atualização." },
+        { status: 503 },
+      );
+    }
     const errorId = randomUUID();
     console.error("Falha no login", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return NextResponse.json({ error: "Não foi possível concluir o login.", errorId }, { status: 500 });

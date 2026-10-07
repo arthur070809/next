@@ -2018,6 +2018,9 @@ export const SessaoScalarFieldEnum = {
   id: 'id',
   token: 'token',
   expiresAt: 'expiresAt',
+  ultimoSinalEm: 'ultimoSinalEm',
+  saidaEm: 'saidaEm',
+  revogadaEm: 'revogadaEm',
   accessArea: 'accessArea',
   trustedDeviceId: 'trustedDeviceId',
   funcionarioId: 'funcionarioId',
@@ -2257,10 +2260,12 @@ export const FaceTemplateScalarFieldEnum = {
   embeddingEncrypted: 'embeddingEncrypted',
   iv: 'iv',
   tag: 'tag',
+  modelVersion: 'modelVersion',
   consentVersion: 'consentVersion',
   consentAt: 'consentAt',
   criadoPorId: 'criadoPorId',
   criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm',
   revogadoEm: 'revogadoEm'
 } as const
 
@@ -2514,6 +2519,7 @@ export type EmergencyAccessGrantOrderByRelevanceFieldEnum = (typeof EmergencyAcc
 
 export const FaceTemplateOrderByRelevanceFieldEnum = {
   id: 'id',
+  modelVersion: 'modelVersion',
   consentVersion: 'consentVersion'
 } as const
 

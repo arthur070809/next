@@ -9,11 +9,25 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookieName)?.value;
 
+  let failedToRevoke = false;
   if (token) {
-    await prisma.sessao.deleteMany({ where: { token } });
+    try {
+      await prisma.sessao.updateMany({
+        where: { token, revogadaEm: null },
+        data: { revogadaEm: new Date() },
+      });
+    } catch (error) {
+      failedToRevoke = true;
+      console.error("[auth] Falha ao revogar sessão durante logout.", {
+        errorName: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
   }
 
-  const response = NextResponse.json({ message: "Sessão encerrada." });
+  const response = NextResponse.json(
+    { error: failedToRevoke ? "Não foi possível revogar a sessão no servidor." : undefined, message: "Sessão encerrada." },
+    { status: failedToRevoke ? 503 : 200, headers: { "Cache-Control": "no-store" } },
+  );
   response.cookies.set(sessionCookieName, "", {
     httpOnly: true,
     expires: new Date(0),
