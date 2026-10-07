@@ -2260,10 +2260,12 @@ export const FaceTemplateScalarFieldEnum = {
   embeddingEncrypted: 'embeddingEncrypted',
   iv: 'iv',
   tag: 'tag',
+  modelVersion: 'modelVersion',
   consentVersion: 'consentVersion',
   consentAt: 'consentAt',
   criadoPorId: 'criadoPorId',
   criadoEm: 'criadoEm',
+  atualizadoEm: 'atualizadoEm',
   revogadoEm: 'revogadoEm'
 } as const
 
@@ -2517,6 +2519,7 @@ export type EmergencyAccessGrantOrderByRelevanceFieldEnum = (typeof EmergencyAcc
 
 export const FaceTemplateOrderByRelevanceFieldEnum = {
   id: 'id',
+  modelVersion: 'modelVersion',
   consentVersion: 'consentVersion'
 } as const
 

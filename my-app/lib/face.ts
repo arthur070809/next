@@ -2,11 +2,13 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 import {
   faceEnrollmentConsistencyDistance,
   faceEnrollmentDuplicateDistance,
+  faceEnrollmentBurstSize,
   faceMatchThresholdDefault,
 } from "./facial/config";
 
 export { faceConsentVersion } from "./face-consent";
 export {
+  faceEnrollmentBurstSize,
   faceEnrollmentConsistencyDistance,
   faceEnrollmentDuplicateDistance,
   faceMatchThresholdDefault,
@@ -26,6 +28,39 @@ export class FaceServiceUnavailableError extends Error {
   }
 }
 
+export class FaceEncryptionKeyUnavailableError extends Error {
+  constructor() {
+    super("FACE_EMBEDDING_ENCRYPTION_KEY is unavailable or invalid.");
+    this.name = "FaceEncryptionKeyUnavailableError";
+  }
+}
+
+export function assertFaceTemplateConfiguration() {
+  faceEncryptionKey();
+  return getFaceEmbeddingModelVersion();
+}
+
+export function getFaceEmbeddingModelVersion(value = process.env.FACE_EMBEDDING_MODEL_VERSION) {
+  const version = value?.trim();
+  if (!version || version.length > 80 || !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(version)) {
+    throw new FaceServiceUnavailableError();
+  }
+  return version;
+}
+
+export function areFaceTemplateVersionsCompatible(
+  versions: string[],
+  configuredVersion = process.env.FACE_EMBEDDING_MODEL_VERSION,
+) {
+  if (versions.length === 0 || new Set(versions).size !== 1) return false;
+  if (versions[0] === "legacy-unknown") return true;
+  try {
+    return versions[0] === getFaceEmbeddingModelVersion(configuredVersion);
+  } catch {
+    return false;
+  }
+}
+
 export function getFaceMatchThreshold(value = process.env.FACE_MATCH_THRESHOLD) {
   if (value === undefined) return faceMatchThresholdDefault;
   const threshold = Number(value.trim());
@@ -33,6 +68,13 @@ export function getFaceMatchThreshold(value = process.env.FACE_MATCH_THRESHOLD) 
     throw new FaceServiceUnavailableError();
   }
   return threshold;
+}
+
+export function getFaceIdentifyMinMargin(value = process.env.FACE_IDENTIFY_MIN_MARGIN) {
+  if (value === undefined) return 0.08;
+  const margin = Number(value.trim());
+  if (!value.trim() || !Number.isFinite(margin) || margin < 0) throw new FaceServiceUnavailableError();
+  return margin;
 }
 
 export class FaceEnrollmentVerificationError extends Error {
@@ -47,9 +89,9 @@ export class FaceEnrollmentVerificationError extends Error {
 
 function faceEncryptionKey() {
   const raw = process.env.FACE_EMBEDDING_ENCRYPTION_KEY;
-  if (!raw) throw new Error("FACE_EMBEDDING_ENCRYPTION_KEY is not configured.");
+  if (!raw) throw new FaceEncryptionKeyUnavailableError();
   const key = /^[0-9a-fA-F]{64}$/.test(raw) ? Buffer.from(raw, "hex") : Buffer.from(raw, "base64");
-  if (key.length !== 32) throw new Error("FACE_EMBEDDING_ENCRYPTION_KEY must decode to 32 bytes.");
+  if (key.length !== 32) throw new FaceEncryptionKeyUnavailableError();
   return key;
 }
 
@@ -97,6 +139,10 @@ function validateCapture(value: unknown) {
   return value;
 }
 
+export function validateFaceCapture(value: unknown) {
+  return validateCapture(value);
+}
+
 async function callFaceService<T>(path: string, body: Record<string, unknown>) {
   try {
     const response = await fetch(`${serviceUrl()}${path}`, {
@@ -125,13 +171,13 @@ function enrollmentVerificationMessage(code: string | undefined, reason: string 
     case "BLUR":
     case "LOW_SHARPNESS": return { code: "FACE_BLUR", message: "Imagem sem nitidez suficiente." };
     case "LIVENESS_FAILED": return { code: "FACE_LIVENESS_FAILED", message: "Não foi possível confirmar a prova de vida." };
-    case "INCONSISTENT_SAMPLES": return { code: "FACE_INCONSISTENT_SAMPLES", message: "As capturas ficaram diferentes. Tente novamente." };
+    case "INCONSISTENT_SAMPLES": return { code: "FACE_CAPTURE_RETRY", message: "Mantenha apenas seu rosto diante da câmera e tente novamente." };
     default: return reason === "no_face" ? { code: "FACE_NO_FACE", message: "Nenhum rosto detectado." } : { code: "FACE_VERIFICATION_FAILED", message: "Não foi possível processar as capturas. Tente novamente." };
   }
 }
 
 export async function enrollFaceSamples(samples: unknown[], options: { nonce?: string } = {}) {
-  if (samples.length < 3 || samples.length > 5) throw new Error("Enrollment requires 3 to 5 captures.");
+  if (samples.length < faceEnrollmentBurstSize || samples.length > 8) throw new Error("Enrollment requires 5 to 8 captures.");
   const captures = samples.map(validateCapture);
   const result = await callFaceService<FaceServiceEmbeddingResponse>("/v1/enroll", { captures, nonce: options.nonce });
   if (typeof result.code !== "undefined" && typeof result.code !== "string") throw new FaceServiceUnavailableError();
@@ -188,6 +234,19 @@ export function faceEmbeddingDistance(first: number[], second: number[]) {
     return Number.POSITIVE_INFINITY;
   }
   return Math.sqrt(first.reduce((sum, value, index) => sum + (value - second[index]) ** 2, 0));
+}
+
+export function isFaceEmbeddingMatch(distance: number, threshold: number) {
+  return Number.isFinite(distance) && Number.isFinite(threshold) && threshold >= 0 && distance < threshold;
+}
+
+export function bestFaceMatchPerEmployee(candidates: Array<{ funcionarioId: number; cracha: string; distance: number }>) {
+  const bestByEmployee = new Map<number, { funcionarioId: number; cracha: string; distance: number }>();
+  for (const candidate of candidates) {
+    const current = bestByEmployee.get(candidate.funcionarioId);
+    if (!current || candidate.distance < current.distance) bestByEmployee.set(candidate.funcionarioId, candidate);
+  }
+  return [...bestByEmployee.values()].sort((first, second) => first.distance - second.distance);
 }
 
 export type EnrollmentEmbeddingAnalysis = {
@@ -248,6 +307,28 @@ export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentE
   }
 
   return { consistent: false, distances, discardedOutlier: false, acceptedEmbeddings: [] };
+}
+
+export function aggregateEnrollmentEmbeddings(embeddings: number[][]) {
+  const analysis = analyzeEnrollmentEmbeddings(embeddings);
+  if (!analysis.consistent) return { ...analysis, embedding: null };
+
+  const dimension = analysis.acceptedEmbeddings[0].length;
+  const mean = Array.from({ length: dimension }, (_, index) =>
+    analysis.acceptedEmbeddings.reduce((sum, embedding) => sum + embedding[index], 0)
+      / analysis.acceptedEmbeddings.length,
+  );
+  const norm = Math.hypot(...mean);
+  if (!Number.isFinite(norm) || norm <= 1e-12) {
+    return {
+      ...analysis,
+      consistent: false,
+      reason: "ZERO_NORM" as const,
+      acceptedEmbeddings: [],
+      embedding: null,
+    };
+  }
+  return { ...analysis, embedding: mean.map((value) => value / norm) };
 }
 
 export function areEnrollmentEmbeddingsConsistent(embeddings: number[][]) {

@@ -457,10 +457,12 @@ model FaceTemplate {
   embeddingEncrypted Bytes
   iv                 Bytes
   tag                Bytes
+  modelVersion       String      @default("legacy-unknown") @db.VarChar(80) @map("model_version")
   consentVersion     String      @db.VarChar(40)
   consentAt          DateTime
   criadoPorId        Int
   criadoEm           DateTime    @default(now())
+  atualizadoEm       DateTime    @default(now()) @updatedAt @map("atualizado_em")
   revogadoEm         DateTime?
   funcionario        Funcionario @relation("FaceTemplateSubject", fields: [funcionarioId], references: [id], onDelete: Cascade)
   criadoPor          Funcionario @relation("FaceTemplateCreator", fields: [criadoPorId], references: [id], onDelete: Restrict)

@@ -5,6 +5,8 @@ import {
   facePhotoMaxFileBytes,
   facePhotoMinDataUrlBytes,
   encodeFacePhoto,
+  encodeFaceEnrollmentFrame,
+  faceEnrollmentFrameMaxBytes,
   normalizeFacePhoto,
   validateFacePhoto,
 } from "./photo";
@@ -100,5 +102,23 @@ describe("facial photo input", () => {
     const withinBounds = makeDependencies({ encodedBytes: facePhotoMinDataUrlBytes });
     expect(encodeFacePhoto({} as CanvasImageSource, 1280, 720, withinBounds.dependencies.createCanvas))
       .toMatch(/^data:image\/jpeg;base64,/);
+  });
+
+  it("keeps each automatic enrollment frame under the serverless payload budget", () => {
+    const withinBounds = makeDependencies({ encodedBytes: faceEnrollmentFrameMaxBytes });
+    expect(encodeFaceEnrollmentFrame(
+      {} as CanvasImageSource,
+      1280,
+      720,
+      withinBounds.dependencies.createCanvas,
+    )).toMatch(/^data:image\/jpeg;base64,/);
+
+    const tooLarge = makeDependencies({ encodedBytes: faceEnrollmentFrameMaxBytes + 1 });
+    expect(() => encodeFaceEnrollmentFrame(
+      {} as CanvasImageSource,
+      1280,
+      720,
+      tooLarge.dependencies.createCanvas,
+    )).toThrow("continua muito grande");
   });
 });

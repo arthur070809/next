@@ -1,6 +1,7 @@
 export const facePhotoMaxFileBytes = 5 * 1024 * 1024;
 export const facePhotoMinDataUrlBytes = 1024;
 export const facePhotoMaxDataUrlBytes = 2 * 1024 * 1024;
+export const faceEnrollmentFrameMaxBytes = 350 * 1024;
 export const facePhotoMaxDimension = 1280;
 const acceptedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -56,6 +57,7 @@ export function encodeFacePhoto(
   sourceWidth: number,
   sourceHeight: number,
   createCanvas: () => FaceCanvas = () => document.createElement("canvas"),
+  maxBytes = facePhotoMaxDataUrlBytes,
 ) {
   if (!sourceWidth || !sourceHeight) throw new Error("A captura não contém dimensões válidas.");
   let scale = Math.min(1, facePhotoMaxDimension / Math.max(sourceWidth, sourceHeight));
@@ -71,11 +73,20 @@ export function encodeFacePhoto(
     for (const quality of [0.9, 0.78, 0.66]) {
       const dataUrl = canvas.toDataURL("image/jpeg", quality);
       const bytes = estimatedBase64Bytes(dataUrl);
-      if (bytes >= facePhotoMinDataUrlBytes && bytes <= facePhotoMaxDataUrlBytes) return dataUrl;
+      if (bytes >= facePhotoMinDataUrlBytes && bytes <= maxBytes) return dataUrl;
       if (bytes < facePhotoMinDataUrlBytes) undersized = true;
     }
     scale *= 0.85;
   }
   if (undersized) throw new Error("A imagem ficou pequena demais para validar. Escolha outra foto.");
   throw new Error("A imagem continua muito grande após a compactação. Escolha outra foto.");
+}
+
+export function encodeFaceEnrollmentFrame(
+  source: CanvasImageSource,
+  sourceWidth: number,
+  sourceHeight: number,
+  createCanvas: () => FaceCanvas = () => document.createElement("canvas"),
+) {
+  return encodeFacePhoto(source, sourceWidth, sourceHeight, createCanvas, faceEnrollmentFrameMaxBytes);
 }

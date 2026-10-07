@@ -3,6 +3,9 @@
 // data from that provider justifies a measured adjustment. Applied to median distance.
 export const faceEnrollmentConsistencyDistance = 0.35;
 export const faceEnrollmentDuplicateDistance = 0.42;
+export const faceEnrollmentBurstSize = 5;
+export const faceEnrollmentMaximumBurstSize = 8;
+export const faceEnrollmentFrameIntervalMs = 160;
 
 // Operational starting point documented in README.md; login remains fail-closed
 // and the biometric provider must calibrate FAR/FRR before production use.
