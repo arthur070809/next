@@ -140,7 +140,7 @@ export default function PortalShell({
       }
     };
     const onPageHide = (event: PageTransitionEvent) => {
-      if (!shouldSendOperatorPagehideLogout("operador", scannerActive(), event.persisted)) return;
+      if (!shouldSendOperatorPagehideLogout("operador", scannerActive(), event.persisted, readHiddenAt(), Date.now())) return;
       if (typeof navigator.sendBeacon === "function") {
         navigator.sendBeacon("/api/auth/logout", new Blob([], { type: "text/plain" }));
       }
