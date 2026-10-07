@@ -165,9 +165,9 @@ export default function PortalShell({
   }, [isOperator, router]);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900" data-shell>
+    <div className="min-h-dvh bg-slate-100 text-slate-900" data-shell>
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform duration-200 ease-out lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed left-0 top-0 z-30 flex h-dvh w-72 flex-col overflow-hidden border-r border-slate-800 bg-slate-950 px-5 py-6 text-white transition-transform duration-200 ease-out lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between gap-4">
           <Link href={homeHref} className="flex items-center gap-3">
@@ -196,7 +196,7 @@ export default function PortalShell({
 
         <nav
           aria-label={isAdmin ? "Navegação administrativa" : isOperator ? "Navegação do operador" : "Navegação do almoxarifado"}
-          className="mt-8 space-y-1"
+          className="mt-8 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain"
         >
           {menu.map((item) => {
             const active = item.href === homeHref ? pathname === item.href : pathname.startsWith(item.href);
@@ -231,8 +231,8 @@ export default function PortalShell({
         />
       )}
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl sm:px-8">
+      <div className="min-w-0 lg:pl-72">
+        <header className="border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl sm:px-8">
           <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3">
             <button
               type="button"
