@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type {
   ClasseRessuprimento,
   SugestaoRessuprimento,
 } from "@/lib/ressuprimento/analise";
 import { ordenarPorDeficitRessuprimento } from "@/lib/ressuprimento/analise";
 import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
+import { MAX_STOCK_INPUT } from "@/lib/stock-units";
 
 const classes: Array<{ value: ClasseRessuprimento | "TODAS"; label: string }> = [
   { value: "TODAS", label: "Todas as classes" },
@@ -36,6 +38,80 @@ function coberturaTexto(dias: number | null): string {
   return `${dias.toFixed(1)} dias`;
 }
 
+function PontoAtualEditor({
+  item,
+}: {
+  item: SugestaoRessuprimento;
+}) {
+  const router = useRouter();
+  const [valor, setValor] = useState(item.pontoAtual === null ? "" : String(item.pontoAtual));
+  const [salvando, setSalvando] = useState(false);
+  const [mensagem, setMensagem] = useState<{ tipo: "erro" | "sucesso"; texto: string } | null>(null);
+
+  async function salvar(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const pontoAtual = Number(valor);
+    if (!valor.trim() || !Number.isInteger(pontoAtual) || pontoAtual < 0 || pontoAtual > MAX_STOCK_INPUT) {
+      setMensagem({ tipo: "erro", texto: `Informe um inteiro entre 0 e ${MAX_STOCK_INPUT.toLocaleString("pt-BR")}.` });
+      return;
+    }
+
+    setSalvando(true);
+    setMensagem(null);
+    try {
+      const response = await fetch("/api/admin/ressuprimento", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, pontoAtual }),
+      });
+      const body = await response.json() as { error?: string };
+      if (!response.ok) {
+        setMensagem({ tipo: "erro", texto: body.error ?? "Não foi possível salvar o ponto atual." });
+        return;
+      }
+      setValor(String(pontoAtual));
+      setMensagem({ tipo: "sucesso", texto: "Ponto atual salvo." });
+      router.refresh();
+    } catch {
+      setMensagem({ tipo: "erro", texto: "Não foi possível salvar o ponto atual. Verifique sua conexão e tente novamente." });
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  const idMensagem = `ponto-atual-feedback-${item.id}`;
+  return <form onSubmit={salvar} className="flex min-w-40 flex-col gap-2">
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        min={0}
+        max={MAX_STOCK_INPUT}
+        step={1}
+        required
+        value={valor}
+        onChange={(event) => setValor(event.target.value)}
+        aria-label={`Ponto atual para ${item.nome}`}
+        aria-describedby={mensagem ? idMensagem : undefined}
+        className="min-h-10 w-24 rounded-md border border-slate-300 bg-white px-2 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
+      />
+      <button
+        type="submit"
+        disabled={salvando}
+        className="min-h-10 rounded-md bg-royal px-3 py-2 font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
+      >
+        {salvando ? "Salvando…" : "Salvar"}
+      </button>
+    </div>
+    {mensagem && <p
+      id={idMensagem}
+      role={mensagem.tipo === "erro" ? "alert" : "status"}
+      className={mensagem.tipo === "erro" ? "text-xs text-red-700" : "text-xs text-emerald-700"}
+    >
+      {mensagem.texto}
+    </p>}
+  </form>;
+}
+
 export default function RessuprimentoTabela({
   sugestoes,
   fonte,
@@ -44,7 +120,6 @@ export default function RessuprimentoTabela({
   fonte: "Dados reais" | "Dados simulados";
 }) {
   const [classeFiltro, setClasseFiltro] = useState<ClasseRessuprimento | "TODAS">("TODAS");
-  const [previsualizando, setPrevisualizando] = useState<string | null>(null);
   const filtradas = useMemo(() => ordenarPorDeficitRessuprimento(sugestoes
     .filter((item) => classeFiltro === "TODAS" || item.classe === classeFiltro)), [sugestoes, classeFiltro]);
   const itensNoPonto = useMemo(() => ordenarPorDeficitRessuprimento(sugestoes
@@ -128,12 +203,12 @@ export default function RessuprimentoTabela({
       <table className="w-full min-w-[900px] border-collapse text-left text-sm">
         <caption className="sr-only">Ressuprimento sugerido por item, ordenado pelo maior déficit em relação ao ponto atual</caption>
         <thead className="bg-slate-50 text-xs uppercase text-slate-600">
-          <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Ponto sugerido", "Classe", "Confiança", "Ação"].map((heading) =>
+          <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Classe"].map((heading) =>
             <th key={heading} scope="col" className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr>
         </thead>
         <tbody>
           {filtradas.length === 0
-            ? <tr><td colSpan={10} className="px-4 py-6 text-center text-sm text-slate-600">
+            ? <tr><td colSpan={7} className="px-4 py-6 text-center text-sm text-slate-600">
               {sugestoes.length === 0 ? "Nenhum item precisa de ressuprimento" : "Nenhum item corresponde ao filtro."}
             </td></tr>
             : filtradas.map((item) => <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
@@ -141,26 +216,12 @@ export default function RessuprimentoTabela({
             <td className="px-4 py-3">{item.estoque}</td>
             <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
             <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>
-            <td className="px-4 py-3">{item.pontoAtual ?? "Não definido"}</td>
+            <td className="px-4 py-3"><PontoAtualEditor key={`${item.id}-${item.pontoAtual ?? "unset"}`} item={item} /></td>
             <td className="px-4 py-3">{item.quantidadeSugerida ?? "Não definido"}</td>
-            <td className="px-4 py-3">{item.pontoSugerido ?? "Sem dados"}</td>
             <td className="px-4 py-3">
               <span className="inline-block rounded-md border border-slate-300 px-2 py-1" style={{ borderLeftColor: classeCor[item.classe], borderLeftWidth: 4 }}>
                 {classeTexto[item.classe]}
               </span>
-            </td>
-            <td className="px-4 py-3">{item.confianca === "BAIXA" ? "Baixa" : "Adequada"}</td>
-            <td className="px-4 py-3">
-              <button
-                type="button"
-                onClick={() => setPrevisualizando(item.id)}
-                className="min-h-10 rounded-md border border-slate-300 px-3 py-2 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
-              >
-                Aceitar sugestão (prévia)
-              </button>
-              {previsualizando === item.id && <p className="mt-2 max-w-52 text-xs text-slate-700">
-                Prévia: o alerta passaria a usar {item.pontoSugerido ?? "um valor ainda indisponível"}. Nada foi gravado.
-              </p>}
             </td>
           </tr>)}
         </tbody>
