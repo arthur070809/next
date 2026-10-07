@@ -1,5 +1,6 @@
 export type CameraTrackLike = Pick<MediaStreamTrack, "stop">;
 export type CameraStreamLike = { getTracks(): CameraTrackLike[] };
+export const SCANNER_SUCCESS_FEEDBACK_MS = 650;
 
 export const scannerVideoConstraints: MediaTrackConstraints = {
   facingMode: { ideal: "environment" },
@@ -72,6 +73,13 @@ export function shouldAcceptScan(
   return !lastScan || lastScan.value !== value || now - lastScan.at >= debounceMs;
 }
 
+export function isSuccessfulScannerFeedback(message: string): boolean {
+  return message.startsWith("Item conferido")
+    || message.includes("já foi conferido")
+    || message.startsWith("Item encontrado:")
+    || (message.startsWith("Código ") && message.includes(" não cadastrado."));
+}
+
 export function stopCameraStream(stream: CameraStreamLike | null): void {
   stream?.getTracks().forEach((track) => track.stop());
 }
@@ -96,5 +104,47 @@ export function createCameraLease() {
       stopCameraStream(ownedStream);
       return ownedStream;
     },
+  };
+}
+
+export function createScannerSession(
+  video: { srcObject: unknown },
+  lease: ReturnType<typeof createCameraLease>,
+  setActive: (active: boolean) => void,
+  onClose: () => void,
+) {
+  let scanner: { stop(): void } | null = null;
+  let closeTimer: ReturnType<typeof setTimeout> | null = null;
+  let successful = false;
+  let closed = false;
+
+  const close = (notify: boolean) => {
+    if (closed) return;
+    closed = true;
+    if (closeTimer !== null) clearTimeout(closeTimer);
+    closeTimer = null;
+    scanner?.stop();
+    scanner = null;
+    const stream = lease.close();
+    if (video.srcObject === stream) video.srcObject = null;
+    setActive(false);
+    if (notify) onClose();
+  };
+
+  return {
+    setScanner(next: { stop(): void }) {
+      if (closed) next.stop();
+      else scanner = next;
+    },
+    completeSuccess(message: string): boolean {
+      if (closed || successful || !isSuccessfulScannerFeedback(message)) return false;
+      successful = true;
+      closeTimer = setTimeout(() => close(true), SCANNER_SUCCESS_FEEDBACK_MS);
+      return true;
+    },
+    isClosed: () => closed,
+    hasSucceeded: () => successful,
+    close: () => close(true),
+    dispose: () => close(false),
   };
 }

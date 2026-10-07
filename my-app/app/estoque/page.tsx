@@ -100,7 +100,6 @@ export default function EstoquePage() {
     }
     setErro("");
     setMensagem("");
-    setCameraAberta(false);
     const result = localizarItemEstoquePorCodigo(parsed.codigo, itens);
     if (result.type === "ambiguous") {
       setQrMatchedItem(null);

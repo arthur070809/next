@@ -66,17 +66,11 @@ export default function ChecklistRequisicaoPage() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [cameraAberta, setCameraAberta] = useState(false);
-  const [lerEmSequencia, setLerEmSequencia] = useState(true);
   const [finalizando, setFinalizando] = useState(false);
   const [finalizado, setFinalizado] = useState<NonNullable<FinalizeResponse["resumo"]> | null>(null);
   const quantidadeRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const ultimoCodigoRef = useRef<{ codigo: string; quando: number } | null>(null);
-  const sequenceRef = useRef(lerEmSequencia);
   const finalizationInFlight = useRef(false);
-
-  useEffect(() => {
-    sequenceRef.current = lerEmSequencia;
-  }, [lerEmSequencia]);
 
   useEffect(() => {
     let active = true;
@@ -175,11 +169,7 @@ export default function ChecklistRequisicaoPage() {
       setErro(feedback);
       return feedback;
     }
-    const feedback = await conferirCodigo(raw, "QR");
-    if (!sequenceRef.current && (feedback.startsWith("Item conferido") || feedback.includes("já foi conferido"))) {
-      setCameraAberta(false);
-    }
-    return feedback;
+    return conferirCodigo(raw, "QR");
   }, [conferirCodigo]);
 
   async function submitManual(event: FormEvent<HTMLFormElement>) {
@@ -303,10 +293,6 @@ export default function ChecklistRequisicaoPage() {
           />
           <button type="submit" disabled={!codigoManual.trim() || !requisicaoAtiva} className="min-h-11 rounded-lg border border-slate-300 px-5 py-2 font-semibold text-slate-800 disabled:opacity-50">Confirmar código</button>
         </form>
-        <label className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-          <input type="checkbox" checked={lerEmSequencia} onChange={(event) => setLerEmSequencia(event.target.checked)} disabled={!requisicaoAtiva} className="h-4 w-4 accent-royal" />
-          Ler em sequência (manter câmera aberta)
-        </label>
         {erro && <p role="alert" aria-live="assertive" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{erro}</p>}
         {mensagem && <p role="status" aria-live="polite" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{mensagem}</p>}
       </section>
