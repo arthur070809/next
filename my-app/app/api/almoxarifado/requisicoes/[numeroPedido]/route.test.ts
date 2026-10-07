@@ -99,15 +99,26 @@ describe("atomic request claiming", () => {
         criadoEm: new Date("2026-10-01T12:00:00Z"),
         solicitante: { nome: "Operador" },
         atendente: { id: stockkeeper.id, nome: "Almoxarife" },
-        itens: [{
-          id: "req-item-1",
-          itemId: "item-1",
-          unidadeMedida: "UN",
-          quantidade: 2,
-          descricao: "[[setor:v1:setor2]]\nMontagem na linha",
-          status: StatusItemRequisicao.ASSUMIDO,
-          item: { id: "item-1", nome: "Arruela", codigo: "129", unidade: "UN" },
-        }],
+        itens: [
+          {
+            id: "req-item-1",
+            itemId: "item-1",
+            unidadeMedida: "UN",
+            quantidade: 2,
+            descricao: "[[setor:v1:setor2]]\nMontagem na linha",
+            status: StatusItemRequisicao.ASSUMIDO,
+            item: { id: "item-1", nome: "Arruela", codigo: "129", unidade: "UN" },
+          },
+          {
+            id: "req-item-2",
+            itemId: "item-2",
+            unidadeMedida: "UN",
+            quantidade: 1,
+            descricao: null,
+            status: StatusItemRequisicao.ASSUMIDO,
+            item: { id: "item-2", nome: "Porca", codigo: null, unidade: "UN" },
+          },
+        ],
       } as never);
       vi.mocked(prisma.auditoria.findMany).mockResolvedValue([] as never);
     });
@@ -119,6 +130,7 @@ describe("atomic request claiming", () => {
       expect(response.status).toBe(200);
       expect(body.requisicao.itens[0].descricao).toBe("Montagem na linha");
       expect(body.requisicao.itens[0].setor).toBe("setor2");
+      expect(body.requisicao.itens.map((item: { codigo: string | null }) => item.codigo)).toEqual(["129", null]);
       expect(JSON.stringify(body)).not.toContain("[[setor:");
     });
 
