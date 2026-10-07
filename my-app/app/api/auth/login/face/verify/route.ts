@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { decryptEmbedding, FaceServiceUnavailableError, faceAttemptLimit, hashFaceNonce, verifyFaceCapture } from "@/lib/face";
+import { areFaceTemplateVersionsCompatible, decryptEmbedding, FaceServiceUnavailableError, faceAttemptLimit, hashFaceNonce, verifyFaceCapture } from "@/lib/face";
 import {
   clearBadgeLoginFailures,
   getLoginBlockRetryAfter,
@@ -59,13 +59,20 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
 
   const templates = await prisma.faceTemplate.findMany({
     where: { funcionarioId: challenge.funcionarioId, revogadoEm: null },
-    select: { embeddingEncrypted: true, iv: true, tag: true },
+    select: { embeddingEncrypted: true, iv: true, tag: true, modelVersion: true },
   });
   let matched = false;
   let embeddings: number[][];
   try {
+    if (!areFaceTemplateVersionsCompatible(templates.map((template) => template.modelVersion))) {
+      console.error("[face] Login facial negado: versões incompatíveis de template.");
+      return faceServiceUnavailable();
+    }
     embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
-  } catch {
+  } catch (error) {
+    console.error("[face] Não foi possível decifrar o template facial.", {
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
     return faceServiceUnavailable();
   }
   try {
@@ -188,7 +195,7 @@ export async function POST(request: Request) {
       challenge.challenge !== state.challenge ||
       challenge.ipHash !== ipHash ||
       !challenge.funcionario.ativo ||
-      (challenge.funcionario.papel !== PapelFuncionario.ADMIN && challenge.funcionario.papel !== PapelFuncionario.OPERADOR)
+      challenge.funcionario.papel !== PapelFuncionario.ADMIN
     ) return genericFailure();
 
     const retryAfter = await getLoginBlockRetryAfter(challenge.funcionario.cracha, ipHash);
@@ -208,14 +215,21 @@ export async function POST(request: Request) {
 
     const templates = await prisma.faceTemplate.findMany({
       where: { funcionarioId: challenge.funcionarioId, revogadoEm: null },
-      select: { embeddingEncrypted: true, iv: true, tag: true },
+      select: { embeddingEncrypted: true, iv: true, tag: true, modelVersion: true },
     });
     let matched = false;
     if (templates.length > 0) {
       let embeddings: number[][];
       try {
+        if (!areFaceTemplateVersionsCompatible(templates.map((template) => template.modelVersion))) {
+          console.error("[face] Login facial negado: versão do template incompatível.");
+          return faceServiceUnavailable();
+        }
         embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
-      } catch {
+      } catch (error) {
+        console.error("[face] Não foi possível decifrar o template facial.", {
+          errorName: error instanceof Error ? error.name : "UnknownError",
+        });
         return faceServiceUnavailable();
       }
       try {
@@ -289,6 +303,10 @@ export async function POST(request: Request) {
     return createLoginSessionSuccessResponse(accepted, sessionToken);
   } catch (error) {
     if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
+    if (error && typeof error === "object" && "code" in error && (error.code === "P2021" || error.code === "P2022")) {
+      console.error("[face] Login facial indisponível: aplique a migration de templates faciais.", { code: error.code });
+      return faceServiceUnavailable();
+    }
     const errorId = randomUUID();
     console.error("Falha na verificação facial do login", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });
     return NextResponse.json({ error: "Não foi possível verificar o acesso.", errorId }, { status: 500 });

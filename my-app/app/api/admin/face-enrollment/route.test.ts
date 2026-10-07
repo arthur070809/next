@@ -1,34 +1,89 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const transaction = {
+  faceEnrollmentSession: { updateMany: vi.fn() },
+  faceTemplate: { updateMany: vi.fn(), create: vi.fn() },
+  securityAuditEvent: { create: vi.fn() },
+  faceEnrollmentAttempt: { deleteMany: vi.fn() },
+};
 
 vi.mock("@/lib/auth", () => ({ requireAdmin: vi.fn() }));
-vi.mock("@/lib/prisma", () => ({ prisma: {
-  funcionario: { findMany: vi.fn(), findFirst: vi.fn() },
-  faceTemplate: { count: vi.fn(), findMany: vi.fn() },
-} }));
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    $transaction: vi.fn(async (callback: (client: typeof transaction) => unknown) => callback(transaction)),
+    funcionario: { findMany: vi.fn(), findFirst: vi.fn() },
+    faceTemplate: { count: vi.fn(), findMany: vi.fn() },
+  },
+}));
 vi.mock("@/lib/security", () => ({ isSameOrigin: vi.fn(() => true) }));
 vi.mock("@/lib/face", () => ({
-  analyzeEnrollmentEmbeddings: vi.fn(() => ({ consistent: true, distances: [], discardedOutlier: false, acceptedEmbeddings: [[1, 2, 3]] })),
-  decryptEmbedding: vi.fn(() => [1, 2, 3]),
-  encryptEmbedding: vi.fn(() => ({ ciphertext: "cipher", iv: "iv", tag: "tag" })),
-  enrollFaceSamples: vi.fn(async () => [[1, 2, 3]]),
+  aggregateEnrollmentEmbeddings: vi.fn(() => ({
+    consistent: true,
+    distances: [0.01, 0.02, 0.03, 0.04, 0.5],
+    discardedOutlier: true,
+    embedding: Array.from({ length: 64 }, () => 0.125),
+    acceptedEmbeddings: [Array.from({ length: 64 }, () => 0.125)],
+  })),
+  assertFaceTemplateConfiguration: vi.fn(() => "provider-model-2026.10"),
+  decryptEmbedding: vi.fn(() => Array.from({ length: 64 }, () => 0.125)),
+  encryptEmbedding: vi.fn(() => ({ ciphertext: Buffer.from("cipher"), iv: Buffer.from("iv"), tag: Buffer.from("tag") })),
+  enrollFaceSamples: vi.fn(async () => Array.from({ length: 5 }, () => Array.from({ length: 64 }, () => 0.125))),
   FaceServiceUnavailableError: class FaceServiceUnavailableError extends Error {},
-  faceEmbeddingDistance: vi.fn(() => 0),
+  faceEmbeddingDistance: vi.fn(() => 1),
+  faceEnrollmentBurstSize: 5,
   faceEnrollmentConsistencyDistance: 0.35,
-  faceEnrollmentDuplicateDistance: 0.1,
-  FaceEnrollmentVerificationError: class extends Error { constructor(message: string, readonly code = "FACE_INVALID") { super(message); } },
+  faceEnrollmentDuplicateDistance: 0.42,
+  FaceEnrollmentVerificationError: class extends Error {
+    constructor(message: string, readonly code = "FACE_INVALID") { super(message); }
+  },
+  FaceEncryptionKeyUnavailableError: class FaceEncryptionKeyUnavailableError extends Error {},
   faceConsentVersion: "v1",
 }));
-vi.mock("@/lib/face-enrollment-attempts", () => ({ faceEnrollmentAttemptLimit: 5, getFaceEnrollmentLimit: vi.fn(async () => null), recordFaceEnrollmentFailure: vi.fn(async () => ({ count: 0, retryAfterSeconds: 0 })) }));
-vi.mock("@/lib/face-enrollment-session", () => ({ createFaceEnrollmentSession: vi.fn(async () => ({ id: "s1", token: "token", expiraEm: new Date(Date.now() + 60000) })), findFaceEnrollmentSession: vi.fn(async () => ({ id: "s1", token: "token", expiraEm: new Date(Date.now() + 60000) })), renewFaceEnrollmentSession: vi.fn(async () => ({})) }));
-vi.mock("@/lib/webauthn", () => ({ getClientIpHash: vi.fn(() => "client-hash"), hashSecret: vi.fn(() => "hash") }));
+vi.mock("@/lib/face-enrollment-attempts", () => ({
+  faceEnrollmentAttemptLimit: 5,
+  getFaceEnrollmentLimit: vi.fn(async () => null),
+  recordFaceEnrollmentFailure: vi.fn(async () => ({ count: 0, retryAfterSeconds: 0 })),
+}));
+vi.mock("@/lib/face-enrollment-session", () => ({
+  createFaceEnrollmentSession: vi.fn(async () => ({ id: "s1", token: "token", expiraEm: new Date(Date.now() + 60000) })),
+  findFaceEnrollmentSession: vi.fn(async () => ({ id: "s1", tokenHash: "hash", expiraEm: new Date(Date.now() + 60000) })),
+  renewFaceEnrollmentSession: vi.fn(async () => new Date(Date.now() + 60000)),
+}));
+vi.mock("@/lib/webauthn", () => ({
+  getClientIpHash: vi.fn(() => "client-hash"),
+  hashSecret: vi.fn(() => "hash"),
+}));
 
 import { GET, POST } from "./route";
 import { requireAdmin } from "@/lib/auth";
-import { analyzeEnrollmentEmbeddings, enrollFaceSamples, FaceEnrollmentVerificationError, FaceServiceUnavailableError } from "@/lib/face";
+import {
+  aggregateEnrollmentEmbeddings,
+  encryptEmbedding,
+  enrollFaceSamples,
+  FaceEnrollmentVerificationError,
+  FaceServiceUnavailableError,
+  assertFaceTemplateConfiguration,
+} from "@/lib/face";
 import { prisma } from "@/lib/prisma";
+import { recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 
 describe("admin face enrollment route", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv("FACE_EMBEDDING_MODEL_VERSION", "provider-model-2026.10");
+    vi.stubEnv("FACE_DIAGNOSTICS_ENABLED", "false");
+    vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([]);
+    transaction.faceEnrollmentSession.updateMany.mockResolvedValue({ count: 1 });
+    transaction.faceTemplate.updateMany.mockResolvedValue({ count: 0 });
+    transaction.faceTemplate.create.mockResolvedValue({ id: "template-1" });
+    transaction.securityAuditEvent.create.mockResolvedValue({});
+    transaction.faceEnrollmentAttempt.deleteMany.mockResolvedValue({ count: 0 });
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
 
   it("requires admin authentication", async () => {
     vi.mocked(requireAdmin).mockResolvedValue({ funcionario: null, status: 401 });
@@ -38,61 +93,111 @@ describe("admin face enrollment route", () => {
 
   it("does not allow non-admin users to submit facial enrollment captures", async () => {
     vi.mocked(requireAdmin).mockResolvedValue({ funcionario: null, status: 403 });
-    const response = await POST(new Request("http://localhost/api/admin/face-enrollment", {
-      method: "POST",
-      headers: { "content-type": "application/json", origin: "http://localhost" },
-      body: JSON.stringify({ funcionarioId: 1, samples: ["private-image"] }),
-    }));
+    const response = await POST(enrollmentRequest({ samples: ["private-image"] }));
     expect(response.status).toBe(403);
   });
 
-  it("identifies the remote service as the source of its consistency rejection", async () => {
-    vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
-    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
-    vi.mocked(enrollFaceSamples).mockRejectedValueOnce(
-      new FaceEnrollmentVerificationError("As capturas ficaram diferentes. Tente novamente.", "FACE_INCONSISTENT_SAMPLES"),
-    );
+  it("stores exactly one encrypted, versioned, normalized aggregate template for five frames", async () => {
     const response = await POST(enrollmentRequest());
 
-    expect(response.status).toBe(422);
-    expect(await response.json()).toMatchObject({
-      code: "FACE_INCONSISTENT_SAMPLES",
-      consistency: { source: "servico-facial" },
+    expect(response.status).toBe(201);
+    expect(enrollFaceSamples).toHaveBeenCalledWith(expect.any(Array), { nonce: "token" });
+    expect(aggregateEnrollmentEmbeddings).toHaveBeenCalledOnce();
+    expect(encryptEmbedding).toHaveBeenCalledOnce();
+    expect(transaction.faceTemplate.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        funcionarioId: 10,
+        modelVersion: "provider-model-2026.10",
+        embeddingEncrypted: Buffer.from("cipher"),
+        iv: Buffer.from("iv"),
+        tag: Buffer.from("tag"),
+        criadoPorId: 9,
+      }),
     });
   });
 
-  it("identifies local median consistency rejection and returns numeric diagnostics only", async () => {
-    vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
-    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
-    vi.mocked(enrollFaceSamples).mockResolvedValueOnce([[1, 2, 3], [2, 3, 4], [3, 4, 5]]);
-    vi.mocked(analyzeEnrollmentEmbeddings).mockReturnValueOnce({
-      consistent: false,
-      reason: undefined,
-      distances: [0.1, 0.4, 0.2],
-      discardedOutlier: false,
-      acceptedEmbeddings: [],
-    });
+  it("requires an explicit confirmation before replacing an active template", async () => {
+    vi.mocked(prisma.faceTemplate.count).mockResolvedValue(1);
+    const response = await POST(enrollmentRequest({ replaceConfirmed: false }));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ code: "FACE_REPLACEMENT_CONFIRMATION_REQUIRED" });
+    expect(enrollFaceSamples).not.toHaveBeenCalled();
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
+  });
+
+  it("silently requests a fresh burst when the provider reports incoherent frames", async () => {
+    vi.mocked(enrollFaceSamples).mockRejectedValueOnce(
+      new FaceEnrollmentVerificationError("provider private message", "FACE_INCONSISTENT_SAMPLES"),
+    );
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
     const response = await POST(enrollmentRequest());
     const body = await response.json();
 
-    expect(body.consistency.source).toBe("comparacao-local-com-mediana");
-    expect(body.consistency.distances).toEqual([0.1, 0.4, 0.2]);
-    expect(JSON.stringify(body)).not.toMatch(/\[\[|\d{10,}/);
+    expect(response.status).toBe(409);
+    expect(body).toMatchObject({ code: "FACE_CAPTURE_RETRY" });
+    expect(JSON.stringify(body)).not.toContain("capturas ficaram diferentes");
+    expect(recordFaceEnrollmentFailure).not.toHaveBeenCalled();
+    expect(JSON.stringify(log.mock.calls)).not.toContain("provider private message");
+    log.mockRestore();
   });
 
-  it("reports provider outage as technical and does not present it as a failed identity", async () => {
-    vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
-    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
+  it("silently retries incoherent local burst measurements and exposes no biometrics when diagnostics are off", async () => {
+    vi.mocked(aggregateEnrollmentEmbeddings).mockReturnValueOnce({
+      consistent: false,
+      distances: [0.1, 0.4, 0.2, 0.3, 0.5],
+      discardedOutlier: false,
+      acceptedEmbeddings: [],
+      embedding: null,
+      reason: undefined,
+    } as never);
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const response = await POST(enrollmentRequest());
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "Mantenha apenas seu rosto diante da câmera.",
+      code: "FACE_CAPTURE_RETRY",
+    });
+    expect(log).not.toHaveBeenCalled();
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it("fails closed when the model version is not configured", async () => {
+    vi.mocked(assertFaceTemplateConfiguration).mockImplementationOnce(() => {
+      throw new FaceServiceUnavailableError();
+    });
+    const response = await POST(enrollmentRequest());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ code: "FACE_CONFIGURATION_UNAVAILABLE" });
+    expect(enrollFaceSamples).not.toHaveBeenCalled();
+  });
+
+  it("fails closed with an actionable response if the face-template migration is absent", async () => {
+    vi.mocked(prisma.faceTemplate.count).mockRejectedValueOnce(Object.assign(new Error(), { code: "P2022" }));
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await POST(enrollmentRequest());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ code: "FACE_SCHEMA_UNAVAILABLE" });
+    expect(JSON.stringify(errorLog.mock.calls)).toContain("aplique a migration");
+    errorLog.mockRestore();
+  });
+
+  it("reports provider outage as technical without persisting", async () => {
     vi.mocked(enrollFaceSamples).mockRejectedValueOnce(new FaceServiceUnavailableError());
 
     const response = await POST(enrollmentRequest());
 
     expect(response.status).toBe(503);
     expect(await response.json()).toMatchObject({ code: "FACE_SERVICE_UNAVAILABLE" });
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
   });
 });
 
-function enrollmentRequest() {
+function enrollmentRequest(overrides: Record<string, unknown> = {}) {
   return new Request("http://localhost/api/admin/face-enrollment", {
     method: "POST",
     headers: { "content-type": "application/json", origin: "http://localhost" },
@@ -101,7 +206,10 @@ function enrollmentRequest() {
       sessionId: "s1",
       sessionToken: "token",
       consent: true,
-      samples: ["opaque", "opaque", "opaque"],
+      consentAt: new Date().toISOString(),
+      replaceConfirmed: false,
+      samples: Array.from({ length: 5 }, () => `data:image/jpeg;base64,${"A".repeat(1400)}`),
+      ...overrides,
     }),
   });
 }

@@ -191,7 +191,7 @@ describe("login by badge code", () => {
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
-  it("starts the existing 1:1 face challenge for an explicitly selected badge with an enrolled template", async () => {
+  it("rejects facial authentication for operators even if a template exists", async () => {
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(1);
 
@@ -201,22 +201,19 @@ describe("login by badge code", () => {
       body: JSON.stringify({ codigoCracha: "2000", credential: "face" }),
     }));
 
-    expect(response.status).toBe(202);
-    expect(await response.json()).toMatchObject({ step: "face" });
-    expect(prisma.faceTemplate.count).toHaveBeenCalledWith({
-      where: { funcionarioId: operator.id, revogadoEm: null },
-    });
+    expect(response.status).toBe(401);
+    expect(prisma.faceTemplate.count).not.toHaveBeenCalled();
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
   it("explains when the selected badge has no active face template", async () => {
-    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
 
     const response = await POST(new Request("http://localhost/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "http://localhost" },
-      body: JSON.stringify({ codigoCracha: "2000", credential: "face" }),
+      body: JSON.stringify({ codigoCracha: "1000", credential: "face" }),
     }));
 
     expect(response.status).toBe(503);
