@@ -3,13 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { createScanner, type ScannerDiagnostics } from "../../lib/qr/decoder";
 import {
+  createCameraStreamController,
+  type CameraLifecycleReason,
+  type CameraState,
+} from "../../lib/camera/camera-stream";
+import {
   cameraErrorMessage,
-  createCameraLease,
   createScannerSession,
   requestScannerStream,
   shouldAcceptScan,
   type ScannerReadResult,
 } from "../../lib/qr/camera-utils";
+import BuildIdentifier from "./BuildIdentifier";
 
 export default function ProductEtiquetaScanner({
   onRead,
@@ -30,12 +35,14 @@ export default function ProductEtiquetaScanner({
   const [torchOn, setTorchOn] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const [debug, setDebug] = useState(false);
+  const [cameraState, setCameraState] = useState<CameraState>("idle");
+  const [lastLifecycleReason, setLastLifecycleReason] = useState<CameraLifecycleReason | null>(null);
   const [diagnostics, setDiagnostics] = useState<ScannerDiagnostics | null>(null);
   const [manualValue, setManualValue] = useState("");
-  const [parserResult, setParserResult] = useState("");
   const scannerRef = useRef<ReturnType<typeof createScanner> | null>(null);
   const sessionRef = useRef<ReturnType<typeof createScannerSession> | null>(null);
   const onCloseRef = useRef(onClose);
+  const diagnosticsEnabledRef = useRef(false);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -48,25 +55,37 @@ export default function ProductEtiquetaScanner({
       window.dispatchEvent(new Event("marcon:qr-scanner-change"));
     };
     setScannerActive(true);
-    const lease = createCameraLease();
     const video = videoRef.current;
     if (!video) {
       setScannerActive(false);
       return;
     }
-    const session = createScannerSession(video, lease, setScannerActive, () => onCloseRef.current());
+    const secureContext = window.isSecureContext || ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+    const camera = createCameraStreamController({
+      video,
+      mediaDevices: {
+        getUserMedia: () => requestScannerStream(navigator.mediaDevices, secureContext),
+      },
+      secureContext,
+      onStateChange: setCameraState,
+      onLifecycleStop: (reason) => {
+        if (diagnosticsEnabledRef.current) setLastLifecycleReason(reason);
+        sessionRef.current?.close();
+      },
+    });
+    const session = createScannerSession(video, camera, setScannerActive, () => onCloseRef.current());
     sessionRef.current = session;
     let effectStream: MediaStream | null = null;
     let effectScanner: ReturnType<typeof createScanner> | null = null;
-    queueMicrotask(() => setDebug(new URLSearchParams(window.location.search).get("debug") === "1"));
+    queueMicrotask(() => {
+      const enabled = new URLSearchParams(window.location.search).get("debug") === "1";
+      diagnosticsEnabledRef.current = enabled;
+      setDebug(enabled);
+    });
 
     const start = async () => {
       try {
-        const stream = await requestScannerStream(
-          navigator.mediaDevices,
-          window.isSecureContext || ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname),
-        );
-        if (!lease.attach(stream)) return;
+        const stream = await camera.start({ video: true, audio: false });
         effectStream = stream;
         streamRef.current = stream;
         const track = stream.getVideoTracks()[0];
@@ -79,14 +98,11 @@ export default function ProductEtiquetaScanner({
             setFeedback("Foco contínuo indisponível. Aproxime a etiqueta até o QR ficar nítido.");
           }
         }
-        if (!lease.isActive()) return;
-        video.srcObject = stream;
-        await video.play();
-        if (!lease.isActive()) return;
+        if (!camera.isActive()) return;
         const scanner = createScanner(video, {
           onDiagnostics: setDiagnostics,
           onDecode: async (detected) => {
-            if (!lease.isActive() || session.hasSucceeded() || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
+            if (!camera.isActive() || session.hasSucceeded() || busyRef.current || !shouldAcceptScan(detected.rawValue, Date.now(), previousRef.current)) return;
             previousRef.current = { value: detected.rawValue, at: Date.now() };
             busyRef.current = true;
             setFeedback(`QR lido (${detected.rawValue.slice(0, 50)}). Conferindo…`);
@@ -94,10 +110,9 @@ export default function ProductEtiquetaScanner({
             let succeeded = false;
             try {
               const result = await onRead(detected.rawValue, detected.format);
-              if (lease.isActive()) {
+              if (camera.isActive()) {
                 setFeedback(result.message);
                 setSuccessFeedback(result.success);
-                setParserResult(result.message);
                 succeeded = session.completeRead(result.success);
               }
             } finally {
@@ -115,8 +130,9 @@ export default function ProductEtiquetaScanner({
         session.setScanner(scanner);
         await scanner.start();
       } catch (cause) {
-        if (lease.isActive()) setError(cameraErrorMessage(cause));
+        if (!(cause instanceof DOMException && cause.name === "AbortError")) setError(cameraErrorMessage(cause));
         session.dispose();
+        camera.dispose();
         const stream = effectStream;
         if (streamRef.current === stream) streamRef.current = null;
       }
@@ -127,6 +143,7 @@ export default function ProductEtiquetaScanner({
       if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
       unlockTimerRef.current = null;
       session.dispose();
+      camera.dispose();
       if (sessionRef.current === session) sessionRef.current = null;
       if (scannerRef.current === effectScanner) scannerRef.current = null;
       if (streamRef.current === effectStream) streamRef.current = null;
@@ -171,6 +188,7 @@ export default function ProductEtiquetaScanner({
       </div>
       <footer className="space-y-3 px-4 py-4">
         <p aria-live="polite" className={`text-center text-sm ${successFeedback ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : ""}`}>{feedback}</p>
+        <BuildIdentifier />
         <form
           className="mx-auto flex max-w-lg gap-2"
           onSubmit={async (event) => {
@@ -181,7 +199,6 @@ export default function ProductEtiquetaScanner({
               const result = await onRead(manualValue, "manual");
               setFeedback(result.message);
               setSuccessFeedback(result.success);
-              setParserResult(result.message);
               setManualValue("");
               if (sessionRef.current?.completeRead(result.success)) return;
             } finally {
@@ -204,13 +221,14 @@ export default function ProductEtiquetaScanner({
         {debug && diagnostics && (
           <section aria-label="Diagnóstico da leitura QR" className="mx-auto grid max-w-2xl grid-cols-2 gap-x-4 gap-y-1 rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200 sm:grid-cols-3">
             <p>Decoder: {diagnostics.decoder}</p>
+            <p>Câmera: {cameraState}</p>
+            <p>Fechamento: {lastLifecycleReason ?? "—"}</p>
             <p>BarcodeDetector QR: {diagnostics.nativeSupported ? "sim" : "não"}</p>
             <p>Vídeo: {diagnostics.videoWidth}×{diagnostics.videoHeight}</p>
             <p>FPS leitura: {diagnostics.fps}</p>
             <p>Frames: {diagnostics.framesRead}</p>
             <p>Erros: {diagnostics.decodeErrors} {diagnostics.lastError}</p>
-            <p className="col-span-2 break-all sm:col-span-3">Último QR: {diagnostics.lastRawText || "—"}</p>
-            <p className="col-span-2 break-all sm:col-span-3">Resultado do parser: {parserResult || "—"}</p>
+            <p className="col-span-2 sm:col-span-3">QR: {diagnostics.lastRawText ? "leitura detectada" : "aguardando leitura"}</p>
           </section>
         )}
         <button type="button" onClick={() => void toggleTorch()} disabled={!torchSupported} className="mx-auto block rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold disabled:opacity-40">

@@ -103,7 +103,7 @@ export function createCameraLease() {
 
 export function createScannerSession(
   video: { srcObject: unknown },
-  lease: ReturnType<typeof createCameraLease>,
+  lease: Pick<ReturnType<typeof createCameraLease>, "close">,
   setActive: (active: boolean) => void,
   onClose: () => void,
 ) {

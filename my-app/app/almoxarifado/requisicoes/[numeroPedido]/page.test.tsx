@@ -7,7 +7,7 @@ const runtime = vi.hoisted(() => ({
   refs: [] as Array<{ current: unknown }>,
   refIndex: 0,
   effects: [] as Array<() => void | (() => void)>,
-  video: null as null | { srcObject: unknown; play: () => Promise<void> },
+  video: null as null | { srcObject: unknown; play: () => Promise<void>; pause: () => void; removeAttribute: (name: string) => void },
   decodeCallbacks: [] as Array<(result: { rawValue: string; format: string }) => Promise<void>>,
   scannerStops: [] as Array<ReturnType<typeof vi.fn>>,
 }));
@@ -170,7 +170,12 @@ describe("checklist QR scanner integration", () => {
     vi.useFakeTimers();
     runtime.decodeCallbacks = [];
     runtime.scannerStops = [];
-    runtime.video = { srcObject: null, play: vi.fn(async () => undefined) };
+    runtime.video = {
+      srcObject: null,
+      play: vi.fn(async () => undefined),
+      pause: vi.fn(),
+      removeAttribute: vi.fn(),
+    };
   });
 
   afterEach(() => {
@@ -349,7 +354,12 @@ describe("checklist QR scanner integration", () => {
     runtime.refs = [];
     runtime.refIndex = 0;
     runtime.effects = [];
-    runtime.video = { srcObject: null, play: vi.fn(async () => undefined) };
+    runtime.video = {
+      srcObject: null,
+      play: vi.fn(async () => undefined),
+      pause: vi.fn(),
+      removeAttribute: vi.fn(),
+    };
     const secondProps = getScannerProps();
     const secondMount = mountScanner(secondProps);
     await flushPromises();
