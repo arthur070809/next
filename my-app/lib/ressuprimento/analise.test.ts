@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   classificar,
+  calcularQuantidadeRessuprimento,
   consumoMedioDiario,
   diasDeCobertura,
   historicoRealSuficiente,
   MARGEM_SEGURANCA_DIAS,
   PRAZO_REPOSICAO_PADRAO_DIAS,
   pontoSugerido,
+  ordenarPorDeficitRessuprimento,
   sugestao,
 } from "./analise";
 
@@ -46,6 +48,35 @@ describe("núcleo de ressuprimento", () => {
 
   it("arredonda para cima o ponto de ressuprimento", () => {
     expect(pontoSugerido(1.01, PRAZO_REPOSICAO_PADRAO_DIAS, MARGEM_SEGURANCA_DIAS)).toBe(10);
+  });
+
+  it("calculates a bounded restock quantity from current, minimum, and optional maximum", () => {
+    expect(calcularQuantidadeRessuprimento(3, 5, 10)).toBe(7);
+    expect(calcularQuantidadeRessuprimento(3, 5)).toBe(2);
+    expect(calcularQuantidadeRessuprimento(8, 5, 10)).toBe(0);
+    expect(calcularQuantidadeRessuprimento(12, 5, 10)).toBe(0);
+    expect(calcularQuantidadeRessuprimento(0, null, 10)).toBeNull();
+    expect(calcularQuantidadeRessuprimento(0, undefined, undefined)).toBeNull();
+    expect(calcularQuantidadeRessuprimento(0, 0, 10)).toBeNull();
+  });
+
+  it("rejects negative stock quantities and invalid maximum thresholds", () => {
+    expect(() => calcularQuantidadeRessuprimento(-1, 5, 10)).toThrow(RangeError);
+    expect(() => calcularQuantidadeRessuprimento(1, 5, -1)).toThrow(RangeError);
+    expect(() => calcularQuantidadeRessuprimento(1, null, -1)).toThrow(RangeError);
+    expect(() => calcularQuantidadeRessuprimento(1, -1, 5)).toThrow(RangeError);
+    expect(() => calcularQuantidadeRessuprimento(1, 10, 5)).toThrow(RangeError);
+  });
+
+  it("sorts the largest configured-minimum deficit first with stable id tie-breaking", () => {
+    const items = [
+      { id: "b", nome: "Tie B", estoque: 2, pontoAtual: 5 },
+      { id: "d", nome: "No point", estoque: 0, pontoAtual: null },
+      { id: "a", nome: "Tie A", estoque: 1, pontoAtual: 4 },
+      { id: "c", nome: "Largest deficit", estoque: 1, pontoAtual: 8 },
+    ];
+    expect(ordenarPorDeficitRessuprimento(items).map(({ id }) => id)).toEqual(["c", "a", "b", "d"]);
+    expect(ordenarPorDeficitRessuprimento([])).toEqual([]);
   });
 
   it("classifica os limites do prazo e do dobro do prazo", () => {

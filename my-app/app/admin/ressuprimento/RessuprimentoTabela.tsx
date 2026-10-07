@@ -5,6 +5,7 @@ import type {
   ClasseRessuprimento,
   SugestaoRessuprimento,
 } from "@/lib/ressuprimento/analise";
+import { ordenarPorDeficitRessuprimento } from "@/lib/ressuprimento/analise";
 import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
 
 const classes: Array<{ value: ClasseRessuprimento | "TODAS"; label: string }> = [
@@ -35,12 +36,6 @@ function coberturaTexto(dias: number | null): string {
   return `${dias.toFixed(1)} dias`;
 }
 
-function compararCobertura(a: SugestaoRessuprimento, b: SugestaoRessuprimento): number {
-  const valorA = a.diasCobertura ?? Number.POSITIVE_INFINITY;
-  const valorB = b.diasCobertura ?? Number.POSITIVE_INFINITY;
-  return valorA - valorB || a.nome.localeCompare(b.nome);
-}
-
 export default function RessuprimentoTabela({
   sugestoes,
   fonte,
@@ -50,12 +45,10 @@ export default function RessuprimentoTabela({
 }) {
   const [classeFiltro, setClasseFiltro] = useState<ClasseRessuprimento | "TODAS">("TODAS");
   const [previsualizando, setPrevisualizando] = useState<string | null>(null);
-  const filtradas = useMemo(() => sugestoes
-    .filter((item) => classeFiltro === "TODAS" || item.classe === classeFiltro)
-    .sort(compararCobertura), [sugestoes, classeFiltro]);
-  const itensNoPonto = useMemo(() => sugestoes
-    .filter((item) => isAtOrBelowReorderPoint(item.estoque, item.pontoAtual))
-    .sort((a, b) => a.estoque - b.estoque || a.nome.localeCompare(b.nome)), [sugestoes]);
+  const filtradas = useMemo(() => ordenarPorDeficitRessuprimento(sugestoes
+    .filter((item) => classeFiltro === "TODAS" || item.classe === classeFiltro)), [sugestoes, classeFiltro]);
+  const itensNoPonto = useMemo(() => ordenarPorDeficitRessuprimento(sugestoes
+    .filter((item) => isAtOrBelowReorderPoint(item.estoque, item.pontoAtual))), [sugestoes]);
   const maxCobertura = Math.max(
     1,
     ...filtradas
@@ -65,7 +58,7 @@ export default function RessuprimentoTabela({
   const chartWidth = 680;
   const chartHeight = Math.max(48, filtradas.length * 34 + 12);
 
-  return <main className="mx-auto max-w-7xl p-4 sm:p-6">
+  return <main className="mx-auto min-h-dvh max-w-7xl p-4 sm:p-6">
     <header className="mb-5">
       <h1 className="text-2xl font-semibold text-slate-900">Ressuprimento</h1>
       <p className="mt-1 text-sm text-slate-600">Cobertura estimada e ponto de reposição sugerido a partir das saídas recentes.</p>
@@ -81,7 +74,7 @@ export default function RessuprimentoTabela({
     <section aria-labelledby="itens-ponto-pedido" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
       <h2 id="itens-ponto-pedido" className="text-lg font-semibold text-amber-950">Itens no ponto de pedido ou abaixo</h2>
       {itensNoPonto.length === 0
-        ? <p className="mt-2 text-sm text-amber-900">Nenhum item está no ponto de pedido ou abaixo no estoque central.</p>
+        ? <p className="mt-2 text-sm text-amber-900">Nenhum item precisa de ressuprimento</p>
         : <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {itensNoPonto.map((item) => <li key={item.id} className="rounded-lg border border-amber-200 bg-white p-3 text-sm">
             <span className="font-semibold text-slate-900">{item.nome}</span>
@@ -133,18 +126,23 @@ export default function RessuprimentoTabela({
 
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-        <caption className="sr-only">Ressuprimento sugerido por item, ordenado pela menor cobertura</caption>
+        <caption className="sr-only">Ressuprimento sugerido por item, ordenado pelo maior déficit em relação ao ponto atual</caption>
         <thead className="bg-slate-50 text-xs uppercase text-slate-600">
-          <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Ponto sugerido", "Classe", "Confiança", "Ação"].map((heading) =>
+          <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Ponto sugerido", "Classe", "Confiança", "Ação"].map((heading) =>
             <th key={heading} scope="col" className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr>
         </thead>
         <tbody>
-          {filtradas.map((item) => <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+          {filtradas.length === 0
+            ? <tr><td colSpan={10} className="px-4 py-6 text-center text-sm text-slate-600">
+              {sugestoes.length === 0 ? "Nenhum item precisa de ressuprimento" : "Nenhum item corresponde ao filtro."}
+            </td></tr>
+            : filtradas.map((item) => <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
             <th scope="row" className="px-4 py-3 font-medium text-slate-900">{item.nome}<span className="mt-1 block font-normal text-slate-600">{item.categoria?.trim() || "—"}</span></th>
             <td className="px-4 py-3">{item.estoque}</td>
             <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
             <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>
             <td className="px-4 py-3">{item.pontoAtual ?? "Não definido"}</td>
+            <td className="px-4 py-3">{item.quantidadeSugerida ?? "Não definido"}</td>
             <td className="px-4 py-3">{item.pontoSugerido ?? "Sem dados"}</td>
             <td className="px-4 py-3">
               <span className="inline-block rounded-md border border-slate-300 px-2 py-1" style={{ borderLeftColor: classeCor[item.classe], borderLeftWidth: 4 }}>
