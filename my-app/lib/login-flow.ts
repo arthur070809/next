@@ -19,6 +19,14 @@ type LoginFaceState = {
   challenge: string;
 };
 
+type IdentifyFaceState = {
+  challengeId: string;
+  expiresAt: number;
+  nonceHash: string;
+  challenge: string;
+  tipo: "LOGIN_FACE_IDENTIFY";
+};
+
 type LoginEmployee = {
   id: number;
   nome: string;
@@ -71,6 +79,40 @@ export function verifyLoginFaceState(token: string): LoginFaceState | null {
   }
 }
 
+function encodeIdentifyFaceState(state: IdentifyFaceState) {
+  const payload = Buffer.from(JSON.stringify(state)).toString("base64url");
+  const signature = createHmac("sha256", challengeSigningKey()).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+export function verifyIdentifyFaceState(token: string): IdentifyFaceState | null {
+  const [payload, suppliedSignature, extra] = token.split(".");
+  if (!payload || !suppliedSignature || extra) return null;
+  const expectedSignature = createHmac("sha256", challengeSigningKey()).update(payload).digest();
+  let actualSignature: Buffer;
+  try {
+    actualSignature = Buffer.from(suppliedSignature, "base64url");
+  } catch {
+    return null;
+  }
+  if (actualSignature.length !== expectedSignature.length || !timingSafeEqual(actualSignature, expectedSignature)) return null;
+  try {
+    const parsed: unknown = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!parsed || typeof parsed !== "object") return null;
+    const state = parsed as Partial<IdentifyFaceState>;
+    if (
+      typeof state.challengeId !== "string" ||
+      typeof state.expiresAt !== "number" ||
+      typeof state.nonceHash !== "string" ||
+      typeof state.challenge !== "string" ||
+      state.tipo !== "LOGIN_FACE_IDENTIFY"
+    ) return null;
+    return state as IdentifyFaceState;
+  } catch {
+    return null;
+  }
+}
+
 export function loginRequiresFace(papel: PapelFuncionario) {
   if (process.env.LOGIN_FACIAL_OBRIGATORIO === "false") {
     if (!disabledWarningShown) {
@@ -113,6 +155,49 @@ export async function createLoginFaceChallenge(funcionarioId: number, ipHash: st
   return {
     step: "face" as const,
     challengeId: created.id,
+    loginToken,
+    nonce,
+    challenge,
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+export async function createIdentifyFaceChallenge(ipHash: string) {
+  const nonce = createFaceNonce();
+  const challenge = ["piscar", "virar_esquerda", "sorrir"][randomBytes(1)[0] % 3];
+  const expiresAt = new Date(Date.now() + loginFaceChallengeTtlMs);
+  const challengeId = randomUUID();
+  const state: IdentifyFaceState = {
+    challengeId,
+    expiresAt: expiresAt.getTime(),
+    nonceHash: hashFaceNonce(nonce),
+    challenge,
+    tipo: "LOGIN_FACE_IDENTIFY",
+  };
+  const loginToken = encodeIdentifyFaceState(state);
+  try {
+    const fallbackEmployee = await prisma.funcionario.findFirst({ where: { ativo: true }, select: { id: true } });
+    if (fallbackEmployee) {
+      await prisma.authChallenge.create({
+        data: {
+          id: challengeId,
+          tipo: "LOGIN_FACE_IDENTIFY",
+          challenge,
+          funcionarioId: fallbackEmployee.id,
+          ipHash,
+          preAuthTokenHash: hashSecret(loginToken),
+          expiraEm: expiresAt,
+        },
+        select: { id: true },
+      });
+    }
+  } catch {
+    // The generic identify flow is intentionally not bound to a specific employee;
+    // keep the signed challenge token as the source of truth when no employee placeholder is available.
+  }
+  return {
+    step: "face" as const,
+    challengeId,
     loginToken,
     nonce,
     challenge,
