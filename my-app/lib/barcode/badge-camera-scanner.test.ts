@@ -121,6 +121,23 @@ describe("badge camera scanner", () => {
     await expect(context.scanner.start()).rejects.toBe(denied);
   });
 
+  it("requires a secure context before accessing the camera", async () => {
+    const context = setup();
+    const scanner = createBadgeCameraScanner({
+      video: context.video,
+      validate: isValidBadgeCode,
+      onDetect: context.onDetect,
+      onInvalid: context.onInvalid,
+      onError: context.onError,
+    }, {
+      getDetector: () => context.MockBarcodeDetector,
+      mediaDevices: { getUserMedia: context.getUserMedia },
+      secureContext: false,
+    });
+    await expect(scanner.start()).rejects.toMatchObject({ reason: "insecure" });
+    expect(context.getUserMedia).not.toHaveBeenCalled();
+  });
+
   it("normalizes and reports valid detections exactly once", async () => {
     const context = setup({ detected: [{ rawValue: " 00 1234\r\n", format: "code_128" }] });
     await context.scanner.start();

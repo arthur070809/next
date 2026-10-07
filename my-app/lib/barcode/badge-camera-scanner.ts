@@ -137,7 +137,12 @@ export function createBadgeCameraScanner(
       try {
         detector = new Detector({ formats });
       } catch {
-        throw new BadgeScannerError("unsupported");
+        if (!formats.includes("qr_code")) throw new BadgeScannerError("unsupported");
+        try {
+          detector = new Detector({ formats: ["qr_code"] });
+        } catch {
+          throw new BadgeScannerError("unsupported");
+        }
       }
 
       if (!deps.mediaDevices?.getUserMedia) throw new BadgeScannerError("camera-unavailable");

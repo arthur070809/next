@@ -113,7 +113,7 @@ export default function BadgeBarcodeScanner({
             label: device.label || `Câmera ${index + 1}`,
           })));
       } catch {
-        if (mounted) setError("Não foi possível listar as câmeras. A leitura segue com a câmera traseira preferida.");
+        if (mounted) setMessage("Não foi possível listar as outras câmeras; a leitura continua com a traseira preferida.");
       }
     }).catch((cause: unknown) => {
       if (mounted) setError(cameraErrorMessage(cause));
@@ -134,6 +134,7 @@ export default function BadgeBarcodeScanner({
       return;
     }
     if (event.key !== "Tab") return;
+    event.stopPropagation();
     const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
       'button:not([disabled]), select:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
     );
