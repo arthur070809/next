@@ -79,10 +79,10 @@ export default function RequisicaoDetalhePage() {
         description={`${requisicao.quantidade} ${requisicao.unidadeMedida} retirados do ${requisicao.origem === "DEPOSITO" ? "depósito" : "estoque"}.`}
         action={
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/almoxarifado" className="rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
+            <Link href="/almoxarifado" className="rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
               Voltar
             </Link>
-            <Link href="/deposito?aba=historico" className="rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
+            <Link href="/deposito?aba=historico" className="rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
               Histórico do depósito
             </Link>
           </div>
@@ -90,21 +90,21 @@ export default function RequisicaoDetalhePage() {
       />
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-border-subtle bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-border-subtle bg-surface p-4 shadow-sm">
           <p className="text-xs uppercase tracking-[0.14em] text-text-secondary">Item</p>
           <p className="mt-2 font-bold text-foreground">{requisicao.item}</p>
         </div>
-        <div className="rounded-2xl border border-border-subtle bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-border-subtle bg-surface p-4 shadow-sm">
           <p className="text-xs uppercase tracking-[0.14em] text-text-secondary">Quantidade</p>
           <p className="mt-2 font-bold text-foreground">{requisicao.quantidade} {requisicao.unidadeMedida}</p>
         </div>
-        <div className="rounded-2xl border border-border-subtle bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-border-subtle bg-surface p-4 shadow-sm">
           <p className="text-xs uppercase tracking-[0.14em] text-text-secondary">Origem</p>
           <p className="mt-2 font-bold text-foreground">{requisicao.origem === "DEPOSITO" ? "Depósito" : "Estoque"}</p>
         </div>
       </section>
 
-      <form onSubmit={(event) => void registrarSobra(event)} className="mt-6 rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
+      <form onSubmit={(event) => void registrarSobra(event)} className="mt-6 rounded-2xl border border-border-subtle bg-surface p-5 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">Status da requisição</p>
@@ -141,7 +141,7 @@ export default function RequisicaoDetalhePage() {
         <button
           type="submit"
           disabled={salvando || restante === 0 || requisicao.status !== "RETIRADA" || !Number.isSafeInteger(Number(quantidade)) || Number(quantidade) < 1 || Number(quantidade) > restante}
-          className="mt-5 min-h-11 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-5 min-h-11 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-surface shadow-sm transition hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-not-allowed disabled:opacity-60"
         >
           {salvando ? "Registrando…" : "Registrar sobra"}
         </button>

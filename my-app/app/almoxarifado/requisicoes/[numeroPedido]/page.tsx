@@ -281,7 +281,7 @@ export default function ChecklistRequisicaoPage() {
         <h1 className="text-2xl font-bold text-success">Requisição finalizada</h1>
         <p className="mt-2 text-sm text-success">Pedido {finalizado.numeroPedido} · {itensSeparados} itens com separação · {finalizado.movimentacoes.length} movimentações registradas.</p>
       </section>
-      <section className="rounded-xl border border-border-subtle bg-white p-5">
+      <section className="rounded-xl border border-border-subtle bg-surface p-5">
         <h2 className="font-semibold text-foreground">Resumo por item</h2>
         <ul className="mt-3 divide-y divide-border-subtle">
           {finalizado.itens.map((item) => <li key={item.id} className="py-3 text-sm">
@@ -290,14 +290,14 @@ export default function ChecklistRequisicaoPage() {
           </li>)}
         </ul>
       </section>
-      <section className="rounded-xl border border-border-subtle bg-white p-5">
+      <section className="rounded-xl border border-border-subtle bg-surface p-5">
         <h2 className="font-semibold text-foreground">Movimentações geradas</h2>
         <ul className="mt-2 space-y-1 text-sm text-foreground">
           {finalizado.movimentacoes.map((movement) => <li key={movement.id}>{movement.tipo === "SAIDA" ? "Saída" : "Liberação de reserva"} · {movement.quantidade} {movement.unidadeMedida}</li>)}
         </ul>
       </section>
       <div className="flex flex-wrap gap-3">
-        <Link href="/almoxarifado/requisicoes" className="rounded-lg bg-brand px-4 py-2 font-semibold text-white">Voltar à fila</Link>
+        <Link href="/almoxarifado/requisicoes" className="rounded-lg bg-brand px-4 py-2 font-semibold text-surface">Voltar à fila</Link>
         <Link href="/historico" className="rounded-lg border border-border px-4 py-2 font-semibold text-foreground">Ver histórico</Link>
       </div>
     </main>;
@@ -309,7 +309,7 @@ export default function ChecklistRequisicaoPage() {
         <Link href="/almoxarifado/requisicoes" className="text-sm font-semibold text-brand hover:underline">← Voltar à fila</Link>
         <span className="rounded-full bg-priority-surface px-3 py-1 text-sm font-semibold text-brand">{totalConferidos} de {requisicao.itens.length} conferidos</span>
       </div>
-      <header className="rounded-xl border border-border-subtle bg-white p-5">
+      <header className="rounded-xl border border-border-subtle bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-brand">{requisicao.numeroPedido}</p>
         <h1 className="mt-1 text-2xl font-bold text-foreground">Checklist de separação</h1>
         <p className="mt-2 text-sm text-text-secondary">Solicitante: {requisicao.solicitante} · Atendimento: {requisicao.atendente ?? "—"}</p>
@@ -317,13 +317,13 @@ export default function ChecklistRequisicaoPage() {
         {!requisicaoAtiva && <p role="status" className="mt-3 rounded-lg bg-warning-surface p-3 text-sm text-warning">Esta requisição não está em atendimento. A conferência só pode ser registrada enquanto estiver assumida.</p>}
       </header>
 
-      <section aria-labelledby="etiqueta-heading" className="rounded-xl border border-border-subtle bg-white p-5">
+      <section aria-labelledby="etiqueta-heading" className="rounded-xl border border-border-subtle bg-surface p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 id="etiqueta-heading" className="text-lg font-bold text-foreground">Conferir por etiqueta</h2>
             <p className="mt-1 text-sm text-text-secondary">Leia o QR do código ERP/TOTVS ou digite o número impresso.</p>
           </div>
-          <button type="button" onClick={() => setCameraAberta(true)} disabled={!requisicaoAtiva} className="min-h-11 rounded-lg bg-brand px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Ler etiqueta</button>
+          <button type="button" onClick={() => setCameraAberta(true)} disabled={!requisicaoAtiva} className="min-h-11 rounded-lg bg-brand px-5 py-2 font-semibold text-surface disabled:cursor-not-allowed disabled:opacity-50">Ler etiqueta</button>
         </div>
         <form onSubmit={(event) => void submitManual(event)} className="mt-4 flex flex-col gap-3 sm:flex-row">
           <label htmlFor="codigo-etiqueta" className="sr-only">Número impresso na etiqueta</label>
@@ -352,7 +352,7 @@ export default function ChecklistRequisicaoPage() {
           const quantidadeReal = quantidadesReais[item.id] ?? "";
           const diverge = quantidadeReal !== "" && Number(quantidadeReal) !== item.quantidadeSolicitada;
           return (
-            <article key={item.id} className={`rounded-xl border bg-white p-4 ${item.conferido ? "border-success/30" : "border-border-subtle"}`}>
+            <article key={item.id} className={`rounded-xl border bg-surface p-4 ${item.conferido ? "border-success/30" : "border-border-subtle"}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <h2 className="font-semibold text-foreground">{item.nome}</h2>
@@ -400,14 +400,14 @@ export default function ChecklistRequisicaoPage() {
           );
         })}
       </section>
-      {requisicao.podeFinalizar && <section className="rounded-xl border border-border-subtle bg-white p-5">
+      {requisicao.podeFinalizar && <section className="rounded-xl border border-border-subtle bg-surface p-5">
         <p className="text-sm text-text-secondary">A quantidade real e os motivos serão gravados ao finalizar. As divergências serão baixadas pela quantidade efetivamente separada.</p>
         {erro && <p role="alert" className="mt-3 rounded-lg bg-error-surface p-3 text-sm text-error">{erro}</p>}
         <button
           type="button"
           onClick={() => void finalizarRequisicao()}
           disabled={!requisicaoAtiva || !outcomesValidos || finalizando}
-          className="mt-4 min-h-11 rounded-lg bg-brand px-5 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 min-h-11 rounded-lg bg-brand px-5 py-2 font-semibold text-surface disabled:cursor-not-allowed disabled:opacity-50"
         >
           {finalizando ? "Finalizando…" : "Finalizar requisição"}
         </button>

@@ -59,7 +59,7 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
       />
 
       {!carregando && !erro && resumo?.materiaisAtivos === 0 && (
-        <p role="status" className="mb-6 rounded-2xl border border-dashed border-border bg-white px-4 py-5 text-sm text-text-secondary">
+        <p role="status" className="mb-6 rounded-2xl border border-dashed border-border bg-surface px-4 py-5 text-sm text-text-secondary">
           O estoque está vazio no momento.
         </p>
       )}
@@ -67,7 +67,7 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
       <section aria-label="Resumo do almoxarifado" aria-live="polite" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {carregando ? (
           cards.map((card) => (
-            <div key={card.key} aria-hidden="true" className="h-32 animate-pulse rounded-2xl border border-border-subtle bg-white p-5">
+            <div key={card.key} aria-hidden="true" className="h-32 animate-pulse rounded-2xl border border-border-subtle bg-surface p-5">
               <div className="h-4 w-2/3 rounded bg-border-subtle" />
               <div className="mt-5 h-8 w-1/3 rounded bg-border-subtle" />
             </div>

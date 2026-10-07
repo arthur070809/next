@@ -74,26 +74,26 @@ export default function PortalShell({
     <div className="min-h-dvh bg-background text-foreground" data-shell>
       <SessionHeartbeat />
       <aside
-        className={`fixed left-0 top-0 z-30 flex h-dvh w-72 flex-col overflow-hidden border-r border-brand-pressed bg-brand px-5 py-5 text-white transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed left-0 top-0 z-30 flex h-dvh w-72 flex-col overflow-hidden border-r border-brand-pressed bg-brand px-5 py-5 text-surface transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between gap-4">
-          <Link href={homeHref} className="inline-flex rounded-control bg-white p-2" aria-label="Marcon Metalúrgicos, início">
+          <Link href={homeHref} className="inline-flex rounded-control bg-surface p-2" aria-label="Marcon Metalúrgicos, início">
             <Image src="/marcon-logo.svg" width={159} height={31} alt="Marcon Metalúrgicos" priority />
           </Link>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="min-h-11 min-w-11 rounded-control border border-white/30 p-2 text-white hover:bg-white/10 lg:hidden"
+            className="min-h-11 min-w-11 rounded-control border border-surface/30 p-2 text-surface hover:bg-surface/10 lg:hidden"
             aria-label="Fechar menu"
           >
             <Icon name="close" />
           </button>
         </div>
 
-        <div className="mt-6 rounded-panel border border-white/20 bg-white/10 p-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/75">Operação</p>
-          <p className="mt-2 text-sm font-semibold text-white">{roleLabel}</p>
-          <p className="mt-1 truncate text-xs text-white/80">{userName}</p>
+        <div className="mt-6 rounded-panel border border-surface/20 bg-surface/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-surface/75">Operação</p>
+          <p className="mt-2 text-sm font-semibold text-surface">{roleLabel}</p>
+          <p className="mt-1 truncate text-xs text-surface/80">{userName}</p>
         </div>
 
         <nav
@@ -110,8 +110,8 @@ export default function PortalShell({
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${
                   active
-                    ? "bg-white text-brand shadow-card"
-                    : "text-white/85 hover:bg-white/10 hover:text-white"
+                    ? "bg-surface text-brand shadow-card"
+                    : "text-surface/85 hover:bg-surface/10 hover:text-surface"
                 }`}
               >
                 <span aria-hidden="true" className="flex w-5 justify-center">
@@ -147,7 +147,7 @@ export default function PortalShell({
                 <Icon name="menu" size={18} />
                 <span className="hidden sm:inline">Menu</span>
               </Button>
-              <Link href={homeHref} className="inline-flex rounded-control bg-white p-1.5 lg:hidden" aria-label="Marcon Metalúrgicos, início">
+              <Link href={homeHref} className="inline-flex rounded-control bg-surface p-1.5 lg:hidden" aria-label="Marcon Metalúrgicos, início">
                 <Image src="/marcon-logo.svg" width={143} height={28} alt="Marcon Metalúrgicos" priority />
               </Link>
             </div>
@@ -195,7 +195,7 @@ export default function PortalShell({
                 key={item.href}
                 href={item.href}
                 className={`flex min-h-11 flex-col items-center justify-center rounded-control px-2 py-1.5 text-sm font-semibold ${
-                  isActive ? "bg-brand text-white" : "text-text-secondary hover:bg-background"
+                  isActive ? "bg-brand text-surface" : "text-text-secondary hover:bg-background"
                 }`}
               >
                 <span aria-hidden="true" className="mb-1">

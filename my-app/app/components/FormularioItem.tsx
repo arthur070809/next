@@ -109,7 +109,7 @@ export default function FormularioItem({
             : <select id="item-requisicao" required value={form.itemId} onChange={(event) => {
         const item = catalogItems.find((entry) => entry.id === event.target.value);
         setForm((current) => ({ ...current, itemId: item?.id ?? "", itemNome: item?.nome ?? "", unidadeMedida: item?.unidade ?? "un", saldoDepositoPrevio: item?.quantidadeDeposito ?? 0, saldoEstoquePrevio: item?.quantidade ?? 0 }));
-      }} className="mt-2 block w-full rounded-lg border border-border bg-white px-3 py-2">
+      }} className="mt-2 block w-full rounded-lg border border-border bg-surface px-3 py-2">
         <option value="">Escolha um item...</option>
         {catalogItems.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.disponivel} livre · {item.reservada} reservado</option>)}
       </select>}
@@ -119,7 +119,7 @@ export default function FormularioItem({
     </div>
 
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <label className="text-sm font-medium text-foreground">Setor<select value={form.setor} onChange={(event) => update("setor", event.target.value as ItemFormData["setor"])} className="mt-2 block w-full rounded-lg border border-border bg-white px-3 py-2"><option>Setor 1</option><option>Setor 2</option><option>Setor 3</option></select></label>
+      <label className="text-sm font-medium text-foreground">Setor<select value={form.setor} onChange={(event) => update("setor", event.target.value as ItemFormData["setor"])} className="mt-2 block w-full rounded-lg border border-border bg-surface px-3 py-2"><option>Setor 1</option><option>Setor 2</option><option>Setor 3</option></select></label>
       <label className="text-sm font-medium text-foreground">Quantidade em {selectedItem?.unidade ?? "unidades"}<input type="number" inputMode="numeric" min={1} step={1} value={String(form.quantidade)} onChange={(event) => update("quantidade", event.target.value === "" ? "" : Number(event.target.value))} className="mt-2 block w-full rounded-lg border border-border px-3 py-2" /></label>
     </div>
 

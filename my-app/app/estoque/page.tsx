@@ -320,25 +320,25 @@ export default function EstoquePage() {
   return (
     <main className={`${styles.stockPage} bg-background px-4 py-6 sm:px-8 md:px-12`}>
       <div className={`${styles.stockContent} mx-auto w-full max-w-7xl`}>
-        <header className="shrink-0 rounded-2xl bg-white p-5 shadow-card">
+        <header className="shrink-0 rounded-2xl bg-surface p-5 shadow-card">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Almoxarifado Marcon</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">Estoque</h1>
           <p className="mt-2 text-sm text-text-secondary">Cadastre e acompanhe os materiais disponíveis com uma visão mais clara da operação.</p>
         </header>
 
         <section className="grid shrink-0 gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
-          <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-card">
+          <div className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3 shadow-card">
             <p className="text-sm text-text-secondary">Itens cadastrados</p>
             <p className="text-2xl font-black text-foreground">{itens.length}</p>
           </div>
-          <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-card">
+          <div className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3 shadow-card">
             <p className="text-sm text-text-secondary">Categorias</p>
             <p className="text-2xl font-black text-foreground">{new Set(itens.map((item) => item.categoria)).size}</p>
           </div>
         </section>
 
         <div className="mt-4 grid items-start gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:mt-0 lg:min-h-0 lg:flex-1 lg:items-stretch">
-          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl bg-white p-4 shadow-card`}>
+          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl bg-surface p-4 shadow-card`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-bold text-foreground">{qrMatchedItem ? "Entrada do item identificado" : "Novo item / registrar entrada"}</h2>
               <button type="button" onClick={() => setCameraAberta(true)} className="min-h-11 rounded-lg border border-brand px-4 text-sm font-semibold text-brand hover:bg-priority-surface">
@@ -366,7 +366,7 @@ export default function EstoquePage() {
                 <select id="categoria" required value={form.categoria} onChange={(event) => {
                   setForm({ ...form, categoria: event.target.value, nome: "" });
                   setQrMatchedItem(null);
-                }} className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm">
+                }} className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
                   <option value="">Selecione uma categoria</option>
                   {form.categoria && !categorias.includes(form.categoria) && <option value={form.categoria}>{form.categoria}</option>}
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
@@ -376,7 +376,7 @@ export default function EstoquePage() {
                 <label htmlFor="nome" className="text-xs font-semibold text-foreground">Nome do material</label>
                 <div className="relative mt-1">
                   <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setQrMatchedItem(null); setNomeAberto(true); }} className="block w-full rounded-lg border border-border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-background" />
-                  {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-border bg-white p-1 shadow-lg">
+                  {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-border bg-surface p-1 shadow-lg">
                     {materiaisSugeridos.map((material) => <button key={material} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setForm({ ...form, nome: material }); setNomeAberto(false); }} className="block w-full rounded-md px-3 py-2 text-left text-sm leading-5 text-foreground hover:bg-priority-surface focus:bg-priority-surface focus:outline-none">{material}</button>)}
                   </div>}
                 </div>
@@ -393,7 +393,7 @@ export default function EstoquePage() {
                   }));
                   setErrosQuantidade({});
                   setErro("");
-                }} className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm">
+                }} className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
                   <option value="">Selecione o tipo de unidade</option>
                   {STOCK_UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
                 </select>
@@ -423,17 +423,17 @@ export default function EstoquePage() {
               {erro && <p role="alert" className="rounded-lg bg-error-surface px-3 py-2 text-sm text-error">{erro}</p>}
               {mensagem && <p role="status" className="rounded-lg bg-success-surface px-3 py-2 text-sm text-success">{mensagem}</p>}
               <p aria-live="polite" className="min-h-5 text-sm font-medium text-text-secondary">{resumo}</p>
-              <button type="submit" disabled={salvando} className="mt-2 min-h-11 w-full rounded-lg bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-wait disabled:bg-border-subtle">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
+              <button type="submit" disabled={salvando} className="mt-2 min-h-11 w-full rounded-lg bg-brand px-5 text-sm font-semibold text-surface hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-wait disabled:bg-border-subtle">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
               </div>
             </form>
           </section>
 
-          <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-white p-5 shadow-card`}>
+          <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-surface p-5 shadow-card`}>
             <div className={styles.stockHeader}>
               <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
               <h2 className="text-center text-xl font-bold text-foreground sm:col-start-2">Itens do estoque</h2>
               <div className="flex flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
-                <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand">
+                <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand">
                   <option value="">Todas as categorias</option>
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>

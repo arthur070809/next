@@ -36,9 +36,9 @@ export function Icon({ name, size = 20, className = "" }: { name: IconName; size
 }
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed",
+  primary: "bg-brand text-surface hover:bg-brand-hover active:bg-brand-pressed",
   secondary: "border border-brand bg-surface text-brand hover:bg-priority-surface active:bg-brand/10",
-  danger: "bg-error text-white hover:bg-error/90 active:bg-error",
+  danger: "bg-error text-surface hover:bg-error/90 active:bg-error",
 };
 
 export function Button({

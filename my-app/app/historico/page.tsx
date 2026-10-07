@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHeader, StatusBadge } from "../components/industrial";
+import { EmptyState, ErrorState, LoadingState } from "../components/ui";
 import type { EventoHistorico } from "@/lib/types/almoxarifado";
 import PriorityBadge from "../components/PriorityBadge";
 import ItemDescription from "../components/ItemDescription";
@@ -39,7 +40,7 @@ type HistoryResponse = {
 function eventProducts(event: EventoHistorico) {
   if (event.produtos.length) {
     return event.produtos.map((product) => (
-      <div key={`${product.codigo ?? ""}-${product.nome}`} className="text-sm leading-6 text-slate-600">
+      <div key={`${product.codigo ?? ""}-${product.nome}`} className="text-sm leading-6 text-text-secondary">
         <p>{product.codigo ? `${product.codigo} · ` : ""}{product.nome}: pedido {product.quantidadePedida}, separado {product.quantidadeSeparada}</p>
         <ItemDescription categoria={product.categoria} descricao={product.descricao} />
         {product.motivo && <p>Motivo: {product.motivo}</p>}
@@ -47,13 +48,14 @@ function eventProducts(event: EventoHistorico) {
     ));
   }
   return event.descricaoMotivo
-    ? <p className="text-sm leading-6 text-slate-600">{event.descricaoMotivo}</p>
-    : <p className="text-sm text-slate-500">Sem detalhes adicionais.</p>;
+    ? <p className="text-sm leading-6 text-text-secondary">{event.descricaoMotivo}</p>
+    : <p className="text-sm text-text-secondary">Sem detalhes adicionais.</p>;
 }
 
 export default function HistoricoPage() {
   const [events, setEvents] = useState<EventoHistorico[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const [apiError, setApiError] = useState("");
   const [selected, setSelected] = useState<EventoHistorico["evento"][]>([]);
   const [search, setSearch] = useState("");
@@ -95,7 +97,7 @@ export default function HistoricoPage() {
       });
 
     return () => controller.abort();
-  }, [page, product, employee, desde, ate, selected]);
+  }, [page, product, employee, desde, ate, selected, retryCount]);
 
   const term = search.trim().toLocaleLowerCase("pt-BR");
   const visibleEvents = events.filter((event) =>
@@ -141,77 +143,81 @@ export default function HistoricoPage() {
         title="Histórico de movimentações"
         description="Ações registradas sobre as requisições do almoxarifado, com busca e filtros."
         action={
-          <Link href="/almoxarifado" className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
+          <Link href="/almoxarifado" className="inline-flex min-h-11 items-center rounded-control border border-brand px-4 text-sm font-semibold text-brand transition-colors hover:bg-priority-surface">
             Voltar ao painel
           </Link>
         }
       />
 
-      {apiError && <p role="alert" className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{apiError}</p>}
+      {apiError && <ErrorState message={apiError} onRetry={() => {
+        setLoading(true);
+        setApiError("");
+        setRetryCount((count) => count + 1);
+      }} />}
 
-      <section aria-label="Filtros do histórico" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <section aria-label="Filtros do histórico" className="mb-5 rounded-card bg-surface p-4 shadow-card sm:p-5">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-foreground">
             Buscar pedido ou funcionário
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Pedido, nome ou crachá" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Pedido, nome ou crachá" className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2.5" />
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-foreground">
             Produto
-            <select value={product} onChange={(event) => changeFilter(setProduct, event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+            <select value={product} onChange={(event) => changeFilter(setProduct, event.target.value)} className="mt-1 w-full rounded-xl border border-border-subtle bg-surface px-3 py-2.5">
               <option value="">Todos os produtos</option>
               {filters.produtos.map((option) => <option key={`${option.codigo ?? ""}-${option.nome}`} value={option.codigo ?? option.nome}>{option.codigo ? `${option.codigo} · ` : ""}{option.nome}</option>)}
             </select>
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-foreground">
             Quem executou
-            <select value={employee} onChange={(event) => changeFilter(setEmployee, event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+            <select value={employee} onChange={(event) => changeFilter(setEmployee, event.target.value)} className="mt-1 w-full rounded-xl border border-border-subtle bg-surface px-3 py-2.5">
               <option value="">Todos os funcionários</option>
               {filters.funcionarios.map((option) => <option key={option.id} value={option.id}>{option.nome} · {option.cracha}</option>)}
             </select>
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-foreground">
             De
-            <input type="date" value={desde} onChange={(event) => changeFilter(setDesde, event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
+            <input type="date" value={desde} onChange={(event) => changeFilter(setDesde, event.target.value)} className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2.5" />
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-foreground">
             Até
-            <input type="date" value={ate} onChange={(event) => changeFilter(setAte, event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
+            <input type="date" value={ate} onChange={(event) => changeFilter(setAte, event.target.value)} className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2.5" />
           </label>
           <div className="flex items-end">
-            <button type="button" onClick={clearFilters} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100">Limpar filtros</button>
+            <button type="button" onClick={clearFilters} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-text-secondary hover:bg-background">Limpar filtros</button>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {kinds.map((kind) => (
-            <button key={kind} type="button" onClick={() => toggle(kind)} aria-pressed={selected.includes(kind)} className={`rounded-full border px-3 py-1.5 text-sm font-medium ${selected.includes(kind) ? "border-transparent ring-1 ring-inset ring-current" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+            <button key={kind} type="button" onClick={() => toggle(kind)} aria-pressed={selected.includes(kind)} className={`rounded-full border px-3 py-1.5 text-sm font-medium ${selected.includes(kind) ? "border-transparent ring-1 ring-inset ring-current" : "border-border-subtle text-text-secondary hover:bg-background"}`}>
               <StatusBadge label={labels[kind]} tone={tones[kind]} />
             </button>
           ))}
         </div>
       </section>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-text-secondary">
         <p>{total} eventos encontrados · até {sourceLimit} requisições recentes consultáveis</p>
         <p>Página {page} de {totalPages} · {pageSize} eventos por página</p>
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">Carregando histórico…</div>
-      ) : visibleEvents.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500 shadow-sm">Nenhum evento encontrado para estes filtros.</div>
+        <LoadingState label="Carregando histórico…" rows={4} />
+      ) : apiError ? null : visibleEvents.length === 0 ? (
+        <EmptyState title="Nenhum evento encontrado" message="Ajuste os filtros e tente novamente." />
       ) : (
         <section className="space-y-3">
           {visibleEvents.map((event) => (
-            <article key={event.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <article key={event.id} className="rounded-card bg-surface p-4 shadow-card sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <strong className="text-slate-900">{event.numeroPedido}</strong>
+                  <strong className="text-foreground">{event.numeroPedido}</strong>
                   <StatusBadge label={labels[event.evento]} tone={tones[event.evento]} />
                   {event.prioridade && <PriorityBadge priority={event.prioridade} />}
                 </div>
-                <time className="text-sm text-slate-500">{new Date(event.timestamp).toLocaleString("pt-BR")}</time>
+                <time className="text-sm text-text-secondary">{new Date(event.timestamp).toLocaleString("pt-BR")}</time>
               </div>
-              <p className="mt-2 text-sm text-slate-700">Executado por {event.funcionarioNome} · Crachá {event.codigoCracha}</p>
+              <p className="mt-2 text-sm text-foreground">Executado por {event.funcionarioNome} · Crachá {event.codigoCracha}</p>
               <div className="mt-3 space-y-1">{eventProducts(event)}</div>
             </article>
           ))}
@@ -219,8 +225,8 @@ export default function HistoricoPage() {
       )}
 
       <nav aria-label="Paginação do histórico" className="mt-5 flex items-center justify-between">
-        <button type="button" disabled={loading || page <= 1} onClick={() => { setLoading(true); setPage((current) => Math.max(1, current - 1)); }} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Anterior</button>
-        <button type="button" disabled={loading || page >= totalPages} onClick={() => { setLoading(true); setPage((current) => Math.min(totalPages, current + 1)); }} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Próxima</button>
+        <button type="button" disabled={loading || page <= 1} onClick={() => { setLoading(true); setPage((current) => Math.max(1, current - 1)); }} className="min-h-11 rounded-control border border-brand bg-surface px-4 text-sm font-semibold text-brand disabled:opacity-50">Anterior</button>
+        <button type="button" disabled={loading || page >= totalPages} onClick={() => { setLoading(true); setPage((current) => Math.min(totalPages, current + 1)); }} className="min-h-11 rounded-control border border-brand bg-surface px-4 text-sm font-semibold text-brand disabled:opacity-50">Próxima</button>
       </nav>
     </div>
   );

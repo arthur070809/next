@@ -712,7 +712,7 @@ export default function LoginForm({
   return <main className="safe-area-inset flex min-h-dvh items-center justify-center bg-background">
     <Card as="section" className="w-full max-w-md overflow-hidden p-0">
       <div className="flex min-h-14 items-center justify-center bg-brand px-4 py-2.5">
-        <span className="inline-flex rounded-control bg-white p-2">
+        <span className="inline-flex rounded-control bg-surface p-2">
           <Image src="/marcon-logo.svg" width={159} height={31} alt="Marcon Metalúrgicos" priority />
         </span>
       </div>
@@ -764,12 +764,12 @@ export default function LoginForm({
                 ? <Button disabled={attemptBusy} onClick={() => void restartFaceSession()} className="flex-1">Tentar novamente</Button>
               : null}
         </div>
-      </section> : stage === "totp" ? <form onSubmit={(event) => void submitTotp(event)} className="mt-4 grid gap-3">
+      </section> : stage === "totp" ? <form onSubmit={(event) => void submitTotp(event)} className="mt-4 grid grid-cols-1 gap-3">
         <p className="text-sm text-text-secondary">Digite o código de 6 dígitos do aplicativo autenticador do administrador.</p>
         <Field label="Código de verificação" htmlFor="totp-code"><input ref={totpInputRef} id="totp-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={totpCode} onChange={(event) => setTotpCode(event.target.value.replace(/\D/g, ""))} className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 text-base text-foreground" /></Field>
         {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
         <div className="flex flex-col gap-2 sm:flex-row"><Button variant="secondary" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="flex-1">Voltar</Button><Button type="submit" disabled={totpCode.length !== 6} loading={loading} loadingLabel="Verificando…" className="flex-1">Verificar</Button></div>
-      </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-4 grid gap-3" noValidate>
+      </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-4 grid grid-cols-1 gap-3" noValidate>
         <Field label="Código do crachá" htmlFor="codigo-cracha"><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 text-base text-foreground" /></Field>
         <div>
           <label htmlFor="login-password" className="text-sm font-semibold text-foreground">Senha</label>

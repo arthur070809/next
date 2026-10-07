@@ -223,7 +223,7 @@ export default function RequisicoesQueuePage() {
         description="Pedidos enviados pelos operadores, aguardando atendimento do almoxarifado."
       />
 
-      <section aria-label="Controles da fila" className="mb-5 grid gap-3 rounded-2xl border border-border-subtle bg-white p-4 shadow-sm sm:grid-cols-[1fr_auto_auto] sm:items-end">
+      <section aria-label="Controles da fila" className="mb-5 grid gap-3 rounded-2xl border border-border-subtle bg-surface p-4 shadow-sm sm:grid-cols-[1fr_auto_auto] sm:items-end">
         <label className="text-sm font-medium text-foreground">
           Buscar requisição
           <input
@@ -238,7 +238,7 @@ export default function RequisicoesQueuePage() {
           onClick={() => setMostrarViagens((show) => !show)}
           aria-expanded={mostrarViagens}
           aria-controls="painel-viagens"
-          className="min-h-11 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover active:bg-brand-pressed"
+          className="min-h-11 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-surface hover:bg-brand-hover active:bg-brand-pressed"
         >
           {mostrarViagens ? "Fechar viagens" : "Montar viagem"}
         </button>
@@ -246,7 +246,7 @@ export default function RequisicoesQueuePage() {
           type="button"
           onClick={() => setAtualizacao((current) => current + 1)}
           disabled={carregando}
-          className="min-h-11 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"
+          className="min-h-11 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"
         >
           Atualizar fila
         </button>
@@ -260,7 +260,7 @@ export default function RequisicoesQueuePage() {
               <p className="text-sm text-text-secondary">As requisições continuam sendo assumidas individualmente pelo fluxo atual.</p>
             </div>
             {podeAtivarDemonstracao && (
-              <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm font-medium text-foreground">
+              <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground">
                 <input
                   type="checkbox"
                   checked={modoDemonstracao}
@@ -271,7 +271,7 @@ export default function RequisicoesQueuePage() {
               </label>
             )}
             {planoViagensExibido && (
-              <p className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-foreground" aria-live="polite">
+              <p className="rounded-xl bg-surface px-3 py-2 text-sm font-semibold text-foreground" aria-live="polite">
                 Idas sem agrupar: {planoViagensExibido.metricas.idasSemAgrupar} · Viagens agrupadas: {planoViagensExibido.metricas.idasAgrupadas} · Economia: {planoViagensExibido.metricas.idasEconomizadas}
                 {planoViagensExibido.metricas.idasSemAgrupar === planoViagensExibido.metricas.idasAgrupadas && <span className="ml-2 font-normal">Sem ganho com a demanda atual.</span>}
               </p>
@@ -289,7 +289,7 @@ export default function RequisicoesQueuePage() {
           ) : planoViagensExibido?.viagens.length ? (
             <div className="grid gap-4 lg:grid-cols-2">
               {planoViagensExibido.viagens.map((viagem) => (
-                <article key={viagem.localId ?? "sem-origem"} className="rounded-2xl border border-border-subtle bg-white p-4 shadow-sm">
+                <article key={viagem.localId ?? "sem-origem"} className="rounded-2xl border border-border-subtle bg-surface p-4 shadow-sm">
                   <h3 className="font-bold text-foreground">{viagem.localNome}: {viagem.quantidadeRequisicoes} requisições, {viagem.quantidadeItens} itens</h3>
                   <p className="mt-1 text-sm text-text-secondary">
                     Mais antiga: {formatarIdade(viagem.requisicoes.reduce((maisAntiga, request) =>
@@ -339,7 +339,7 @@ export default function RequisicoesQueuePage() {
           )}
 
           {resultadosLote.length > 0 && (
-            <section aria-label="Resultado de assumir requisições" aria-live="polite" className="mt-5 rounded-2xl border border-border bg-white p-4">
+            <section aria-label="Resultado de assumir requisições" aria-live="polite" className="mt-5 rounded-2xl border border-border bg-surface p-4">
               <h3 className="font-semibold text-foreground">Resultado da viagem</h3>
               <ul className="mt-2 space-y-2 text-sm">
                 {resultadosLote.map((resultado) => (
@@ -433,7 +433,7 @@ export default function RequisicoesQueuePage() {
               </ul>
               {request.descricao && <RequisitionDescription value={request.descricao} variant="queue" priority={request.prioridade === "prioridade"} />}
               {request.status === "pendente" ? (
-                <button type="button" disabled={modoDemonstracao} onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }} className="min-h-11 w-full rounded-control bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50">Assumir requisição</button>
+                <button type="button" disabled={modoDemonstracao} onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }} className="min-h-11 w-full rounded-control bg-brand px-4 text-sm font-semibold text-surface hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50">Assumir requisição</button>
               ) : (
                 <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="inline-flex min-h-11 items-center justify-center rounded-control border border-brand px-4 text-sm font-semibold text-brand">Abrir checklist</Link>
               )}

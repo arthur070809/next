@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { startRegistration } from "@simplewebauthn/browser";
 import { FormEvent, useState } from "react";
+import { Button, Card } from "../components/ui";
 
 export default function PairTrustedDevicePage() {
   const [code, setCode] = useState("");
@@ -45,18 +46,18 @@ export default function PairTrustedDevicePage() {
     }
   }
 
-  return <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-    <section className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <Link href="/login" className="text-sm font-semibold text-royal hover:underline">Voltar ao login</Link>
-      <p className="mt-7 text-xs font-semibold uppercase tracking-[0.16em] text-royal">Almoxarifado Marcon</p>
-      <h1 className="mt-2 text-2xl font-bold text-slate-950">Parear aparelho aprovado</h1>
-      {success ? <div role="status" className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><p className="font-semibold">Aparelho pareado com sucesso.</p><p className="mt-1">Agora você pode entrar com crachá, senha e verificação do aparelho.</p></div> : <form onSubmit={(event) => void pairDevice(event)} className="mt-5 space-y-5">
-        <label htmlFor="pairing-code" className="block text-sm font-semibold text-slate-800">Código de pareamento<input id="pairing-code" required minLength={12} maxLength={32} autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase().replace(/\s/g, ""))} className="mt-2 block min-h-12 w-full rounded-lg border border-slate-300 px-4 font-mono text-lg tracking-widest outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></label>
-        <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-4 text-sm leading-6 text-slate-700"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 h-4 w-4 accent-[#4169E1]" /><span><strong>Consentimento de verificação local.</strong> Autorizo este aparelho a usar a biometria ou o bloqueio de tela do sistema operacional para verificar meu acesso. O rosto, a impressão digital e as imagens não são enviados nem armazenados pelo Almoxarifado Marcon. Posso pedir a revogação do aparelho ao admin.</span></label>
-        <p className="text-xs text-slate-500">O código expira em 5 minutos. A confirmação acontece na janela segura do sistema do aparelho.</p>
-        {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-        <button type="submit" disabled={busy || !consent || code.trim().length < 12} className="min-h-11 w-full rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-50">{busy ? "Verificando aparelho…" : "Parear aparelho"}</button>
+  return <main className="safe-area-inset flex min-h-dvh items-center justify-center bg-background py-8">
+    <Card className="w-full max-w-lg p-5 sm:p-8">
+      <Link href="/login" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand hover:underline">Voltar ao login</Link>
+      <p className="mt-5 text-sm font-semibold uppercase tracking-[0.16em] text-brand">Almoxarifado Marcon</p>
+      <h1 className="mt-2 text-2xl font-bold text-foreground">Parear aparelho aprovado</h1>
+      {success ? <div role="status" className="mt-5 rounded-lg border border-success/30 bg-success-surface p-4 text-sm text-success"><p className="font-semibold">Aparelho pareado com sucesso.</p><p className="mt-1">Agora você pode entrar com crachá, senha e verificação do aparelho.</p></div> : <form onSubmit={(event) => void pairDevice(event)} className="mt-5 space-y-5">
+        <label htmlFor="pairing-code" className="block text-sm font-semibold text-foreground">Código de pareamento<input id="pairing-code" required minLength={12} maxLength={32} autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase().replace(/\s/g, ""))} className="mt-2 block min-h-12 w-full rounded-control border border-border px-4 font-mono text-lg tracking-widest" /></label>
+        <label className="flex items-start gap-3 rounded-control bg-background p-4 text-sm leading-6 text-foreground"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 size-5 shrink-0 accent-brand" /><span><strong>Consentimento de verificação local.</strong> Autorizo este aparelho a usar a biometria ou o bloqueio de tela do sistema operacional para verificar meu acesso. O rosto, a impressão digital e as imagens não são enviados nem armazenados pelo Almoxarifado Marcon. Posso pedir a revogação do aparelho ao admin.</span></label>
+        <p className="text-xs text-text-secondary">O código expira em 5 minutos. A confirmação acontece na janela segura do sistema do aparelho.</p>
+        {error && <p role="alert" className="rounded-lg bg-error-surface p-3 text-sm text-error">{error}</p>}
+        <Button type="submit" disabled={!consent || code.trim().length < 12} loading={busy} loadingLabel="Verificando aparelho…" className="w-full">Parear aparelho</Button>
       </form>}
-    </section>
+    </Card>
   </main>;
 }
