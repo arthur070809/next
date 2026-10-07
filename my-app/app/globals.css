@@ -2,19 +2,116 @@
 @config "../tailwind.config.ts";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --brand: #153d8a;
+  --brand-hover: #123577;
+  --brand-pressed: #102e68;
+  --background: #eff2f8;
+  --surface: #ffffff;
+  --foreground: #172033;
+  --text-secondary: #4b5563;
+  --border: #748094;
+  --border-subtle: #d7deea;
+  --success: #166534;
+  --success-surface: #f0fdf4;
+  --warning: #854d0e;
+  --warning-surface: #fffbeb;
+  --error: #b42318;
+  --error-surface: #fef3f2;
+  --priority: #153d8a;
+  --priority-surface: #e8eef8;
+  --space-page: 1rem;
+  --space-section: 1.5rem;
+  --ui-radius-control: 0.625rem;
+  --ui-radius-card: 1rem;
+  --ui-radius-panel: 1.25rem;
+  --ui-shadow-card: 0 1px 3px rgb(23 32 51 / 8%), 0 1px 2px rgb(23 32 51 / 5%);
+  --ui-shadow-overlay: 0 20px 50px rgb(16 33 63 / 20%);
+  --ui-shadow-scrim: rgb(23 32 51 / 55%);
+  --font-family-ui: var(--font-geist-sans), sans-serif;
+  --font-data: var(--font-geist-mono), monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-pressed: var(--brand-pressed);
+  --color-surface: var(--surface);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-error: var(--error);
+  --color-error-surface: var(--error-surface);
+  --color-priority: var(--priority);
+  --color-priority-surface: var(--priority-surface);
+  --radius-control: var(--ui-radius-control);
+  --radius-card: var(--ui-radius-card);
+  --radius-panel: var(--ui-radius-panel);
+  --shadow-card: var(--ui-shadow-card);
+  --shadow-overlay: var(--ui-shadow-overlay);
+  --spacing-page: var(--space-page);
+  --spacing-section: var(--space-section);
   --font-sans: var(--font-geist-sans);
+  --font-ui: var(--font-family-ui);
   --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5rem;
+}
+
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--brand);
+  }
+
+  :where(button, a, input, select, textarea) {
+    transition-duration: 150ms;
+  }
+
+  :where(button) {
+    min-height: 2.75rem;
+  }
+
+  :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    min-height: 2.75rem;
+    border-color: var(--border);
+    border-radius: var(--ui-radius-control);
+    background-color: var(--surface);
+    color: var(--foreground);
+    font-size: 1rem;
+  }
+}
+
+@layer components {
+  .safe-area-inset {
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-family-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

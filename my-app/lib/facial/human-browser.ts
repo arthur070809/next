@@ -186,8 +186,7 @@ async function createBrowserHuman(callbacks: HumanLoaderCallbacks, diagnostics: 
       await human.load();
       diagnostics = { ...diagnostics, stage: "aquecendo" };
       callbacks.onDiagnostics(diagnostics);
-      callbacks.onProgress("Aquecendo detector e malha");
-      await human.warmup();
+      callbacks.onProgress("Modelos carregados; preparando a primeira análise");
       return human;
     },
     (attempt) => {
@@ -235,7 +234,6 @@ function loadOptionalFaceModel(
       callbacks.onProgress(model === "descriptor" ? "Baixando MobileFace" : "Baixando modelo de emoção");
       await verifyLocalModelFiles(files, callbacks, diagnostics);
       await human.load();
-      await human.warmup();
       callbacks.onProgress(model === "descriptor" ? "MobileFace pronto" : "Modelo de emoção pronto");
     });
     optionalModelsQueue = operation;

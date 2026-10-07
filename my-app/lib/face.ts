@@ -114,6 +114,16 @@ export function encryptEmbedding(embedding: number[]) {
   return { ciphertext, iv, tag: cipher.getAuthTag() };
 }
 
+export function encryptFaceDemoPhoto(photo: Uint8Array) {
+  if (!(photo instanceof Uint8Array) || photo.byteLength === 0) {
+    throw new FaceEnrollmentVerificationError("A miniatura de demonstração é inválida.", "FACE_DEMO_PHOTO_INVALID");
+  }
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", faceEncryptionKey(), iv);
+  const ciphertext = Buffer.concat([cipher.update(photo), cipher.final()]);
+  return { ciphertext, iv, tag: cipher.getAuthTag() };
+}
+
 export function decryptEmbedding(ciphertext: Uint8Array, iv: Uint8Array, tag: Uint8Array) {
   const decipher = createDecipheriv("aes-256-gcm", faceEncryptionKey(), Buffer.from(iv));
   decipher.setAuthTag(Buffer.from(tag));

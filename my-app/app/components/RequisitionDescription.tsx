@@ -20,16 +20,16 @@ export default function RequisitionDescription({
       className={`min-w-0 rounded-md px-2 py-1.5 text-sm leading-5 ${
         description
           ? priority
-            ? "border-l-2 border-amber-600 bg-amber-50 text-slate-900"
-            : "border-l-2 border-slate-300 bg-slate-50 text-slate-900"
-          : "border-l-2 border-slate-200 bg-slate-50 text-slate-500"
+            ? "border-l-2 border-warning/30 bg-warning-surface text-foreground"
+            : "border-l-2 border-border bg-background text-foreground"
+          : "border-l-2 border-border-subtle bg-background text-text-secondary"
       } ${className}`}
     >
       <span className="block font-semibold">Descrição</span>
       <span className="line-clamp-2 block break-words [overflow-wrap:anywhere]">{accessibleDescription}</span>
     </div>;
   }
-  return <span className={`block min-w-0 [overflow-wrap:anywhere] whitespace-pre-wrap text-slate-500 ${className}`}>
+  return <span className={`block min-w-0 [overflow-wrap:anywhere] whitespace-pre-wrap text-text-secondary ${className}`}>
     {description || "Sem descrição"}
   </span>;
 }

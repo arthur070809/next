@@ -20,7 +20,7 @@ export default function BuildIdentifier() {
     return () => { active = false; };
   }, []);
 
-  return <p className="text-center text-xs text-slate-400" aria-label="Identificador da versão">
+  return <p className="text-center text-xs text-text-secondary" aria-label="Identificador da versão">
     Versão: {buildId}
   </p>;
 }

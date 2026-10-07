@@ -32,7 +32,7 @@
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: #94a3b8 #f1f5f9;
+  scrollbar-color: var(--border) var(--background);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -79,32 +79,10 @@
   min-width: 0;
 }
 
-.quantityFields {
-  animation: quantity-fields-in 160ms ease-out;
-}
-
-@keyframes quantity-fields-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .formFooter {
   background: white;
 }
 
 .formFooter {
   padding-top: 0.5rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .quantityFields {
-    animation: none;
-  }
 }

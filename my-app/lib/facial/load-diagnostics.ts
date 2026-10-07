@@ -129,8 +129,9 @@ export function addFaceCameraAttempt(
 
 export function faceLoadProgress(diagnostics: FaceLoadDiagnostics) {
   if (diagnostics.stage === "pronto") return 100;
+  if (diagnostics.stage === "aquecendo") return 95;
   if (diagnostics.totalBytes > 0) return Math.min(90, Math.round(diagnostics.completedBytes / diagnostics.totalBytes * 90));
-  return diagnostics.stage === "checando-backend" ? 5 : diagnostics.stage === "aquecendo" ? 95 : 0;
+  return diagnostics.stage === "checando-backend" ? 5 : 0;
 }
 
 export function startFaceLoadWatchdog(

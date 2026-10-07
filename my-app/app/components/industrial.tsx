@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Card, Icon, StatusBadge, type IconName } from "./ui";
 
 export function PageHeader({
   eyebrow,
@@ -13,13 +14,13 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">{eyebrow}</p>
-        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{title}</h1>
-        {description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{description}</p> : null}
+    <header className="mb-6 flex flex-col gap-4 border-b border-border-subtle pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">{eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
+        {description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">{description}</p> : null}
       </div>
-      {action ? <div>{action}</div> : null}
+      {action ? <div className="shrink-0">{action}</div> : null}
     </header>
   );
 }
@@ -35,22 +36,34 @@ export function SummaryCard({
   hint?: string;
   tone?: "default" | "success" | "warning" | "danger" | "brand";
 }) {
-  const toneClasses = {
-    default: "border-slate-200 bg-white text-slate-900",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-900",
-    warning: "border-amber-200 bg-amber-50 text-amber-900",
-    danger: "border-red-200 bg-red-50 text-red-900",
-    brand: "border-blue-200 bg-blue-50 text-blue-900",
+  const tones = {
+    default: "text-foreground",
+    success: "text-success",
+    warning: "text-warning",
+    danger: "text-error",
+    brand: "text-brand",
   };
 
   return (
-    <article className={`rounded-2xl border p-5 shadow-sm ${toneClasses[tone]}`}>
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-black tracking-tight">{value}</p>
-      {hint ? <p className="mt-2 text-xs text-slate-500">{hint}</p> : null}
-    </article>
+    <Card className="p-4 sm:p-5">
+      <p className="text-sm font-medium text-text-secondary">{label}</p>
+      <p className={`mt-2 text-2xl font-bold tracking-tight sm:text-3xl ${tones[tone]}`}>{value}</p>
+      {hint ? <p className="mt-2 text-xs text-text-secondary">{hint}</p> : null}
+    </Card>
   );
 }
+
+const tileIcons: Record<string, IconName> = {
+  "⌂": "home",
+  "▤": "list",
+  "◷": "history",
+  "↗": "route",
+  "▦": "inventory",
+  "◇": "package",
+  "◉": "users",
+  "◌": "face",
+  "＋": "plus",
+};
 
 export function ActionTile({
   href,
@@ -65,48 +78,28 @@ export function ActionTile({
   icon: string;
   tone?: "default" | "success" | "warning" | "danger" | "brand";
 }) {
-  const toneClasses = {
-    default: "border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/40",
-    success: "border-emerald-200 bg-emerald-50/60 hover:border-emerald-300 hover:bg-emerald-50",
-    warning: "border-amber-200 bg-amber-50/60 hover:border-amber-300 hover:bg-amber-50",
-    danger: "border-red-200 bg-red-50/60 hover:border-red-300 hover:bg-red-50",
-    brand: "border-blue-200 bg-blue-50/60 hover:border-blue-300 hover:bg-blue-50",
+  const tones = {
+    default: "bg-priority-surface text-brand",
+    success: "bg-success-surface text-success",
+    warning: "bg-warning-surface text-warning",
+    danger: "bg-error-surface text-error",
+    brand: "bg-priority-surface text-brand",
   };
 
   return (
     <Link
       href={href}
-      className={`block rounded-2xl border p-5 shadow-sm transition duration-200 ${toneClasses[tone]}`}
+      className="group block rounded-card bg-surface p-4 shadow-card transition-shadow hover:shadow-overlay sm:p-5"
     >
       <div className="flex items-center justify-between gap-4">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-lg text-white">
-          {icon}
+        <span className={`inline-flex size-11 items-center justify-center rounded-control ${tones[tone]}`}>
+          <Icon name={tileIcons[icon] ?? "info"} />
         </span>
       </div>
-      <p className="mt-4 text-lg font-bold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+      <p className="mt-4 text-lg font-bold text-foreground">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-text-secondary">{description}</p>
     </Link>
   );
 }
 
-export function StatusBadge({
-  label,
-  tone = "neutral",
-}: {
-  label: string;
-  tone?: "neutral" | "success" | "warning" | "danger" | "brand";
-}) {
-  const toneClasses = {
-    neutral: "bg-slate-100 text-slate-700 ring-slate-200",
-    success: "bg-emerald-100 text-emerald-800 ring-emerald-200",
-    warning: "bg-amber-100 text-amber-800 ring-amber-200",
-    danger: "bg-red-100 text-red-800 ring-red-200",
-    brand: "bg-blue-100 text-blue-800 ring-blue-200",
-  };
-
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${toneClasses[tone]}`}>
-      {label}
-    </span>
-  );
-}
+export { StatusBadge };

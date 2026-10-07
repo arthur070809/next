@@ -8,7 +8,8 @@ import type {
 } from "@/lib/ressuprimento/analise";
 import { ordenarPorDeficitRessuprimento } from "@/lib/ressuprimento/analise";
 import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
-import { MAX_STOCK_INPUT } from "@/lib/stock-units";
+import { PageHeader, StatusBadge } from "@/app/components/industrial";
+import { EmptyState } from "@/app/components/ui";
 
 const classes: Array<{ value: ClasseRessuprimento | "TODAS"; label: string }> = [
   { value: "TODAS", label: "Todas as classes" },
@@ -26,10 +27,17 @@ const classeTexto: Record<ClasseRessuprimento, string> = {
 };
 
 const classeCor: Record<ClasseRessuprimento, string> = {
-  VERMELHO: "#b91c1c",
-  AMARELO: "#a16207",
-  VERDE: "#15803d",
-  SEM_DADOS: "#64748b",
+  VERMELHO: "var(--error)",
+  AMARELO: "var(--warning)",
+  VERDE: "var(--success)",
+  SEM_DADOS: "var(--text-secondary)",
+};
+
+const classeTom: Record<ClasseRessuprimento, "danger" | "warning" | "success" | "neutral"> = {
+  VERMELHO: "danger",
+  AMARELO: "warning",
+  VERDE: "success",
+  SEM_DADOS: "neutral",
 };
 
 function coberturaTexto(dias: number | null): string {
@@ -134,47 +142,46 @@ export default function RessuprimentoTabela({
   const chartHeight = Math.max(48, filtradas.length * 34 + 12);
 
   return <main className="mx-auto min-h-dvh max-w-7xl p-4 sm:p-6">
-    <header className="mb-5">
-      <h1 className="text-2xl font-semibold text-slate-900">Ressuprimento</h1>
-      <p className="mt-1 text-sm text-slate-600">Cobertura estimada e ponto de reposição sugerido a partir das saídas recentes.</p>
-      <p className="mt-3 inline-flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800" aria-live="polite">
-        Fonte: {fonte}
-      </p>
-    </header>
+    <PageHeader
+      eyebrow="Administração · Estoque"
+      title="Ressuprimento"
+      description="Cobertura estimada e ponto de reposição sugerido a partir das saídas recentes."
+      action={<span aria-live="polite" className="inline-flex min-h-11 items-center rounded-control bg-surface px-3 text-sm font-semibold text-text-secondary shadow-card">Fonte: {fonte}</span>}
+    />
 
-    {fonte === "Dados simulados" && <p className="mb-4 rounded-lg border border-amber-700 bg-amber-100 p-3 text-sm font-semibold text-amber-950">
+    {fonte === "Dados simulados" && <p className="mb-4 rounded-control border border-warning/30 bg-warning-surface p-3 text-sm font-semibold text-warning">
       O histórico real disponível não atende ao mínimo para análise; estes valores são simulados e não devem ser usados como medição.
     </p>}
 
-    <section aria-labelledby="itens-ponto-pedido" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
-      <h2 id="itens-ponto-pedido" className="text-lg font-semibold text-amber-950">Itens no ponto de pedido ou abaixo</h2>
+    <section aria-labelledby="itens-ponto-pedido" className="mb-6 rounded-card bg-warning-surface p-4 shadow-card sm:p-5">
+      <h2 id="itens-ponto-pedido" className="text-lg font-semibold text-warning">Itens no ponto de pedido ou abaixo</h2>
       {itensNoPonto.length === 0
-        ? <p className="mt-2 text-sm text-amber-900">Nenhum item precisa de ressuprimento</p>
+        ? <p className="mt-2 text-sm text-warning">Nenhum item precisa de ressuprimento</p>
         : <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {itensNoPonto.map((item) => <li key={item.id} className="rounded-lg border border-amber-200 bg-white p-3 text-sm">
-            <span className="font-semibold text-slate-900">{item.nome}</span>
-            <span className="mt-1 block text-slate-600">{item.categoria?.trim() || "—"}</span>
-            <span className="mt-1 block text-slate-700">Livre: {item.estoque} · ponto: {item.pontoAtual}</span>
+          {itensNoPonto.map((item) => <li key={item.id} className="rounded-control bg-surface p-3 text-sm">
+            <span className="font-semibold text-foreground">{item.nome}</span>
+            <span className="mt-1 block text-text-secondary">{item.categoria?.trim() || "—"}</span>
+            <span className="mt-1 block text-foreground">Livre: {item.estoque} · ponto: {item.pontoAtual}</span>
           </li>)}
         </ul>}
     </section>
 
     <div className="mb-4 max-w-xs">
-      <label htmlFor="filtro-classe" className="block text-sm font-medium text-slate-700">Filtrar por classe</label>
+      <label htmlFor="filtro-classe" className="block text-sm font-medium text-foreground">Filtrar por classe</label>
       <select
         id="filtro-classe"
         value={classeFiltro}
         onChange={(event) => setClasseFiltro(event.target.value as ClasseRessuprimento | "TODAS")}
-        className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
+        className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm"
       >
         {classes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
       </select>
     </div>
 
-    <section aria-labelledby="grafico-cobertura" className="mb-6 overflow-x-auto rounded-xl border border-slate-200 bg-white p-4">
-      <h2 id="grafico-cobertura" className="mb-3 text-lg font-semibold text-slate-900">Dias de cobertura</h2>
+    <section aria-labelledby="grafico-cobertura" className="mb-6 overflow-x-auto rounded-card bg-surface p-4 shadow-card sm:p-5">
+      <h2 id="grafico-cobertura" className="mb-3 text-lg font-semibold text-foreground">Dias de cobertura</h2>
       {filtradas.length === 0
-        ? <p className="text-sm text-slate-600">Nenhum item corresponde ao filtro.</p>
+        ? <p className="text-sm text-text-secondary">Nenhum item corresponde ao filtro.</p>
         : <svg
           role="img"
           aria-label="Gráfico de barras de cobertura por item; cobertura infinita é exibida no limite da escala"
@@ -191,41 +198,74 @@ export default function RessuprimentoTabela({
                 ? Math.max(2, Math.min(300, (cobertura / maxCobertura) * 300))
                 : 300;
             return <g key={item.id}>
-              <text x="0" y={y + 18} fontSize="12" fill="#1e293b">{item.nome.slice(0, 28)}</text>
+              <text x="0" y={y + 18} fontSize="12" fill="var(--foreground)">{item.nome.slice(0, 28)}</text>
               <rect x="245" y={y + 4} width={largura} height="18" rx="3" fill={classeCor[item.classe]} />
-              <text x="555" y={y + 18} fontSize="12" fill="#1e293b">{coberturaTexto(cobertura)}</text>
+              <text x="555" y={y + 18} fontSize="12" fill="var(--foreground)">{coberturaTexto(cobertura)}</text>
             </g>;
           })}
         </svg>}
     </section>
 
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-        <caption className="sr-only">Ressuprimento sugerido por item, ordenado pelo maior déficit em relação ao ponto atual</caption>
-        <thead className="bg-slate-50 text-xs uppercase text-slate-600">
-          <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Classe"].map((heading) =>
-            <th key={heading} scope="col" className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr>
-        </thead>
-        <tbody>
-          {filtradas.length === 0
-            ? <tr><td colSpan={7} className="px-4 py-6 text-center text-sm text-slate-600">
-              {sugestoes.length === 0 ? "Nenhum item precisa de ressuprimento" : "Nenhum item corresponde ao filtro."}
-            </td></tr>
-            : filtradas.map((item) => <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-            <th scope="row" className="px-4 py-3 font-medium text-slate-900">{item.nome}<span className="mt-1 block font-normal text-slate-600">{item.categoria?.trim() || "—"}</span></th>
-            <td className="px-4 py-3">{item.estoque}</td>
-            <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
-            <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>
-            <td className="px-4 py-3"><PontoAtualEditor key={`${item.id}-${item.pontoAtual ?? "unset"}`} item={item} /></td>
-            <td className="px-4 py-3">{item.quantidadeSugerida ?? "Não definido"}</td>
-            <td className="px-4 py-3">
-              <span className="inline-block rounded-md border border-slate-300 px-2 py-1" style={{ borderLeftColor: classeCor[item.classe], borderLeftWidth: 4 }}>
-                {classeTexto[item.classe]}
-              </span>
-            </td>
-          </tr>)}
-        </tbody>
-      </table>
-    </div>
+    {filtradas.length === 0 ? (
+      <EmptyState
+        title={sugestoes.length === 0 ? "Nenhum item precisa de ressuprimento" : "Nenhum item corresponde ao filtro"}
+        message="Não há sugestões para exibir com os critérios selecionados."
+      />
+    ) : (
+      <>
+        <div className="hidden overflow-x-auto rounded-card bg-surface shadow-card md:block">
+          <table className="w-full min-w-[900px] border-collapse text-left text-sm">
+            <caption className="sr-only">Ressuprimento sugerido por item, ordenado pelo maior déficit em relação ao ponto atual</caption>
+            <thead className="sticky top-0 bg-background text-xs uppercase text-text-secondary">
+              <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Ponto sugerido", "Classe", "Confiança", "Ação"].map((heading) =>
+                <th key={heading} scope="col" className="border-b border-border-subtle px-4 py-3 font-semibold">{heading}</th>)}</tr>
+            </thead>
+            <tbody>
+              {filtradas.map((item) => <tr key={item.id} className="border-b border-border-subtle last:border-0 hover:bg-background">
+                <th scope="row" className="px-4 py-3 font-medium text-foreground">{item.nome}<span className="mt-1 block font-normal text-text-secondary">{item.categoria?.trim() || "—"}</span></th>
+                <td className="px-4 py-3">{item.estoque}</td>
+                <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
+                <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>
+                <td className="px-4 py-3">{item.pontoAtual ?? "Não definido"}</td>
+                <td className="px-4 py-3">{item.quantidadeSugerida ?? "Não definido"}</td>
+                <td className="px-4 py-3">{item.pontoSugerido ?? "Sem dados"}</td>
+                <td className="px-4 py-3"><StatusBadge label={classeTexto[item.classe]} tone={classeTom[item.classe]} /></td>
+                <td className="px-4 py-3">{item.confianca === "BAIXA" ? "Baixa" : "Adequada"}</td>
+                <td className="px-4 py-3">
+                  <button type="button" onClick={() => setPrevisualizando(item.id)} className="min-h-11 whitespace-nowrap rounded-control border border-brand px-3 text-sm font-semibold text-brand hover:bg-priority-surface">
+                    Aceitar sugestão (prévia)
+                  </button>
+                  {previsualizando === item.id && <p className="mt-2 max-w-52 text-xs text-text-secondary">
+                    Prévia: o alerta passaria a usar {item.pontoSugerido ?? "um valor ainda indisponível"}. Nada foi gravado.
+                  </p>}
+                </td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+        <div className="grid gap-3 md:hidden">
+          {filtradas.map((item) => <article key={item.id} className="rounded-card bg-surface p-4 shadow-card">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div><h2 className="font-semibold text-foreground">{item.nome}</h2><p className="mt-1 text-sm text-text-secondary">{item.categoria?.trim() || "—"}</p></div>
+              <StatusBadge label={classeTexto[item.classe]} tone={classeTom[item.classe]} />
+            </div>
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border-subtle pt-4 text-sm">
+              <div><dt className="text-text-secondary">Estoque livre</dt><dd className="font-semibold text-foreground">{item.estoque}</dd></div>
+              <div><dt className="text-text-secondary">Consumo/dia</dt><dd className="font-semibold text-foreground">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</dd></div>
+              <div><dt className="text-text-secondary">Cobertura</dt><dd className="font-semibold text-foreground">{coberturaTexto(item.diasCobertura)}</dd></div>
+              <div><dt className="text-text-secondary">Ponto atual</dt><dd className="font-semibold text-foreground">{item.pontoAtual ?? "Não definido"}</dd></div>
+              <div><dt className="text-text-secondary">Quantidade sugerida</dt><dd className="font-semibold text-foreground">{item.quantidadeSugerida ?? "Não definido"}</dd></div>
+              <div><dt className="text-text-secondary">Confiança</dt><dd className="font-semibold text-foreground">{item.confianca === "BAIXA" ? "Baixa" : "Adequada"}</dd></div>
+            </dl>
+            <button type="button" onClick={() => setPrevisualizando(item.id)} className="mt-4 min-h-11 w-full rounded-control border border-brand px-3 text-sm font-semibold text-brand hover:bg-priority-surface">
+              Aceitar sugestão (prévia)
+            </button>
+            {previsualizando === item.id && <p className="mt-2 text-sm text-text-secondary">
+              Prévia: o alerta passaria a usar {item.pontoSugerido ?? "um valor ainda indisponível"}. Nada foi gravado.
+            </p>}
+          </article>)}
+        </div>
+      </>
+    )}
   </main>;
 }

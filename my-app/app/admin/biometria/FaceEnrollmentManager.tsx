@@ -7,6 +7,7 @@ import { advanceBlinkState, faceEyeAspectRatio, initialBlinkState, type BlinkSta
 import { acquireEnrollmentSubmission, canOpenEnrollmentCamera, selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
 import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { extractFaceEmbedding, loadBrowserHuman, loadFaceDescriptor, type BrowserFace, type BrowserHuman } from "@/lib/facial/human-browser";
+import { captureFaceDemoPhoto } from "@/lib/facial/demo-photo";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
 import {
@@ -56,11 +57,13 @@ export default function FaceEnrollmentManager({
   frameCount = 1,
   requireConsent = false,
   requireBlink = false,
+  demoPhotoMode = false,
 }: {
   diagnosticsEnabled?: boolean;
   frameCount?: number;
   requireConsent?: boolean;
   requireBlink?: boolean;
+  demoPhotoMode?: boolean;
 }) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeId, setEmployeeId] = useState("");
@@ -70,9 +73,10 @@ export default function FaceEnrollmentManager({
   const [stage, setStage] = useState<Stage>("front");
   const [stageReady, setStageReady] = useState(false);
   const [modelState, setModelState] = useState<"idle" | "loading" | "slow" | "ready" | "error">("idle");
-  const [descriptorState, setDescriptorState] = useState<"loading" | "slow" | "ready" | "error">("loading");
+  const [descriptorState, setDescriptorState] = useState<"idle" | "loading" | "slow" | "ready" | "error">("idle");
   const [modelProgress, setModelProgress] = useState("Carregando modelos locais");
   const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready" | "denied" | "missing">("idle");
+  const [faceDetected, setFaceDetected] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -111,6 +115,10 @@ export default function FaceEnrollmentManager({
   const loadDiagnosticsRef = useRef<FaceLoadDiagnostics>(createFaceLoadDiagnostics());
   const loadWatchdogRef = useRef<ReturnType<typeof startFaceLoadWatchdog> | null>(null);
   const descriptorWatchdogRef = useRef<ReturnType<typeof startFaceLoadWatchdog> | null>(null);
+  const descriptorLoadStartedRef = useRef(false);
+  const descriptorReadyRef = useRef(false);
+  const descriptorLoadPromiseRef = useRef<Promise<void> | null>(null);
+  const ensureDescriptorLoadedRef = useRef<(human: BrowserHuman) => Promise<void>>(async () => undefined);
   const loadModelsRef = useRef<() => Promise<void>>(async () => undefined);
 
   function publishLoadDiagnostics(next: FaceLoadDiagnostics) {
@@ -142,6 +150,7 @@ export default function FaceEnrollmentManager({
     burstFramesRef.current = [];
     candidateFramesObservedRef.current = 0;
     blinkObservedRef.current = false;
+    setFaceDetected(false);
     blinkStateRef.current = initialBlinkState;
     setStageReady(false);
     setCameraState("idle");
@@ -159,7 +168,7 @@ export default function FaceEnrollmentManager({
       },
       () => {
         setDescriptorState("error");
-        stopCamera();
+        if (!demoPhotoMode) stopCamera();
         setModelError("Não foi possível carregar o reconhecimento.");
         publishLoadDiagnostics({
           ...withFaceLoadError(loadDiagnosticsRef.current, Object.assign(new Error("Tempo limite de 60 segundos excedido."), { name: "TimeoutError" })),
@@ -173,17 +182,27 @@ export default function FaceEnrollmentManager({
       await loadFaceDescriptor(human, loaderCallbacks, loadDiagnosticsRef.current);
       if (watchdog.didTimeout()) return;
       watchdog.clear();
+      descriptorReadyRef.current = true;
       setDescriptorState("ready");
       publishLoadDiagnostics({ ...loadDiagnosticsRef.current, stage: "pronto", elapsedMs: Date.now() - startedAt });
     } catch (cause) {
       if (watchdog.didTimeout()) return;
       watchdog.clear();
-      stopCamera();
+      if (!demoPhotoMode) stopCamera();
       publishLoadDiagnostics({ ...withFaceLoadError(loadDiagnosticsRef.current, cause), stage: "erro" });
       setDescriptorState("error");
       setModelError("Não foi possível carregar o reconhecimento.");
     }
   }
+
+  function ensureDescriptorLoaded(human: BrowserHuman) {
+    if (!descriptorLoadStartedRef.current) {
+      descriptorLoadStartedRef.current = true;
+      descriptorLoadPromiseRef.current = loadDescriptor(human);
+    }
+    return descriptorLoadPromiseRef.current ?? Promise.resolve();
+  }
+  ensureDescriptorLoadedRef.current = ensureDescriptorLoaded;
 
   async function loadModels() {
     loadWatchdogRef.current?.clear();
@@ -204,7 +223,7 @@ export default function FaceEnrollmentManager({
       },
       () => {
         setModelState((current) => transitionFaceLoadState(current, "timeout"));
-        stopCamera();
+        if (!demoPhotoMode) stopCamera();
         setModelError("Não foi possível carregar o reconhecimento.");
         publishLoadDiagnostics({
           ...withFaceLoadError(loadDiagnosticsRef.current, Object.assign(new Error("Tempo limite de 60 segundos excedido."), { name: "TimeoutError" })),
@@ -222,7 +241,6 @@ export default function FaceEnrollmentManager({
       humanRef.current = human;
       setModelState((current) => transitionFaceLoadState(current, "success"));
       publishLoadDiagnostics({ ...loadDiagnosticsRef.current, stage: "pronto", elapsedMs: Date.now() - startedAt });
-      void loadDescriptor(human);
     } catch (cause) {
       if (watchdog.didTimeout()) return;
       watchdog.clear();
@@ -234,7 +252,7 @@ export default function FaceEnrollmentManager({
       });
       setModelState((current) => transitionFaceLoadState(current, "failure"));
       setModelError("Não foi possível carregar o reconhecimento.");
-      stopCamera();
+      if (!demoPhotoMode) stopCamera();
       setDebugMetrics((current) => ({ ...current, resultCode: details.errorName }));
     }
   }
@@ -355,6 +373,83 @@ export default function FaceEnrollmentManager({
     finally { submittingRef.current = false; setBusy(false); }
   }, [consent, diagnosticsEnabled, employeeId, frameCount, renewSession, replaceConfirmed, requireConsent]);
 
+  async function submitDemoPhoto(photo: string) {
+    if (!sessionRef.current || !acquireEnrollmentSubmission(submittingRef)) return;
+    setBusy(true);
+    setError("");
+    try {
+      const current = sessionRef.current;
+      const response = await fetch("/api/admin/face-enrollment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          funcionarioId: Number(employeeId),
+          sessionId: current.id,
+          sessionToken: current.token,
+          consent: requireConsent && consent,
+          ...(requireConsent ? { consentAt: new Date().toISOString() } : {}),
+          replaceConfirmed,
+          samples: [],
+          demoPhoto: photo,
+        }),
+      });
+      const data = await response.json() as { error?: string; code?: string };
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar a miniatura.");
+      setMessage("Modo demonstração: miniatura salva.");
+      setStage("success");
+      stopCamera();
+      localStorage.removeItem("marcon-face-enrollment-session");
+      setEmployees((currentEmployees) => currentEmployees.map((item) =>
+        item.id === Number(employeeId) ? { ...item, enrolled: true } : item));
+    } catch {
+      setError("Não foi possível salvar a miniatura. Toque em Tentar de novo.");
+      stopCamera();
+    } finally {
+      submittingRef.current = false;
+      setBusy(false);
+    }
+  }
+
+  async function takePhoto() {
+    if (cameraState !== "ready" || busy) return;
+    if (!faceDetected && !(demoPhotoMode && modelState !== "ready")) return;
+    if (!demoPhotoMode && !stageReady) return;
+    let photo: string | null = null;
+    try {
+      if (demoPhotoMode && videoRef.current) photo = captureFaceDemoPhoto(videoRef.current);
+      if (modelState === "ready" && humanRef.current && !descriptorReadyRef.current) {
+        const load = ensureDescriptorLoaded(humanRef.current);
+        await Promise.race([
+          demoPhotoMode ? load.catch(() => undefined) : load,
+          new Promise<void>((resolve) => window.setTimeout(resolve, 2500)),
+        ]);
+      }
+      if (descriptorReadyRef.current && humanRef.current && videoRef.current) {
+        if (burstFramesRef.current.length < frameCount) {
+          const result = await humanRef.current.detect(videoRef.current);
+          const face = selectDominantFace(result.face ?? [], (candidate) => candidate.boxRaw);
+          const embedding = face ? extractFaceEmbedding(face) : null;
+          if (embedding && frameCount === 1) burstFramesRef.current = [{ frame: { embedding }, score: 1 }];
+        }
+        const frames = selectBestEnrollmentFrames(burstFramesRef.current, frameCount);
+        if (frames.length === frameCount) {
+          await submitEnrollment(frames.map((frame) => frame.embedding));
+          return;
+        }
+      }
+      if (demoPhotoMode && photo) {
+        await submitDemoPhoto(photo);
+        return;
+      }
+      setError("O reconhecimento ainda está carregando. Tente de novo em instantes.");
+    } catch {
+      setError(demoPhotoMode
+        ? "Não foi possível capturar a imagem. Toque em Tentar de novo."
+        : "Não foi possível concluir o reconhecimento. Tente de novo.");
+      stopCamera();
+    }
+  }
+
   async function startCamera() {
     if (!canOpenEnrollmentCamera({
       employeeSelected: Boolean(employeeId),
@@ -425,7 +520,8 @@ export default function FaceEnrollmentManager({
   }
 
   useEffect(() => {
-    if (cameraState !== "ready" || modelState !== "ready" || descriptorState !== "ready") return;
+    const human = humanRef.current;
+    if (cameraState !== "ready" || modelState !== "ready" || !human) return;
     let stopped = false;
     let pending = false;
     let lastRun = 0;
@@ -439,13 +535,13 @@ export default function FaceEnrollmentManager({
         collectionStartedAtRef.current = 0;
         return;
       }
-      if (pending || time - lastRun < FACE_QUALITY_LIMITS.analysisIntervalMs || !videoRef.current || !humanRef.current) return;
+      if (pending || time - lastRun < FACE_QUALITY_LIMITS.analysisIntervalMs || !videoRef.current) return;
       if (videoRef.current.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !videoRef.current.videoWidth) return;
       lastRun = time;
       pending = true;
       try {
         const inferenceStarted = performance.now();
-        const result = await humanRef.current.detect(videoRef.current);
+        const result = await human.detect(videoRef.current);
         if (stopped) return;
         const inferenceMs = Math.round(performance.now() - inferenceStarted);
         const faces = result.face ?? [];
@@ -458,6 +554,7 @@ export default function FaceEnrollmentManager({
           collectionStartedAtRef.current = 0;
           if (!invalidSinceRef.current) invalidSinceRef.current = time;
           setStageReady(false);
+          setFaceDetected(false);
           if (debug && time - lastDebugAtRef.current >= 500) {
             lastDebugAtRef.current = time;
             setDebugMetrics((current) => ({
@@ -501,6 +598,7 @@ export default function FaceEnrollmentManager({
           collectionStartedAtRef.current = 0;
           if (!invalidSinceRef.current) invalidSinceRef.current = time;
           setStageReady(false);
+          setFaceDetected(false);
           return;
         }
         invalidSinceRef.current = 0;
@@ -514,7 +612,16 @@ export default function FaceEnrollmentManager({
         }
         if (!eyesOpen) {
           if (!invalidSinceRef.current) invalidSinceRef.current = time;
+          setFaceDetected(false);
           return;
+        }
+        setFaceDetected(true);
+        if (!descriptorReadyRef.current) {
+          void ensureDescriptorLoadedRef.current(human);
+          if (demoPhotoMode) {
+            setStageReady(true);
+            return;
+          }
         }
         const embedding = extractFaceEmbedding(face);
         if (!embedding) {
@@ -526,16 +633,12 @@ export default function FaceEnrollmentManager({
         burstFramesRef.current = [...burstFramesRef.current, { frame: { embedding }, score }]
           .slice(-FACE_QUALITY_LIMITS.maximumCandidateFrames);
         candidateFramesObservedRef.current = burstFramesRef.current.length;
-        setStageReady(true);
         const scores = burstFramesRef.current.map((candidate) => candidate.score);
         if (shouldFinishFrameCollection({
           scores,
           requestedFrameCount: frameCount,
           elapsedMs: time - collectionStartedAtRef.current,
-        }) && !submittingRef.current) {
-          const selected = selectBestEnrollmentFrames(burstFramesRef.current, frameCount);
-          if (selected.length === frameCount) void submitEnrollment(selected.map((candidate) => candidate.embedding));
-        }
+        })) setStageReady(true);
       } catch (cause) {
         burstFramesRef.current = [];
         candidateFramesObservedRef.current = 0;
@@ -559,7 +662,7 @@ export default function FaceEnrollmentManager({
       stopDetection();
       unregisterCleanup?.();
     };
-  }, [cameraState, modelState, descriptorState, employeeId, submitEnrollment, debug, frameCount, requireBlink]);
+  }, [cameraState, modelState, debug, frameCount, requireBlink, demoPhotoMode]);
 
   useEffect(() => {
     if (cameraState !== "ready") return;
@@ -599,9 +702,10 @@ export default function FaceEnrollmentManager({
         <p className={styles.eyebrow}>Administração</p>
         <h1>Cadastro facial presencial</h1>
         <p>Imagens processadas em memória. Apenas o template matemático cifrado é mantido.</p>
+        {demoPhotoMode && <p className={styles.demoSeal}>Modo demonstração: reconhecimento simulado</p>}
         <BuildIdentifier />
       </header>
-      {error && <p role="alert" className={styles.error}>Não foi possível iniciar a câmera ou concluir o cadastro. Toque em Tentar de novo.</p>}
+      {error && <p role="alert" className={styles.error}>{error}</p>}
       {message && <p role="status" className={styles.success}>{message}</p>}
       <section className={styles.panel} aria-busy={busy}>
         <label className={styles.field}>
@@ -615,12 +719,15 @@ export default function FaceEnrollmentManager({
         {employee?.enrolled && <p role="status" className={styles.hint}>Este funcionário já tem cadastro facial. A substituição foi confirmada ao selecioná-lo.</p>}
         {modelState === "loading" && <p className={styles.modelStatus}>{modelProgress}</p>}
         {modelState === "slow" && <p role="status" className={styles.modelStatus}>Conexão lenta. A carga continua em segundo plano.</p>}
-        {(error || modelError) && !error && <p role="alert" className={styles.error}>Não foi possível carregar o reconhecimento. Toque em Tentar de novo.</p>}
+        {modelError && !error && <p role="alert" className={styles.error}>{modelError} Toque em Tentar de novo.</p>}
         {modelState === "ready" && descriptorState === "loading" && (
           <p className={styles.modelStatus}>Preparando reconhecimento facial avançado…</p>
         )}
         {modelState === "ready" && descriptorState === "slow" && (
           <p role="status" className={styles.modelStatus}>Conexão lenta; os modelos continuam carregando.</p>
+        )}
+        {cameraState === "ready" && faceDetected && descriptorState !== "ready" && (
+          <p className={styles.modelStatus}>Rosto no oval. Preparando reconhecimento...</p>
         )}
         <div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}>
           <video ref={videoRef} autoPlay muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" />
@@ -639,7 +746,7 @@ export default function FaceEnrollmentManager({
           </div>
         )}
         {debug && (
-          <section aria-label="Diagnóstico facial" className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-800 sm:grid-cols-3">
+          <section aria-label="Diagnóstico facial" className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-border-subtle bg-background p-4 text-xs text-foreground sm:grid-cols-3">
             <p>Modelos: {modelState}</p>
             <p>Etapa de carga: {loadDiagnostics.stage}</p>
             <p>Progresso: {faceLoadProgress(loadDiagnostics)}%</p>
@@ -670,7 +777,7 @@ export default function FaceEnrollmentManager({
                 Erro original de carga: {loadDiagnostics.loadError.errorName}: {loadDiagnostics.loadError.errorMessage}
               </p>
             )}
-            <button type="button" className="col-span-2 min-h-11 rounded border border-slate-300 px-3 py-2 font-semibold sm:col-span-3" onClick={() => void copyDiagnostics()}>
+            <button type="button" className="col-span-2 min-h-11 rounded border border-border-subtle px-3 py-2 font-semibold sm:col-span-3" onClick={() => void copyDiagnostics()}>
               Copiar diagnóstico
             </button>
             <p>Inferência: {debugMetrics.inferenceMs} ms</p>
@@ -690,7 +797,16 @@ export default function FaceEnrollmentManager({
           <span>{faceConsentText}</span>
         </label>}
         <div className={styles.actions}>
-          {(error || modelState === "error" || descriptorState === "error") ? (
+          {cameraState === "ready" ? (
+            <button
+              type="button"
+              className={styles.primary}
+              disabled={busy || (!faceDetected && !(demoPhotoMode && modelState !== "ready")) || (!demoPhotoMode && !stageReady)}
+              onClick={() => void takePhoto()}
+            >
+              {busy ? "Salvando..." : "Tirar foto"}
+            </button>
+          ) : (error || modelState === "error" || descriptorState === "error") ? (
             <button
               type="button"
               className={styles.primary}
@@ -714,7 +830,7 @@ export default function FaceEnrollmentManager({
             >
               Tentar de novo
             </button>
-          ) : cameraState !== "ready" && stage !== "success" && (
+          ) : stage !== "success" && (
             <button
               type="button"
               className={styles.primary}

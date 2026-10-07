@@ -173,6 +173,14 @@ Os templates anteriores, inclusive `legacy-unknown`, sao incompativeis e falham 
 
 `FACE_LOGIN_ENABLED` habilita o fluxo por padrao (`true`); definir `false` esconde o botao e bloqueia as APIs de login facial, deixando o login por codigo/senha disponivel. `FACE_DIAGNOSTICS_ENABLED=true` permite que o admin autenticado veja distancias reais de uma captura contra templates compativeis na tela de cadastro. Nenhum vetor, imagem, nonce ou distancia biometrica e registrado em logs.
 
+`FACE_DEMO_PHOTO_MODE=true` so e habilitado quando `VERCEL_ENV=preview`. Nesse modo, os crachas demo allowlisted podem usar cadastro/falha facial simulados, marcados como `demo-photo`; a miniatura e reduzida a no maximo 320 px e cifrada nos campos existentes da tabela `face_templates`. O modo nao reconhece identidade e nao deve ser habilitado em Production. Para preparar senhas temporarias nos tres usuarios demo, configure o banco descartavel `_demo` e `LOGIN_DEMO_CRACHAS=1111,2222,3333`, depois execute:
+
+```bash
+npm run seed:demo-passwords -- --demo
+```
+
+O script e idempotente, exige `--demo`, recusa Production e valida o destino `_demo` e a allowlist antes de conectar. As senhas definidas sao os proprios crachas (`1111`, `2222`, `3333`); troque-as imediatamente apos a apresentacao.
+
 O valor anterior `FACE_MATCH_THRESHOLD=0.42` era do descritor anterior e nao e reutilizado. `FACE_MOBILEFACE_MATCH_THRESHOLD` nao tem default: ate ser definido a partir de testes controlados com capturas reais, o servidor recusa autenticar/fazer verificacao de duplicidade (HTTP 503). O benchmark upstream publicado para MobileFace V3 informa 95,466% de acuracia LFW, mas nao fornece FAR/FRR aplicavel a este sistema. As medidas da base de demonstração nao substituem calibracao. Nao habilite login facial em producao ate avaliar distancias de mesma pessoa e pessoas diferentes em condicoes reais e escolher o ponto operacional. O TOTP continua sendo usado somente se estiver configurado; admin sem template pode entrar com cracha e senha. Para diagnosticar o deploy, consulte `GET /api/diagnostics/build`.
 
 ### Migration e rollback

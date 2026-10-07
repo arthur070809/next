@@ -35,7 +35,8 @@ describe("rendered stock scroll layout", () => {
     expect(headerStart).toBeLessThan(listStart);
     expect(categoryStart).toBeLessThan(listStart);
     expect(searchStart).toBeLessThan(listStart);
-    expect(markup).toContain("Carregando estoque...");
+    expect(markup).toContain('aria-label="Carregando estoque…"');
+    expect(markup).toContain("animate-pulse");
     expect(markup).toContain("id=\"categoria\"");
     expect(markup).toContain("id=\"nome\"");
     const listOpening = markup.slice(markup.lastIndexOf("<div", listStart), listStart);

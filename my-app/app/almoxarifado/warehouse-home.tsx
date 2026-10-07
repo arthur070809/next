@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ActionTile, PageHeader, SummaryCard } from "../components/industrial";
+import { ErrorState } from "../components/ui";
 
 type Resumo = {
   materiaisAtivos: number;
@@ -23,6 +24,7 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const primeiroNome = userName.trim().split(/\s+/)[0] || badge;
 
   useEffect(() => {
@@ -39,14 +41,14 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
           setErro("");
         }
       })
-      .catch(() => {
-        if (ativo) setErro("Não foi possível carregar o resumo. Tente novamente.");
+      .catch((cause: unknown) => {
+        if (ativo) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar o resumo.");
       })
       .finally(() => {
         if (ativo) setCarregando(false);
       });
     return () => { ativo = false; };
-  }, []);
+  }, [retryCount]);
 
   return (
     <div>
@@ -57,7 +59,7 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
       />
 
       {!carregando && !erro && resumo?.materiaisAtivos === 0 && (
-        <p role="status" className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-slate-600">
+        <p role="status" className="mb-6 rounded-2xl border border-dashed border-border bg-surface px-4 py-5 text-sm text-text-secondary">
           O estoque está vazio no momento.
         </p>
       )}
@@ -65,15 +67,19 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
       <section aria-label="Resumo do almoxarifado" aria-live="polite" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {carregando ? (
           cards.map((card) => (
-            <div key={card.key} aria-hidden="true" className="h-32 animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
-              <div className="h-4 w-2/3 rounded bg-slate-200" />
-              <div className="mt-5 h-8 w-1/3 rounded bg-slate-200" />
+            <div key={card.key} aria-hidden="true" className="h-32 animate-pulse rounded-2xl border border-border-subtle bg-surface p-5">
+              <div className="h-4 w-2/3 rounded bg-border-subtle" />
+              <div className="mt-5 h-8 w-1/3 rounded bg-border-subtle" />
             </div>
           ))
         ) : erro ? (
-          <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:col-span-2 xl:col-span-5">
-            {erro}
-          </p>
+          <div className="sm:col-span-2 xl:col-span-5">
+            <ErrorState message={erro} onRetry={() => {
+              setErro("");
+              setCarregando(true);
+              setRetryCount((current) => current + 1);
+            }} />
+          </div>
         ) : (
           cards.map((card) => (
             <SummaryCard
@@ -88,7 +94,7 @@ export default function WarehouseHome({ userName, badge }: { userName: string; b
       </section>
 
       <section className="mt-8" aria-labelledby="warehouse-shortcuts">
-        <h2 id="warehouse-shortcuts" className="text-xl font-black tracking-tight text-slate-900">
+        <h2 id="warehouse-shortcuts" className="text-xl font-black tracking-tight text-foreground">
           Ações rápidas
         </h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

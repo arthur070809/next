@@ -11,9 +11,17 @@ import { canStartAutomaticAttempt, FACE_QUALITY_LIMITS, evaluateFaceQuality, sel
 import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
 import { extractFaceEmbedding, loadBrowserHuman, loadFaceDescriptor, loadFaceEmotion, type BrowserHuman } from "@/lib/facial/human-browser";
-import { createFaceLoadDiagnostics, startFaceLoadWatchdog, withFaceLoadError } from "@/lib/facial/load-diagnostics";
+import {
+  createFaceLoadDiagnostics,
+  faceCameraConstraintFallbacks,
+  startCameraWithConstraintFallback,
+  startFaceLoadWatchdog,
+  withFaceLoadError,
+} from "@/lib/facial/load-diagnostics";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import BuildIdentifier from "@/app/components/BuildIdentifier";
+import { Button, Card, Field } from "@/app/components/ui";
+import Image from "next/image";
 
 type LoginResult = { funcionario: { role: string; mustChangePassword: boolean } };
 type FaceChallenge = {
@@ -42,9 +50,11 @@ type FaceCandidate = ScoredEnrollmentFrame<number[]>;
 export default function LoginForm({
   sessionExpired = false,
   faceLoginEnabled = true,
+  demoPhotoMode = false,
 }: {
   sessionExpired?: boolean;
   faceLoginEnabled?: boolean;
+  demoPhotoMode?: boolean;
 }) {
   const router = useRouter();
   const [codigoCracha, setCodigoCracha] = useState("");
@@ -61,6 +71,7 @@ export default function LoginForm({
   const [faceModelState, setFaceModelState] = useState<"loading" | "slow" | "error" | "ready">("loading");
   const [faceModelErrorName, setFaceModelErrorName] = useState("");
   const [cameraState, setCameraState] = useState<FaceCameraState>("idle");
+  const [demoFaceDetected, setDemoFaceDetected] = useState(false);
   const [automaticAttempts, setAutomaticAttempts] = useState(0);
   const [cameraRestartKey, setCameraRestartKey] = useState(0);
   const [modelRetryKey, setModelRetryKey] = useState(0);
@@ -275,6 +286,11 @@ export default function LoginForm({
 
   async function startFaceLogin() {
     if (!faceLoginEnabled) return;
+    if (demoPhotoMode && !codigoCracha.trim()) {
+      setError("Informe o crachá para iniciar o reconhecimento facial.");
+      codeInputRef.current?.focus();
+      return;
+    }
     const useIdentifyFlow = !codigoCracha.trim();
     identifyModeRef.current = useIdentifyFlow;
     setError("");
@@ -420,6 +436,7 @@ export default function LoginForm({
     attemptInFlightRef.current = false;
     setAttemptBusy(false);
     setAutomaticAttempts(0);
+    setDemoFaceDetected(false);
     try {
       await requestFreshFaceChallenge();
       setCameraState("idle");
@@ -430,8 +447,77 @@ export default function LoginForm({
     }
   }
 
+  async function openDemoFaceCamera() {
+    if (!demoPhotoMode || cameraState === "starting" || attemptBusy) return;
+    setError("");
+    setDemoFaceDetected(false);
+    setCameraState("starting");
+    const camera = createCameraStreamController({
+      video: videoRef.current,
+      onLifecycleStop: (reason) => {
+        if (reason === "visibilitychange") {
+          setCameraState("paused");
+          setError("Câmera pausada ao sair desta tela. Toque para recomeçar.");
+        }
+      },
+    });
+    faceCameraRef.current?.dispose();
+    faceCameraRef.current = camera;
+    try {
+      await startCameraWithConstraintFallback(
+        (constraints) => camera.start(constraints),
+        faceCameraConstraintFallbacks(),
+      );
+      setCameraState("ready");
+    } catch (cause) {
+      camera.dispose();
+      if (faceCameraRef.current === camera) faceCameraRef.current = null;
+      setCameraState("error");
+      setError(cameraErrorMessage(cause));
+    }
+  }
+
+  async function submitDemoFaceAttempt() {
+    if (!demoPhotoMode || cameraState !== "ready" || attemptInFlightRef.current) return;
+    const detectorUnavailable = faceModelState === "error" || faceModelState === "slow";
+    if (!demoFaceDetected && !detectorUnavailable) return;
+    const challenge = faceChallengeRef.current;
+    if (!challenge) return;
+    attemptInFlightRef.current = true;
+    setAttemptBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/login/face/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: challenge.challengeId,
+          ...(challenge.loginToken ? { loginToken: challenge.loginToken } : {}),
+          nonce: challenge.nonce,
+          challengeCompleted: true,
+          demoPhotoLogin: true,
+          demoFaceDetected,
+          demoDetectorUnavailable: detectorUnavailable,
+        }),
+      });
+      const data = await response.json() as LoginResponse;
+      if (!response.ok || !data.funcionario) {
+        throw new Error(data.error ?? "Não foi possível confirmar o acesso. Tente novamente.");
+      }
+      stopFaceCamera();
+      completeLogin({ funcionario: data.funcionario });
+    } catch (cause) {
+      stopFaceCamera();
+      setCameraState("error");
+      setError(cause instanceof Error ? cause.message : "Não foi possível confirmar o acesso. Tente novamente.");
+    } finally {
+      attemptInFlightRef.current = false;
+      setAttemptBusy(false);
+    }
+  }
+
   useEffect(() => {
-    if (stage !== "face" || !faceModelReady) return;
+    if (stage !== "face" || demoPhotoMode || !faceModelReady) return;
     let cancelled = false;
     const video = videoRef.current;
     if (!video) return;
@@ -467,7 +553,7 @@ export default function LoginForm({
       camera.dispose();
       if (faceCameraRef.current === camera) faceCameraRef.current = null;
     };
-  }, [stage, faceModelReady, cameraRestartKey]);
+  }, [stage, faceModelReady, cameraRestartKey, demoPhotoMode]);
 
   useEffect(() => {
     if (stage !== "face" || cameraState !== "ready" || !faceHumanRef.current) return;
@@ -489,6 +575,10 @@ export default function LoginForm({
         if (stopped) return;
         const faces = result.face ?? [];
         const face = selectDominantFace(faces, (candidate) => candidate.boxRaw);
+        if (demoPhotoMode) {
+          setDemoFaceDetected(Boolean(face));
+          return;
+        }
         if (!face) {
           faceCandidatesRef.current = [];
           collectionStartedAtRef.current = 0;
@@ -583,7 +673,7 @@ export default function LoginForm({
       stopped = true;
       cancelAnimationFrame(animationFrame);
     };
-  }, [stage, cameraState]);
+  }, [stage, cameraState, demoPhotoMode, faceModelReady]);
 
   useEffect(() => () => {
     stopFaceCamera();
@@ -619,20 +709,37 @@ export default function LoginForm({
     }
   }
 
-  return <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8 sm:px-5 sm:py-10">
-    <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <Link href="/" className="text-sm font-semibold text-royal hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-royal">← Voltar</Link>
-      <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-royal">Almoxarifado Marcon</p>
-      <h1 className="mt-3 text-3xl font-bold text-slate-950">{stage === "face" ? "Verificação facial" : stage === "totp" ? "Verificação em duas etapas" : "Entrar com código"}</h1>
-      {sessionExpired && <p role="status" className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">Sessão encerrada por inatividade</p>}
+  return <main className="safe-area-inset flex min-h-dvh items-center justify-center bg-background">
+    <Card as="section" className="w-full max-w-md overflow-hidden p-0">
+      <div className="flex min-h-14 items-center justify-center bg-brand px-4 py-2.5">
+        <span className="inline-flex rounded-control bg-surface p-2">
+          <Image src="/marcon-logo.svg" width={159} height={31} alt="Marcon Metalúrgicos" priority />
+        </span>
+      </div>
+      <div className="p-5 sm:p-6">
+      <Link href="/" className="text-sm font-semibold text-brand hover:text-brand-hover">← Voltar</Link>
+      <h1 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">{stage === "face" ? "Verificação facial" : stage === "totp" ? "Verificação em duas etapas" : "Entrar com código"}</h1>
+      {sessionExpired && <p role="status" className="mt-3 rounded-control bg-warning-surface px-3 py-2 text-sm text-warning">Sessão encerrada por inatividade</p>}
       {stage === "face" && faceChallenge ? <section className="mt-7 space-y-5">
-        <p className="text-sm text-slate-600">A câmera será iniciada automaticamente. {isFaceBlinkRequired()
+        {demoPhotoMode && <p role="status" className="rounded-control bg-warning-surface px-3 py-2 text-sm font-semibold text-warning">Modo demonstração: reconhecimento simulado</p>}
+        <p className="text-sm text-text-secondary">{demoPhotoMode
+          ? "Abra a câmera. Quando houver um rosto no quadro, toque em Entrar."
+          : <>A câmera será iniciada automaticamente. {isFaceBlinkRequired()
           ? faceChallenge.challenge === "piscar" ? "Pisque uma vez quando estiver enquadrado." : faceChallenge.challenge === "virar_esquerda" ? "Vire levemente o rosto à esquerda e volte." : "Sorria levemente quando estiver enquadrado."
-          : "O reconhecimento tentará automaticamente quando encontrar um rosto adequado."}</p>
-        <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} autoPlay muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
+          : "O reconhecimento tentará automaticamente quando encontrar um rosto adequado."}</>}</p>
+        <div className="overflow-hidden rounded-card bg-brand-pressed"><video ref={videoRef} autoPlay muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
         <BuildIdentifier />
-        <p className="text-xs text-slate-500" aria-live="polite">
-          {!faceModelReady ? faceModelProgress
+        <p className="text-xs text-text-secondary" aria-live="polite">
+          {demoPhotoMode
+            ? cameraState === "idle" ? "Toque em Abrir câmera"
+              : cameraState === "starting" ? "Iniciando câmera…"
+                : cameraState === "ready" && faceModelReady ? (demoFaceDetected ? "Rosto detectado" : "Procurando rosto…")
+                  : cameraState === "ready" && faceModelState === "error" ? "Detector indisponível; toque em Entrar para continuar"
+                    : cameraState === "ready" ? faceModelProgress
+                      : cameraState === "paused" ? "Câmera pausada"
+                        : cameraState === "exhausted" ? "Limite de tentativas atingido"
+                          : "Câmera indisponível"
+            : !faceModelReady ? faceModelProgress
             : attemptBusy ? "Processando verificação no servidor…"
               : cameraState === "starting" ? "Iniciando câmera…"
                 : cameraState === "ready" ? `Procurando rosto · tentativas ${automaticAttempts}/${FACE_QUALITY_LIMITS.maximumAutomaticAttempts}`
@@ -640,41 +747,47 @@ export default function LoginForm({
                     : cameraState === "exhausted" ? "Limite de tentativas automáticas atingido"
                       : "Câmera indisponível"}
         </p>
-        {!isFaceBlinkRequired() && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        {!isFaceBlinkRequired() && <p className="rounded-control bg-warning-surface px-3 py-2 text-xs text-warning">
           Modo de teste: sem piscada, uma foto ou vídeo pode passar pela verificação no aparelho. O servidor ainda exige nonce de uso único, limite de tentativas e limiar calibrado.
         </p>}
-        <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
+        {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <button type="button" disabled={attemptBusy} onClick={cancelFace} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Cancelar</button>
-          {!faceModelReady && faceModelState !== "loading"
-            ? <button type="button" onClick={retryFaceModelLoad} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">{faceModelState === "slow" ? "Recomeçar" : "Tentar carregar modelos"}</button>
-            : ["paused", "error", "exhausted"].includes(cameraState)
-              ? <button type="button" disabled={attemptBusy} onClick={() => void restartFaceSession()} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white">Tentar novamente</button>
+          <Button variant="secondary" disabled={attemptBusy} onClick={cancelFace} className="flex-1">Cancelar</Button>
+          {demoPhotoMode && cameraState !== "ready" && cameraState !== "starting"
+              ? <Button disabled={attemptBusy} onClick={() => cameraState === "idle" ? void openDemoFaceCamera() : void restartFaceSession()} className="flex-1">{cameraState === "idle" ? "Abrir câmera" : "Nova tentativa"}</Button>
+            : demoPhotoMode && cameraState === "ready"
+                ? <Button loading={attemptBusy} disabled={!demoFaceDetected && !["error", "slow"].includes(faceModelState)} loadingLabel="Verificando…" onClick={() => void submitDemoFaceAttempt()} className="flex-1">Entrar</Button>
+              : null}
+          {!demoPhotoMode && !faceModelReady && faceModelState !== "loading"
+              ? <Button variant="secondary" onClick={retryFaceModelLoad} className="flex-1">{faceModelState === "slow" ? "Recomeçar" : "Tentar carregar modelos"}</Button>
+            : !demoPhotoMode && ["paused", "error", "exhausted"].includes(cameraState)
+                ? <Button disabled={attemptBusy} onClick={() => void restartFaceSession()} className="flex-1">Tentar novamente</Button>
               : null}
         </div>
-      </section> : stage === "totp" ? <form onSubmit={(event) => void submitTotp(event)} className="mt-7 space-y-5">
-        <p className="text-sm text-slate-600">Digite o código de 6 dígitos do aplicativo autenticador do administrador.</p>
-        <label htmlFor="totp-code" className="block text-sm font-semibold text-slate-800">Código de verificação<input ref={totpInputRef} id="totp-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={totpCode} onChange={(event) => setTotpCode(event.target.value.replace(/\D/g, ""))} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></label>
-        <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
-        <div className="flex flex-col gap-3 sm:flex-row"><button type="button" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Voltar</button><button type="submit" disabled={loading || totpCode.length !== 6} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Verificando…" : "Verificar"}</button></div>
-      </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-7 space-y-5" noValidate>
-        <div><label htmlFor="codigo-cracha" className="text-sm font-semibold text-slate-800">Código do crachá</label><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></div>
+      </section> : stage === "totp" ? <form onSubmit={(event) => void submitTotp(event)} className="mt-4 grid grid-cols-1 gap-3">
+        <p className="text-sm text-text-secondary">Digite o código de 6 dígitos do aplicativo autenticador do administrador.</p>
+        <Field label="Código de verificação" htmlFor="totp-code"><input ref={totpInputRef} id="totp-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={totpCode} onChange={(event) => setTotpCode(event.target.value.replace(/\D/g, ""))} className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 text-base text-foreground" /></Field>
+        {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
+        <div className="flex flex-col gap-2 sm:flex-row"><Button variant="secondary" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="flex-1">Voltar</Button><Button type="submit" disabled={totpCode.length !== 6} loading={loading} loadingLabel="Verificando…" className="flex-1">Verificar</Button></div>
+      </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-4 grid grid-cols-1 gap-3" noValidate>
+        <Field label="Código do crachá" htmlFor="codigo-cracha"><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 text-base text-foreground" /></Field>
         <div>
-          <label htmlFor="login-password" className="text-sm font-semibold text-slate-800">Senha</label>
-          <div className="mt-2 flex gap-2">
-            <input ref={passwordInputRef} id="login-password" required type={senhaVisivel ? "text" : "password"} autoComplete="current-password" maxLength={256} value={senha} onChange={(event) => setSenha(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" />
-            <button type="button" onClick={() => setSenhaVisivel((visible) => !visible)} aria-label={senhaVisivel ? "Ocultar senha" : "Mostrar senha"} className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-royal">
+          <label htmlFor="login-password" className="text-sm font-semibold text-foreground">Senha</label>
+          <div className="mt-1 flex gap-2">
+              <input ref={passwordInputRef} id="login-password" required type={senhaVisivel ? "text" : "password"} autoComplete="current-password" maxLength={256} value={senha} onChange={(event) => setSenha(event.target.value)} className="min-h-11 min-w-0 flex-1 rounded-control border border-border bg-surface px-4 text-base text-foreground" />
+              <Button type="button" variant="secondary" onClick={() => setSenhaVisivel((visible) => !visible)} aria-label={senhaVisivel ? "Ocultar senha" : "Mostrar senha"} className="px-3">
               {senhaVisivel ? "Ocultar" : "Mostrar"}
-            </button>
+              </Button>
           </div>
         </div>
-        <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
-        <p className="text-xs text-slate-500">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
-        <button type="submit" disabled={loading || !codigoCracha.trim() || !senha} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Entrar com senha"}</button>
-        {faceLoginEnabled && <button type="button" disabled={loading} onClick={() => void startFaceLogin()} className="min-h-11 w-full rounded-lg border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-50">
+        {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
+        <p className="text-xs text-text-secondary">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
+        <Button type="submit" disabled={!codigoCracha.trim() || !senha} loading={loading} loadingLabel="Verificando…" className="min-h-12 w-full">Entrar com senha</Button>
+        {faceLoginEnabled && <Button type="button" variant="secondary" disabled={loading} onClick={() => void startFaceLogin()} className="w-full">
           {loading ? "Preparando câmera…" : "Entrar com reconhecimento facial"}
-        </button>}
+        </Button>}
       </form>}
-    </section>
+      </div>
+    </Card>
   </main>;
 }

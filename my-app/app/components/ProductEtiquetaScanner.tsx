@@ -17,6 +17,7 @@ import {
   type ScannerReadResult,
 } from "../../lib/qr/camera-utils";
 import BuildIdentifier from "./BuildIdentifier";
+import { Icon } from "./ui";
 
 export default function ProductEtiquetaScanner({
   onRead,
@@ -188,21 +189,21 @@ export default function ProductEtiquetaScanner({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="scanner-title" className="fixed inset-0 z-50 flex min-h-screen flex-col bg-slate-950 text-white">
-      <header className="flex items-center justify-between px-4 py-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="scanner-title" className="fixed inset-0 z-50 flex min-h-dvh flex-col bg-foreground text-surface">
+      <header className="flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4">
         <div>
           <h2 id="scanner-title" className="text-lg font-bold">Ler etiqueta</h2>
-          <p className="text-sm text-slate-300">QR do código ERP/TOTVS</p>
+          <p className="text-sm text-surface/80">QR do código ERP/TOTVS</p>
         </div>
-        <button type="button" onClick={() => sessionRef.current?.close()} className="rounded-lg border border-slate-600 px-4 py-2 font-semibold" aria-label="Fechar câmera">Fechar</button>
+        <button type="button" onClick={() => sessionRef.current?.close()} className="min-h-11 rounded-lg border border-surface/40 px-4 font-semibold" aria-label="Fechar câmera"><Icon name="close" /> Fechar</button>
       </header>
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-foreground">
         <video ref={videoRef} autoPlay muted playsInline className="h-full max-h-full w-full object-contain" aria-label="Prévia da câmera traseira" />
-        {!error && <div aria-hidden="true" className="pointer-events-none absolute h-48 w-64 rounded-2xl border-4 border-emerald-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)] sm:h-56 sm:w-80" />}
-        {error && <div role="alert" className="absolute mx-5 max-w-lg rounded-xl bg-white p-5 text-slate-900 shadow-xl"><p>{error}</p><button type="button" onClick={retryCamera} className="mt-4 rounded-lg bg-royal px-4 py-2 font-semibold text-white">Tentar novamente</button></div>}
+        {!error && <div aria-hidden="true" className="pointer-events-none absolute h-48 w-64 rounded-2xl border-4 border-success shadow-[0_0_0_9999px_var(--ui-shadow-scrim)] sm:h-56 sm:w-80" />}
+        {error && <div role="alert" className="absolute mx-5 max-w-lg rounded-xl bg-surface p-5 text-foreground shadow-overlay"><p>{error}</p><button type="button" onClick={retryCamera} className="mt-4 min-h-11 rounded-lg bg-brand px-4 font-semibold text-surface">Tentar novamente</button></div>}
       </div>
-      <footer className="space-y-3 px-4 py-4">
-        <p aria-live="polite" className={`text-center text-sm ${successFeedback ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : feedbackKind === "already-confirmed" ? "rounded-lg bg-blue-900 p-3 font-semibold text-blue-100" : ""}`}>
+      <footer className="space-y-3 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <p aria-live="polite" className={`text-center text-sm ${successFeedback ? "rounded-lg bg-success p-3 font-semibold text-surface" : feedbackKind === "already-confirmed" ? "rounded-lg bg-priority-surface p-3 font-semibold text-brand" : "text-surface"}`}>
           {feedbackKind === "already-confirmed" ? <><span aria-hidden="true">ℹ </span><span>Informação: </span></> : null}{feedback}
         </p>
         <BuildIdentifier />
@@ -231,14 +232,14 @@ export default function ProductEtiquetaScanner({
             value={manualValue}
             onChange={(event) => setManualValue(event.target.value)}
             placeholder="Ou digite o código"
-            className="min-h-11 min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 text-white placeholder:text-slate-400"
+            className="min-h-11 min-w-0 flex-1 rounded-lg border border-surface/40 bg-foreground px-3 text-surface placeholder:text-surface/70"
           />
-          <button type="submit" disabled={!manualValue.trim()} className="min-h-11 rounded-lg bg-blue-700 px-4 text-sm font-semibold text-white disabled:opacity-50">
+          <button type="submit" disabled={!manualValue.trim()} className="min-h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-surface hover:bg-brand-hover active:bg-brand-pressed disabled:opacity-50">
             Conferir
           </button>
         </form>
         {debug && diagnostics && (
-          <section aria-label="Diagnóstico da leitura QR" className="mx-auto grid max-w-2xl grid-cols-2 gap-x-4 gap-y-1 rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200 sm:grid-cols-3">
+          <section aria-label="Diagnóstico da leitura QR" className="mx-auto grid max-w-2xl grid-cols-2 gap-x-4 gap-y-1 rounded-lg border border-border bg-border-subtle p-3 text-xs text-text-secondary sm:grid-cols-3">
             <p>Decoder: {diagnostics.decoder}</p>
             <p>Câmera: {cameraState}</p>
             <p>Fechamento: {lastLifecycleReason ?? "—"}</p>
@@ -250,7 +251,7 @@ export default function ProductEtiquetaScanner({
             <p className="col-span-2 sm:col-span-3">QR: {diagnostics.lastRawText ? "leitura detectada" : "aguardando leitura"}</p>
           </section>
         )}
-        <button type="button" onClick={() => void toggleTorch()} disabled={!torchSupported} className="mx-auto block rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold disabled:opacity-40">
+        <button type="button" onClick={() => void toggleTorch()} disabled={!torchSupported} className="mx-auto block min-h-11 rounded-lg border border-surface/40 px-4 text-sm font-semibold disabled:opacity-40">
           {torchOn ? "Desligar lanterna" : "Ligar lanterna"}
         </button>
       </footer>

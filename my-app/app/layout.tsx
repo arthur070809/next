@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Almoxarifado Marcon",
   description: "Gestão de estoque e depósito de sobras.",
+  icons: {
+    icon: "/marcon-favicon.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

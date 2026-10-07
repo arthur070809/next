@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ActionTile, PageHeader, SummaryCard } from "../components/industrial";
+import { ActionTile, PageHeader, StatusBadge, SummaryCard } from "../components/industrial";
 
 type Stats = {
   estoqueTotal: number;
@@ -68,27 +68,28 @@ export default function AdminDashboard({ stats, canResetDemo }: { stats: Stats; 
         ))}
       </section>
 
-      <section aria-label="Alerta de ponto de pedido" className={`mt-5 rounded-2xl border p-5 ${stats.itensParaRepor.length ? "border-amber-300 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
-        <h2 className={`font-bold ${stats.itensParaRepor.length ? "text-amber-950" : "text-emerald-950"}`}>Alerta de ponto de pedido</h2>
+      <section aria-label="Alerta de ponto de pedido" className={`mt-5 rounded-card p-5 shadow-card ${stats.itensParaRepor.length ? "bg-warning-surface" : "bg-success-surface"}`}>
+        <StatusBadge label={stats.itensParaRepor.length ? "Atenção necessária" : "Estoque regular"} tone={stats.itensParaRepor.length ? "warning" : "success"} />
+        <h2 className="mt-3 font-bold text-foreground">Alerta de ponto de pedido</h2>
         {stats.itensParaRepor.length
-          ? <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-amber-900">{stats.itensParaRepor.map((item) => <li key={`${item.codigo ?? ""}-${item.nome}`}>{item.codigo ? `${item.codigo} · ` : ""}{item.nome}</li>)}</ul>
-          : <p className="mt-2 text-sm text-emerald-900">Nenhum item está no ponto de pedido ou abaixo.</p>}
+          ? <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-foreground">{stats.itensParaRepor.map((item) => <li key={`${item.codigo ?? ""}-${item.nome}`}>{item.codigo ? `${item.codigo} · ` : ""}{item.nome}</li>)}</ul>
+          : <p className="mt-2 text-sm text-text-secondary">Nenhum item está no ponto de pedido ou abaixo.</p>}
       </section>
 
       <section className="mt-8">
-        <h2 className="text-xl font-black tracking-tight text-slate-900">Ações rápidas</h2>
+        <h2 className="text-xl font-black tracking-tight text-foreground">Ações rápidas</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <ActionTile href="/admin/usuarios" title="Cadastrar usuário" description="Adicione um funcionário pelo código do crachá." icon="◉" tone="brand" />
           <ActionTile href="/admin/estoque" title="Gerenciar estoque" description="Cadastre materiais e atualize quantidades." icon="▦" tone="default" />
           <ActionTile href="/admin/deposito" title="Depósito de sobras" description="Consulte saldos e movimentações do depósito." icon="◇" tone="success" />
         </div>
       </section>
-      {canResetDemo && <section aria-labelledby="demo-reset-heading" className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <h2 id="demo-reset-heading" className="font-semibold text-slate-800">Ferramentas de manutenção</h2>
-        <p className="mt-1 text-sm text-slate-600">Restaura requisições, movimentos e saldos da apresentação. Usuários e catálogo são preservados.</p>
-        {demoResetError && <p role="alert" className="mt-3 rounded-lg bg-red-100 p-3 text-sm text-red-800">{demoResetError}</p>}
-        {demoResetMessage && <p role="status" className="mt-3 rounded-lg bg-emerald-100 p-3 text-sm text-emerald-900">{demoResetMessage}</p>}
-        <button type="button" onClick={() => void resetDemo()} disabled={resettingDemo} className="mt-4 min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60">
+      {canResetDemo && <section aria-labelledby="demo-reset-heading" className="mt-8 rounded-card bg-surface p-4 shadow-card">
+        <h2 id="demo-reset-heading" className="font-semibold text-foreground">Ferramentas de manutenção</h2>
+        <p className="mt-1 text-sm text-text-secondary">Restaura requisições, movimentos e saldos da apresentação. Usuários e catálogo são preservados.</p>
+        {demoResetError && <p role="alert" className="mt-3 rounded-lg bg-error-surface p-3 text-sm text-error">{demoResetError}</p>}
+        {demoResetMessage && <p role="status" className="mt-3 rounded-lg bg-success-surface p-3 text-sm text-success">{demoResetMessage}</p>}
+        <button type="button" onClick={() => void resetDemo()} disabled={resettingDemo} className="mt-4 min-h-11 rounded-control border border-brand bg-surface px-4 py-2 text-sm font-semibold text-brand hover:bg-priority-surface disabled:cursor-wait disabled:opacity-60">
           {resettingDemo ? "Restaurando…" : "Restaurar dados da apresentação"}
         </button>
       </section>}

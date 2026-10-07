@@ -3,6 +3,7 @@ import RessuprimentoTabela from "./RessuprimentoTabela";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { autorizarRessuprimento } from "@/lib/ressuprimento/access";
 import { carregarDadosRessuprimento } from "@/lib/ressuprimento/carregar-dados";
+import { RefreshErrorState } from "@/app/components/RefreshErrorState";
 
 export default async function RessuprimentoPage() {
   const funcionario = await getAuthenticatedFuncionario();
@@ -16,10 +17,8 @@ export default async function RessuprimentoPage() {
   const resultado = await carregarDadosRessuprimento(new Date());
   if (!resultado.ok) {
     return <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-2xl font-semibold text-slate-900">Ressuprimento indisponível</h1>
-      <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-        Não foi possível carregar os dados agora. Código de referência: {resultado.errorId}
-      </p>
+      <h1 className="mb-4 text-2xl font-semibold text-foreground">Ressuprimento indisponível</h1>
+      <RefreshErrorState message={`Não foi possível carregar os dados agora. Código de referência: ${resultado.errorId}`} />
     </main>;
   }
   return <RessuprimentoTabela sugestoes={resultado.sugestoes} fonte={resultado.fonte} />;
