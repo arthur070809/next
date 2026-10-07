@@ -430,14 +430,14 @@ export default function EstoquePage() {
 
           <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-surface p-5 shadow-card`}>
             <div className={styles.stockHeader}>
-              <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+              <div className="grid min-w-0 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
               <h2 className="text-center text-xl font-bold text-foreground sm:col-start-2">Itens do estoque</h2>
-              <div className="flex flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
+              <div className="flex min-w-0 flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
                 <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand">
                   <option value="">Todas as categorias</option>
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
-                <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand sm:w-48" />
+                <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="min-w-0 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand sm:w-48" />
               </div>
             </div>
             </div>
