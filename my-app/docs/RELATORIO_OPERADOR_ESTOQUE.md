@@ -8,7 +8,7 @@ Branch local de trabalho: `ajustes-finais`. Sem banco, migrations, seed, reset, 
 |---|---|---|---|
 | O1 — descrição obrigatória em prioridade | Corrigido/testado | `7ccf4bb` | `app/api/requests/route.ts`, `app/api/requests/route.test.ts` |
 | O2 — Minhas Requisições | Corrigido/testado | `84f207c`, `cb62fe3` | `app/api/minhas-requisicoes/route.ts`, `app/api/requests/[id]/route.ts`, `app/minhas-requisicoes/page.tsx`, `lib/requisition-status.ts` |
-| O3 — sair/retornar ao app como operador | Parcial, implementado best-effort | `bd55df7` | `app/components/PortalShell.tsx`, `app/components/ProductEtiquetaScanner.tsx`, `lib/operator-session-lifecycle.ts` |
+| O3 — sair/retornar ao app como operador | Parcial, implementado best-effort | `bd55df7`, `5a8bb6e` | `app/components/PortalShell.tsx`, `app/components/ProductEtiquetaScanner.tsx`, `lib/operator-session-lifecycle.ts` |
 | E1 — layout responsivo do estoque | OK por código/CSS; visual pendente | `20c191b` | `app/estoque/page.tsx`, `app/estoque/stock-list.module.css`, `app/estoque/stock-layout.test.ts` |
 | E2 — entrada no estoque por QR | Parcial: fluxo existente validado; retry persistente bloqueado | `95832cd`, `0f12080` | `app/estoque/page.tsx`, `app/api/estoque/route.ts`, `lib/qr/localizarEstoqueItem.ts` |
 | R1 — ressuprimento | Corrigido/testado | `95832cd` | `lib/stock-status.ts`, `lib/ressuprimento/analise.ts`, `lib/ressuprimento/carregar-dados.ts`, `app/admin/page.tsx`, `app/admin/ressuprimento/RessuprimentoTabela.tsx` |
@@ -31,7 +31,7 @@ A API já normalizava a descrição e rejeitava valor vazio para itens prioritá
 
 O cookie de operador já era de sessão, sem `Max-Age`, e a sessão já renovava expiração no timeout de inatividade (15 min). Mantive isso e acrescentei carência de retorno configurável por `OPERATOR_RETURN_GRACE_MS` (60 s), horário de ocultação em `sessionStorage`, logout/redirect ao retornar depois da carência e tentativa de `sendBeacon` em `pagehide`. O logout por visibilidade e `pagehide` fica suspenso quando `ProductEtiquetaScanner` marca scanner/permissão de câmera ativos; o idle timer também não expira enquanto o scanner permanecer aberto.
 
-Os testes unitários novos primeiro falharam porque o módulo de política não existia; depois passaram para carência antes/depois do limite, scanner, pagehide/BFCache e perfis admin/almoxarifado. O teste anterior de login continua verificando cookie não persistente de operador. **Limitação inevitável:** navegadores móveis podem suspender/encerrar o processo sem emitir eventos e `sendBeacon` é best-effort. Um `pagehide` não persistido pode encerrar a sessão imediatamente; o timeout de servidor continua sendo a proteção confiável. Documentado em `DEMO.md`.
+Os testes unitários novos primeiro falharam porque o módulo de política não existia; depois passaram para carência antes/depois do limite, scanner, pagehide/BFCache e perfis admin/almoxarifado. Foi também testado que `pagehide` imediatamente após ocultar não elimina a carência. O teste anterior de login continua verificando cookie não persistente de operador. **Limitação inevitável:** navegadores móveis podem suspender/encerrar o processo sem emitir eventos e `sendBeacon` é best-effort. Quando há horário de ocultação recente, pagehide respeita a carência; se a persistência do horário falhar, o servidor mantém o timeout por inatividade como proteção. Documentado em `DEMO.md`.
 
 ### E1 — layout
 
@@ -57,9 +57,9 @@ O scanner existente continua sendo usado, sem novo decoder de UI. Código conhec
 |---|---|
 | `npx tsc --noEmit` | Passou, 0 erros. |
 | `npm run lint` | Passou, sem erros. |
-| `npm test` | Passou: 83 arquivos, 376 testes. O script padrão excluiu `tests/integration-tidb.test.ts`; nenhum teste se conectou ao banco. |
-| Build isolado temporário sem `.env*` (`npm run build -- --webpack`) | Compilação otimizada e TypeScript passaram. Coleta de page data falhou ao carregar `/api/almoxarifado/requisicoes/[numeroPedido]`, porque `DATABASE_URL` não está configurada. Mesmo estágio/mesma causa já constam no relatório da execução anterior (`docs/RELATORIO_ALMOXARIFADO.md`); não é regressão. Cópia temporária continha zero arquivos `.env*` e foi removida. |
-| `git diff --check` | Passou antes de finalizar este relatório; será repetido após adicioná-lo ao Git. |
+| `npm test` | Passou: 83 arquivos, 377 testes. O script padrão excluiu `tests/integration-tidb.test.ts`; nenhum teste se conectou ao banco. |
+| Build isolado temporário sem `.env*` (`npm run build -- --webpack`) | Compilação otimizada e TypeScript passaram. Coleta de page data falhou ao carregar `/api/admin/demo/reset` (e também registrou falhas em `/api/admin/face-enrollment` e `/api/admin/devices`), porque `DATABASE_URL` não está configurada. A variável foi explicitamente removida do processo do build; nenhuma conexão foi feita. Cópia temporária excluiu `.env*` e foi removida. |
+| `git diff --check` | Passou após a atualização do relatório. |
 
 ## Revisão adversarial e decisões
 
@@ -89,6 +89,7 @@ O scanner existente continua sendo usado, sem novo decoder de UI. Código conhec
 - `0f12080` match exato de QR e risco de retry documentado.
 - `bd55df7` encerramento best-effort de sessão do operador.
 - `cb62fe3` import cliente-seguro do mapeamento de status.
+- `5a8bb6e` respeita a carência de retorno em `pagehide`.
 
 ## Integridade do escopo
 
