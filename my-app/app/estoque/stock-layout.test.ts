@@ -21,14 +21,26 @@ describe("stock page scroll layout contract", () => {
     expect(styles).toContain("min-width: 0");
   });
 
-  it("uses only document vertical scrolling and keeps horizontal table overflow local", () => {
-    expect(styles).not.toMatch(/overflow-y\s*:\s*(auto|scroll)/);
-    expect(styles).not.toMatch(/max-height\s*:\s*[^;]*(dvh|vh)/);
-    expect(styles).not.toMatch(/position\s*:\s*sticky/);
+  it("limits vertical scrolling to the labelled inventory list", () => {
+    const listStyles = styles.match(/\.stockBody\s*\{([^}]*)\}/)?.[1] ?? "";
+    const panelStyles = styles.match(/\.stockPanel\s*\{([^}]*)\}/)?.[1] ?? "";
+    const headerStyles = styles.match(/\.stockHeader\s*\{([^}]*)\}/)?.[1] ?? "";
+
+    expect(listStyles).toMatch(/overflow-y\s*:\s*auto/);
+    expect(listStyles).toMatch(/min-height\s*:\s*0/);
+    expect(listStyles).toMatch(/max-height\s*:\s*70dvh/);
+    expect(styles).toMatch(/@media\s*\(min-width:\s*1024px\)[\s\S]*?\.stockBody\s*\{[^}]*max-height:\s*calc\(100dvh\s*-\s*10rem\)/);
+    expect(listStyles).toMatch(/overscroll-behavior\s*:\s*contain/);
+    expect(listStyles).toMatch(/scrollbar-gutter\s*:\s*stable/);
+    expect(listStyles).not.toMatch(/100vh/);
+    expect(styles.match(/overflow-y\s*:\s*(?:auto|scroll)/g)).toHaveLength(1);
+    expect(panelStyles).not.toMatch(/overflow-y\s*:\s*(auto|scroll)/);
+    expect(headerStyles).not.toMatch(/overflow-y\s*:\s*(auto|scroll)/);
     expect(shellContent).not.toContain("sticky");
     expect(shellContent).not.toMatch(/overflow-(?:y-)?(?:auto|scroll)/);
     expect(shellContent).not.toMatch(/max-h-|(?<!min-)h-(?:screen|dvh)\b/);
-    expect(page).not.toMatch(/overflow-(?:y-)?(?:auto|scroll)|max-h-|(?<!min-)h-(?:screen|dvh)\b/);
+    expect(page).not.toMatch(/overflow-(?:y-)?(?:auto|scroll)/);
+    expect(page).not.toMatch(/(?<!min-)h-(?:screen|dvh)\b/);
     expect(page.indexOf('id="novo-item"')).toBeLessThan(page.indexOf('aria-label="Lista de itens do estoque"'));
   });
 
@@ -51,14 +63,22 @@ describe("stock page scroll layout contract", () => {
     expect(page).toContain("aria-label=\"Lista de itens do estoque\"");
     expect(page).toContain("aria-label=\"Buscar item por nome ou categoria\"");
     expect(page).toContain("Ler etiqueta QR");
-    expect(page).not.toMatch(/overflow-y-(auto|scroll)/);
+    expect(page).toContain("Nenhum item encontrado.");
+    expect(page).toContain("role=\"region\"");
+    expect(page).toContain("styles.stockBody");
     expect(page).not.toContain("h-screen");
     expect(page).not.toContain("min-h-screen");
   });
 
-  it("retains the viewport-height document without constraining internal sections", () => {
+  it("keeps the empty-filter state inside the same bounded list region", () => {
+    expect(page).toMatch(/itensFiltrados\.length === 0 \? <p[^>]*>Nenhum item encontrado\.<\/p> : itensFiltrados\.map/);
+    expect(page).toContain('aria-label="Lista de itens do estoque"');
+    expect(page).toContain("className={`${styles.stockBody}");
+    expect(styles).toMatch(/\.stockBody\s*\{[^}]*max-height:\s*70dvh/);
+  });
+
+  it("retains the viewport-height document without constraining unrelated sections", () => {
     expect(page).toContain("min-h-dvh");
     expect(styles).not.toContain("100vh");
-    expect(styles).not.toContain("100dvh");
   });
 });

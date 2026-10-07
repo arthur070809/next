@@ -10,7 +10,7 @@ import PortalShell from "../components/PortalShell";
 import StockPage from "./page";
 
 describe("rendered stock scroll layout", () => {
-  it("renders the stock form and full inventory list inside the document-scrolling portal content", () => {
+  it("keeps inventory controls outside the only scrollable list region", () => {
     const markup = renderToStaticMarkup(
       <PortalShell userName="Almoxarife" role="almoxarifado">
         <StockPage />
@@ -27,8 +27,19 @@ describe("rendered stock scroll layout", () => {
     expect(markup).toContain("aria-label=\"Filtrar por categoria\"");
     expect(markup).toContain("aria-label=\"Buscar item por nome ou categoria\"");
     expect(markup).toContain("aria-label=\"Lista de itens do estoque\"");
-    expect(markup.match(/overflow-y-auto/g)).toHaveLength(1);
-    const listClass = markup.match(/aria-label="Lista de itens do estoque" class="([^"]*)"/)?.[1] ?? "";
-    expect(listClass).not.toMatch(/overflow-(?:y-)?(?:auto|scroll)|max-h-|sticky|h-screen|(?<!min-)h-dvh/);
+    expect(markup).toContain('role="region"');
+    const listStart = markup.indexOf('aria-label="Lista de itens do estoque"');
+    const headerStart = markup.indexOf("Itens do estoque");
+    const categoryStart = markup.indexOf('aria-label="Filtrar por categoria"');
+    const searchStart = markup.indexOf('aria-label="Buscar item por nome ou categoria"');
+    expect(headerStart).toBeLessThan(listStart);
+    expect(categoryStart).toBeLessThan(listStart);
+    expect(searchStart).toBeLessThan(listStart);
+    expect(markup).toContain("Carregando estoque...");
+    expect(markup).toContain("id=\"categoria\"");
+    expect(markup).toContain("id=\"nome\"");
+    const listOpening = markup.slice(markup.lastIndexOf("<div", listStart), listStart);
+    expect(listOpening).toMatch(/role="region"/);
+    expect(listOpening).toMatch(/tabindex="0"/);
   });
 });
