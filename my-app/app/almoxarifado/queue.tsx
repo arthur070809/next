@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
-import PriorityBadge from "../components/PriorityBadge";
+import PriorityBadge, { PRIORITY_QUEUE_ROW_CLASS } from "../components/PriorityBadge";
 import ItemDescription from "../components/ItemDescription";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
@@ -20,7 +20,7 @@ import {
   ExecutorAssuncaoLote,
   type ResultadoAssuncaoLote,
 } from "../../lib/viagem/assumir-lote";
-import { ordenarRequisicoes } from "./utils";
+import { sortRequisitionsByPriority } from "./utils";
 
 const podeAtivarDemonstracao = viagemDemoDisponivel(
   process.env.NODE_ENV,
@@ -155,7 +155,7 @@ export default function RequisicoesQueuePage() {
     };
   }, [mostrarViagens, modoDemonstracao]);
 
-  const filtradas = useMemo(() => ordenarRequisicoes(requisicoes
+  const filtradas = useMemo(() => sortRequisitionsByPriority(requisicoes
     .filter((request) => `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase()))
   ), [requisicoes, busca]);
 
@@ -363,7 +363,7 @@ export default function RequisicoesQueuePage() {
             </thead>
             <tbody>
               {filtradas.map((request) => (
-                <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                <tr key={request.numeroPedido} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${request.prioridade === "prioridade" ? PRIORITY_QUEUE_ROW_CLASS : ""}`}>
                   <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td>
                   <td className="px-4 py-3 text-slate-600">{request.setor}</td>
                   <td className="max-w-sm break-words px-4 py-3">

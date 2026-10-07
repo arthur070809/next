@@ -9,6 +9,7 @@ export type ItemChecklist = {
 }
 
 export type RequisicaoMock = {
+  id?: string
   numeroPedido: string
   almoxarifado: "central" | "embalagens" | "materia-prima" | "importados"
   setor: "setor1" | "setor2" | "setor3"

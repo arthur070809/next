@@ -63,6 +63,7 @@ export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
   ) ?? "central";
 
   return {
+    id: req.id,
     numeroPedido: req.numeroPedido,
     almoxarifado: almoxarifadoFront,
     setor: primeiroItemMetadata.setor ?? "setor1",
@@ -99,7 +100,7 @@ export async function listOpenRequisitions(): Promise<RequisicaoMock[]> {
   const requisicoes = await prisma.requisicao.findMany({
     where: { status: { in: [StatusRequisicao.PENDENTE, StatusRequisicao.ASSUMIDA] } },
     include: REQUISICAO_INCLUDE,
-    orderBy: [{ prioridade: "desc" }, { criadoEm: "asc" }],
+    orderBy: [{ prioridade: "desc" }, { criadoEm: "asc" }, { id: "asc" }],
     take: 200, // limite razoável para fila de trabalho
   });
   return requisicoes.map(toRequisicaoMock);
