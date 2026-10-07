@@ -133,6 +133,30 @@ describe("facial enrollment embedding policy", () => {
     expect(result.embedding).toBeNull();
   });
 
+  it("validates and normalizes one vector without running median or outlier logic", () => {
+    const result = aggregateEnrollmentEmbeddings([vector(0.25)]);
+
+    expect(result.consistent).toBe(true);
+    expect(result.distances).toEqual([]);
+    expect(result.discardedOutlier).toBe(false);
+    expect(result.embedding).not.toBeNull();
+    expect(Math.hypot(...(result.embedding ?? []))).toBeCloseTo(1, 12);
+    expect(aggregateEnrollmentEmbeddings([Array(64).fill(0)]).reason).toBe("ZERO_NORM");
+    expect(aggregateEnrollmentEmbeddings([vector(0.25, 31)]).reason).toBe("INVALID_DIMENSION");
+  });
+
+  it("continues median aggregation for three frames", () => {
+    const result = aggregateEnrollmentEmbeddings([
+      vector(0.1),
+      vector(0.102),
+      vector(0.098),
+    ]);
+
+    expect(result.consistent).toBe(true);
+    expect(result.discardedOutlier).toBe(false);
+    expect(result.distances).toHaveLength(3);
+  });
+
   it("requires a configured, valid embedding model version for new templates", () => {
     expect(getFaceEmbeddingModelVersion("provider-model-2026.10")).toBe("provider-model-2026.10");
     expect(() => getFaceEmbeddingModelVersion("")).toThrow(FaceServiceUnavailableError);
@@ -272,10 +296,51 @@ describe("facial enrollment embedding policy", () => {
     await expect(verifyFaceCapture(capture, { tipo: "piscar", nonce: "nonce" }, [vector(0.1)]))
       .rejects.toBeInstanceOf(FaceServiceUnavailableError);
 
+    vi.stubEnv("FACE_ENROLL_FRAMES", "5");
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
       embeddings: [[1, 2], [1, 2], [1, 2]],
     }), { status: 200, headers: { "content-type": "application/json" } })));
     await expect(enrollFaceSamples(Array.from({ length: 5 }, () => capture), { nonce: "nonce" }))
       .rejects.toBeInstanceOf(FaceServiceUnavailableError);
+  });
+
+  it("sends one capture to the provider and accepts one valid embedding", async () => {
+    vi.stubEnv("FACE_ENROLL_FRAMES", "1");
+    vi.stubEnv("FACE_SERVICE_URL", "https://face-service.invalid");
+    vi.stubEnv("FACE_SERVICE_TOKEN", "test-token");
+    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(url)).toBe("https://face-service.invalid/v1/enroll");
+      expect(init?.method).toBe("POST");
+      return new Response(
+        JSON.stringify({ embeddings: [vector(0.2)] }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await enrollFaceSamples([capture], { nonce: "nonce" });
+
+    expect(result).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const requestBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as { captures: string[]; nonce: string };
+    expect(requestBody).toEqual({ captures: [capture], nonce: "nonce" });
+  });
+
+  it.each([
+    ["LOW_LIGHT", "Mais luz"],
+    ["NOT_FRONTAL", "Olhe de frente"],
+  ])("provides corrective provider feedback for single-frame rejection (%s)", async (code, message) => {
+    vi.stubEnv("FACE_ENROLL_FRAMES", "1");
+    vi.stubEnv("FACE_SERVICE_URL", "https://face-service.invalid");
+    vi.stubEnv("FACE_SERVICE_TOKEN", "test-token");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ code, reason: "private provider detail" }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    })));
+    const capture = `data:image/jpeg;base64,${"A".repeat(1400)}`;
+
+    await expect(enrollFaceSamples([capture]))
+      .rejects.toMatchObject({ message: expect.stringContaining(message), code: code === "LOW_LIGHT" ? "FACE_LOW_LIGHT" : "FACE_POSE_INVALID" });
   });
 });

@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
-import { faceCaptureQuality, faceEnrollmentBurstSize, faceEnrollmentFrameIntervalMs, faceEnrollmentMaximumBurstSize } from "@/lib/facial/config";
+import { faceCaptureQuality, faceEnrollmentCandidateFrameCount, faceEnrollmentFrameIntervalMs } from "@/lib/facial/config";
 import { inspectFaceCount } from "@/lib/facial/face-count";
-import { enrollmentQualityInstruction, isEnrollmentQualityValid, shouldAutoCaptureEnrollmentBurst } from "@/lib/facial/enrollment-capture";
+import { enrollmentQualityInstruction, isEnrollmentQualityValid, scoreEnrollmentFrameQuality, selectBestEnrollmentFrames, shouldSubmitEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
 import { encodeFaceEnrollmentFrame } from "@/lib/facial/photo";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
@@ -14,6 +14,8 @@ import styles from "./face-enrollment.module.css";
 type Employee = { id: number; nome: string; cracha: string; enrolled: boolean };
 type Session = { id: string; token: string; expiraEm: string };
 type Stage = "front" | "success" | "failed";
+type EnrollmentFrame = { image: string };
+type EnrollmentFrameCandidate = ScoredEnrollmentFrame<EnrollmentFrame>;
 type EnrollmentDiagnostics = { frameDistances?: number[]; threshold?: number; discardedOutlier?: boolean };
 class EnrollmentResponseError extends Error {
   constructor(message: string, readonly code: string) {
@@ -65,7 +67,13 @@ function drawMesh(canvas: HTMLCanvasElement, video: HTMLVideoElement, face: Face
   for (const point of face.mesh) { context.beginPath(); context.arc(point[0] ?? 0, point[1] ?? 0, 1.2, 0, Math.PI * 2); context.fill(); }
 }
 
-export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { diagnosticsEnabled?: boolean }) {
+export default function FaceEnrollmentManager({
+  diagnosticsEnabled = false,
+  frameCount = 1,
+}: {
+  diagnosticsEnabled?: boolean;
+  frameCount?: number;
+}) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeId, setEmployeeId] = useState("");
   const [session, setSession] = useState<Session | null>(null);
@@ -103,10 +111,10 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
   const humanRef = useRef<HumanDetector | null>(null);
   const sessionRef = useRef<Session | null>(null);
   const stableSinceRef = useRef(0);
-  const burstFramesRef = useRef<string[]>([]);
+  const burstFramesRef = useRef<EnrollmentFrameCandidate[]>([]);
+  const candidateFramesObservedRef = useRef(0);
   const lastBurstFrameAtRef = useRef(0);
   const eyesClosedObservedRef = useRef(false);
-  const eyesClosedFrameRef = useRef<string | null>(null);
   const blinkObservedRef = useRef(false);
   const submittingRef = useRef(false);
   const lastDebugAtRef = useRef(0);
@@ -127,9 +135,9 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
     }
     stableSinceRef.current = 0;
     burstFramesRef.current = [];
+    candidateFramesObservedRef.current = 0;
     lastBurstFrameAtRef.current = 0;
     eyesClosedObservedRef.current = false;
-    eyesClosedFrameRef.current = null;
     blinkObservedRef.current = false;
     setStageReady(false);
     setCameraState("idle");
@@ -226,7 +234,7 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
   }, [employeeId]);
 
   const submitEnrollment = useCallback(async function submitEnrollmentImpl(nextSamples: string[]) {
-    if (submittingRef.current || nextSamples.length < faceEnrollmentBurstSize || !sessionRef.current) return;
+    if (submittingRef.current || nextSamples.length !== frameCount || !sessionRef.current) return;
     submittingRef.current = true; setBusy(true); setInstruction("Processando e confirmando o cadastro");
     const current = sessionRef.current;
     try {
@@ -245,9 +253,9 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
       if (response.status === 409 && data.code === "FACE_CAPTURE_RETRY") {
         stableSinceRef.current = 0;
         burstFramesRef.current = [];
+        candidateFramesObservedRef.current = 0;
         lastBurstFrameAtRef.current = 0;
         eyesClosedObservedRef.current = false;
-        eyesClosedFrameRef.current = null;
         blinkObservedRef.current = false;
         setStageReady(false);
         setInstruction("Mantenha apenas seu rosto diante da câmera; tentando novamente.");
@@ -264,7 +272,7 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
       stopCamera();
     }
     finally { submittingRef.current = false; setBusy(false); }
-  }, [diagnosticsEnabled, employeeId, renewSession, replaceConfirmed]);
+  }, [diagnosticsEnabled, employeeId, frameCount, renewSession, replaceConfirmed]);
 
   async function startCamera() {
     if (!employeeId || !confirmedPerson || !consent || modelState !== "ready") return;
@@ -274,9 +282,9 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
       stopCamera();
       stableSinceRef.current = 0;
       burstFramesRef.current = [];
+      candidateFramesObservedRef.current = 0;
       lastBurstFrameAtRef.current = 0;
       eyesClosedObservedRef.current = false;
-      eyesClosedFrameRef.current = null;
       blinkObservedRef.current = false;
       const video = videoRef.current;
       const camera = createCameraStreamController({
@@ -331,9 +339,9 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
       if (document.hidden) {
         stableSinceRef.current = 0;
         burstFramesRef.current = [];
+        candidateFramesObservedRef.current = 0;
         lastBurstFrameAtRef.current = 0;
         eyesClosedObservedRef.current = false;
-        eyesClosedFrameRef.current = null;
         blinkObservedRef.current = false;
         return;
       }
@@ -354,9 +362,9 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
         if (!face) {
           stableSinceRef.current = 0;
           burstFramesRef.current = [];
+          candidateFramesObservedRef.current = 0;
           lastBurstFrameAtRef.current = 0;
           eyesClosedObservedRef.current = false;
-          eyesClosedFrameRef.current = null;
           blinkObservedRef.current = false;
           setStageReady(false);
           setInstruction(faceCheck.message ?? enrollmentQualityInstruction({
@@ -415,9 +423,9 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
         if (!ready) {
           stableSinceRef.current = 0;
           burstFramesRef.current = [];
+          candidateFramesObservedRef.current = 0;
           lastBurstFrameAtRef.current = 0;
           eyesClosedObservedRef.current = false;
-          eyesClosedFrameRef.current = null;
           blinkObservedRef.current = false;
           setStageReady(false);
           setInstruction(enrollmentQualityInstruction(quality));
@@ -426,42 +434,55 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
         if (!stableSinceRef.current) stableSinceRef.current = time;
         const eyesOpen = eyesAreOpen(face);
         if (!eyesOpen) {
-          if (!eyesClosedObservedRef.current) {
-            eyesClosedFrameRef.current = captureFrame();
-            eyesClosedObservedRef.current = true;
-          }
+          eyesClosedObservedRef.current = true;
         } else if (eyesClosedObservedRef.current && !blinkObservedRef.current) {
-          const reopenedFrame = captureFrame();
-          burstFramesRef.current = [eyesClosedFrameRef.current, reopenedFrame].filter(
-            (sample): sample is string => sample !== null,
-          );
-          lastBurstFrameAtRef.current = time;
           blinkObservedRef.current = true;
+          lastBurstFrameAtRef.current = time;
         }
         setInstruction(blinkObservedRef.current
-          ? "Piscar confirmado; segure parado"
+          ? "Piscar confirmado; mantenha os olhos abertos e segure parado"
           : "Segure parado e pisque uma vez; a captura será automática");
-        if (time - lastBurstFrameAtRef.current >= faceEnrollmentFrameIntervalMs) {
-          const image = captureFrame();
-          if (!image) throw new Error("A câmera ainda não está pronta para capturar.");
-          burstFramesRef.current = [...burstFramesRef.current, image].slice(-faceEnrollmentMaximumBurstSize);
+        if (blinkObservedRef.current && eyesOpen
+          && time - lastBurstFrameAtRef.current >= faceEnrollmentFrameIntervalMs
+          && candidateFramesObservedRef.current < faceEnrollmentCandidateFrameCount) {
+          const score = scoreEnrollmentFrameQuality({
+            sharpness: light.sharpness,
+            yawDegrees: rotation?.yaw ?? Number.POSITIVE_INFINITY,
+            pitchDegrees: rotation?.pitch ?? Number.POSITIVE_INFINITY,
+            rollDegrees: rotation?.roll ?? Number.POSITIVE_INFINITY,
+            eyesOpen,
+            brightness: light.brightness,
+          });
+          if (frameCount === 1) {
+            if (!burstFramesRef.current[0] || score > burstFramesRef.current[0].score) {
+              const image = captureFrame();
+              if (!image) throw new Error("A câmera ainda não está pronta para capturar.");
+              burstFramesRef.current = [{ frame: { image }, score }];
+            }
+          } else {
+            const image = captureFrame();
+            if (!image) throw new Error("A câmera ainda não está pronta para capturar.");
+            burstFramesRef.current = [...burstFramesRef.current, { frame: { image }, score }];
+          }
+          candidateFramesObservedRef.current += 1;
           lastBurstFrameAtRef.current = time;
         }
-        if (shouldAutoCaptureEnrollmentBurst({
+        if (shouldSubmitEnrollmentFrames({
           stableForMs: time - stableSinceRef.current,
           minimumStableMs: faceCaptureQuality.stableCaptureMs,
           blinkObserved: blinkObservedRef.current,
-          frameCount: burstFramesRef.current.length,
-          minimumFrames: faceEnrollmentBurstSize,
-          maximumFrames: faceEnrollmentMaximumBurstSize,
+          frameCount: candidateFramesObservedRef.current,
+          minimumFrames: faceEnrollmentCandidateFrameCount,
         }) && !submittingRef.current) {
           setStageReady(true);
-          setInstruction("Captura concluída; validando o template");
-          void submitEnrollment(burstFramesRef.current);
+          setInstruction(`Piscada confirmada; selecionando ${frameCount === 1 ? "o melhor quadro" : "os melhores quadros"}`);
+          const selected = selectBestEnrollmentFrames(burstFramesRef.current, frameCount);
+          void submitEnrollment(selected.map((candidate) => candidate.image));
         }
       } catch (cause) {
         stableSinceRef.current = 0;
         burstFramesRef.current = [];
+        candidateFramesObservedRef.current = 0;
         lastBurstFrameAtRef.current = 0;
         setInstruction("Não foi possível processar o quadro. Tente novamente");
         setDebugMetrics((metrics) => ({ ...metrics, resultCode: cause instanceof Error ? cause.name : "INFERENCE_FAILED" }));
@@ -482,7 +503,7 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
       stopDetection();
       unregisterCleanup?.();
     };
-  }, [cameraState, modelState, employeeId, submitEnrollment, debug]);
+  }, [cameraState, modelState, employeeId, submitEnrollment, debug, frameCount]);
 
   useEffect(() => {
     if (cameraState !== "ready") return;
@@ -556,7 +577,7 @@ export default function FaceEnrollmentManager({ diagnosticsEnabled = false }: { 
               </button>}
         </div>
         <p className={styles.hint}>
-          Mantenha o rosto centralizado, frontal, nítido e bem iluminado. A captura de cinco quadros e o salvamento acontecem automaticamente; nenhuma foto é armazenada.
+          Mantenha o rosto centralizado, frontal, nítido e bem iluminado. Após a piscada, a tela seleciona o(s) melhor(es) quadro(s) e salva automaticamente; nenhuma foto é armazenada.
         </p>
       </section>
     </main>

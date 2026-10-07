@@ -4,12 +4,12 @@ import FaceEnrollmentManager from "./FaceEnrollmentManager";
 
 describe("automatic facial enrollment UI", () => {
   it("offers automatic capture without a manual capture or gallery control", () => {
-    const markup = renderToStaticMarkup(<FaceEnrollmentManager />);
+    const markup = renderToStaticMarkup(<FaceEnrollmentManager frameCount={1} />);
 
     expect(markup).toContain("Iniciar câmera");
     expect(markup).not.toContain("Capturar foto");
     expect(markup).not.toContain("Escolher foto frontal");
     expect(markup).not.toContain('type="file"');
-    expect(markup).toContain("acontecem automaticamente");
+    expect(markup).toContain("salva automaticamente");
   });
 });

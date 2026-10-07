@@ -27,10 +27,9 @@ vi.mock("@/lib/face", () => ({
   assertFaceTemplateConfiguration: vi.fn(() => "provider-model-2026.10"),
   decryptEmbedding: vi.fn(() => Array.from({ length: 64 }, () => 0.125)),
   encryptEmbedding: vi.fn(() => ({ ciphertext: Buffer.from("cipher"), iv: Buffer.from("iv"), tag: Buffer.from("tag") })),
-  enrollFaceSamples: vi.fn(async () => Array.from({ length: 5 }, () => Array.from({ length: 64 }, () => 0.125))),
+  enrollFaceSamples: vi.fn(async (samples: unknown[]) => Array.from({ length: samples.length }, () => Array.from({ length: 64 }, () => 0.125))),
   FaceServiceUnavailableError: class FaceServiceUnavailableError extends Error {},
   faceEmbeddingDistance: vi.fn(() => 1),
-  faceEnrollmentBurstSize: 5,
   faceEnrollmentConsistencyDistance: 0.35,
   faceEnrollmentDuplicateDistance: 0.42,
   FaceEnrollmentVerificationError: class extends Error {
@@ -66,12 +65,14 @@ import {
 } from "@/lib/face";
 import { prisma } from "@/lib/prisma";
 import { recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
+import { getFaceEnrollmentFrameCount } from "@/lib/facial/config";
 
 describe("admin face enrollment route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("FACE_EMBEDDING_MODEL_VERSION", "provider-model-2026.10");
     vi.stubEnv("FACE_DIAGNOSTICS_ENABLED", "false");
+    vi.stubEnv("FACE_ENROLL_FRAMES", "1");
     vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
@@ -97,12 +98,16 @@ describe("admin face enrollment route", () => {
     expect(response.status).toBe(403);
   });
 
-  it("stores exactly one encrypted, versioned, normalized aggregate template for five frames", async () => {
+  it("stores one encrypted, versioned template for the default single frame", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
     const response = await POST(enrollmentRequest());
 
     expect(response.status).toBe(201);
-    expect(enrollFaceSamples).toHaveBeenCalledWith(expect.any(Array), { nonce: "token" });
+    expect(enrollFaceSamples).toHaveBeenCalledWith([expect.any(String)], { nonce: "token" });
     expect(aggregateEnrollmentEmbeddings).toHaveBeenCalledOnce();
+    expect(aggregateEnrollmentEmbeddings).toHaveBeenCalledWith([
+      Array.from({ length: 64 }, () => 0.125),
+    ]);
     expect(encryptEmbedding).toHaveBeenCalledOnce();
     expect(transaction.faceTemplate.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -114,6 +119,9 @@ describe("admin face enrollment route", () => {
         criadoPorId: 9,
       }),
     });
+    expect(JSON.stringify(log.mock.calls)).not.toContain("data:image/jpeg");
+    expect(JSON.stringify(log.mock.calls)).not.toContain("0.125");
+    log.mockRestore();
   });
 
   it("requires an explicit confirmation before replacing an active template", async () => {
@@ -143,6 +151,7 @@ describe("admin face enrollment route", () => {
   });
 
   it("silently retries incoherent local burst measurements and exposes no biometrics when diagnostics are off", async () => {
+    vi.stubEnv("FACE_ENROLL_FRAMES", "3");
     vi.mocked(aggregateEnrollmentEmbeddings).mockReturnValueOnce({
       consistent: false,
       distances: [0.1, 0.4, 0.2, 0.3, 0.5],
@@ -152,7 +161,7 @@ describe("admin face enrollment route", () => {
       reason: undefined,
     } as never);
     const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
-    const response = await POST(enrollmentRequest());
+    const response = await POST(enrollmentRequest({ samples: enrollmentSamples(3) }));
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
@@ -195,6 +204,46 @@ describe("admin face enrollment route", () => {
     expect(await response.json()).toMatchObject({ code: "FACE_SERVICE_UNAVAILABLE" });
     expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
   });
+
+  it("keeps three configured frames on the median aggregation path", async () => {
+    vi.stubEnv("FACE_ENROLL_FRAMES", "3");
+    const response = await POST(enrollmentRequest({ samples: enrollmentSamples(3) }));
+
+    expect(response.status).toBe(201);
+    expect(getFaceEnrollmentFrameCount()).toBe(3);
+    expect(enrollFaceSamples).toHaveBeenCalledWith(enrollmentSamples(3), { nonce: "token" });
+    expect(aggregateEnrollmentEmbeddings).toHaveBeenCalledWith(
+      Array.from({ length: 3 }, () => Array.from({ length: 64 }, () => 0.125)),
+    );
+    expect(encryptEmbedding).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["FACE_LOW_LIGHT", "Mais luz no ambiente e tente novamente."],
+    ["FACE_POSE_INVALID", "Olhe de frente para a câmera e tente novamente."],
+  ])("returns corrective feedback for single-frame quality rejection (%s)", async (code, instruction) => {
+    vi.mocked(enrollFaceSamples).mockRejectedValueOnce(
+      new FaceEnrollmentVerificationError(instruction, code),
+    );
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const response = await POST(enrollmentRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.error).toContain(instruction);
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
+    expect(JSON.stringify(log.mock.calls)).not.toContain(instruction);
+    log.mockRestore();
+  });
+
+  it("rejects payload sizes above the budget for the configured frame count", async () => {
+    const response = await POST(enrollmentRequest({
+      samples: [`data:image/jpeg;base64,${"A".repeat(500_000)}`],
+    }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "FACE_ENROLLMENT_PAYLOAD_INVALID" });
+  });
 });
 
 function enrollmentRequest(overrides: Record<string, unknown> = {}) {
@@ -208,8 +257,12 @@ function enrollmentRequest(overrides: Record<string, unknown> = {}) {
       consent: true,
       consentAt: new Date().toISOString(),
       replaceConfirmed: false,
-      samples: Array.from({ length: 5 }, () => `data:image/jpeg;base64,${"A".repeat(1400)}`),
+      samples: enrollmentSamples(getFaceEnrollmentFrameCount()),
       ...overrides,
     }),
   });
+}
+
+function enrollmentSamples(count: number) {
+  return Array.from({ length: count }, () => `data:image/jpeg;base64,${"A".repeat(1400)}`);
 }

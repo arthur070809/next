@@ -2,13 +2,14 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 import {
   faceEnrollmentConsistencyDistance,
   faceEnrollmentDuplicateDistance,
-  faceEnrollmentBurstSize,
+  getFaceEnrollmentFrameCount,
   faceMatchThresholdDefault,
+  faceEnrollmentMaximumBurstSize,
 } from "./facial/config";
+import { faceEnrollmentFrameMaxBytes } from "./facial/photo";
 
 export { faceConsentVersion } from "./face-consent";
 export {
-  faceEnrollmentBurstSize,
   faceEnrollmentConsistencyDistance,
   faceEnrollmentDuplicateDistance,
   faceMatchThresholdDefault,
@@ -126,7 +127,7 @@ export function decryptEmbedding(ciphertext: Uint8Array, iv: Uint8Array, tag: Ui
   return embedding as number[];
 }
 
-function validateCapture(value: unknown) {
+function validateCapture(value: unknown, maxBytes = 2 * 1024 * 1024) {
   if (typeof value !== "string" || !value.startsWith("data:image/")) throw new Error("Invalid facial capture.");
   const comma = value.indexOf(",");
   if (comma < 0) throw new Error("Invalid facial capture.");
@@ -135,7 +136,7 @@ function validateCapture(value: unknown) {
     throw new Error("Unsupported facial capture.");
   }
   const bytes = Buffer.from(value.slice(comma + 1), "base64");
-  if (bytes.length < 1024 || bytes.length > 2 * 1024 * 1024) throw new Error("Invalid facial capture size.");
+  if (bytes.length < 1024 || bytes.length > maxBytes) throw new Error("Invalid facial capture size.");
   return value;
 }
 
@@ -167,9 +168,11 @@ function enrollmentVerificationMessage(code: string | undefined, reason: string 
     case "NO_FACE": return { code: "FACE_NO_FACE", message: "Nenhum rosto detectado." };
     case "MULTIPLE_FACES": return { code: "FACE_MULTIPLE_FACES", message: "Mais de um rosto na imagem." };
     case "DARK":
-    case "LOW_LIGHT": return { code: "FACE_LOW_LIGHT", message: "Imagem muito escura." };
+    case "LOW_LIGHT": return { code: "FACE_LOW_LIGHT", message: "Mais luz no ambiente e tente novamente." };
+    case "POSE":
+    case "NOT_FRONTAL": return { code: "FACE_POSE_INVALID", message: "Olhe de frente para a câmera e tente novamente." };
     case "BLUR":
-    case "LOW_SHARPNESS": return { code: "FACE_BLUR", message: "Imagem sem nitidez suficiente." };
+    case "LOW_SHARPNESS": return { code: "FACE_BLUR", message: "Mantenha o rosto imóvel para melhorar a nitidez." };
     case "LIVENESS_FAILED": return { code: "FACE_LIVENESS_FAILED", message: "Não foi possível confirmar a prova de vida." };
     case "INCONSISTENT_SAMPLES": return { code: "FACE_CAPTURE_RETRY", message: "Mantenha apenas seu rosto diante da câmera e tente novamente." };
     default: return reason === "no_face" ? { code: "FACE_NO_FACE", message: "Nenhum rosto detectado." } : { code: "FACE_VERIFICATION_FAILED", message: "Não foi possível processar as capturas. Tente novamente." };
@@ -177,8 +180,11 @@ function enrollmentVerificationMessage(code: string | undefined, reason: string 
 }
 
 export async function enrollFaceSamples(samples: unknown[], options: { nonce?: string } = {}) {
-  if (samples.length < faceEnrollmentBurstSize || samples.length > 8) throw new Error("Enrollment requires 5 to 8 captures.");
-  const captures = samples.map(validateCapture);
+  const frameCount = getFaceEnrollmentFrameCount();
+  if (samples.length !== frameCount || samples.length > faceEnrollmentMaximumBurstSize) {
+    throw new Error(`Enrollment requires exactly ${frameCount} capture(s).`);
+  }
+  const captures = samples.map((sample) => validateCapture(sample, faceEnrollmentFrameMaxBytes));
   const result = await callFaceService<FaceServiceEmbeddingResponse>("/v1/enroll", { captures, nonce: options.nonce });
   if (typeof result.code !== "undefined" && typeof result.code !== "string") throw new FaceServiceUnavailableError();
   if (typeof result.reason !== "undefined" && typeof result.reason !== "string") throw new FaceServiceUnavailableError();
@@ -190,7 +196,8 @@ export async function enrollFaceSamples(samples: unknown[], options: { nonce?: s
   if (!Array.isArray(embeddings) || embeddings.length !== captures.length
     || embeddings.some((embedding) => !Array.isArray(embedding) || embedding.length < 32)
     || embeddings.some((embedding) => embedding.length !== embeddings[0].length
-      || embedding.some((value) => typeof value !== "number" || !Number.isFinite(value)))) {
+      || embedding.some((value) => typeof value !== "number" || !Number.isFinite(value))
+      || !Number.isFinite(Math.hypot(...embedding)) || Math.hypot(...embedding) <= 1e-12)) {
     throw new FaceServiceUnavailableError();
   }
   return embeddings;
@@ -258,7 +265,7 @@ export type EnrollmentEmbeddingAnalysis = {
 };
 
 function validateEnrollmentEmbeddings(embeddings: number[][]): EnrollmentEmbeddingAnalysis["reason"] | undefined {
-  if (embeddings.length < 3 || embeddings.some((embedding) => embedding.length < 32)) return "INVALID_DIMENSION";
+  if (embeddings.length < 2 || embeddings.some((embedding) => embedding.length < 32)) return "INVALID_DIMENSION";
   const dimension = embeddings[0].length;
   if (embeddings.some((embedding) => embedding.length !== dimension)) return "INVALID_DIMENSION";
   if (embeddings.some((embedding) => embedding.some((value) => !Number.isFinite(value)))) return "INVALID_VALUE";
@@ -310,6 +317,26 @@ export function analyzeEnrollmentEmbeddings(embeddings: number[][]): EnrollmentE
 }
 
 export function aggregateEnrollmentEmbeddings(embeddings: number[][]) {
+  if (embeddings.length === 1) {
+    const [embedding] = embeddings;
+    if (embedding.length < 32) {
+      return { consistent: false, reason: "INVALID_DIMENSION" as const, distances: [], discardedOutlier: false, acceptedEmbeddings: [], embedding: null };
+    }
+    if (embedding.some((value) => !Number.isFinite(value))) {
+      return { consistent: false, reason: "INVALID_VALUE" as const, distances: [], discardedOutlier: false, acceptedEmbeddings: [], embedding: null };
+    }
+    const norm = Math.hypot(...embedding);
+    if (!Number.isFinite(norm) || norm <= 1e-12) {
+      return { consistent: false, reason: "ZERO_NORM" as const, distances: [], discardedOutlier: false, acceptedEmbeddings: [], embedding: null };
+    }
+    return {
+      consistent: true,
+      distances: [],
+      discardedOutlier: false,
+      acceptedEmbeddings: [embedding],
+      embedding: embedding.map((value) => value / norm),
+    };
+  }
   const analysis = analyzeEnrollmentEmbeddings(embeddings);
   if (!analysis.consistent) return { ...analysis, embedding: null };
 

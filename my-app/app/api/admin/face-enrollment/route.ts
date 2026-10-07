@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { aggregateEnrollmentEmbeddings, assertFaceTemplateConfiguration, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentBurstSize, faceEnrollmentConsistencyDistance, faceEnrollmentDuplicateDistance, FaceEncryptionKeyUnavailableError, FaceEnrollmentVerificationError, FaceServiceUnavailableError, faceConsentVersion } from "@/lib/face";
+import { aggregateEnrollmentEmbeddings, assertFaceTemplateConfiguration, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentConsistencyDistance, faceEnrollmentDuplicateDistance, FaceEncryptionKeyUnavailableError, FaceEnrollmentVerificationError, FaceServiceUnavailableError, faceConsentVersion } from "@/lib/face";
 import { faceEnrollmentAttemptLimit, getFaceEnrollmentLimit, recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 import { createFaceEnrollmentSession, findFaceEnrollmentSession, renewFaceEnrollmentSession } from "@/lib/face-enrollment-session";
+import { getFaceEnrollmentFrameCount } from "@/lib/facial/config";
+import { faceEnrollmentFrameMaxBytes } from "@/lib/facial/photo";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
 import { getClientIpHash, hashSecret } from "@/lib/webauthn";
@@ -61,8 +63,11 @@ export async function POST(request: Request) {
     const auth = await requireAdmin();
     if (!auth.funcionario) return adminError(auth.status);
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
+    const frameCount = getFaceEnrollmentFrameCount();
+    const maxFrameDataUrlCharacters = Math.ceil(faceEnrollmentFrameMaxBytes * 4 / 3) + 64;
+    const maxPayloadBytes = frameCount * maxFrameDataUrlCharacters + 32 * 1024;
     const contentLength = request.headers.get("content-length");
-    if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > 4 * 1024 * 1024)) {
+    if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > maxPayloadBytes)) {
       return NextResponse.json({ error: "Capturas muito grandes." }, { status: 400 });
     }
     const body = await request.json().catch(() => ({})) as Record<string, unknown>;
@@ -73,7 +78,7 @@ export async function POST(request: Request) {
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
     const sessionToken = typeof body.sessionToken === "string" ? body.sessionToken : "";
     const replaceConfirmed = body.replaceConfirmed === true;
-    if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || !consent || !Number.isFinite(consentAt.getTime()) || samples.length < faceEnrollmentBurstSize || samples.length > 8 || samples.some((sample) => typeof sample !== "string") || samples.reduce<number>((total, sample) => total + (typeof sample === "string" ? sample.length : 0), 0) > 3_900_000 || !sessionId || !sessionToken) {
+    if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || !consent || !Number.isFinite(consentAt.getTime()) || samples.length !== frameCount || samples.some((sample) => typeof sample !== "string") || samples.reduce<number>((total, sample) => total + (typeof sample === "string" ? sample.length : 0), 0) > frameCount * maxFrameDataUrlCharacters || !sessionId || !sessionToken) {
       return apiError(400, "FACE_ENROLLMENT_PAYLOAD_INVALID", "Confirme o consentimento e conclua a captura guiada.");
     }
     const employee = await prisma.funcionario.findFirst({ where: { id: funcionarioId, papel: { in: ["ADMIN", "ALMOXARIFE"] }, ativo: true }, select: { id: true } });
