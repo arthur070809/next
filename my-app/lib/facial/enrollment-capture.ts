@@ -1,5 +1,20 @@
 export type ScoredEnrollmentFrame<T> = { frame: T; score: number };
 
+export function canOpenEnrollmentCamera(input: {
+  employeeSelected: boolean;
+  sessionReady: boolean;
+  consentRequired: boolean;
+  consentGiven: boolean;
+  cameraStarting: boolean;
+  busy: boolean;
+}) {
+  return input.employeeSelected &&
+    input.sessionReady &&
+    (!input.consentRequired || input.consentGiven) &&
+    !input.cameraStarting &&
+    !input.busy;
+}
+
 export function acquireEnrollmentSubmission(lock: { current: boolean }) {
   if (lock.current) return false;
   lock.current = true;
