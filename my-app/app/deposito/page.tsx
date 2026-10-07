@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import styles from "./deposito.module.css";
 import { MANUAL_DEPOSIT_REASONS, MAX_MANUAL_DEPOSIT_QUANTITY } from "@/lib/deposito-constants";
-import DepositoEmptyState from "./DepositoEmptyState";
+import DepositoBalanceContent from "./DepositoBalanceContent";
 
 type DepositoItem = { id: string; nome: string; codigo: string | null; categoria: string; quantidade: number; ultimaMovimentacaoEm: string | null };
 type Movement = {
@@ -372,19 +372,25 @@ export default function DepositoPage() {
     </div>
 
     {feedback && <p role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{feedback}</p>}
-    {erro && <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
+    {erro && !(tab === "saldos" && fetchFailed) && <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
     {tab === "saldos" ? <section id="panel-saldos" role="tabpanel" aria-labelledby="tab-saldos" className="min-h-0 flex-1 pt-4">
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
         <label className="block flex-1 text-sm font-medium text-slate-700">Buscar item<input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Código ou descrição" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></label>
         <div className="flex flex-wrap items-center gap-3"><label className="inline-flex min-h-10 items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={mostrarZerados} onChange={(event) => setMostrarZerados(event.target.checked)} className="h-4 w-4 accent-[#4169E1]" />Mostrar zerados</label><button type="button" onClick={() => void openEntryForm()} className="min-h-10 rounded-lg bg-royal px-4 text-sm font-semibold text-white hover:bg-blue-700">Adicionar sobra</button></div>
       </div>
-      {carregando ? <p role="status" className="py-10 text-center text-sm text-slate-500">Carregando saldos…</p> : fetchFailed ? null : itens.length === 0 ? <DepositoEmptyState filtered={Boolean(busca || mostrarZerados)} onAdd={() => void openEntryForm()} /> : <div className="divide-y divide-slate-200">
+      <DepositoBalanceContent
+        loading={carregando}
+        error={fetchFailed ? fetchState.error : ""}
+        empty={itens.length === 0}
+        filtered={Boolean(busca || mostrarZerados)}
+        onAdd={() => void openEntryForm()}
+      >
         {itens.map((item) => <article key={item.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0"><p className="font-semibold text-slate-900">{item.nome}</p><p className="mt-1 text-sm text-slate-500">{item.codigo ? `${item.codigo} · ` : ""}{item.categoria}</p><p className="mt-1 text-xs text-slate-500">Última movimentação: {dateLabel(item.ultimaMovimentacaoEm)}</p></div>
           <div className="flex flex-wrap items-center gap-3"><span className="min-w-24 text-sm font-bold text-emerald-800">{item.quantidade} un</span><button type="button" onClick={() => openHistory(item)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Histórico</button>{item.quantidade > 0 && <button type="button" onClick={() => { withdrawalKey.current = null; setWithdrawal(item); setWithdrawalQuantity(""); setWithdrawalReason(""); setWithdrawalError(""); }} className="rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Reaproveitar sobra</button>}{isAdmin && <button type="button" onClick={() => { setAdjustment(item); setAdjustmentQuantity(String(item.quantidade)); setAdjustmentReason(""); }} className="rounded-lg bg-royal px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">Ajustar saldo</button>}</div>
         </article>)}
-      </div>}
+      </DepositoBalanceContent>
     </section> : <section id="panel-historico" role="tabpanel" aria-labelledby="tab-historico" className="min-h-0 flex-1 pt-4">
       <div className="grid gap-3 border-b border-slate-200 pb-4 sm:grid-cols-2 lg:grid-cols-5">
         <label className="text-sm font-medium text-slate-700">Item<input value={busca} onChange={(event) => { setBusca(event.target.value); setPagina(1); }} placeholder="Código ou descrição" className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-royal" /></label>

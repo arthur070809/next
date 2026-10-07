@@ -66,6 +66,7 @@ describe("POST /api/deposito/entrada-manual", () => {
     }));
 
     expect(response.status).toBe(201);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(await response.json()).toMatchObject({
       message: "Sobra adicionada ao depósito.",
       deposito: { itemId: "item-1", quantidade: 7 },
@@ -221,6 +222,20 @@ describe("POST /api/deposito/entrada-manual", () => {
     }));
     expect(response.status).toBe(409);
     expect((await response.json()).error).toMatch(/Disponível: 1/);
+    expect(transaction.movimentacao.create).not.toHaveBeenCalled();
+  });
+
+  it("aborts the transaction if the source balance changes during a transfer", async () => {
+    transaction.saldoEstoque.updateMany.mockResolvedValueOnce({ count: 0 });
+    const response = await POST(request({
+      itemId: "item-1",
+      quantidade: 2,
+      motivo: MANUAL_DEPOSIT_REASONS.SEM_REQUISICAO,
+    }));
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).error).toContain("saldo do estoque mudou");
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(transaction.movimentacao.create).not.toHaveBeenCalled();
   });
 });
