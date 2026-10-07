@@ -22,7 +22,7 @@ import {
   recordLoginFailure,
 } from "@/lib/login-attempts";
 import { createLoginSessionResponse, getLoginAccessArea, verifyIdentifyFaceState } from "@/lib/login-flow";
-import { isFaceLoginEnabled } from "@/lib/facial/config";
+import { isFaceDemoPhotoModeEnabled, isFaceLoginEnabled } from "@/lib/facial/config";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, isSameOrigin } from "@/lib/security";
 import { createSecret, hashSecret } from "@/lib/webauthn";
@@ -33,6 +33,7 @@ const unavailable = () => NextResponse.json({ error: "O reconhecimento facial es
 export async function POST(request: Request) {
   try {
     if (!isFaceLoginEnabled()) return genericFailure();
+    if (isFaceDemoPhotoModeEnabled()) return genericFailure();
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     const contentLength = request.headers.get("content-length");
     if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > 32 * 1024)) {

@@ -11,7 +11,13 @@ import { canStartAutomaticAttempt, FACE_QUALITY_LIMITS, evaluateFaceQuality, sel
 import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
 import { extractFaceEmbedding, loadBrowserHuman, loadFaceDescriptor, loadFaceEmotion, type BrowserHuman } from "@/lib/facial/human-browser";
-import { createFaceLoadDiagnostics, startFaceLoadWatchdog, withFaceLoadError } from "@/lib/facial/load-diagnostics";
+import {
+  createFaceLoadDiagnostics,
+  faceCameraConstraintFallbacks,
+  startCameraWithConstraintFallback,
+  startFaceLoadWatchdog,
+  withFaceLoadError,
+} from "@/lib/facial/load-diagnostics";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import BuildIdentifier from "@/app/components/BuildIdentifier";
 
@@ -42,9 +48,11 @@ type FaceCandidate = ScoredEnrollmentFrame<number[]>;
 export default function LoginForm({
   sessionExpired = false,
   faceLoginEnabled = true,
+  demoPhotoMode = false,
 }: {
   sessionExpired?: boolean;
   faceLoginEnabled?: boolean;
+  demoPhotoMode?: boolean;
 }) {
   const router = useRouter();
   const [codigoCracha, setCodigoCracha] = useState("");
@@ -61,6 +69,7 @@ export default function LoginForm({
   const [faceModelState, setFaceModelState] = useState<"loading" | "slow" | "error" | "ready">("loading");
   const [faceModelErrorName, setFaceModelErrorName] = useState("");
   const [cameraState, setCameraState] = useState<FaceCameraState>("idle");
+  const [demoFaceDetected, setDemoFaceDetected] = useState(false);
   const [automaticAttempts, setAutomaticAttempts] = useState(0);
   const [cameraRestartKey, setCameraRestartKey] = useState(0);
   const [modelRetryKey, setModelRetryKey] = useState(0);
@@ -275,6 +284,11 @@ export default function LoginForm({
 
   async function startFaceLogin() {
     if (!faceLoginEnabled) return;
+    if (demoPhotoMode && !codigoCracha.trim()) {
+      setError("Informe o crachá para iniciar o reconhecimento facial.");
+      codeInputRef.current?.focus();
+      return;
+    }
     const useIdentifyFlow = !codigoCracha.trim();
     identifyModeRef.current = useIdentifyFlow;
     setError("");
@@ -420,6 +434,7 @@ export default function LoginForm({
     attemptInFlightRef.current = false;
     setAttemptBusy(false);
     setAutomaticAttempts(0);
+    setDemoFaceDetected(false);
     try {
       await requestFreshFaceChallenge();
       setCameraState("idle");
@@ -430,8 +445,77 @@ export default function LoginForm({
     }
   }
 
+  async function openDemoFaceCamera() {
+    if (!demoPhotoMode || cameraState === "starting" || attemptBusy) return;
+    setError("");
+    setDemoFaceDetected(false);
+    setCameraState("starting");
+    const camera = createCameraStreamController({
+      video: videoRef.current,
+      onLifecycleStop: (reason) => {
+        if (reason === "visibilitychange") {
+          setCameraState("paused");
+          setError("Câmera pausada ao sair desta tela. Toque para recomeçar.");
+        }
+      },
+    });
+    faceCameraRef.current?.dispose();
+    faceCameraRef.current = camera;
+    try {
+      await startCameraWithConstraintFallback(
+        (constraints) => camera.start(constraints),
+        faceCameraConstraintFallbacks(),
+      );
+      setCameraState("ready");
+    } catch (cause) {
+      camera.dispose();
+      if (faceCameraRef.current === camera) faceCameraRef.current = null;
+      setCameraState("error");
+      setError(cameraErrorMessage(cause));
+    }
+  }
+
+  async function submitDemoFaceAttempt() {
+    if (!demoPhotoMode || cameraState !== "ready" || attemptInFlightRef.current) return;
+    const detectorUnavailable = faceModelState === "error" || faceModelState === "slow";
+    if (!demoFaceDetected && !detectorUnavailable) return;
+    const challenge = faceChallengeRef.current;
+    if (!challenge) return;
+    attemptInFlightRef.current = true;
+    setAttemptBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/login/face/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: challenge.challengeId,
+          ...(challenge.loginToken ? { loginToken: challenge.loginToken } : {}),
+          nonce: challenge.nonce,
+          challengeCompleted: true,
+          demoPhotoLogin: true,
+          demoFaceDetected,
+          demoDetectorUnavailable: detectorUnavailable,
+        }),
+      });
+      const data = await response.json() as LoginResponse;
+      if (!response.ok || !data.funcionario) {
+        throw new Error(data.error ?? "Não foi possível confirmar o acesso. Tente novamente.");
+      }
+      stopFaceCamera();
+      completeLogin({ funcionario: data.funcionario });
+    } catch (cause) {
+      stopFaceCamera();
+      setCameraState("error");
+      setError(cause instanceof Error ? cause.message : "Não foi possível confirmar o acesso. Tente novamente.");
+    } finally {
+      attemptInFlightRef.current = false;
+      setAttemptBusy(false);
+    }
+  }
+
   useEffect(() => {
-    if (stage !== "face" || !faceModelReady) return;
+    if (stage !== "face" || demoPhotoMode || !faceModelReady) return;
     let cancelled = false;
     const video = videoRef.current;
     if (!video) return;
@@ -467,7 +551,7 @@ export default function LoginForm({
       camera.dispose();
       if (faceCameraRef.current === camera) faceCameraRef.current = null;
     };
-  }, [stage, faceModelReady, cameraRestartKey]);
+  }, [stage, faceModelReady, cameraRestartKey, demoPhotoMode]);
 
   useEffect(() => {
     if (stage !== "face" || cameraState !== "ready" || !faceHumanRef.current) return;
@@ -489,6 +573,10 @@ export default function LoginForm({
         if (stopped) return;
         const faces = result.face ?? [];
         const face = selectDominantFace(faces, (candidate) => candidate.boxRaw);
+        if (demoPhotoMode) {
+          setDemoFaceDetected(Boolean(face));
+          return;
+        }
         if (!face) {
           faceCandidatesRef.current = [];
           collectionStartedAtRef.current = 0;
@@ -583,7 +671,7 @@ export default function LoginForm({
       stopped = true;
       cancelAnimationFrame(animationFrame);
     };
-  }, [stage, cameraState]);
+  }, [stage, cameraState, demoPhotoMode, faceModelReady]);
 
   useEffect(() => () => {
     stopFaceCamera();
@@ -626,13 +714,25 @@ export default function LoginForm({
       <h1 className="mt-3 text-3xl font-bold text-slate-950">{stage === "face" ? "Verificação facial" : stage === "totp" ? "Verificação em duas etapas" : "Entrar com código"}</h1>
       {sessionExpired && <p role="status" className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">Sessão encerrada por inatividade</p>}
       {stage === "face" && faceChallenge ? <section className="mt-7 space-y-5">
-        <p className="text-sm text-slate-600">A câmera será iniciada automaticamente. {isFaceBlinkRequired()
+        {demoPhotoMode && <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">Modo demonstração: reconhecimento simulado</p>}
+        <p className="text-sm text-slate-600">{demoPhotoMode
+          ? "Abra a câmera. Quando houver um rosto no quadro, toque em Entrar."
+          : <>A câmera será iniciada automaticamente. {isFaceBlinkRequired()
           ? faceChallenge.challenge === "piscar" ? "Pisque uma vez quando estiver enquadrado." : faceChallenge.challenge === "virar_esquerda" ? "Vire levemente o rosto à esquerda e volte." : "Sorria levemente quando estiver enquadrado."
-          : "O reconhecimento tentará automaticamente quando encontrar um rosto adequado."}</p>
+          : "O reconhecimento tentará automaticamente quando encontrar um rosto adequado."}</>}</p>
         <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} autoPlay muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
         <BuildIdentifier />
         <p className="text-xs text-slate-500" aria-live="polite">
-          {!faceModelReady ? faceModelProgress
+          {demoPhotoMode
+            ? cameraState === "idle" ? "Toque em Abrir câmera"
+              : cameraState === "starting" ? "Iniciando câmera…"
+                : cameraState === "ready" && faceModelReady ? (demoFaceDetected ? "Rosto detectado" : "Procurando rosto…")
+                  : cameraState === "ready" && faceModelState === "error" ? "Detector indisponível; toque em Entrar para continuar"
+                    : cameraState === "ready" ? faceModelProgress
+                      : cameraState === "paused" ? "Câmera pausada"
+                        : cameraState === "exhausted" ? "Limite de tentativas atingido"
+                          : "Câmera indisponível"
+            : !faceModelReady ? faceModelProgress
             : attemptBusy ? "Processando verificação no servidor…"
               : cameraState === "starting" ? "Iniciando câmera…"
                 : cameraState === "ready" ? `Procurando rosto · tentativas ${automaticAttempts}/${FACE_QUALITY_LIMITS.maximumAutomaticAttempts}`
@@ -646,9 +746,14 @@ export default function LoginForm({
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button type="button" disabled={attemptBusy} onClick={cancelFace} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Cancelar</button>
-          {!faceModelReady && faceModelState !== "loading"
+          {demoPhotoMode && cameraState !== "ready" && cameraState !== "starting"
+            ? <button type="button" disabled={attemptBusy} onClick={() => cameraState === "idle" ? void openDemoFaceCamera() : void restartFaceSession()} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white">{cameraState === "idle" ? "Abrir câmera" : "Nova tentativa"}</button>
+            : demoPhotoMode && cameraState === "ready"
+              ? <button type="button" disabled={attemptBusy || (!demoFaceDetected && !["error", "slow"].includes(faceModelState))} onClick={() => void submitDemoFaceAttempt()} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{attemptBusy ? "Verificando…" : "Entrar"}</button>
+              : null}
+          {!demoPhotoMode && !faceModelReady && faceModelState !== "loading"
             ? <button type="button" onClick={retryFaceModelLoad} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">{faceModelState === "slow" ? "Recomeçar" : "Tentar carregar modelos"}</button>
-            : ["paused", "error", "exhausted"].includes(cameraState)
+            : !demoPhotoMode && ["paused", "error", "exhausted"].includes(cameraState)
               ? <button type="button" disabled={attemptBusy} onClick={() => void restartFaceSession()} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white">Tentar novamente</button>
               : null}
         </div>

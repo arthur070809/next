@@ -170,6 +170,113 @@ describe("local facial login verification", () => {
     expect(createLoginSessionSuccessResponse).toHaveBeenCalledOnce();
   });
 
+  it("accepts demo-photo login only for an allowlisted admin and after the signed challenge", async () => {
+    vi.stubEnv("FACE_DEMO_PHOTO_MODE", "true");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-admin", tipo: "LOGIN_FACE", usadoEm: null, expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 7, preAuthTokenHash: "secret-hash", challenge: "piscar", ipHash: "ip-hash",
+      funcionario: { id: 7, cracha: "3333", ativo: true, papel: "ADMIN" },
+    } as never);
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([
+      { modelVersion: "demo-photo" },
+    ] as never);
+
+    const response = await POST(loginRequest({
+      demoPhotoLogin: true,
+      demoFaceDetected: true,
+      demoDetectorUnavailable: false,
+    }));
+    expect(response.status).toBe(200);
+    expect(transaction.authChallenge.updateMany).toHaveBeenCalledOnce();
+    expect(transaction.sessao.create).toHaveBeenCalledOnce();
+    expect(decryptEmbedding).not.toHaveBeenCalled();
+  });
+
+  it("never simulates login for a real template or an operator, even with an allowlisted badge", async () => {
+    vi.stubEnv("FACE_DEMO_PHOTO_MODE", "true");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
+    vi.mocked(prisma.authChallenge.updateMany).mockResolvedValue({ count: 1 } as never);
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-admin", tipo: "LOGIN_FACE", usadoEm: null, expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 7, preAuthTokenHash: "secret-hash", challenge: "piscar", ipHash: "ip-hash",
+      funcionario: { id: 7, cracha: "3333", ativo: true, papel: "ADMIN" },
+    } as never);
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([
+      { modelVersion: "human-3.3.6-mobileface-v3-a4bcf70" },
+    ] as never);
+    const payload = {
+      demoPhotoLogin: true,
+      demoFaceDetected: true,
+      demoDetectorUnavailable: false,
+    };
+    const realTemplateResponse = await POST(loginRequest(payload));
+    expect(realTemplateResponse.status).toBe(401);
+    expect(decryptEmbedding).not.toHaveBeenCalled();
+    expect(transaction.sessao.create).not.toHaveBeenCalled();
+
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-operator", tipo: "LOGIN_FACE", usadoEm: null, expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 8, preAuthTokenHash: "secret-hash", challenge: "piscar", ipHash: "ip-hash",
+      funcionario: { id: 8, cracha: "2222", ativo: true, papel: "OPERADOR" },
+    } as never);
+    const operatorResponse = await POST(loginRequest(payload));
+    expect(operatorResponse.status).toBe(401);
+    expect(prisma.faceTemplate.findMany).toHaveBeenCalledOnce();
+    expect(transaction.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("requires face detection or explicit client fallback and only the configured demo badge", async () => {
+    vi.stubEnv("FACE_DEMO_PHOTO_MODE", "true");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([{ modelVersion: "demo-photo" }] as never);
+    vi.mocked(prisma.authChallenge.updateMany).mockResolvedValue({ count: 1 } as never);
+    transaction.authChallenge.updateMany.mockResolvedValue({ count: 1 });
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-admin", tipo: "LOGIN_FACE", usadoEm: null, expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 7, preAuthTokenHash: "secret-hash", challenge: "piscar", ipHash: "ip-hash",
+      funcionario: { id: 7, cracha: "3333", ativo: true, papel: "ADMIN" },
+    } as never);
+
+    const noFace = await POST(loginRequest({
+      demoPhotoLogin: true, demoFaceDetected: false, demoDetectorUnavailable: false,
+    }));
+    expect(noFace.status).toBe(401);
+    expect(transaction.sessao.create).not.toHaveBeenCalled();
+
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-admin", tipo: "LOGIN_FACE", usadoEm: null, expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 7, preAuthTokenHash: "secret-hash", challenge: "piscar", ipHash: "ip-hash",
+      funcionario: { id: 7, cracha: "9999", ativo: true, papel: "ADMIN" },
+    } as never);
+    const notListed = await POST(loginRequest({
+      demoPhotoLogin: true, demoFaceDetected: true, demoDetectorUnavailable: false,
+    }));
+    expect(notListed.status).toBe(401);
+    expect(transaction.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("allows detector-unavailable fallback only with the demo-photo mode and challenge", async () => {
+    vi.stubEnv("FACE_DEMO_PHOTO_MODE", "true");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-admin", tipo: "LOGIN_FACE", usadoEm: null, expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 7, preAuthTokenHash: "secret-hash", challenge: "piscar", ipHash: "ip-hash",
+      funcionario: { id: 7, cracha: "3333", ativo: true, papel: "ADMIN" },
+    } as never);
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([{ modelVersion: "demo-photo" }] as never);
+
+    const response = await POST(loginRequest({
+      demoPhotoLogin: true, demoFaceDetected: false, demoDetectorUnavailable: true,
+    }));
+    expect(response.status).toBe(200);
+    expect(transaction.authChallenge.updateMany).toHaveBeenCalledOnce();
+  });
+
   it("keeps the face login kill switch server-side", async () => {
     vi.stubEnv("FACE_LOGIN_ENABLED", "false");
     const response = await POST(loginRequest());

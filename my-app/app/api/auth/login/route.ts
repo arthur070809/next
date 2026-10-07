@@ -113,7 +113,7 @@ export async function POST(request: Request) {
       return invalidCodeResponse(startedAt, badge, ipHash, testMode, attemptPolicy);
     }
 
-    if (testMode || demoMode) {
+    if ((testMode || demoMode) && credential !== "face") {
       if (testMode) clearTestLoginBadgeFailures(badge);
       else await clearBadgeLoginFailures(badge);
       const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));

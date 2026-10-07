@@ -5,6 +5,7 @@ import {
   areFaceTemplateVersionsCompatible,
   decryptEmbedding,
   encryptEmbedding,
+  encryptFaceDemoPhoto,
   FaceEncryptionKeyUnavailableError,
   FaceEnrollmentVerificationError,
   FaceRecognitionUnavailableError,
@@ -68,6 +69,15 @@ describe("local facial recognition", () => {
     const vector = unitVector(0.8, 0.6);
     const encrypted = encryptEmbedding(vector);
     expect(decryptEmbedding(encrypted.ciphertext, encrypted.iv, encrypted.tag)).toEqual(vector);
+  });
+
+  it("encrypts demo photo bytes with the same AES-256-GCM key without logging them", () => {
+    vi.stubEnv("FACE_EMBEDDING_ENCRYPTION_KEY", "a".repeat(64));
+    const photo = Uint8Array.from([0xff, 0xd8, 1, 2, 3]);
+    const encrypted = encryptFaceDemoPhoto(photo);
+    expect(encrypted.ciphertext).not.toEqual(Buffer.from(photo));
+    expect(encrypted.iv).toHaveLength(12);
+    expect(encrypted.tag).toHaveLength(16);
   });
 
   it("fails closed when the encryption key is missing or malformed", () => {

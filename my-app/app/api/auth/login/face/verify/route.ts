@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { areFaceTemplateVersionsCompatible, decryptEmbedding, FaceRecognitionUnavailableError, faceAttemptLimit, faceEmbeddingDistance, getFaceMatchThreshold, hashFaceNonce, isFaceEmbeddingMatch, validateFaceEmbedding } from "@/lib/face";
-import { isFaceLoginEnabled } from "@/lib/facial/config";
+import { faceDemoPhotoModelVersion, isFaceDemoPhotoModeEnabled, isFaceLoginEnabled } from "@/lib/facial/config";
+import { isDemoPhotoBadgeAllowed } from "@/lib/facial/demo-photo";
 import {
   clearBadgeLoginFailures,
   getLoginBlockRetryAfter,
@@ -224,23 +225,35 @@ export async function POST(request: Request) {
     });
     let matched = false;
     if (templates.length > 0) {
-      let embeddings: number[][];
-      try {
-        if (!areFaceTemplateVersionsCompatible(templates.map((template) => template.modelVersion))) {
-          console.error("[face] Login facial negado: versão do template incompatível.");
+      const templateVersions = templates.map((template) => template.modelVersion);
+      const containsDemoPhoto = templateVersions.includes(faceDemoPhotoModelVersion);
+      if (isFaceDemoPhotoModeEnabled()) {
+        const demoPhotoEligible = containsDemoPhoto
+          && templateVersions.every((version) => version === faceDemoPhotoModelVersion)
+          && isDemoPhotoBadgeAllowed(challenge.funcionario.cracha)
+          && body.demoPhotoLogin === true
+          && body.challengeCompleted === true
+          && (body.demoFaceDetected === true || body.demoDetectorUnavailable === true);
+        matched = demoPhotoEligible;
+      } else {
+        let embeddings: number[][];
+        try {
+          if (!areFaceTemplateVersionsCompatible(templateVersions)) {
+            console.error("[face] Login facial negado: versão do template incompatível.");
+            return faceServiceUnavailable();
+          }
+          embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
+          const threshold = getFaceMatchThreshold();
+          matched = candidate !== null && embeddings.some((template) =>
+            isFaceEmbeddingMatch(faceEmbeddingDistance(candidate, template), threshold),
+          );
+        } catch (error) {
+          if (error instanceof FaceRecognitionUnavailableError) return faceServiceUnavailable();
+          console.error("[face] Não foi possível decifrar o template facial.", {
+            errorName: error instanceof Error ? error.name : "UnknownError",
+          });
           return faceServiceUnavailable();
         }
-        embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
-        const threshold = getFaceMatchThreshold();
-        matched = candidate !== null && embeddings.some((template) =>
-          isFaceEmbeddingMatch(faceEmbeddingDistance(candidate, template), threshold),
-        );
-      } catch (error) {
-        if (error instanceof FaceRecognitionUnavailableError) return faceServiceUnavailable();
-        console.error("[face] Não foi possível decifrar o template facial.", {
-          errorName: error instanceof Error ? error.name : "UnknownError",
-        });
-        return faceServiceUnavailable();
       }
     }
 

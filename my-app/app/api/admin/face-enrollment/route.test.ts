@@ -30,7 +30,9 @@ vi.mock("@/lib/face", () => ({
   assertFaceTemplateConfiguration: vi.fn(() => modelVersion),
   decryptEmbedding: vi.fn(() => unit()),
   encryptEmbedding: vi.fn(() => ({ ciphertext: Buffer.from("cipher"), iv: Buffer.from("iv"), tag: Buffer.from("tag") })),
+  encryptFaceDemoPhoto: vi.fn(() => ({ ciphertext: Buffer.from("photo-cipher"), iv: Buffer.from("photo-iv"), tag: Buffer.from("photo-tag") })),
   faceEmbeddingDistance: vi.fn(() => 1),
+  faceDemoPhotoModelVersion: "demo-photo",
   faceEnrollmentConsistencyDistance: 0.35,
   FaceEnrollmentVerificationError: class extends Error {
     constructor(message: string, readonly code = "FACE_INVALID") { super(message); }
@@ -61,6 +63,7 @@ import { requireAdmin } from "@/lib/auth";
 import {
   aggregateEnrollmentEmbeddings,
   encryptEmbedding,
+  encryptFaceDemoPhoto,
   FaceEnrollmentVerificationError,
   FaceRecognitionUnavailableError,
   assertFaceTemplateConfiguration,
@@ -78,6 +81,9 @@ describe("admin face enrollment route", () => {
     vi.stubEnv("FACE_DIAGNOSTICS_ENABLED", "false");
     vi.stubEnv("FACE_ENROLL_FRAMES", "1");
     vi.stubEnv("FACE_ENROLL_REQUIRE_CONSENT", "false");
+    vi.stubEnv("FACE_DEMO_PHOTO_MODE", "true");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
     vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
@@ -120,6 +126,46 @@ describe("admin face enrollment route", () => {
     });
     expect(log).not.toHaveBeenCalled();
     log.mockRestore();
+  });
+
+  it("stores an encrypted demo thumbnail using existing FaceTemplate fields and the demo-photo marker", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10, cracha: "3333", papel: "ADMIN" } as never);
+    const response = await POST(enrollmentRequest({
+      samples: [],
+      demoPhoto: tinyJpegDataUrl(),
+      replaceConfirmed: true,
+    }));
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ code: "FACE_DEMO_PHOTO_CREATED" });
+    expect(encryptFaceDemoPhoto).toHaveBeenCalledOnce();
+    expect(transaction.faceTemplate.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        modelVersion: "demo-photo",
+        embeddingEncrypted: Buffer.from("photo-cipher"),
+        iv: Buffer.from("photo-iv"),
+        tag: Buffer.from("photo-tag"),
+      }),
+    });
+  });
+
+  it("rejects demo thumbnails outside Preview or for unlisted/non-admin accounts", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10, cracha: "4444", papel: "ADMIN" } as never);
+    expect((await POST(enrollmentRequest({ samples: [], demoPhoto: tinyJpegDataUrl() }))).status).toBe(403);
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10, cracha: "3333", papel: "ADMIN" } as never);
+    expect((await POST(enrollmentRequest({ samples: [], demoPhoto: tinyJpegDataUrl() }))).status).toBe(403);
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10, cracha: "2222", papel: "ALMOXARIFE" } as never);
+    expect((await POST(enrollmentRequest({ samples: [], demoPhoto: tinyJpegDataUrl() }))).status).toBe(403);
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed or oversized thumbnail data", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10, cracha: "3333", papel: "ADMIN" } as never);
+    const response = await POST(enrollmentRequest({ samples: [], demoPhoto: "data:image/jpeg;base64,ZmFrZQ==" }));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ code: "FACE_DEMO_PHOTO_INVALID" });
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
   });
 
   it("allows enrollment without a consent checkbox when the flag is off and stores neutral consent metadata", async () => {
@@ -207,6 +253,14 @@ describe("admin face enrollment route", () => {
     expect(await response.json()).toMatchObject({ code: "FACE_CONFIGURATION_UNAVAILABLE" });
   });
 
+  it("allows the demo-photo screen without an embedding model version in Preview", async () => {
+    vi.stubEnv("FACE_EMBEDDING_MODEL_VERSION", "");
+    vi.mocked(prisma.funcionario.findMany).mockResolvedValue([] as never);
+    const response = await GET(new Request("http://localhost/api/admin/face-enrollment"));
+    expect(response.status).toBe(200);
+    expect(assertFaceTemplateConfiguration).not.toHaveBeenCalled();
+  });
+
   it("fails closed when the face-template schema is absent", async () => {
     vi.mocked(prisma.faceTemplate.count).mockRejectedValueOnce(Object.assign(new Error(), { code: "P2022" }));
     const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -229,11 +283,20 @@ describe("admin face enrollment route", () => {
     });
   });
 
-  it("rejects oversized vector payloads", async () => {
-    const response = await POST(enrollmentRequest({ samples: [Array(256).fill(1)] }, 100_000));
+  it("rejects payloads above the enlarged limit required for encrypted demo thumbnails", async () => {
+    const response = await POST(enrollmentRequest({ samples: [Array(256).fill(1)] }, 500_000));
     expect(response.status).toBe(400);
   });
 });
+
+function tinyJpegDataUrl() {
+  const jpeg = Uint8Array.from([
+    0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08,
+    0x00, 0xc8, 0x01, 0x40, 0x03, 0x01, 0x11, 0x00,
+    0x02, 0x11, 0x00, 0x03, 0x11, 0x00, 0xff, 0xd9,
+  ]);
+  return `data:image/jpeg;base64,${Buffer.from(jpeg).toString("base64")}`;
+}
 
 function enrollmentRequest(overrides: Record<string, unknown> = {}, declaredSize?: number) {
   return new Request("http://localhost/api/admin/face-enrollment", {

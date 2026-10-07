@@ -4,6 +4,7 @@ export const faceEnrollmentDuplicateDistance = 0.42;
 export const faceEnrollmentMaximumBurstSize = 5;
 export const faceEmbeddingDimension = 256;
 export const faceEmbeddingModelVersion = "human-3.3.6-mobileface-v3-a4bcf70";
+export const faceDemoPhotoModelVersion = "demo-photo";
 
 // TODO(LGPD): restore the privacy notice and obtain legal review before enrolling real employees.
 export function isFaceEnrollmentConsentRequired(value = process.env.FACE_ENROLL_REQUIRE_CONSENT) {
@@ -16,6 +17,13 @@ export function isFaceBlinkRequired(value = process.env.NEXT_PUBLIC_FACE_REQUIRE
 
 export function isFaceLoginEnabled(value = process.env.FACE_LOGIN_ENABLED) {
   return value !== "false";
+}
+
+export function isFaceDemoPhotoModeEnabled(
+  value = process.env.FACE_DEMO_PHOTO_MODE,
+  deploymentEnvironment = process.env.VERCEL_ENV,
+) {
+  return value === "true" && deploymentEnvironment === "preview";
 }
 
 export function getFaceEnrollmentFrameCount(value = process.env.FACE_ENROLL_FRAMES) {
