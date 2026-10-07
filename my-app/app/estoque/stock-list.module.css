@@ -1,3 +1,14 @@
+.stockPage {
+  --stock-shell-offset: calc(4rem + 1px + 1.5rem + 2rem);
+  min-height: 100dvh;
+}
+
+.stockContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .formPanel {
   min-width: 0;
 }
@@ -26,8 +37,37 @@
 }
 
 @media (min-width: 1024px) {
+  .stockPage {
+    display: flex;
+    height: calc(100dvh - var(--stock-shell-offset));
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .stockContent {
+    flex: 1 1 0%;
+    min-height: 0;
+    gap: 1rem;
+  }
+
+  .formPanel {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .stockPanel {
+    align-self: stretch;
+    height: 100%;
+    min-height: 0;
+  }
+
   .stockBody {
-    max-height: calc(100dvh - 10rem);
+    flex: 1 1 0%;
+    max-height: none;
+  }
+
+  .stockBody[data-list-empty="true"] {
+    flex: 0 1 auto;
   }
 }
 

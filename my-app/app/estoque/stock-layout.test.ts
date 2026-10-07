@@ -21,21 +21,23 @@ describe("stock page scroll layout contract", () => {
     expect(styles).toContain("min-width: 0");
   });
 
-  it("limits vertical scrolling to the labelled inventory list", () => {
+  it("limits vertical scrolling to the labelled list and form panel", () => {
     const listStyles = styles.match(/\.stockBody\s*\{([^}]*)\}/)?.[1] ?? "";
     const panelStyles = styles.match(/\.stockPanel\s*\{([^}]*)\}/)?.[1] ?? "";
     const headerStyles = styles.match(/\.stockHeader\s*\{([^}]*)\}/)?.[1] ?? "";
+    const formStyles = styles.match(/\.formPanel\s*\{([^}]*)\}/)?.[1] ?? "";
 
     expect(listStyles).toMatch(/overflow-y\s*:\s*auto/);
     expect(listStyles).toMatch(/min-height\s*:\s*0/);
     expect(listStyles).toMatch(/max-height\s*:\s*70dvh/);
-    expect(styles).toMatch(/@media\s*\(min-width:\s*1024px\)[\s\S]*?\.stockBody\s*\{[^}]*max-height:\s*calc\(100dvh\s*-\s*10rem\)/);
+    expect(styles).toMatch(/@media\s*\(min-width:\s*1024px\)[\s\S]*?\.stockBody\s*\{[^}]*flex:\s*1\s+1\s+0%?[^}]*max-height:\s*none/);
     expect(listStyles).toMatch(/overscroll-behavior\s*:\s*contain/);
     expect(listStyles).toMatch(/scrollbar-gutter\s*:\s*stable/);
     expect(listStyles).not.toMatch(/100vh/);
-    expect(styles.match(/overflow-y\s*:\s*(?:auto|scroll)/g)).toHaveLength(1);
+    expect(styles.match(/overflow-y\s*:\s*(?:auto|scroll)/g)).toHaveLength(2);
     expect(panelStyles).not.toMatch(/overflow-y\s*:\s*(auto|scroll)/);
     expect(headerStyles).not.toMatch(/overflow-y\s*:\s*(auto|scroll)/);
+    expect(formStyles).not.toMatch(/overflow-y\s*:\s*(?:auto|scroll)/);
     expect(shellContent).not.toContain("sticky");
     expect(shellContent).not.toMatch(/overflow-(?:y-)?(?:auto|scroll)/);
     expect(shellContent).not.toMatch(/max-h-|(?<!min-)h-(?:screen|dvh)\b/);
@@ -77,8 +79,38 @@ describe("stock page scroll layout contract", () => {
     expect(styles).toMatch(/\.stockBody\s*\{[^}]*max-height:\s*70dvh/);
   });
 
-  it("retains the viewport-height document without constraining unrelated sections", () => {
-    expect(page).toContain("min-h-dvh");
+  it("bounds the wide-screen page to the shell's available height and lets its list fill the row", () => {
+    const pageStyles = styles.match(/\.stockPage\s*\{([^}]*)\}/)?.[1] ?? "";
+    const wideStyles = styles.match(/@media\s*\(min-width:\s*1024px\)\s*\{([\s\S]*)$/)?.[1] ?? "";
+    const contentStyles = styles.match(/\.stockContent\s*\{([^}]*)\}/)?.[1] ?? "";
+    const listStyles = styles.match(/\.stockBody\s*\{([^}]*)\}/)?.[1] ?? "";
+    const variableDefinitions = styles.match(/--stock-shell-offset\s*:/g) ?? [];
+
+    expect(page).toContain("styles.stockPage");
+    expect(page).toContain("styles.stockContent");
+    expect(page).toMatch(/<header className="shrink-0/);
+    expect(page).toContain('className="grid shrink-0 gap-3 sm:grid-cols-2"');
+    expect(pageStyles).toMatch(/min-height:\s*100dvh/);
+    expect(pageStyles).not.toMatch(/(?:^|;)\s*height\s*:/);
+    expect(variableDefinitions).toHaveLength(1);
+    expect(pageStyles).toMatch(/--stock-shell-offset:\s*calc\(4rem\s*\+\s*1px\s*\+\s*1\.5rem\s*\+\s*2rem\)/);
+    expect(wideStyles).toMatch(/\.stockPage\s*\{[^}]*height:\s*calc\(100dvh\s*-\s*var\(--stock-shell-offset\)\)/);
+    expect(wideStyles).toMatch(/\.stockPage\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column/);
+    expect(wideStyles).toMatch(/\.stockContent\s*\{[^}]*flex:\s*1[^}]*min-height:\s*0/);
+    expect(contentStyles).toMatch(/display:\s*flex/);
+    expect(contentStyles).toMatch(/flex-direction:\s*column/);
+    expect(wideStyles).toMatch(/\.stockPanel\s*\{[^}]*height:\s*100%[^}]*min-height:\s*0/);
+    expect(wideStyles).toMatch(/\.stockBody\s*\{[^}]*flex:\s*1\s+1\s+0%?[^}]*max-height:\s*none/);
+    expect(listStyles).toMatch(/min-height:\s*0/);
+    expect(listStyles).toMatch(/overflow-y:\s*auto/);
+    expect(wideStyles).toMatch(/\.formPanel\s*\{[^}]*overflow-y:\s*auto/);
+    expect(page).toContain("lg:flex-1");
+    expect(page).toContain("lg:min-h-0");
     expect(styles).not.toContain("100vh");
+  });
+
+  it("keeps empty and no-result lists at natural height", () => {
+    expect(page).toContain('data-list-empty={!carregando && !erroLista && itensFiltrados.length === 0}');
+    expect(styles).toMatch(/\.stockBody\[data-list-empty="true"\]\s*\{[^}]*flex:\s*0\s+1\s+auto/);
   });
 });
