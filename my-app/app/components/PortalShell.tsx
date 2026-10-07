@@ -15,7 +15,6 @@ const adminMenu = [
   { href: "/admin/ressuprimento", label: "Ressuprimento", icon: "↗" },
   { href: "/admin/estoque", label: "Estoque", icon: "▦" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "◇" },
-  { href: "/deposito/sobras", label: "Resumo de excedentes", icon: "≋" },
   { href: "/admin/usuarios", label: "Usuários", icon: "◉" },
   { href: "/admin/biometria", label: "Biometria facial", icon: "◌" },
 ];
@@ -26,7 +25,6 @@ const warehouseMenu = [
   { href: "/historico", label: "Histórico", icon: "◷" },
   { href: "/almoxarifado/estoque", label: "Estoque", icon: "▦" },
   { href: "/almoxarifado/deposito", label: "Depósito de sobras", icon: "◇" },
-  { href: "/deposito/sobras", label: "Resumo de excedentes", icon: "≋" },
 ];
 
 const operatorMenu = [

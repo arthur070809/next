@@ -29,7 +29,7 @@ O trabalho reforçou a apresentação segura de descrições, a prioridade na fi
 - Metadados e prioridade: `lib/requisition-metadata.ts`, `lib/requisicoes-db.ts`, `app/almoxarifado/utils.ts`, `app/components/PriorityBadge.tsx`, `app/components/ItemDescription.tsx`.
 - Histórico e fila: `app/api/historico/route.ts`, `app/api/minhas-requisicoes/route.ts`, `app/api/almoxarifado/requisicoes/[numeroPedido]/route.ts`, `app/historico/page.tsx`, `app/almoxarifado/queue.tsx`, `app/minhas-requisicoes/page.tsx`.
 - Ressuprimento: `lib/ressuprimento/analise.ts`, `lib/ressuprimento/carregar-dados.ts`, `app/admin/ressuprimento/RessuprimentoTabela.tsx`.
-- Excedentes: `app/api/deposito/sobras/route.ts`, `app/deposito/sobras/page.tsx`, `app/deposito/sobras/SobrasClient.tsx`, `lib/deposito/excedentes.ts`.
+- Excedentes: `app/api/deposito/sobras/route.ts` permanece protegido; a página de resumo foi removida da interface.
 - QR: `lib/qr/decoder.ts`, `lib/qr/camera-utils.ts`, `lib/qr/parseEtiqueta.ts`, `lib/qr/localizarEstoqueItem.ts`, `app/components/ProductEtiquetaScanner.tsx`, `scripts/gerar-qr-demo.ts`, `public/qr-demo.html`, `next.config.ts`.
 - Facial: `lib/facial/config.ts`, `lib/facial/face-count.ts`, `lib/face.ts`, `app/api/admin/face-enrollment/route.ts`, `app/admin/biometria/FaceEnrollmentManager.tsx`.
 
@@ -61,7 +61,7 @@ Os riscos de excedente inferido, integração facial externa, captura de câmera
 1. Abrir a fila com requisições prioritárias e comuns: verificar selo/ordem e que categoria/descrição aparecem sem metadados técnicos.
 2. Abrir histórico e Minhas Requisições: confirmar as mesmas descrições e valores ausentes como `—`.
 3. Abrir `/admin/ressuprimento`: conferir apenas saldo livre central e alertas para `saldo <= ponto de pedido`.
-4. Abrir `/deposito/sobras` como almoxarife/admin; conferir agregados e aviso de que são excedentes entregues, não retorno físico. Repetir como operador e confirmar bloqueio.
+4. O resumo de excedentes não possui página na interface. O endpoint `/api/deposito/sobras` continua protegido para almoxarife/admin.
 5. Em estoque, ler um QR de produto conhecido e outro desconhecido; verificar destaque/entrada existente, formulário preenchido e alternativa manual.
 6. Em `/admin/biometria?debug=1`, testar zero, um e mais de um rosto, consentimento, câmera e resultado de consistência. Em hardware real, repetir no browser padrão e não em navegador integrado.
 

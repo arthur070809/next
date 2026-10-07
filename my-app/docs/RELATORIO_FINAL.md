@@ -26,7 +26,7 @@ O endpoint seleciona itens de requisições concluídas com motivo `EXCEDEU_LOTE
 ## Arquivos principais
 
 - Ressuprimento: [carregar-dados.ts](../lib/ressuprimento/carregar-dados.ts), [page.tsx](../app/admin/ressuprimento/page.tsx), [page.test.ts](../app/admin/ressuprimento/page.test.ts), [RessuprimentoTabela.tsx](../app/admin/ressuprimento/RessuprimentoTabela.tsx).
-- Sobras: [route.ts](../app/api/deposito/sobras/route.ts), [page.tsx](../app/deposito/sobras/page.tsx) e [route.test.ts](../app/api/deposito/sobras/route.test.ts).
+- Sobras: [route.ts](../app/api/deposito/sobras/route.ts) e [route.test.ts](../app/api/deposito/sobras/route.test.ts); a página `/deposito/sobras` foi removida da interface.
 - Estoque/QR: [page.tsx](../app/estoque/page.tsx), [layout.tsx](../app/estoque/layout.tsx), [route.ts](../app/api/estoque/route.ts), [localizarEstoqueItem.ts](../lib/qr/localizarEstoqueItem.ts), [localizarEstoqueItem.test.ts](../lib/qr/localizarEstoqueItem.test.ts).
 - Demo/login/facial: [layout.tsx](../app/layout.tsx), [queue.tsx](../app/almoxarifado/queue.tsx), [dashboard.tsx](../app/admin/dashboard.tsx), [route.ts](../app/api/auth/login/route.ts), [LoginForm.tsx](../app/login/LoginForm.tsx), [route.test.ts](../app/api/admin/face-enrollment/route.test.ts).
 - Documentação: [DEMO.md](../DEMO.md), [AUDITORIA_RESPONSIVA.md](./AUDITORIA_RESPONSIVA.md).

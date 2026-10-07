@@ -27,11 +27,9 @@ A API já normalizava a descrição e rejeitava valor vazio para itens prioritá
 - **Metadados:** a rota já devolvia descrição/setor decodificados; a lista continua usando `ItemDescription`. O teste garante que marcador de setor não aparece na resposta de operador.
 - **Prova antes/depois:** testes novos de paginação/ownership falharam antes da correção (query sem skip/ordenação estável, resposta com 21 itens, filtro de solicitante ausente e status-label helper ausente) e passaram depois. Cobertos também 401, 403, página seguinte e adulteração de `funcionarioId` na URL.
 
-### O3 — sessão do operador
+### O3 — ciclo de vida de sessão para todos os perfis
 
-O cookie de operador já era de sessão, sem `Max-Age`, e a sessão já renovava expiração no timeout de inatividade (15 min). Mantive isso e acrescentei carência de retorno configurável por `OPERATOR_RETURN_GRACE_MS` (60 s), horário de ocultação em `sessionStorage`, logout/redirect ao retornar depois da carência e tentativa de `sendBeacon` em `pagehide`. O logout por visibilidade e `pagehide` fica suspenso quando `ProductEtiquetaScanner` marca scanner/permissão de câmera ativos; o idle timer também não expira enquanto o scanner permanecer aberto.
-
-Os testes unitários novos primeiro falharam porque o módulo de política não existia; depois passaram para carência antes/depois do limite, scanner, pagehide/BFCache e perfis admin/almoxarifado. Foi também testado que `pagehide` imediatamente após ocultar não elimina a carência. O teste anterior de login continua verificando cookie não persistente de operador. **Limitação inevitável:** navegadores móveis podem suspender/encerrar o processo sem emitir eventos e `sendBeacon` é best-effort. Quando há horário de ocultação recente, pagehide respeita a carência; se a persistência do horário falhar, o servidor mantém o timeout por inatividade como proteção. Documentado em `DEMO.md`.
+O timeout antes restrito ao operador foi substituído por uma política central server-side compartilhada por admin, almoxarife e operador. Heartbeat/saída entre abas e os limites configuráveis estão descritos em [SESSION_LIFECYCLE.md](./SESSION_LIFECYCLE.md). A migration precisa ser aplicada manualmente antes do deploy; sem ela, a autenticação falha fechada. **Não verificado em aparelhos reais:** comportamento de encerramento de processo e entrega de `sendBeacon` dependem do navegador; não afirmo garantia física de evento ao fechar o aplicativo.
 
 ### E1 — layout
 
