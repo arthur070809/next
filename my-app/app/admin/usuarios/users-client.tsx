@@ -1,8 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader, StatusBadge } from "@/app/components/industrial";
 import { EmptyState, ErrorState, LoadingState } from "@/app/components/ui";
+import BadgeBarcodeScanner from "@/app/components/BadgeBarcodeScanner";
+import { advanceFromBadgeFieldOnEnter, isValidBadgeCode, normalizeBadgeCode } from "@/lib/badge-code";
 
 type Funcionario = { id: number; nome: string; cracha: string; cargo: string; role: string; ativo: boolean; mustChangePassword: boolean };
 type Pagination = { page: number; pageSize: number; total: number };
@@ -22,6 +24,10 @@ export default function AdminUsersClient() {
   const [usersError, setUsersError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [crachaError, setCrachaError] = useState("");
+  const crachaInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const savingRef = useRef(false);
 
   const loadUsers = async (page = pagination.page) => {
     setLoading(true);
@@ -64,14 +70,27 @@ export default function AdminUsersClient() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setError(""); setMessage("");
     if (form.senha !== form.confirmarSenha) { setError("As senhas não coincidem."); return; }
+    const cracha = normalizeBadgeCode(form.cracha);
+    if (!isValidBadgeCode(cracha)) {
+      setCrachaError("O crachá deve conter de 4 a 10 dígitos.");
+      crachaInputRef.current?.focus();
+      return;
+    }
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
-      const response = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome: form.nome, cracha: form.cracha, senha: form.senha }) });
+      const response = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome: form.nome, cracha, senha: form.senha }) });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível criar o usuário.");
+      if (!response.ok) {
+        const message = data.error ?? "Não foi possível criar o usuário.";
+        if (response.status === 409 || /crachá/i.test(message)) setCrachaError(message);
+        else setError(message);
+        return;
+      }
       setMessage("Usuário criado. A troca de senha será exigida no primeiro acesso."); setForm(emptyForm); await loadUsers(1);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Erro inesperado."); }
-    finally { setSaving(false); }
+    finally { savingRef.current = false; setSaving(false); }
   };
 
   const toggleStatus = async (user: Funcionario) => {
@@ -93,5 +112,136 @@ export default function AdminUsersClient() {
   };
 
   const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
-  return <main className="min-h-[calc(100dvh-4rem)] px-4 py-6 sm:px-8 sm:py-8"><div className="mx-auto max-w-7xl"><PageHeader eyebrow="Administração" title="Usuários" description="Gerencie acessos sem alterar o histórico de requisições." />{(error || message) && <p role={error ? "alert" : "status"} className={`mt-5 rounded-lg p-3 text-sm ${error ? "bg-error-surface text-error" : "bg-success-surface text-success"}`}>{error || message}</p>}<section className="mt-6 rounded-card bg-surface p-4 shadow-card sm:p-6"><h2 className="text-xl font-bold text-foreground">Cadastrar usuário</h2><form onSubmit={submit} className="mt-5 grid gap-4 sm:grid-cols-2" noValidate><label className="text-sm font-semibold">Nome<input required value={form.nome} onChange={(event) => setForm({ ...form, nome: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" /></label><label className="text-sm font-semibold">Código do crachá<input required pattern="[0-9]{4,10}" inputMode="numeric" value={form.cracha} onChange={(event) => setForm({ ...form, cracha: event.target.value.replace(/\D/g, "") })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" /></label><label className="text-sm font-semibold">Senha inicial<input required minLength={12} type={showPassword ? "text" : "password"} value={form.senha} onChange={(event) => setForm({ ...form, senha: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" /></label><label className="text-sm font-semibold">Confirmar senha<input required minLength={12} type={showPassword ? "text" : "password"} value={form.confirmarSenha} onChange={(event) => setForm({ ...form, confirmarSenha: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" /></label><div className="flex items-center gap-4 sm:col-span-2"><button type="button" onClick={() => setShowPassword(!showPassword)} className="text-sm font-semibold text-brand ">{showPassword ? "Ocultar senhas" : "Mostrar senhas"}</button><button disabled={saving} className="min-h-11 rounded-control bg-brand px-5 py-2.5 font-semibold text-surface transition-colors hover:bg-brand-hover active:bg-brand-pressed disabled:opacity-50">{saving ? "Salvando..." : "Cadastrar usuário"}</button></div></form></section><section className="mt-6 rounded-card bg-surface p-4 shadow-card sm:p-6"><div className="flex flex-col gap-3 border-b border-border-subtle pb-5 md:flex-row md:items-end"><label className="flex-1 text-sm font-semibold">Buscar por nome ou crachá<input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void loadUsers(1); } }} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" /></label><label className="text-sm font-semibold">Status<select value={status} onChange={(event) => { setStatus(event.target.value); void loadUsers(1); }} className="mt-2 rounded-lg border border-border-subtle bg-surface p-3 font-normal"><option value="todos">Todos</option><option value="ativo">Ativos</option><option value="inativo">Inativos</option></select></label><button type="button" onClick={() => void loadUsers(1)} className="min-h-11 rounded-control border border-brand px-5 py-2.5 text-sm font-semibold text-brand hover:bg-priority-surface">Buscar</button></div>{usersError ? <ErrorState message={usersError} onRetry={() => void loadUsers()} /> : loading ? <LoadingState label="Carregando usuários…" rows={4} /> : users.length === 0 ? <EmptyState title="Nenhum usuário encontrado" message="Ajuste os filtros ou cadastre um funcionário." /> : <div className="divide-y divide-border-subtle">{users.map((user) => <div key={user.id} className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between"><div><p className="font-semibold text-foreground">{user.nome}</p><p className="mt-1 text-sm text-text-secondary">Crachá {user.cracha} · {user.role}</p><div className="mt-2 flex flex-wrap gap-2"><StatusBadge label={user.ativo ? "Ativo" : "Inativo"} tone={user.ativo ? "success" : "danger"} />{user.mustChangePassword && <StatusBadge label="Troca de senha pendente" tone="warning" />}</div></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setResetTarget(user); setError(""); }} className="min-h-11 rounded-control border border-brand px-3 py-2.5 text-sm font-semibold text-brand hover:bg-priority-surface">Redefinir senha</button><button type="button" onClick={() => void toggleStatus(user)} className="rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-foreground">{user.ativo ? "Desativar" : "Reativar"}</button></div></div>)}</div>}<div className="mt-5 flex flex-col items-start gap-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between"><span>{pagination.total} usuário(s)</span><div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:gap-2"><button type="button" disabled={pagination.page <= 1} onClick={() => void loadUsers(pagination.page - 1)} className="min-h-11 rounded-control border border-brand px-3 py-2.5 font-semibold text-brand disabled:opacity-40">Anterior</button><span>Página {pagination.page} de {totalPages}</span><button type="button" disabled={pagination.page >= totalPages} onClick={() => void loadUsers(pagination.page + 1)} className="rounded border border-border-subtle px-3 py-2 disabled:opacity-40">Próxima</button></div></div></section></div>{resetTarget && <div role="dialog" aria-modal="true" aria-labelledby="reset-title" className="safe-area-inset fixed inset-0 z-40 flex items-end bg-foreground/60 sm:items-center sm:justify-center"><form onSubmit={submitReset} className="w-full max-w-md rounded-t-panel bg-surface p-6 shadow-overlay sm:rounded-panel"><h2 id="reset-title" className="text-xl font-bold text-foreground">Redefinir senha</h2><p className="mt-2 text-sm text-text-secondary">Nova senha para {resetTarget.nome}. A troca será exigida no próximo acesso.</p><label className="mt-5 block text-sm font-semibold">Nova senha<input required minLength={12} autoFocus type="password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" /></label><div className="mt-5 flex justify-end gap-3"><button type="button" onClick={() => setResetTarget(null)} className="min-h-11 rounded-control border border-brand px-4 py-2.5 font-semibold text-brand hover:bg-priority-surface">Cancelar</button><button className="min-h-11 rounded-control bg-brand px-4 py-2.5 font-semibold text-surface transition-colors hover:bg-brand-hover active:bg-brand-pressed">Redefinir senha</button></div></form></div>}</main>;
+  return (
+    <main className="min-h-[calc(100dvh-4rem)] px-4 py-6 sm:px-8 sm:py-8">
+      <div className="mx-auto max-w-7xl">
+        <PageHeader eyebrow="Administração" title="Usuários" description="Gerencie acessos sem alterar o histórico de requisições." />
+        {(error || message) && (
+          <p role={error ? "alert" : "status"} className={`mt-5 rounded-lg p-3 text-sm ${error ? "bg-error-surface text-error" : "bg-success-surface text-success"}`}>
+            {error || message}
+          </p>
+        )}
+        <section className="mt-6 rounded-card bg-surface p-4 shadow-card sm:p-6">
+          <h2 className="text-xl font-bold text-foreground">Cadastrar usuário</h2>
+          <form onSubmit={submit} className="mt-5 grid gap-4 sm:grid-cols-2" noValidate>
+            <label className="text-sm font-semibold">
+              Nome
+              <input required value={form.nome} onChange={(event) => setForm({ ...form, nome: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" />
+            </label>
+            <div>
+              <label htmlFor="user-badge" className="text-sm font-semibold">Código do crachá</label>
+              <div className="mt-2 flex min-w-0 gap-2">
+                <input
+                  ref={crachaInputRef}
+                  id="user-badge"
+                  required
+                  pattern="[0-9]{4,10}"
+                  inputMode="numeric"
+                  value={form.cracha}
+                  aria-invalid={Boolean(crachaError)}
+                  aria-describedby={crachaError ? "badge-create-error" : undefined}
+                  onKeyDown={(event) => { advanceFromBadgeFieldOnEnter(event, passwordInputRef.current); }}
+                  onChange={(event) => {
+                    setForm({ ...form, cracha: event.target.value });
+                    setCrachaError("");
+                  }}
+                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-border px-3 py-2.5 font-normal text-base"
+                />
+                <BadgeBarcodeScanner
+                  label="Ler o código de barras do crachá"
+                  validate={isValidBadgeCode}
+                  onDetect={(value) => {
+                    setForm((current) => ({ ...current, cracha: normalizeBadgeCode(value) }));
+                    setCrachaError("");
+                    passwordInputRef.current?.focus();
+                  }}
+                  onManual={() => crachaInputRef.current?.focus()}
+                />
+              </div>
+              {crachaError && <p id="badge-create-error" role="alert" aria-live="polite" className="mt-1 text-sm font-medium text-error">{crachaError}</p>}
+            </div>
+            <label className="text-sm font-semibold">
+              Senha inicial
+              <input ref={passwordInputRef} required minLength={12} type={showPassword ? "text" : "password"} value={form.senha} onChange={(event) => setForm({ ...form, senha: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal text-base" />
+            </label>
+            <label className="text-sm font-semibold">
+              Confirmar senha
+              <input required minLength={12} type={showPassword ? "text" : "password"} value={form.confirmarSenha} onChange={(event) => setForm({ ...form, confirmarSenha: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal text-base" />
+            </label>
+            <div className="flex items-center gap-4 sm:col-span-2">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-sm font-semibold text-brand">
+                {showPassword ? "Ocultar senhas" : "Mostrar senhas"}
+              </button>
+              <button disabled={saving} className="min-h-11 rounded-control bg-brand px-5 py-2.5 font-semibold text-surface transition-colors hover:bg-brand-hover active:bg-brand-pressed disabled:opacity-50">
+                {saving ? "Salvando..." : "Cadastrar usuário"}
+              </button>
+            </div>
+          </form>
+        </section>
+        <section className="mt-6 rounded-card bg-surface p-4 shadow-card sm:p-6">
+          <div className="flex flex-col gap-3 border-b border-border-subtle pb-5 md:flex-row md:items-end">
+            <label className="flex-1 text-sm font-semibold">
+              Buscar por nome ou crachá
+              <input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void loadUsers(1); } }} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" />
+            </label>
+            <label className="text-sm font-semibold">
+              Status
+              <select value={status} onChange={(event) => { setStatus(event.target.value); void loadUsers(1); }} className="mt-2 rounded-lg border border-border-subtle bg-surface p-3 font-normal">
+                <option value="todos">Todos</option><option value="ativo">Ativos</option><option value="inativo">Inativos</option>
+              </select>
+            </label>
+            <button type="button" onClick={() => void loadUsers(1)} className="min-h-11 rounded-control border border-brand px-5 py-2.5 text-sm font-semibold text-brand hover:bg-priority-surface">Buscar</button>
+          </div>
+          {usersError
+            ? <ErrorState message={usersError} onRetry={() => void loadUsers()} />
+            : loading
+              ? <LoadingState label="Carregando usuários…" rows={4} />
+              : users.length === 0
+                ? <EmptyState title="Nenhum usuário encontrado" message="Ajuste os filtros ou cadastre um funcionário." />
+                : <div className="divide-y divide-border-subtle">
+                  {users.map((user) => (
+                    <div key={user.id} className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <p className="font-semibold text-foreground">{user.nome}</p>
+                        <p className="mt-1 text-sm text-text-secondary">Crachá {user.cracha} · {user.role}</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <StatusBadge label={user.ativo ? "Ativo" : "Inativo"} tone={user.ativo ? "success" : "danger"} />
+                          {user.mustChangePassword && <StatusBadge label="Troca de senha pendente" tone="warning" />}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => { setResetTarget(user); setError(""); }} className="min-h-11 rounded-control border border-brand px-3 py-2.5 text-sm font-semibold text-brand hover:bg-priority-surface">Redefinir senha</button>
+                        <button type="button" onClick={() => void toggleStatus(user)} className="min-h-11 rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-foreground">{user.ativo ? "Desativar" : "Reativar"}</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>}
+          <div className="mt-5 flex flex-col items-start gap-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+            <span>{pagination.total} usuário(s)</span>
+            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:gap-2">
+              <button type="button" disabled={pagination.page <= 1} onClick={() => void loadUsers(pagination.page - 1)} className="min-h-11 rounded-control border border-brand px-3 py-2.5 font-semibold text-brand disabled:opacity-40">Anterior</button>
+              <span>Página {pagination.page} de {totalPages}</span>
+              <button type="button" disabled={pagination.page >= totalPages} onClick={() => void loadUsers(pagination.page + 1)} className="min-h-11 rounded-control border border-border-subtle px-3 py-2 font-semibold disabled:opacity-40">Próxima</button>
+            </div>
+          </div>
+        </section>
+      </div>
+      {resetTarget && (
+        <div role="dialog" aria-modal="true" aria-labelledby="reset-title" className="safe-area-inset fixed inset-0 z-40 flex items-end bg-foreground/60 sm:items-center sm:justify-center">
+          <form onSubmit={submitReset} className="w-full max-w-md rounded-t-panel bg-surface p-6 shadow-overlay sm:rounded-panel">
+            <h2 id="reset-title" className="text-xl font-bold text-foreground">Redefinir senha</h2>
+            <p className="mt-2 text-sm text-text-secondary">Nova senha para {resetTarget.nome}. A troca será exigida no próximo acesso.</p>
+            <label className="mt-5 block text-sm font-semibold">
+              Nova senha
+              <input required minLength={12} autoFocus type="password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" />
+            </label>
+            <div className="mt-5 flex justify-end gap-3">
+              <button type="button" onClick={() => setResetTarget(null)} className="min-h-11 rounded-control border border-brand px-4 py-2.5 font-semibold text-brand hover:bg-priority-surface">Cancelar</button>
+              <button className="min-h-11 rounded-control bg-brand px-4 py-2.5 font-semibold text-surface transition-colors hover:bg-brand-hover active:bg-brand-pressed">Redefinir senha</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </main>
+  );
 }
