@@ -2,19 +2,82 @@
 @config "../tailwind.config.ts";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --brand: #153d8a;
+  --brand-hover: #123577;
+  --brand-pressed: #102e68;
+  --background: #eff2f8;
+  --surface: #ffffff;
+  --foreground: #172033;
+  --text-secondary: #4b5563;
+  --border: #748094;
+  --border-subtle: #d7deea;
+  --success: #166534;
+  --success-surface: #f0fdf4;
+  --warning: #854d0e;
+  --warning-surface: #fffbeb;
+  --error: #b42318;
+  --error-surface: #fef3f2;
+  --priority: #153d8a;
+  --priority-surface: #e8eef8;
+  --space-page: 1rem;
+  --space-section: 1.5rem;
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.25rem;
+  --shadow-card: 0 1px 3px rgb(23 32 51 / 8%), 0 1px 2px rgb(23 32 51 / 5%);
+  --shadow-overlay: 0 20px 50px rgb(16 33 63 / 20%);
+  --font-ui: var(--font-geist-sans), sans-serif;
+  --font-data: var(--font-geist-mono), monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-pressed: var(--brand-pressed);
+  --color-surface: var(--surface);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-error: var(--error);
+  --color-error-surface: var(--error-surface);
+  --color-priority: var(--priority);
+  --color-priority-surface: var(--priority-surface);
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+  --shadow-card: var(--shadow-card);
+  --shadow-overlay: var(--shadow-overlay);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--brand);
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
