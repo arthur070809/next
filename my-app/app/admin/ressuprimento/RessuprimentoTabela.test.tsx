@@ -1,8 +1,12 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import RessuprimentoTabela from "./RessuprimentoTabela";
 import { sugestao } from "@/lib/ressuprimento/analise";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
 
 describe("RessuprimentoTabela", () => {
   it("shows the explicit empty reorder state", () => {
@@ -14,7 +18,7 @@ describe("RessuprimentoTabela", () => {
     expect(markup).toContain("Nenhum item precisa de ressuprimento");
   });
 
-  it("renders reorder quantities and nullable points without undefined or non-finite values", () => {
+  it("renders an editable current point and omits the removed columns", () => {
     const suggestions = [
       sugestao({
         id: "low-stock",
@@ -37,9 +41,13 @@ describe("RessuprimentoTabela", () => {
     }));
 
     expect(markup).toContain("Quantidade sugerida");
+    expect(markup).toContain("Ponto atual para Item sem ponto");
+    expect(markup).toContain('type="number"');
     expect(markup).toContain("Item abaixo do mínimo");
     expect(markup).toContain("3");
-    expect(markup).toContain("Não definido");
+    expect(markup).not.toContain("Ponto sugerido");
+    expect(markup).not.toContain("Confiança");
+    expect(markup).not.toContain("Ação");
     expect(markup).not.toContain("NaN");
     expect(markup).not.toContain("Infinity");
     expect(markup).not.toContain("undefined");

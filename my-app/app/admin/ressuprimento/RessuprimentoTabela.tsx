@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type {
   ClasseRessuprimento,
   SugestaoRessuprimento,
@@ -45,6 +46,80 @@ function coberturaTexto(dias: number | null): string {
   return `${dias.toFixed(1)} dias`;
 }
 
+function PontoAtualEditor({
+  item,
+}: {
+  item: SugestaoRessuprimento;
+}) {
+  const router = useRouter();
+  const [valor, setValor] = useState(item.pontoAtual === null ? "" : String(item.pontoAtual));
+  const [salvando, setSalvando] = useState(false);
+  const [mensagem, setMensagem] = useState<{ tipo: "erro" | "sucesso"; texto: string } | null>(null);
+
+  async function salvar(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const pontoAtual = Number(valor);
+    if (!valor.trim() || !Number.isInteger(pontoAtual) || pontoAtual < 0 || pontoAtual > MAX_STOCK_INPUT) {
+      setMensagem({ tipo: "erro", texto: `Informe um inteiro entre 0 e ${MAX_STOCK_INPUT.toLocaleString("pt-BR")}.` });
+      return;
+    }
+
+    setSalvando(true);
+    setMensagem(null);
+    try {
+      const response = await fetch("/api/admin/ressuprimento", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, pontoAtual }),
+      });
+      const body = await response.json() as { error?: string };
+      if (!response.ok) {
+        setMensagem({ tipo: "erro", texto: body.error ?? "Não foi possível salvar o ponto atual." });
+        return;
+      }
+      setValor(String(pontoAtual));
+      setMensagem({ tipo: "sucesso", texto: "Ponto atual salvo." });
+      router.refresh();
+    } catch {
+      setMensagem({ tipo: "erro", texto: "Não foi possível salvar o ponto atual. Verifique sua conexão e tente novamente." });
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  const idMensagem = `ponto-atual-feedback-${item.id}`;
+  return <form onSubmit={salvar} className="flex min-w-40 flex-col gap-2">
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        min={0}
+        max={MAX_STOCK_INPUT}
+        step={1}
+        required
+        value={valor}
+        onChange={(event) => setValor(event.target.value)}
+        aria-label={`Ponto atual para ${item.nome}`}
+        aria-describedby={mensagem ? idMensagem : undefined}
+        className="min-h-10 w-24 rounded-md border border-slate-300 bg-white px-2 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
+      />
+      <button
+        type="submit"
+        disabled={salvando}
+        className="min-h-10 rounded-md bg-royal px-3 py-2 font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-royal"
+      >
+        {salvando ? "Salvando…" : "Salvar"}
+      </button>
+    </div>
+    {mensagem && <p
+      id={idMensagem}
+      role={mensagem.tipo === "erro" ? "alert" : "status"}
+      className={mensagem.tipo === "erro" ? "text-xs text-red-700" : "text-xs text-emerald-700"}
+    >
+      {mensagem.texto}
+    </p>}
+  </form>;
+}
+
 export default function RessuprimentoTabela({
   sugestoes,
   fonte,
@@ -53,7 +128,6 @@ export default function RessuprimentoTabela({
   fonte: "Dados reais" | "Dados simulados";
 }) {
   const [classeFiltro, setClasseFiltro] = useState<ClasseRessuprimento | "TODAS">("TODAS");
-  const [previsualizando, setPrevisualizando] = useState<string | null>(null);
   const filtradas = useMemo(() => ordenarPorDeficitRessuprimento(sugestoes
     .filter((item) => classeFiltro === "TODAS" || item.classe === classeFiltro)), [sugestoes, classeFiltro]);
   const itensNoPonto = useMemo(() => ordenarPorDeficitRessuprimento(sugestoes
