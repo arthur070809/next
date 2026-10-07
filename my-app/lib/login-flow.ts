@@ -232,6 +232,7 @@ export async function createLoginSessionResponse(
       data: {
         token,
         funcionarioId: current.id,
+        ultimoSinalEm: new Date(),
         accessArea,
         trustedDeviceId,
         expiresAt: new Date(Date.now() + sessionTtlMs),
@@ -267,11 +268,7 @@ export function createLoginSessionSuccessResponse(
     secure: process.env.NODE_ENV === "production",
     path: "/",
   } as const;
-  if (currentEmployee.papel === PapelFuncionario.OPERADOR) {
-    response.cookies.set(sessionCookieName, token, cookieOptions);
-  } else {
-    response.cookies.set(sessionCookieName, token, { ...cookieOptions, maxAge: 8 * 60 * 60 });
-  }
+  response.cookies.set(sessionCookieName, token, cookieOptions);
   return response;
 }
 

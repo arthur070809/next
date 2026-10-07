@@ -30,7 +30,7 @@ type LoginResponse = {
 };
 type Stage = "code" | "totp" | "face";
 
-export default function LoginForm() {
+export default function LoginForm({ sessionExpired = false }: { sessionExpired?: boolean }) {
   const router = useRouter();
   const [codigoCracha, setCodigoCracha] = useState("");
   const [senha, setSenha] = useState("");
@@ -265,6 +265,7 @@ export default function LoginForm() {
       <Link href="/" className="text-sm font-semibold text-royal hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-royal">← Voltar</Link>
       <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-royal">Almoxarifado Marcon</p>
       <h1 className="mt-3 text-3xl font-bold text-slate-950">{stage === "face" ? "Verificação facial" : stage === "totp" ? "Verificação em duas etapas" : "Entrar com código"}</h1>
+      {sessionExpired && <p role="status" className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">Sessão encerrada por inatividade</p>}
       {stage === "face" && faceChallenge ? <form onSubmit={(event) => void submitFace(event)} className="mt-7 space-y-5">
         <p className="text-sm text-slate-600">A câmera ficará ativa apenas durante esta tentativa. {faceChallenge.challenge === "piscar" ? "Piscar" : faceChallenge.challenge === "virar_esquerda" ? "Virar levemente o rosto para a esquerda" : "Sorrir"} quando estiver enquadrado.</p>
         <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>

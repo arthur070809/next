@@ -646,10 +646,6 @@ export type EnumPrioridadeFieldUpdateOperationsInput = {
   set?: $Enums.Prioridade
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type RequisicaoCreateNestedOneWithoutItensInput = {
   create?: Prisma.XOR<Prisma.RequisicaoCreateWithoutItensInput, Prisma.RequisicaoUncheckedCreateWithoutItensInput>
   connectOrCreate?: Prisma.RequisicaoCreateOrConnectWithoutItensInput

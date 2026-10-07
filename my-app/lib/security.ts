@@ -82,6 +82,27 @@ export function isSameOrigin(request: Request) {
   }
 }
 
+export function hasExactOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host");
+  if (!origin || !host) return false;
+
+  const requestUrl = new URL(request.url);
+  if (host.toLowerCase() !== requestUrl.host.toLowerCase()) return false;
+  try {
+    const parsedOrigin = new URL(origin);
+    return parsedOrigin.origin === requestUrl.origin
+      && parsedOrigin.host.toLowerCase() === host.toLowerCase()
+      && !parsedOrigin.username
+      && !parsedOrigin.password
+      && parsedOrigin.pathname === "/"
+      && !parsedOrigin.search
+      && !parsedOrigin.hash;
+  } catch {
+    return false;
+  }
+}
+
 const attempts = new Map<string, { count: number; resetAt: number }>();
 const loginFailures = new Map<string, { count: number; blockedUntil: number }>();
 

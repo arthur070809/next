@@ -250,7 +250,8 @@ describe("login by badge code", () => {
     expect(prisma.funcionario.findFirst).toHaveBeenCalledTimes(2);
     expect(bcrypt.compare).not.toHaveBeenCalled();
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
-    expect(response.headers.get("set-cookie")).toContain("Max-Age=28800");
+    expect(response.headers.get("set-cookie")?.toLowerCase()).not.toContain("max-age");
+    expect(response.headers.get("set-cookie")?.toLowerCase()).not.toContain("expires=");
     expect(warning).toHaveBeenCalledWith(expect.stringContaining("crachá **33"));
     expect(warning.mock.calls.flat().join(" ")).not.toContain("3333");
     warning.mockRestore();
