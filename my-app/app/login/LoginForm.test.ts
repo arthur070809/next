@@ -3,23 +3,20 @@ import { describe, expect, it } from "vitest";
 
 const loginFormSource = readFileSync(new URL("./LoginForm.tsx", import.meta.url), "utf8");
 
-describe("login form capabilities", () => {
-  it("does not provide gallery or file upload for login facial verification", () => {
-    expect(loginFormSource).not.toMatch(/type\s*=\s*["']file["']/i);
-    expect(loginFormSource).toContain("createCameraStreamController");
-    expect(loginFormSource).toContain("camera.start(");
-    expect(loginFormSource).toContain("/api/auth/login/face/verify");
+describe("login form", () => {
+  it("keeps badge/password authentication, administrator TOTP and WebAuthn", () => {
+    expect(loginFormSource).toContain("/api/auth/login");
+    expect(loginFormSource).toContain("/api/auth/login/totp");
+    expect(loginFormSource).toContain("/api/auth/login/webauthn/verify");
+    expect(loginFormSource).toContain("Verificação em duas etapas");
+    expect(loginFormSource).toContain("Entrar com senha");
   });
 
-  it("keeps automatic real verification while exposing manual, badge-bound demo verification", () => {
-    expect(loginFormSource).toContain("submitAutomaticFaceAttempt");
-    expect(loginFormSource).toContain("canStartAutomaticAttempt");
-    expect(loginFormSource).toContain("requestFreshFaceChallenge");
-    expect(loginFormSource).toContain("openDemoFaceCamera");
-    expect(loginFormSource).toContain("submitDemoFaceAttempt");
-    expect(loginFormSource).toContain("demoFaceDetected");
-    expect(loginFormSource).toContain("Modo demonstração: reconhecimento simulado");
-    expect(loginFormSource).not.toContain("enableCamera()");
-    expect(loginFormSource).not.toContain("onSubmit={(event) => void submitFace");
+  it("only opens a face challenge when the login API requires it", () => {
+    expect(loginFormSource).toContain('data.step === "face"');
+    expect(loginFormSource).toContain('setStage("face")');
+    expect(loginFormSource).not.toContain("startFaceLogin");
+    expect(loginFormSource).not.toContain("Entrar com reconhecimento facial");
+    expect(loginFormSource).not.toContain("Modo demonstração: reconhecimento simulado");
   });
 });

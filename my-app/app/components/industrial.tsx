@@ -61,7 +61,6 @@ const tileIcons: Record<string, IconName> = {
   "▦": "inventory",
   "◇": "package",
   "◉": "users",
-  "◌": "face",
   "＋": "plus",
 };
 

@@ -19,7 +19,6 @@ const adminMenu = [
   { href: "/admin/estoque", label: "Estoque", icon: "inventory" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "package" },
   { href: "/admin/usuarios", label: "Usuários", icon: "users" },
-  { href: "/admin/biometria", label: "Biometria facial", icon: "face" },
 ] satisfies ShellMenuItem[];
 
 const warehouseMenu = [

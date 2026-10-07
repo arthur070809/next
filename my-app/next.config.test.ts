@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import nextConfig from "./next.config";
 
 describe("camera permissions policy", () => {
-  it("serves the pinned local face model files with a long immutable cache policy", async () => {
+  it("serves the local models required by a login challenge with a long immutable cache policy", async () => {
     const rules = await nextConfig.headers?.();
     expect(rules?.find((rule) => rule.source === "/models/human/:path*")?.headers).toContainEqual({
       key: "Cache-Control",
@@ -10,7 +10,7 @@ describe("camera permissions policy", () => {
     });
   });
 
-  it("grants camera access only to the inventory, checklist, and enrollment routes that use it", async () => {
+  it("grants camera access only to the inventory and checklist routes that use it", async () => {
     const rules = await nextConfig.headers?.();
     const cameraRules = rules?.filter((rule) =>
       rule.headers.some((header) => header.key === "Permissions-Policy" && header.value === "camera=(self)"),
@@ -21,8 +21,8 @@ describe("camera permissions policy", () => {
       "/estoque/:path*",
       "/admin/estoque/:path*",
       "/almoxarifado/estoque/:path*",
-      "/admin/biometria/:path*",
     ]);
+    expect(rules?.some((rule) => rule.source.includes("biometria"))).toBe(false);
     expect(rules?.every((rule) =>
       rule.headers.every((header) => header.key !== "Content-Security-Policy"),
     )).toBe(true);

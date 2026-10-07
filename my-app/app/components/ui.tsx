@@ -3,7 +3,7 @@
 import { useEffect, useId, type ButtonHTMLAttributes, type HTMLAttributes, type LabelHTMLAttributes, type ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "danger";
-export type IconName = "home" | "list" | "history" | "route" | "inventory" | "warehouse" | "users" | "face" | "shield" | "device" | "plus" | "qr" | "check" | "alert" | "info" | "close" | "menu" | "arrow-right" | "package";
+export type IconName = "home" | "list" | "history" | "route" | "inventory" | "warehouse" | "users" | "shield" | "device" | "plus" | "qr" | "check" | "alert" | "info" | "close" | "menu" | "arrow-right" | "package";
 
 const iconShapes: Record<IconName, ReactNode> = {
   home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" /><path d="M9 21v-6h6v6" /></>,
@@ -13,7 +13,6 @@ const iconShapes: Record<IconName, ReactNode> = {
   inventory: <><path d="m3 7 9-4 9 4v10l-9 4-9-4z" /><path d="m3 7 9 4 9-4M12 11v10M7.5 5l9 4" /></>,
   warehouse: <><path d="m3 10 9-7 9 7v10H3z" /><path d="M7 21v-7h10v7M7 10h.01M12 10h.01M17 10h.01" /></>,
   users: <><circle cx="9" cy="8" r="3" /><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 4.6V20h-3" /></>,
-  face: <><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" /><path d="M9 10h.01M15 10h.01M9 15c1.8 1.4 4.2 1.4 6 0" /></>,
   shield: <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z" /><path d="m9 12 2 2 4-4" /></>,
   device: <><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M11 18h2" /></>,
   plus: <><path d="M12 5v14M5 12h14" /></>,
