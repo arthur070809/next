@@ -427,8 +427,8 @@ export default function EstoquePage() {
             </form>
           </section>
 
-          <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div>
+          <section className={`${styles.stockPanel} min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm`}>
+            <div className={styles.stockHeader}>
               <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
               <h2 className="text-center text-xl font-bold text-slate-950 sm:col-start-2">Itens do estoque</h2>
               <div className="flex flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
@@ -440,7 +440,7 @@ export default function EstoquePage() {
               </div>
             </div>
             </div>
-            <div ref={listaRef} tabIndex={0} aria-label="Lista de itens do estoque" className="mt-5 min-w-0 space-y-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal">
+            <div ref={listaRef} tabIndex={0} role="region" aria-label="Lista de itens do estoque" className={`${styles.stockBody} mt-5 min-w-0 space-y-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal`}>
               {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
                 const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
                 return <article id={`stock-item-${item.id}`} key={item.id} tabIndex={0} data-qr-selected={qrMatchedItem?.id === item.id || undefined} className={`flex flex-col gap-4 rounded-lg border p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between ${qrMatchedItem?.id === item.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200"}`}>
