@@ -1,7 +1,8 @@
 "use client";
 
 import type Human from "@vladmandic/human";
-import { faceCaptureQuality, faceEmbeddingDimension } from "./config";
+import { faceEmbeddingDimension } from "./config";
+import { FACE_QUALITY_LIMITS } from "./face-quality";
 
 export type BrowserHuman = InstanceType<typeof Human>;
 export type BrowserFace = Awaited<ReturnType<BrowserHuman["detect"]>>["face"][number];
@@ -10,7 +11,9 @@ function isHumanConstructor(candidate: unknown): candidate is typeof Human {
   return typeof candidate === "function";
 }
 
-export async function loadBrowserHuman(onProgress: (message: string) => void) {
+let cachedHumanPromise: Promise<{ human: BrowserHuman; backend: string }> | null = null;
+
+async function createBrowserHuman(onProgress: (message: string) => void) {
   onProgress("Carregando o reconhecedor facial local");
   // The package root resolves to its Node entry during server-side rendering.
   const candidate: unknown = (await import("../../node_modules/@vladmandic/human/dist/human.esm.js")).default;
@@ -22,8 +25,8 @@ export async function loadBrowserHuman(onProgress: (message: string) => void) {
     debug: false,
     face: {
       detector: {
-        maxDetected: faceCaptureQuality.detectorMaxFaces,
-        minConfidence: faceCaptureQuality.detectorMinConfidence,
+        maxDetected: 2,
+        minConfidence: FACE_QUALITY_LIMITS.minimumDetectionConfidence,
         rotation: true,
       },
       mesh: { enabled: true },
@@ -52,6 +55,17 @@ export async function loadBrowserHuman(onProgress: (message: string) => void) {
     await human.warmup();
   }
   return { human, backend };
+}
+
+export async function loadBrowserHuman(onProgress: (message: string) => void) {
+  if (!cachedHumanPromise) cachedHumanPromise = createBrowserHuman(onProgress);
+  else onProgress("Usando modelos faciais já carregados");
+  try {
+    return await cachedHumanPromise;
+  } catch (error) {
+    cachedHumanPromise = null;
+    throw error;
+  }
 }
 
 export function isValidBrowserEmbedding(value: unknown): value is number[] {

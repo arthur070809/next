@@ -84,7 +84,7 @@ Preparação recomendada: antes da sessão, crie no demo um usuário não allowl
 4. **1:45–2:35 — Operador e prioridade.** Entre como operador, escolha setor/produto, veja saldo livre/reservado, escreva justificativa e envie uma requisição prioritária. Abra **Minhas Requisições** para confirmar o estado e os itens.
 5. **2:35–3:25 — Fila e QR.** Entre como almoxarife, assuma o pedido e abra o checklist. Use o QR para localizar item existente (ou digite um código novo e preencha produto/categoria para testar o cadastro).
 6. **3:25–4:25 — Checklist/finalização.** Registre quantidade real e motivo de divergência, finalize uma vez e confira pedido x separado e movimentações geradas.
-7. **4:25–5:20 — Histórico e sobras.** Filtre por produto/funcionário/período; abra o resumo de excedentes, confira total por setor e explique que excedente entregue não é retorno físico ao depósito.
+7. **4:25–5:20 — Histórico.** Filtre por produto/funcionário/período e confira as movimentações registradas.
 8. **5:20–7:00 — Estoque/limitações.** Em 360 px, mostre formulário acima da lista rolável, escaneie uma etiqueta e consulte o alerta de ponto de pedido. Não confirme reset durante a apresentação.
 
 Os crachás acima são credenciais demonstrativas de baixa confiança: só devem existir no banco descartável e somente a allowlist configurada pode usar o atalho de login demo.

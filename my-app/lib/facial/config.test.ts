@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getFaceEnrollmentFrameCount } from "./config";
+import { getFaceEnrollmentFrameCount, isFaceBlinkRequired, isFaceEnrollmentConsentRequired } from "./config";
 
 describe("facial enrollment frame count configuration", () => {
   it("defaults to one frame and accepts values from one through five", () => {
@@ -13,5 +13,14 @@ describe("facial enrollment frame count configuration", () => {
     for (const invalid of ["", "0", "6", "-1", "2.5", "three"]) {
       expect(getFaceEnrollmentFrameCount(invalid)).toBe(1);
     }
+  });
+
+  it("defaults consent and blink requirements off while honoring explicit opt-in", () => {
+    expect(isFaceEnrollmentConsentRequired(undefined)).toBe(false);
+    expect(isFaceEnrollmentConsentRequired("false")).toBe(false);
+    expect(isFaceEnrollmentConsentRequired("true")).toBe(true);
+    expect(isFaceBlinkRequired(undefined)).toBe(false);
+    expect(isFaceBlinkRequired("false")).toBe(false);
+    expect(isFaceBlinkRequired("true")).toBe(true);
   });
 });

@@ -77,6 +77,7 @@ describe("admin face enrollment route", () => {
     vi.stubEnv("FACE_EMBEDDING_MODEL_VERSION", modelVersion);
     vi.stubEnv("FACE_DIAGNOSTICS_ENABLED", "false");
     vi.stubEnv("FACE_ENROLL_FRAMES", "1");
+    vi.stubEnv("FACE_ENROLL_REQUIRE_CONSENT", "false");
     vi.mocked(requireAdmin).mockResolvedValue({ funcionario: { id: 9 }, status: 200 } as never);
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 10 } as never);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
@@ -119,6 +120,30 @@ describe("admin face enrollment route", () => {
     });
     expect(log).not.toHaveBeenCalled();
     log.mockRestore();
+  });
+
+  it("allows enrollment without a consent checkbox when the flag is off and stores neutral consent metadata", async () => {
+    const response = await POST(enrollmentRequest({ consent: false, consentAt: undefined }));
+    expect(response.status).toBe(201);
+    expect(transaction.faceTemplate.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        consentVersion: "not-collected",
+        consentAt: expect.any(Date),
+      }),
+    });
+  });
+
+  it("requires the privacy checkbox only when FACE_ENROLL_REQUIRE_CONSENT is enabled", async () => {
+    vi.stubEnv("FACE_ENROLL_REQUIRE_CONSENT", "true");
+    const rejected = await POST(enrollmentRequest({ consent: false, consentAt: undefined }));
+    expect(rejected.status).toBe(400);
+    expect(transaction.faceTemplate.create).not.toHaveBeenCalled();
+
+    const accepted = await POST(enrollmentRequest());
+    expect(accepted.status).toBe(201);
+    expect(transaction.faceTemplate.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ consentVersion: "v1" }),
+    });
   });
 
   it("requires explicit confirmation before replacing an active template", async () => {

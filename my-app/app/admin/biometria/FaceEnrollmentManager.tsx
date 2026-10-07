@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
-import { faceCaptureQuality, faceEnrollmentCandidateFrameCount, faceEnrollmentFrameIntervalMs } from "@/lib/facial/config";
-import { inspectFaceCount } from "@/lib/facial/face-count";
-import { enrollmentQualityInstruction, isEnrollmentQualityValid, scoreEnrollmentFrameQuality, selectBestEnrollmentFrames, shouldSubmitEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
+import { FACE_QUALITY_LIMITS, evaluateFaceQuality, selectDominantFace, shouldFinishFrameCollection } from "@/lib/facial/face-quality";
+import { advanceBlinkState, faceEyeAspectRatio, initialBlinkState, type BlinkState } from "@/lib/facial/blink";
+import { acquireEnrollmentSubmission, selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
+import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { extractFaceEmbedding, loadBrowserHuman, type BrowserFace, type BrowserHuman } from "@/lib/facial/human-browser";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
@@ -28,38 +29,6 @@ class EnrollmentResponseError extends Error {
 
 type FaceResult = BrowserFace;
 
-function eyesAreOpen(face: FaceResult) {
-  const left = face.annotations?.leftEye ?? [];
-  const right = face.annotations?.rightEye ?? [];
-  const ratio = (eye: Array<Array<number | undefined>>) => {
-    if (eye.length < 4) return 1;
-    const xs = eye.map((point) => point[0] ?? 0); const ys = eye.map((point) => point[1] ?? 0);
-    return (Math.max(...ys) - Math.min(...ys)) / Math.max(1, Math.max(...xs) - Math.min(...xs));
-  };
-  return ratio(left) > faceCaptureQuality.eyeAspectRatioMin && ratio(right) > faceCaptureQuality.eyeAspectRatioMin;
-}
-
-function eyesAreVisible(face: FaceResult) {
-  return (face.annotations?.leftEye?.length ?? 0) >= 4
-    && (face.annotations?.rightEye?.length ?? 0) >= 4;
-}
-
-function inspectLight(video: CanvasImageSource) {
-  const canvas = document.createElement("canvas");
-  canvas.width = faceCaptureQuality.lightSampleWidth;
-  canvas.height = faceCaptureQuality.lightSampleHeight;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return { brightness: 0, sharpness: 0 };
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-  let sum = 0; let edge = 0; let previous = 0;
-  for (let index = 0; index < data.length; index += 4) {
-    const value = 0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2];
-    sum += value; if (index) edge += Math.abs(value - previous); previous = value;
-  }
-  return { brightness: sum / (data.length / 4), sharpness: edge / (data.length / 4) };
-}
-
 function drawMesh(canvas: HTMLCanvasElement, video: HTMLVideoElement, face: FaceResult | null) {
   const context = canvas.getContext("2d"); if (!context) return;
   canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
@@ -72,16 +41,19 @@ function drawMesh(canvas: HTMLCanvasElement, video: HTMLVideoElement, face: Face
 export default function FaceEnrollmentManager({
   diagnosticsEnabled = false,
   frameCount = 1,
+  requireConsent = false,
+  requireBlink = false,
 }: {
   diagnosticsEnabled?: boolean;
   frameCount?: number;
+  requireConsent?: boolean;
+  requireBlink?: boolean;
 }) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeId, setEmployeeId] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [replaceConfirmed, setReplaceConfirmed] = useState(false);
   const [consent, setConsent] = useState(false);
-  const [confirmedPerson, setConfirmedPerson] = useState(false);
   const [stage, setStage] = useState<Stage>("front");
   const [stageReady, setStageReady] = useState(false);
   const [modelState, setModelState] = useState<"loading" | "ready" | "error">("loading");
@@ -113,12 +85,12 @@ export default function FaceEnrollmentManager({
   const renewalTimerRef = useRef<number | null>(null);
   const humanRef = useRef<BrowserHuman | null>(null);
   const sessionRef = useRef<Session | null>(null);
-  const stableSinceRef = useRef(0);
+  const invalidSinceRef = useRef(0);
+  const collectionStartedAtRef = useRef(0);
   const burstFramesRef = useRef<EnrollmentFrameCandidate[]>([]);
   const candidateFramesObservedRef = useRef(0);
-  const lastBurstFrameAtRef = useRef(0);
-  const eyesClosedObservedRef = useRef(false);
   const blinkObservedRef = useRef(false);
+  const blinkStateRef = useRef<BlinkState>(initialBlinkState);
   const submittingRef = useRef(false);
   const lastDebugAtRef = useRef(0);
 
@@ -136,12 +108,12 @@ export default function FaceEnrollmentManager({
       videoRef.current.srcObject = null;
       videoRef.current.removeAttribute("src");
     }
-    stableSinceRef.current = 0;
+    invalidSinceRef.current = 0;
+    collectionStartedAtRef.current = 0;
     burstFramesRef.current = [];
     candidateFramesObservedRef.current = 0;
-    lastBurstFrameAtRef.current = 0;
-    eyesClosedObservedRef.current = false;
     blinkObservedRef.current = false;
+    blinkStateRef.current = initialBlinkState;
     setStageReady(false);
     setCameraState("idle");
   }
@@ -208,7 +180,7 @@ export default function FaceEnrollmentManager({
   async function selectEmployee(value: string) {
     const selected = employees.find((item) => item.id === Number(value));
     if (selected?.enrolled && !window.confirm(`O funcionário ${selected.nome} já tem template facial. Deseja substituí-lo?`)) return;
-    stopCamera(); setEmployeeId(value); setSession(null); setReplaceConfirmed(Boolean(selected?.enrolled)); localStorage.removeItem("marcon-face-enrollment-session"); setStage("front"); setConfirmedPerson(false); setConsent(false); setError(""); setMessage("");
+    stopCamera(); setEmployeeId(value); setSession(null); setReplaceConfirmed(Boolean(selected?.enrolled)); localStorage.removeItem("marcon-face-enrollment-session"); setStage("front"); setConsent(false); setError(""); setMessage("");
     if (!value) return;
     const response = await fetch(`/api/admin/face-enrollment?funcionarioId=${encodeURIComponent(value)}`); const data = await response.json();
     if (!response.ok) { setError(data.error ?? "Não foi possível iniciar a sessão."); return; }
@@ -224,11 +196,11 @@ export default function FaceEnrollmentManager({
   }, [employeeId]);
 
   const submitEnrollment = useCallback(async function submitEnrollmentImpl(nextSamples: number[][]) {
-    if (submittingRef.current || nextSamples.length !== frameCount || !sessionRef.current) return;
-    submittingRef.current = true; setBusy(true); setInstruction("Processando e confirmando o cadastro");
+    if (nextSamples.length !== frameCount || !sessionRef.current || !acquireEnrollmentSubmission(submittingRef)) return;
+    setBusy(true); setInstruction("Processando e confirmando o cadastro");
     const current = sessionRef.current;
     try {
-      const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: true, consentAt: new Date().toISOString(), replaceConfirmed, samples: nextSamples }) });
+      const response = await fetch("/api/admin/face-enrollment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ funcionarioId: Number(employeeId), sessionId: current.id, sessionToken: current.token, consent: requireConsent && consent, ...(requireConsent ? { consentAt: new Date().toISOString() } : {}), replaceConfirmed, samples: nextSamples }) });
       const data = await response.json() as { error?: string; code?: string; diagnostics?: EnrollmentDiagnostics };
       if (diagnosticsEnabled) {
         setDebugMetrics((currentMetrics) => ({
@@ -244,17 +216,16 @@ export default function FaceEnrollmentManager({
       }
       if (response.status === 409 && data.code === "FACE_ENROLLMENT_SESSION_EXPIRED" && await renewSession()) { submittingRef.current = false; setBusy(false); await submitEnrollmentImpl(nextSamples); return; }
       if (response.status === 409 && data.code === "FACE_CAPTURE_RETRY") {
-        stableSinceRef.current = 0;
         burstFramesRef.current = [];
         candidateFramesObservedRef.current = 0;
-        lastBurstFrameAtRef.current = 0;
-        eyesClosedObservedRef.current = false;
+        collectionStartedAtRef.current = 0;
         blinkObservedRef.current = false;
+        blinkStateRef.current = initialBlinkState;
         setStageReady(false);
         setInstruction("Mantenha apenas seu rosto diante da câmera; tentando novamente.");
         return;
       }
-      if (response.status === 429) { setError(`${data.error} Tente novamente em ${Math.ceil(Number(response.headers.get("Retry-After") ?? 60) / 60)} minutos.`); setStage("failed"); return; }
+      if (response.status === 429) { stopCamera(); setError(`${data.error} Tente novamente em ${Math.ceil(Number(response.headers.get("Retry-After") ?? 60) / 60)} minutos.`); setStage("failed"); return; }
       if (!response.ok) throw new EnrollmentResponseError(data.error ?? "Não foi possível concluir o cadastro.", data.code ?? "FACE_ENROLLMENT_FAILED");
       setMessage("Cadastro concluído"); setInstruction("Cadastro concluído"); setStage("success"); localStorage.removeItem("marcon-face-enrollment-session"); stopCamera(); setEmployees((currentEmployees) => currentEmployees.map((item) => item.id === Number(employeeId) ? { ...item, enrolled: true } : item));
     } catch (cause) {
@@ -265,43 +236,47 @@ export default function FaceEnrollmentManager({
       stopCamera();
     }
     finally { submittingRef.current = false; setBusy(false); }
-  }, [diagnosticsEnabled, employeeId, frameCount, renewSession, replaceConfirmed]);
+  }, [consent, diagnosticsEnabled, employeeId, frameCount, renewSession, replaceConfirmed, requireConsent]);
 
   async function startCamera() {
-    if (!employeeId || !confirmedPerson || !consent || modelState !== "ready") return;
+    if (!employeeId || (requireConsent && !consent) || modelState !== "ready") return;
     setError(""); setCameraState("starting");
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("missing", "NotFoundError");
       stopCamera();
-      stableSinceRef.current = 0;
+      invalidSinceRef.current = 0;
+      collectionStartedAtRef.current = 0;
       burstFramesRef.current = [];
       candidateFramesObservedRef.current = 0;
-      lastBurstFrameAtRef.current = 0;
-      eyesClosedObservedRef.current = false;
       blinkObservedRef.current = false;
+      blinkStateRef.current = initialBlinkState;
       const video = videoRef.current;
       const camera = createCameraStreamController({
         video,
-        onLifecycleStop: () => {
+        onLifecycleStop: (reason) => {
           if (renewalTimerRef.current !== null) window.clearInterval(renewalTimerRef.current);
           renewalTimerRef.current = null;
           streamRef.current = null;
-          setCameraState("idle");
+          setCameraState("denied");
+          if (reason === "visibilitychange") {
+            setError("Câmera pausada ao sair desta tela. Toque para recomeçar.");
+            setInstruction("Câmera pausada");
+          }
         },
       });
       cameraRef.current = camera;
       streamRef.current = await camera.start({
         video: {
           facingMode: "user",
-          width: { ideal: faceCaptureQuality.cameraWidth },
-          height: { ideal: faceCaptureQuality.cameraHeight },
+          width: { ideal: FACE_QUALITY_LIMITS.cameraWidth },
+          height: { ideal: FACE_QUALITY_LIMITS.cameraHeight },
         },
         audio: false,
       });
       setCameraState("ready");
       setStageReady(false);
       setStage("front");
-      setInstruction("Posicione o rosto na oval; a captura será automática");
+      setInstruction("Procurando rosto");
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === "AbortError") return;
       cameraRef.current?.dispose();
@@ -324,15 +299,12 @@ export default function FaceEnrollmentManager({
       if (stopped) return;
       frame = requestAnimationFrame(detect);
       if (document.hidden) {
-        stableSinceRef.current = 0;
         burstFramesRef.current = [];
         candidateFramesObservedRef.current = 0;
-        lastBurstFrameAtRef.current = 0;
-        eyesClosedObservedRef.current = false;
-        blinkObservedRef.current = false;
+        collectionStartedAtRef.current = 0;
         return;
       }
-      if (pending || time - lastRun < 100 || !videoRef.current || !humanRef.current) return;
+      if (pending || time - lastRun < FACE_QUALITY_LIMITS.analysisIntervalMs || !videoRef.current || !humanRef.current) return;
       if (videoRef.current.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !videoRef.current.videoWidth) return;
       lastRun = time;
       pending = true;
@@ -342,57 +314,41 @@ export default function FaceEnrollmentManager({
         if (stopped) return;
         const inferenceMs = Math.round(performance.now() - inferenceStarted);
         const faces = result.face ?? [];
-        const faceCheck = inspectFaceCount(faces);
-        const face = faceCheck.face;
+        const face = selectDominantFace(faces, (candidate) => candidate.boxRaw);
         drawMesh(overlayRef.current!, videoRef.current, face);
-        const light = inspectLight(videoRef.current);
+        const light = measureFaceFrame(videoRef.current);
         if (!face) {
-          stableSinceRef.current = 0;
           burstFramesRef.current = [];
           candidateFramesObservedRef.current = 0;
-          lastBurstFrameAtRef.current = 0;
-          eyesClosedObservedRef.current = false;
-          blinkObservedRef.current = false;
+          collectionStartedAtRef.current = 0;
+          if (!invalidSinceRef.current) invalidSinceRef.current = time;
           setStageReady(false);
-          setInstruction(faceCheck.message ?? enrollmentQualityInstruction({
-            faceCount: faces.length,
-            centered: false,
-            sizeValid: false,
-            frontFacing: false,
-            brightnessValid: false,
-            sharpnessValid: false,
-            eyesVisible: false,
-            detectionValid: false,
-          }));
+          if (time - invalidSinceRef.current >= FACE_QUALITY_LIMITS.noValidFaceMessageDelayMs) {
+            setInstruction("Aproxime o rosto e procure mais luz.");
+          }
+          if (debug && time - lastDebugAtRef.current >= 500) {
+            lastDebugAtRef.current = time;
+            setDebugMetrics((current) => ({
+              ...current, inferenceMs, faceCount: faces.length, qualityPassed: false, blinkObserved: false,
+            }));
+          }
           return;
         }
-        const box = face.boxRaw;
-        const centerX = box[0] + box[2] / 2;
-        const centerY = box[1] + box[3] / 2;
-        const center = centerX > faceCaptureQuality.centerXMin
-          && centerX < faceCaptureQuality.centerXMax
-          && centerY > faceCaptureQuality.centerYMin
-          && centerY < faceCaptureQuality.centerYMax;
-        const size = box[2] > faceCaptureQuality.faceWidthMin && box[2] < faceCaptureQuality.faceWidthMax;
         const rotation = face.rotation?.angle;
-        const front = Boolean(rotation
-          && Math.abs(rotation.yaw) <= faceCaptureQuality.yawLimitDegrees
-          && Math.abs(rotation.pitch) <= faceCaptureQuality.pitchLimitDegrees
-          && Math.abs(rotation.roll) <= faceCaptureQuality.rollLimitDegrees);
-        const eyesVisible = eyesAreVisible(face);
-        const quality = {
-          faceCount: faces.length,
-          centered: center,
-          sizeValid: size,
-          frontFacing: front,
-          brightnessValid: light.brightness >= faceCaptureQuality.brightnessMin
-            && light.brightness <= faceCaptureQuality.brightnessMax,
-          sharpnessValid: light.sharpness >= faceCaptureQuality.sharpnessMin,
-          eyesVisible,
-          detectionValid: face.boxScore === undefined
-            || face.boxScore >= faceCaptureQuality.detectorMinConfidence,
-        };
-        const ready = isEnrollmentQualityValid(quality);
+        const eyeMesh = (face.mesh ?? []).map((point) => [point[0] ?? Number.NaN, point[1] ?? Number.NaN]);
+        const ear = faceEyeAspectRatio(eyeMesh);
+        const quality = evaluateFaceQuality({
+          faceCount: 1,
+          faceWidthRatio: face.boxRaw[2],
+          centerXRatio: face.boxRaw[0] + face.boxRaw[2] / 2,
+          centerYRatio: face.boxRaw[1] + face.boxRaw[3] / 2,
+          yawDegrees: rotation?.yaw ?? Number.NaN,
+          pitchDegrees: rotation?.pitch ?? Number.NaN,
+          rollDegrees: rotation?.roll ?? Number.NaN,
+          sharpness: light.sharpness,
+          detectionConfidence: face.boxScore ?? 0,
+          brightness: light.brightness,
+        });
         if (debug && time - lastDebugAtRef.current >= 500) {
           lastDebugAtRef.current = time;
           setDebugMetrics((current) => ({
@@ -403,75 +359,70 @@ export default function FaceEnrollmentManager({
             brightness: Math.round(light.brightness),
             sharpness: Math.round(light.sharpness),
             faceCount: faces.length,
-            qualityPassed: ready,
+            qualityPassed: quality.valid,
             blinkObserved: blinkObservedRef.current,
           }));
         }
-        if (!ready) {
-          stableSinceRef.current = 0;
+        if (!quality.valid) {
           burstFramesRef.current = [];
           candidateFramesObservedRef.current = 0;
-          lastBurstFrameAtRef.current = 0;
-          eyesClosedObservedRef.current = false;
-          blinkObservedRef.current = false;
+          collectionStartedAtRef.current = 0;
+          if (!invalidSinceRef.current) invalidSinceRef.current = time;
           setStageReady(false);
-          setInstruction(enrollmentQualityInstruction(quality));
+          if (time - invalidSinceRef.current >= FACE_QUALITY_LIMITS.noValidFaceMessageDelayMs) {
+            setInstruction("Aproxime o rosto e procure mais luz.");
+          }
           return;
         }
-        if (!stableSinceRef.current) stableSinceRef.current = time;
-        const eyesOpen = eyesAreOpen(face);
+        invalidSinceRef.current = 0;
+        const eyesOpen = ear !== null && ear >= FACE_QUALITY_LIMITS.minimumOpenEyeAspectRatio;
+        if (requireBlink) {
+          if (ear !== null) blinkStateRef.current = advanceBlinkState(blinkStateRef.current, ear, time);
+          blinkObservedRef.current = blinkStateRef.current.completedAt !== null;
+        }
+        if (requireBlink && !blinkObservedRef.current) {
+          setInstruction("Procurando rosto; pisque uma vez quando estiver pronto.");
+          return;
+        }
         if (!eyesOpen) {
-          eyesClosedObservedRef.current = true;
-        } else if (eyesClosedObservedRef.current && !blinkObservedRef.current) {
-          blinkObservedRef.current = true;
-          lastBurstFrameAtRef.current = time;
-        }
-        setInstruction(blinkObservedRef.current
-          ? "Piscar confirmado; mantenha os olhos abertos e segure parado"
-          : "Segure parado e pisque uma vez; a captura será automática");
-        if (blinkObservedRef.current && eyesOpen
-          && time - lastBurstFrameAtRef.current >= faceEnrollmentFrameIntervalMs
-          && candidateFramesObservedRef.current < faceEnrollmentCandidateFrameCount) {
-          const score = scoreEnrollmentFrameQuality({
-            sharpness: light.sharpness,
-            yawDegrees: rotation?.yaw ?? Number.POSITIVE_INFINITY,
-            pitchDegrees: rotation?.pitch ?? Number.POSITIVE_INFINITY,
-            rollDegrees: rotation?.roll ?? Number.POSITIVE_INFINITY,
-            eyesOpen,
-            brightness: light.brightness,
-          });
-          if (frameCount === 1) {
-            if (!burstFramesRef.current[0] || score > burstFramesRef.current[0].score) {
-              const embedding = extractFaceEmbedding(face);
-              if (!embedding) throw new Error("Não foi possível gerar um vetor facial válido.");
-              burstFramesRef.current = [{ frame: { embedding }, score }];
-            }
-          } else {
-            const embedding = extractFaceEmbedding(face);
-            if (!embedding) throw new Error("Não foi possível gerar um vetor facial válido.");
-            burstFramesRef.current = [...burstFramesRef.current, { frame: { embedding }, score }];
+          if (!invalidSinceRef.current) invalidSinceRef.current = time;
+          if (time - invalidSinceRef.current >= FACE_QUALITY_LIMITS.noValidFaceMessageDelayMs) {
+            setInstruction("Aproxime o rosto e procure mais luz.");
           }
-          candidateFramesObservedRef.current += 1;
-          lastBurstFrameAtRef.current = time;
+          return;
         }
-        if (shouldSubmitEnrollmentFrames({
-          stableForMs: time - stableSinceRef.current,
-          minimumStableMs: faceCaptureQuality.stableCaptureMs,
-          blinkObserved: blinkObservedRef.current,
-          frameCount: candidateFramesObservedRef.current,
-          minimumFrames: faceEnrollmentCandidateFrameCount,
+        const embedding = extractFaceEmbedding(face);
+        if (!embedding) {
+          if (!invalidSinceRef.current) invalidSinceRef.current = time;
+          if (time - invalidSinceRef.current >= FACE_QUALITY_LIMITS.noValidFaceMessageDelayMs) {
+            setInstruction("Aproxime o rosto e procure mais luz.");
+          }
+          return;
+        }
+        if (!collectionStartedAtRef.current) collectionStartedAtRef.current = time;
+        const score = quality.score;
+        burstFramesRef.current = [...burstFramesRef.current, { frame: { embedding }, score }]
+          .slice(-FACE_QUALITY_LIMITS.maximumCandidateFrames);
+        candidateFramesObservedRef.current = burstFramesRef.current.length;
+        setStageReady(true);
+        setInstruction("Processando cadastro");
+        const scores = burstFramesRef.current.map((candidate) => candidate.score);
+        if (shouldFinishFrameCollection({
+          scores,
+          requestedFrameCount: frameCount,
+          elapsedMs: time - collectionStartedAtRef.current,
         }) && !submittingRef.current) {
-          setStageReady(true);
-          setInstruction(`Piscada confirmada; selecionando ${frameCount === 1 ? "o melhor quadro" : "os melhores quadros"}`);
           const selected = selectBestEnrollmentFrames(burstFramesRef.current, frameCount);
-          void submitEnrollment(selected.map((candidate) => candidate.embedding));
+          if (selected.length === frameCount) void submitEnrollment(selected.map((candidate) => candidate.embedding));
         }
       } catch (cause) {
-        stableSinceRef.current = 0;
         burstFramesRef.current = [];
         candidateFramesObservedRef.current = 0;
-        lastBurstFrameAtRef.current = 0;
-        setInstruction("Não foi possível processar o quadro. Tente novamente");
+        collectionStartedAtRef.current = 0;
+        if (!invalidSinceRef.current) invalidSinceRef.current = time;
+        if (time - invalidSinceRef.current >= FACE_QUALITY_LIMITS.noValidFaceMessageDelayMs) {
+          setInstruction("Aproxime o rosto e procure mais luz.");
+        }
         setDebugMetrics((metrics) => ({ ...metrics, resultCode: cause instanceof Error ? cause.name : "INFERENCE_FAILED" }));
       } finally {
         pending = false;
@@ -490,7 +441,7 @@ export default function FaceEnrollmentManager({
       stopDetection();
       unregisterCleanup?.();
     };
-  }, [cameraState, modelState, employeeId, submitEnrollment, debug, frameCount]);
+  }, [cameraState, modelState, employeeId, submitEnrollment, debug, frameCount, requireBlink]);
 
   useEffect(() => {
     if (cameraState !== "ready") return;
@@ -520,6 +471,7 @@ export default function FaceEnrollmentManager({
           </select>
         </label>
         {employee && <p className={styles.target}><strong>{employee.nome}</strong> · crachá {employee.cracha}</p>}
+        {employee?.enrolled && <p role="status" className={styles.hint}>Este funcionário já tem cadastro facial. A substituição foi confirmada ao selecioná-lo.</p>}
         {modelState === "loading" && <p className={styles.modelStatus}>{modelProgress}</p>}
         {modelState === "error" && <button type="button" onClick={() => void loadModels()}>Tentar carregar modelos</button>}
         <div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}>
@@ -548,23 +500,22 @@ export default function FaceEnrollmentManager({
             {consistencyDiagnostics && <p className="col-span-2 break-words sm:col-span-3">{consistencyDiagnostics}</p>}
           </section>
         )}
-        <label className={styles.consent}>
-          <input type="checkbox" checked={confirmedPerson} onChange={(event) => setConfirmedPerson(event.target.checked)} />
-          <span>Confirmo que a pessoa diante da câmera é {employee?.nome ?? "o funcionário selecionado"} ({employee?.cracha ?? "crachá"}).</span>
-        </label>
-        <label className={styles.consent}>
+        {requireConsent && <label className={styles.consent}>
           <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
           <span>{faceConsentText}</span>
-        </label>
+        </label>}
+        {requireBlink
+          ? <p className={styles.hint}>A piscada será verificada antes do cadastro.</p>
+          : <p className={styles.hint}>Aviso de teste: sem piscada, uma foto ou vídeo pode passar pela verificação no aparelho; nonce, limite de tentativas e limiar do servidor continuam ativos.</p>}
         <div className={styles.actions}>
           {cameraState === "ready"
             ? <button type="button" disabled={busy} onClick={stopCamera}>Cancelar</button>
-            : <button type="button" className={styles.primary} disabled={!employee || !session || !confirmedPerson || !consent || modelState !== "ready" || cameraState === "starting" || busy} onClick={() => void startCamera()}>
-                {cameraState === "starting" ? "Iniciando câmera..." : stage === "failed" ? "Tentar novamente" : "Iniciar câmera"}
+            : <button type="button" className={styles.primary} disabled={!employee || !session || (requireConsent && !consent) || modelState !== "ready" || cameraState === "starting" || busy} onClick={() => void startCamera()}>
+                {cameraState === "starting" ? "Iniciando câmera..." : stage === "failed" || cameraState === "denied" || cameraState === "missing" ? "Tentar novamente" : "Iniciar cadastro"}
               </button>}
         </div>
         <p className={styles.hint}>
-          Mantenha o rosto centralizado, frontal, nítido e bem iluminado. Após a piscada, a tela seleciona o(s) melhor(es) quadro(s) e salva automaticamente; nenhuma foto é armazenada.
+          Posicione o rosto de frente e com luz suficiente. O melhor quadro será enviado e salvo automaticamente; nenhuma foto é armazenada.
         </p>
       </section>
     </main>

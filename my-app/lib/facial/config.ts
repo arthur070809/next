@@ -2,10 +2,17 @@
 export const faceEnrollmentConsistencyDistance = 0.35;
 export const faceEnrollmentDuplicateDistance = 0.42;
 export const faceEnrollmentMaximumBurstSize = 5;
-export const faceEnrollmentCandidateFrameCount = 5;
-export const faceEnrollmentFrameIntervalMs = 160;
 export const faceEmbeddingDimension = 256;
 export const faceEmbeddingModelVersion = "human-3.3.6-mobileface-v3-a4bcf70";
+
+// TODO(LGPD): restore the privacy notice and obtain legal review before enrolling real employees.
+export function isFaceEnrollmentConsentRequired(value = process.env.FACE_ENROLL_REQUIRE_CONSENT) {
+  return value === "true";
+}
+
+export function isFaceBlinkRequired(value = process.env.NEXT_PUBLIC_FACE_REQUIRE_BLINK) {
+  return value === "true";
+}
 
 export function isFaceLoginEnabled(value = process.env.FACE_LOGIN_ENABLED) {
   return value !== "false";
@@ -17,29 +24,3 @@ export function getFaceEnrollmentFrameCount(value = process.env.FACE_ENROLL_FRAM
   if (!/^[1-5]$/.test(normalized)) return 1;
   return Number(normalized);
 }
-
-// Capture gates are application heuristics, not recommendations from Human.
-// The 0.6 detection-score floor matches the configured Human detector minConfidence.
-export const faceCaptureQuality = {
-  detectorMinConfidence: 0.6,
-  detectorMaxFaces: 2,
-  cameraWidth: 1280,
-  cameraHeight: 720,
-  lightSampleWidth: 96,
-  lightSampleHeight: 72,
-  brightnessMin: 42,
-  brightnessMax: 218,
-  sharpnessMin: 16,
-  faceWidthMin: 0.22,
-  faceWidthMax: 0.72,
-  centerXMin: 0.35,
-  centerXMax: 0.65,
-  centerYMin: 0.25,
-  centerYMax: 0.75,
-  eyeAspectRatioMin: 0.12,
-  yawLimitDegrees: 15,
-  pitchLimitDegrees: 15,
-  rollLimitDegrees: 12,
-  sideYawDegrees: 8,
-  stableCaptureMs: 1000,
-} as const;

@@ -1,6 +1,6 @@
 import { forbidden, redirect } from "next/navigation";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
-import { getFaceEnrollmentFrameCount } from "@/lib/facial/config";
+import { getFaceEnrollmentFrameCount, isFaceBlinkRequired, isFaceEnrollmentConsentRequired } from "@/lib/facial/config";
 import FaceEnrollmentManager from "./FaceEnrollmentManager";
 
 export default async function FaceEnrollmentPage() {
@@ -10,5 +10,7 @@ export default async function FaceEnrollmentPage() {
   return <FaceEnrollmentManager
     diagnosticsEnabled={process.env.FACE_DIAGNOSTICS_ENABLED === "true"}
     frameCount={getFaceEnrollmentFrameCount()}
+    requireConsent={isFaceEnrollmentConsentRequired()}
+    requireBlink={isFaceBlinkRequired()}
   />;
 }

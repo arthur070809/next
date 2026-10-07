@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { aggregateEnrollmentEmbeddings, assertFaceTemplateConfiguration, decryptEmbedding, encryptEmbedding, faceEmbeddingDistance, FaceEncryptionKeyUnavailableError, FaceEnrollmentVerificationError, FaceRecognitionUnavailableError, faceConsentVersion, getFaceMatchThreshold, validateFaceEmbedding } from "@/lib/face";
 import { faceEnrollmentAttemptLimit, getFaceEnrollmentLimit, recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 import { createFaceEnrollmentSession, findFaceEnrollmentSession, renewFaceEnrollmentSession } from "@/lib/face-enrollment-session";
-import { faceEmbeddingDimension, faceEnrollmentMaximumBurstSize, getFaceEnrollmentFrameCount } from "@/lib/facial/config";
+import { faceEmbeddingDimension, faceEnrollmentMaximumBurstSize, getFaceEnrollmentFrameCount, isFaceEnrollmentConsentRequired } from "@/lib/facial/config";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
 import { getClientIpHash, hashSecret } from "@/lib/webauthn";
@@ -70,15 +70,22 @@ export async function POST(request: Request) {
     }
     const body = await request.json().catch(() => ({})) as Record<string, unknown>;
     const funcionarioId = Number(body.funcionarioId);
-    const consentAt = typeof body.consentAt === "string" ? new Date(body.consentAt) : new Date();
+    const consentRequired = isFaceEnrollmentConsentRequired();
+    const submittedConsentAt = typeof body.consentAt === "string" ? new Date(body.consentAt) : null;
     const consent = body.consent === true;
     const samples = Array.isArray(body.samples) ? body.samples : [];
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
     const sessionToken = typeof body.sessionToken === "string" ? body.sessionToken : "";
     const replaceConfirmed = body.replaceConfirmed === true;
-    if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || !consent || !Number.isFinite(consentAt.getTime()) || samples.length !== frameCount || frameCount > faceEnrollmentMaximumBurstSize || !sessionId || !sessionToken) {
-      return apiError(400, "FACE_ENROLLMENT_PAYLOAD_INVALID", "Confirme o consentimento e conclua a captura guiada.");
+    const invalidPayloadMessage = consentRequired
+      ? "Confirme o consentimento e conclua a captura guiada."
+      : "Revise os dados e conclua a captura guiada.";
+    if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1
+      || (consentRequired && (!consent || !submittedConsentAt || !Number.isFinite(submittedConsentAt.getTime())))
+      || samples.length !== frameCount || frameCount > faceEnrollmentMaximumBurstSize || !sessionId || !sessionToken) {
+      return apiError(400, "FACE_ENROLLMENT_PAYLOAD_INVALID", invalidPayloadMessage);
     }
+    const consentAt = consentRequired && submittedConsentAt ? submittedConsentAt : new Date();
     const employee = await prisma.funcionario.findFirst({ where: { id: funcionarioId, papel: { in: ["ADMIN", "ALMOXARIFE"] }, ativo: true }, select: { id: true } });
     if (!employee) return apiError(404, "EMPLOYEE_NOT_FOUND", "Funcionário não encontrado ou inativo.");
     let modelVersion: string;
@@ -173,13 +180,14 @@ export async function POST(request: Request) {
         iv: encrypted.iv,
         tag: encrypted.tag,
         modelVersion,
-        consentVersion: faceConsentVersion,
+        consentVersion: consentRequired ? faceConsentVersion : "not-collected",
         consentAt,
         criadoPorId: auth.funcionario.id,
         criadoEm: enrolledAt,
         atualizadoEm: enrolledAt,
       } });
-      await transaction.securityAuditEvent.create({ data: { acao: "FACE_ENROLLMENT", resultado: "success", funcionarioId, atorId: auth.funcionario.id, ipHash, detalhe: `Consentimento ${faceConsentVersion}; ${samples.length} quadros agregados.` } });
+      const consentAudit = consentRequired ? `Consentimento ${faceConsentVersion}` : "Aviso de privacidade não coletado; revisão jurídica pendente";
+      await transaction.securityAuditEvent.create({ data: { acao: "FACE_ENROLLMENT", resultado: "success", funcionarioId, atorId: auth.funcionario.id, ipHash, detalhe: `${consentAudit}; ${samples.length} quadros agregados.` } });
       await transaction.faceEnrollmentAttempt.deleteMany({ where: { adminId: auth.funcionario.id, funcionarioId, resultado: "verification_failure" } });
       return true;
     });
