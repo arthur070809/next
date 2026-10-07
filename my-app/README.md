@@ -146,7 +146,11 @@ Usuarios do almoxarifado passam por senha, aparelho confiavel/WebAuthn e, depois
 
 O servico facial e externo ao Next.js e deve expor `POST /v1/enroll`, recebendo `{ "captures": [data-uri, ...] }` e retornando `{ "embeddings": [[...], ...] }`, e `POST /v1/verify`, retornando somente `{ "livenessPassed": boolean, "matched": boolean }`. Use HTTPS entre os servicos, `FACE_SERVICE_TOKEN`, validacao de tipo/tamanho/dimensoes e memoria volatil para imagens.
 
-O cadastro oferece captura manual por etapa e aceita uma foto da galeria somente para a primeira amostra frontal (JPG/PNG/WebP, ate 5 MB). A imagem e orientada pelo EXIF, redimensionada/compactada no navegador para respeitar o limite de 1 KB a 2 MB do endpoint e validada pela mesma deteccao de rosto, enquadramento e qualidade; movimentos laterais e piscada ainda exigem capturas novas da camera. As amostras permanecem apenas no estado da pagina e continuam sujeitas a validacao de consistencia e ao nonce do servidor.
+O cadastro e presencial em `/admin/biometria`, somente para admin e para funcionarios admin/almoxarife. O admin escolhe o funcionario antes de abrir a camera; substituir um cadastro existente exige confirmacao explicita. Nao ha captura manual nem galeria: ao detectar continuamente por pelo menos 1 s um rosto unico, frontal, centralizado, no tamanho correto, nitido, iluminado e com olhos visiveis, a tela orienta uma piscada e coleta automaticamente cinco quadros ao vivo. Os quadros sao limitados a 350 KB cada para manter a requisicao abaixo dos limites serverless usuais.
+
+Os cinco quadros sao enviados temporariamente a `FACE_SERVICE_URL/v1/enroll` com o nonce da sessao persistida. O servico deve aceitar uma rajada frontal com piscada e devolver um embedding por quadro. O backend descarta no maximo um discrepante pela distancia a mediana, calcula a media dos restantes, normaliza e armazena somente um vetor por funcionario. Nenhuma foto nem quadro e persistido; eles transitam pelo servico de reconhecimento e ficam apenas na memoria durante o processamento. O vetor e cifrado com AES-256-GCM em `FaceTemplate` no TiDB, com IV aleatorio por registro, tag, versao do modelo, consentimento, autor e timestamps.
+
+Configure `FACE_EMBEDDING_MODEL_VERSION` com a versao exata usada por `/v1/enroll` e `/v1/verify`; template versionado diferente falha fechado. Registros anteriores a esta coluna recebem `legacy-unknown` e continuam elegiveis ao fluxo legado, sem afirmar compatibilidade medida. Novos cadastros exigem tambem `FACE_EMBEDDING_ENCRYPTION_KEY` (32 bytes hexadecimais ou Base64) e `FACE_SERVICE_URL`. Com `FACE_DIAGNOSTICS_ENABLED=true`, somente a tela administrativa e os logs de cadastro mostram metricas sem imagens, vetores ou dados pessoais.
 
 O fornecedor deve confirmar licenca comercial do modelo e fornecer PAD/liveness adequado. Pesos do InsightFace/ArcFace nao devem ser tratados como liberados para uso comercial sem verificacao da licenca. O backend falha fechado quando `FACE_SERVICE_URL` ou a chave de embeddings nao estao configuradas.
 
@@ -162,21 +166,21 @@ npx prisma migrate deploy --config prisma7.config.ts
 npx prisma generate
 ```
 
-A migration `20261002120000_add_auth_e_facial` cria templates criptografados, desafios e tentativas. O rollback recomendado e restaurar o backup. Em janela de manutencao, apos confirmar impacto, as tabelas podem ser removidas com `DROP TABLE face_auth_attempts, liveness_challenges, face_templates`.
+A migration `20261002120000_add_auth_e_facial` cria templates criptografados, desafios e tentativas. Esta alteracao adiciona `20261007150000_face_template_version`, que cria `model_version` e `atualizado_em`; o SQL para aplicacao manual esta em `prisma/manual_sql/face_template_version.sql` e a migration Prisma correspondente em `prisma/migrations/20261007150000_face_template_version/migration.sql`. Aplique o SQL manualmente no banco `marcon_demo` pelo DBeaver, depois de backup e antes de publicar o codigo que seleciona essas colunas. Nao use `migrate dev`, `migrate reset` nem `db push`. O rollback recomendado e restaurar o backup; nao remova colunas/tabelas biometricas sem avaliar os templates existentes.
 
 ### Operacao segura e LGPD
 
-Gere `FACE_EMBEDDING_ENCRYPTION_KEY` com 32 bytes aleatorios, armazene-a em Secret Manager/KMS e nunca a versione. Para rotacionar, mantenha a chave antiga somente durante a migracao, recripte todos os templates, valide a contagem e remova a antiga. O limiar `0.42` e ponto de partida, nao garantia: FAR/FRR precisam ser medidos pelo fornecedor no ambiente real.
+Gere `FACE_EMBEDDING_ENCRYPTION_KEY` com 32 bytes aleatorios, armazene-a em Secret Manager/KMS e nunca a versione. Para rotacionar, mantenha a chave antiga somente durante a migracao, recripte todos os templates, valide a contagem e remova a antiga. O limiar `0.42` de login e mantido sem alteracao e e ponto de partida, nao garantia: FAR/FRR precisam ser medidos pelo fornecedor no ambiente real.
 
 A finalidade e autenticar funcionarios do almoxarifado. O dado sensivel e o embedding facial; fotos nao sao armazenadas. Templates ficam cifrados no MySQL, com acesso restrito, retencao enquanto o acesso for necessario e exclusao no desligamento ou revogacao. O termo deve registrar consentimento especifico, versao, data, coletor, finalidade, prazo e direito de revogacao. Riscos principais: falsos positivos/negativos, deepfake, falha de camera e comprometimento da chave. Controles: aparelho confiavel, WebAuthn, desafio ativo, nonce, rate limit, bloqueio, auditoria sem biometria e acesso emergencial auditado. RH/juridico deve aprovar a base legal e o RIPD antes da ativacao.
 
 ### Validacao manual
 
-1. Admin cria um aparelho, mostra o codigo de uso unico e conclui o pareamento no celular.
-2. Admin coleta 3 a 5 amostras com consentimento, frente/giro/iluminacao adequada; capturas escuras, borradas, cortadas ou com varios rostos devem ser rejeitadas pelo servico.
-3. Usuario entra com cracha e senha, confirma o aparelho, executa o desafio facial e chega ao Almoxarifado.
-4. Repita com foto de foto, outra pessoa, nonce expirado/reutilizado e aparelho revogado; todos devem falhar com mensagem generica.
+1. Admin seleciona um almoxarife, confirma a identidade presencialmente e o consentimento; se houver template, confirma a substituicao antes de ligar a camera.
+2. Em aparelho com camera, posicione um rosto na oval, olhe de frente e pisque; a captura dos cinco quadros e o salvamento devem acontecer automaticamente. Verifique que o banco guarda apenas um vetor cifrado e que recarregar a pagina nao exige nova captura.
+3. Usuario almoxarife entra com cracha/senha, confirma o aparelho, executa o desafio facial e chega ao Almoxarifado. Admin sem template segue pelo TOTP; operador continua sem login facial; contas demo continuam no fluxo demo.
+4. Repita com outra pessoa, nonce expirado/reutilizado e aparelho revogado; todos devem falhar de forma segura.
 5. Admin concede acesso emergencial com justificativa e valide uso unico/expiracao.
 6. Desative o usuario e confirme exclusao dos templates, desafios e sessoes; usuario comum recebe 403 nas rotas administrativas e visitante 401.
 
-Pendencias de producao: validar PAD certificado contra deepfakes, medir FAR/FRR com dados reais, manter contingencia quando a camera falhar e manter TOTP habilitado para o admin. WebAuthn local e vinculo do aparelho, nao prova de identidade facial.
+Pendencias de producao: confirmar com o fornecedor que `/v1/enroll` aceita cinco quadros frontais com piscada (sem poses laterais), validar PAD certificado contra deepfakes, medir FAR/FRR com dados reais, confirmar compatibilidade dos vetores `legacy-unknown`, testar a captura em aparelhos reais e manter TOTP habilitado para o admin. WebAuthn local e vinculo do aparelho, nao prova de identidade facial.
