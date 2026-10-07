@@ -17,7 +17,9 @@ describe("identify face challenge", () => {
     vi.clearAllMocks();
     process.env.LOGIN_CHALLENGE_SECRET = "test-login-secret-with-at-least-32-characters";
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ id: 7 } as never);
-    vi.mocked(prisma.authChallenge.create).mockImplementation(async (args: { data: { id: string } }) => ({ id: args.data.id }) as never);
+    vi.mocked(prisma.authChallenge.create).mockImplementation((async (args: Parameters<typeof prisma.authChallenge.create>[0]) => ({
+      id: args.data.id,
+    })) as never);
   });
 
   afterEach(() => {
