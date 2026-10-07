@@ -24,6 +24,7 @@ import {
 } from "@/lib/login-test-mode";
 import { isDemoLoginEnabledForBadge, maskDemoBadge } from "@/lib/demo-mode";
 import { getLoginAttemptPolicy } from "@/lib/login-attempt-policy";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { createSecret, getWebAuthnRelyingParty, hashSecret, trustedDeviceCookieName, webauthnChallengeTtlMs } from "@/lib/webauthn";
 
@@ -151,6 +152,7 @@ export async function POST(request: Request) {
     }
 
     if (credential === "face") {
+      if (!isFaceLoginEnabled()) return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
       if (funcionario.papel !== PapelFuncionario.ADMIN) {
         return invalidCodeResponse(startedAt, badge, ipHash, false, attemptPolicy);
       }
@@ -170,13 +172,9 @@ export async function POST(request: Request) {
       const faceTemplateCount = await prisma.faceTemplate.count({
         where: { funcionarioId: funcionario.id, revogadoEm: null },
       });
-      if (faceTemplateCount === 0) {
-        return NextResponse.json(
-          { error: "O administrador precisa cadastrar a biometria facial ou habilitar o TOTP antes de entrar." },
-          { status: 503 },
-        );
+      if (faceTemplateCount > 0) {
+        return NextResponse.json(await createLoginFaceChallenge(funcionario.id, ipHash), { status: 202 });
       }
-      return NextResponse.json(await createLoginFaceChallenge(funcionario.id, ipHash), { status: 202 });
     }
 
     if (funcionario.papel === PapelFuncionario.ALMOXARIFE) {

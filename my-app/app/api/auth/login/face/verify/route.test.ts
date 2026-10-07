@@ -1,26 +1,41 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/prisma", () => ({ prisma: {
-  authChallenge: { findUnique: vi.fn(), updateMany: vi.fn() },
-  livenessChallenge: { findUnique: vi.fn(), updateMany: vi.fn() },
-  faceTemplate: { findMany: vi.fn() },
-  sessao: { create: vi.fn() },
-  faceAuthAttempt: { create: vi.fn() },
-  trustedDevice: { update: vi.fn() },
+const transaction = {
   funcionario: { findFirst: vi.fn() },
+  authChallenge: { updateMany: vi.fn() },
+  sessao: { create: vi.fn() },
+  trustedDevice: { update: vi.fn() },
+  faceAuthAttempt: { create: vi.fn() },
   securityAuditEvent: { create: vi.fn() },
-  loginAttemptBucket: { findFirst: vi.fn(), deleteMany: vi.fn() },
-} }));
-vi.mock("@/lib/face", () => ({
-  areFaceTemplateVersionsCompatible: vi.fn(() => true),
-  decryptEmbedding: vi.fn(() => Array.from({ length: 64 }, () => 0.1)),
-  FaceServiceUnavailableError: class FaceServiceUnavailableError extends Error {},
-  faceAttemptLimit: 3,
-  hashFaceNonce: vi.fn(() => "nonce-hash"),
-  verifyFaceCapture: vi.fn(),
+};
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    $transaction: vi.fn(async (callback: (client: typeof transaction) => unknown) => callback(transaction)),
+    authChallenge: { findUnique: vi.fn(), updateMany: vi.fn() },
+    livenessChallenge: { findUnique: vi.fn(), updateMany: vi.fn() },
+    faceTemplate: { findMany: vi.fn() },
+    sessao: { create: vi.fn() },
+    faceAuthAttempt: { create: vi.fn() },
+    trustedDevice: { update: vi.fn() },
+    funcionario: { findFirst: vi.fn() },
+    securityAuditEvent: { create: vi.fn() },
+    loginAttemptBucket: { findFirst: vi.fn(), deleteMany: vi.fn() },
+  },
 }));
 vi.mock("next/headers", () => ({
   cookies: vi.fn(async () => ({ get: () => ({ value: "device-token" }) })),
+}));
+vi.mock("@/lib/face", () => ({
+  areFaceTemplateVersionsCompatible: vi.fn(() => false),
+  decryptEmbedding: vi.fn(() => Array(256).fill(0)),
+  FaceRecognitionUnavailableError: class FaceRecognitionUnavailableError extends Error {},
+  faceAttemptLimit: 3,
+  faceEmbeddingDistance: vi.fn(() => 0.1),
+  getFaceMatchThreshold: vi.fn(() => 0.7),
+  hashFaceNonce: vi.fn(() => "nonce-hash"),
+  isFaceEmbeddingMatch: vi.fn(() => true),
+  validateFaceEmbedding: vi.fn(() => [1, ...Array(255).fill(0)]),
 }));
 vi.mock("@/lib/login-attempts", () => ({
   clearBadgeLoginFailures: vi.fn(async () => undefined),
@@ -51,41 +66,57 @@ vi.mock("@/lib/webauthn", () => ({
 
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
-import { FaceServiceUnavailableError, verifyFaceCapture } from "@/lib/face";
-import { verifyLoginFaceState } from "@/lib/login-flow";
+import { areFaceTemplateVersionsCompatible, decryptEmbedding } from "@/lib/face";
+import { createLoginSessionSuccessResponse, verifyLoginFaceState } from "@/lib/login-flow";
 
-describe("login face verification", () => {
+describe("local facial login verification", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(areFaceTemplateVersionsCompatible).mockReturnValue(false);
+    vi.stubEnv("FACE_LOGIN_ENABLED", "true");
     vi.mocked(prisma.loginAttemptBucket.findFirst).mockResolvedValue(null);
-    vi.mocked(prisma.livenessChallenge.findUnique).mockResolvedValue(null);
-  });
-
-  it("rejects direct attempts to bypass the signed facial challenge", async () => {
-    const request = new Request("http://localhost/api/auth/login/face/verify", {
-      method: "POST",
-      headers: { "content-type": "application/json", origin: "http://localhost" },
-      body: JSON.stringify({
-        challengeId: "invented",
-        nonce: "invented",
-        capture: "data:image/jpeg;base64,not-a-face",
-      }),
-    });
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(401);
-    expect(prisma.sessao.create).not.toHaveBeenCalled();
-  });
-
-  it("does not allow an operator to complete a facial challenge", async () => {
+    vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
+      id: "challenge-admin",
+      tipo: "LOGIN_FACE",
+      usadoEm: null,
+      expiraEm: new Date(Date.now() + 60_000),
+      funcionarioId: 7,
+      preAuthTokenHash: "secret-hash",
+      challenge: "piscar",
+      ipHash: "ip-hash",
+      funcionario: { id: 7, cracha: "1234", ativo: true, papel: "ADMIN" },
+    } as never);
     vi.mocked(verifyLoginFaceState).mockReturnValue({
-      challengeId: "challenge-operator",
-      funcionarioId: 8,
+      challengeId: "challenge-admin",
+      funcionarioId: 7,
       expiresAt: Date.now() + 60_000,
       nonceHash: "nonce-hash",
       challenge: "piscar",
     } as never);
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([
+      { embeddingEncrypted: new Uint8Array([1]), iv: new Uint8Array([2]), tag: new Uint8Array([3]), modelVersion: "legacy-unknown" },
+    ] as never);
+    transaction.authChallenge.updateMany.mockResolvedValue({ count: 1 });
+    transaction.funcionario.findFirst.mockResolvedValue({
+      id: 7, nome: "Admin", email: "admin@example.test", cargo: "Admin", cracha: "1234",
+      papel: "ADMIN", mustChangePassword: false,
+    } as never);
+    vi.mocked(createLoginSessionSuccessResponse).mockReturnValue(new Response("ok") as never);
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("rejects direct attempts that omit the signed facial challenge", async () => {
+    const response = await POST(new Request("http://localhost/api/auth/login/face/verify", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost" },
+      body: JSON.stringify({ challengeId: "invented", nonce: "invented", embedding: [] }),
+    }));
+    expect(response.status).toBe(401);
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("does not permit an operator to complete an administrator facial challenge", async () => {
     vi.mocked(prisma.authChallenge.findUnique).mockResolvedValue({
       id: "challenge-operator",
       tipo: "LOGIN_FACE",
@@ -95,55 +126,78 @@ describe("login face verification", () => {
       preAuthTokenHash: "secret-hash",
       challenge: "piscar",
       ipHash: "ip-hash",
-      funcionario: { id: 8, ativo: true, papel: "OPERADOR" },
+      funcionario: { id: 8, cracha: "4321", ativo: true, papel: "OPERADOR" },
     } as never);
-
-    const response = await POST(new Request("http://localhost/api/auth/login/face/verify", {
-      method: "POST",
-      headers: { "content-type": "application/json", origin: "http://localhost" },
-      body: JSON.stringify({
-        challengeId: "challenge-operator",
-        loginToken: "signed-token",
-        nonce: "nonce",
-        capture: `data:image/jpeg;base64,${"A".repeat(1400)}`,
-      }),
-    }));
-
+    vi.mocked(verifyLoginFaceState).mockReturnValue({
+      challengeId: "challenge-operator",
+      funcionarioId: 8,
+      expiresAt: Date.now() + 60_000,
+      nonceHash: "nonce-hash",
+      challenge: "piscar",
+    } as never);
+    const response = await POST(loginRequest());
     expect(response.status).toBe(401);
     expect(prisma.faceTemplate.findMany).not.toHaveBeenCalled();
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
-  it("reports provider outage without consuming the challenge or counting a failed identity", async () => {
-    vi.mocked(prisma.livenessChallenge.findUnique).mockResolvedValue({
-      id: "challenge-1",
-      funcionarioId: 7,
-      usadoEm: null,
-      expiraEm: new Date(Date.now() + 60_000),
-      nonceHash: "nonce-hash",
-      tipo: "piscar",
-      trustedDeviceId: "device-1",
-      trustedDevice: { id: "device-1", revogadoEm: null, tokenHash: "secret-hash" },
-      funcionario: { id: 7, cracha: "123", ativo: true, papel: "ALMOXARIFE" },
-    } as never);
-    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([
-      { embeddingEncrypted: new Uint8Array([1]), iv: new Uint8Array([1]), tag: new Uint8Array([1]), modelVersion: "legacy-unknown" },
-    ] as never);
-    vi.mocked(verifyFaceCapture).mockRejectedValueOnce(new FaceServiceUnavailableError());
-    const response = await POST(new Request("http://localhost/api/auth/login/face/verify", {
-      method: "POST",
-      headers: { "content-type": "application/json", origin: "http://localhost" },
-      body: JSON.stringify({
-        challengeId: "challenge-1",
-        nonce: "nonce",
-        capture: `data:image/jpeg;base64,${"A".repeat(1400)}`,
-      }),
-    }));
-
+  it("fails closed for legacy templates incompatible with the local model", async () => {
+    vi.mocked(areFaceTemplateVersionsCompatible).mockReturnValue(false);
+    const response = await POST(loginRequest());
     expect(response.status).toBe(503);
-    expect(await response.json()).toMatchObject({ error: expect.stringContaining("temporariamente indisponível") });
-    expect(prisma.livenessChallenge.updateMany).not.toHaveBeenCalled();
-    expect(prisma.faceAuthAttempt.create).not.toHaveBeenCalled();
-    expect(prisma.securityAuditEvent.create).not.toHaveBeenCalled();
+    expect(areFaceTemplateVersionsCompatible).toHaveBeenCalledWith(["legacy-unknown"]);
+    expect(transaction.authChallenge.updateMany).not.toHaveBeenCalled();
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("creates a session only after the server matches the submitted vector to an active template", async () => {
+    vi.mocked(areFaceTemplateVersionsCompatible).mockReturnValue(true);
+    vi.mocked(prisma.faceTemplate.findMany).mockResolvedValue([
+      {
+        embeddingEncrypted: new Uint8Array([1]),
+        iv: new Uint8Array([2]),
+        tag: new Uint8Array([3]),
+        modelVersion: "human-3.3.6-mobileface-v3-a4bcf70",
+      },
+    ] as never);
+    vi.mocked(decryptEmbedding).mockReturnValue([1, ...Array(255).fill(0)]);
+    const response = await POST(loginRequest());
+    expect(response.status).toBe(200);
+    expect(areFaceTemplateVersionsCompatible).toHaveBeenCalledWith(["human-3.3.6-mobileface-v3-a4bcf70"]);
+    expect(decryptEmbedding).toHaveBeenCalledOnce();
+    expect(transaction.authChallenge.updateMany).toHaveBeenCalledOnce();
+    expect(transaction.sessao.create).toHaveBeenCalledOnce();
+    expect(createLoginSessionSuccessResponse).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the face login kill switch server-side", async () => {
+    vi.stubEnv("FACE_LOGIN_ENABLED", "false");
+    const response = await POST(loginRequest());
+    expect(response.status).toBe(401);
+    expect(prisma.authChallenge.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("does not log embeddings or input biometric values", async () => {
+    vi.stubEnv("FACE_LOGIN_ENABLED", "true");
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await POST(loginRequest({ embedding: [0.123456] }));
+    expect(response.status).toBe(503);
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("0.123456");
+    errorLog.mockRestore();
   });
 });
+
+function loginRequest(overrides: Record<string, unknown> = {}) {
+  return new Request("http://localhost/api/auth/login/face/verify", {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "http://localhost" },
+    body: JSON.stringify({
+      challengeId: "challenge-admin",
+      loginToken: "signed-token",
+      nonce: "nonce",
+      challengeCompleted: true,
+      embedding: [1, ...Array(255).fill(0)],
+      ...overrides,
+    }),
+  });
+}

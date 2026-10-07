@@ -1,7 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { areFaceTemplateVersionsCompatible, bestFaceMatchPerEmployee, decryptEmbedding, faceEmbeddingDistance, FaceServiceUnavailableError, getFaceIdentifyMinMargin, getFaceMatchThreshold, hashFaceNonce, isFaceEmbeddingMatch, validateFaceCapture } from "@/lib/face";
+import {
+  areFaceTemplateVersionsCompatible,
+  bestFaceMatchPerEmployee,
+  decryptEmbedding,
+  faceEmbeddingDistance,
+  FaceRecognitionUnavailableError,
+  getFaceIdentifyMinMargin,
+  getFaceMatchThreshold,
+  hashFaceNonce,
+  isFaceEmbeddingMatch,
+  validateFaceEmbedding,
+} from "@/lib/face";
 import {
   clearBadgeLoginFailures,
   getLoginBlockRetryAfter,
@@ -11,57 +22,20 @@ import {
   recordLoginFailure,
 } from "@/lib/login-attempts";
 import { createLoginSessionResponse, getLoginAccessArea, verifyIdentifyFaceState } from "@/lib/login-flow";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, isSameOrigin } from "@/lib/security";
 import { createSecret, hashSecret } from "@/lib/webauthn";
 
 const genericFailure = () => NextResponse.json({ error: "Não foi possível identificar com segurança. Use o crachá." }, { status: 401 });
-const diagnosticsEnabled = () => process.env.FACE_DIAGNOSTICS_ENABLED === "true";
-
-async function extractCaptureEmbedding(capture: string): Promise<number[] | null> {
-  const baseUrl = process.env.FACE_SERVICE_URL?.trim();
-  const token = process.env.FACE_SERVICE_TOKEN?.trim();
-  if (!baseUrl || !token) throw new FaceServiceUnavailableError();
-  validateFaceCapture(capture);
-  const endpoints = [
-    `${baseUrl.replace(/\/$/, "")}/v1/embedding`,
-    `${baseUrl.replace(/\/$/, "")}/v1/embed`,
-    `${baseUrl.replace(/\/$/, "")}/v1/encode`,
-  ];
-
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-        body: JSON.stringify({ capture }),
-        signal: AbortSignal.timeout(15_000),
-      });
-      if (!response.ok) continue;
-      const payload = await response.json() as Record<string, unknown>;
-      const nested = payload.result && typeof payload.result === "object" ? payload.result as Record<string, unknown> : undefined;
-      const embeddingCandidate = Array.isArray(payload.embedding)
-        ? payload.embedding
-        : Array.isArray(payload.embeddings)
-          ? (payload.embeddings as unknown[])[0]
-          : Array.isArray(nested?.embedding)
-            ? nested.embedding
-            : null;
-      if (Array.isArray(embeddingCandidate) && embeddingCandidate.length >= 32 && embeddingCandidate.every((value): value is number => typeof value === "number" && Number.isFinite(value))) {
-        return embeddingCandidate as number[];
-      }
-    } catch {
-      // Some biometric providers expose slightly different extraction endpoints; fall through to the next option.
-    }
-  }
-  throw new FaceServiceUnavailableError();
-}
+const unavailable = () => NextResponse.json({ error: "O reconhecimento facial está temporariamente indisponível." }, { status: 503 });
 
 export async function POST(request: Request) {
   try {
+    if (!isFaceLoginEnabled()) return genericFailure();
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     const contentLength = request.headers.get("content-length");
-    if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > 3 * 1024 * 1024)) {
+    if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > 32 * 1024)) {
       return genericFailure();
     }
     const ipHash = getLoginClientIpHash(request);
@@ -82,8 +56,13 @@ export async function POST(request: Request) {
     const challengeId = typeof body.challengeId === "string" ? body.challengeId.trim() : "";
     const loginToken = typeof body.loginToken === "string" ? body.loginToken.trim() : "";
     const nonce = typeof body.nonce === "string" ? body.nonce.trim() : "";
-    const capture = typeof body.capture === "string" ? body.capture : "";
-    if (!challengeId || !nonce || !capture || !loginToken) return genericFailure();
+    let candidate: number[] | null = null;
+    try {
+      if (body.challengeCompleted === true) candidate = validateFaceEmbedding(body.embedding);
+    } catch {
+      candidate = null;
+    }
+    if (!challengeId || !nonce || !loginToken) return genericFailure();
 
     const state = verifyIdentifyFaceState(loginToken);
     if (!state || state.challengeId !== challengeId || state.expiresAt <= Date.now() || state.nonceHash !== hashFaceNonce(nonce)) {
@@ -97,27 +76,20 @@ export async function POST(request: Request) {
     const now = new Date();
     if (
       !challenge ||
-        challenge.tipo !== "LOGIN_FACE_IDENTIFY" ||
-        challenge.usadoEm ||
-        challenge.expiraEm <= now ||
-        challenge.challenge !== state.challenge ||
-        challenge.preAuthTokenHash !== hashSecret(loginToken) ||
-        challenge.ipHash !== ipHash
-    ) {
-      return genericFailure();
-    }
+      challenge.tipo !== "LOGIN_FACE_IDENTIFY" ||
+      challenge.usadoEm ||
+      challenge.expiraEm <= now ||
+      challenge.challenge !== state.challenge ||
+      challenge.preAuthTokenHash !== hashSecret(loginToken) ||
+      challenge.ipHash !== ipHash
+    ) return genericFailure();
 
-    let captureEmbedding: number[] | null;
-    try {
-      captureEmbedding = await extractCaptureEmbedding(capture);
-    } catch (error) {
-      if (error instanceof FaceServiceUnavailableError) {
-        console.error("[face] Identificação facial indisponível por configuração ou serviço.");
-        return NextResponse.json({ error: "O reconhecimento facial está temporariamente indisponível." }, { status: 503 });
-      }
-      return genericFailure();
-    }
-    if (!captureEmbedding) return genericFailure();
+    const consumed = await prisma.authChallenge.updateMany({
+      where: { id: challenge.id, tipo: "LOGIN_FACE_IDENTIFY", usadoEm: null, expiraEm: { gt: now }, preAuthTokenHash: hashSecret(loginToken) },
+      data: { usadoEm: now },
+    });
+    if (consumed.count !== 1) return genericFailure();
+    if (!candidate) return genericFailure();
 
     const templates = await prisma.faceTemplate.findMany({
       where: {
@@ -133,7 +105,6 @@ export async function POST(request: Request) {
         funcionario: { select: { papel: true, cracha: true } },
       },
     });
-
     if (templates.length === 0) return genericFailure();
 
     const templatesByEmployee = new Map<number, string[]>();
@@ -144,8 +115,9 @@ export async function POST(request: Request) {
     }
     if ([...templatesByEmployee.values()].some((versions) => !areFaceTemplateVersionsCompatible(versions))) {
       console.error("[face] Identificação facial negada: versões incompatíveis de template.");
-      return NextResponse.json({ error: "O reconhecimento facial está temporariamente indisponível." }, { status: 503 });
+      return unavailable();
     }
+
     const templateCandidates: Array<{ funcionarioId: number; cracha: string; distance: number }> = [];
     try {
       for (const template of templates) {
@@ -153,17 +125,16 @@ export async function POST(request: Request) {
         templateCandidates.push({
           funcionarioId: template.funcionarioId,
           cracha: template.funcionario.cracha,
-          distance: faceEmbeddingDistance(captureEmbedding, embedding),
+          distance: faceEmbeddingDistance(candidate, embedding),
         });
       }
     } catch (error) {
       console.error("[face] Não foi possível decifrar o template facial.", {
         errorName: error instanceof Error ? error.name : "UnknownError",
       });
-      return NextResponse.json({ error: "O reconhecimento facial está temporariamente indisponível." }, { status: 503 });
+      return unavailable();
     }
     const rankedCandidates = bestFaceMatchPerEmployee(templateCandidates);
-
     if (rankedCandidates.length === 0) return genericFailure();
 
     const best = rankedCandidates[0];
@@ -180,7 +151,6 @@ export async function POST(request: Request) {
         { status: 429, headers: { "Retry-After": String(retryAfter) } },
       );
     }
-
     if (!accepted) {
       await recordLoginFailure(best.cracha, ipHash);
       await prisma.securityAuditEvent.create({
@@ -191,27 +161,11 @@ export async function POST(request: Request) {
           detalhe: second && best.distance - second.distance <= minMargin ? "ambiguous_match" : "no_match",
         },
       });
-      if (diagnosticsEnabled()) {
-        console.info("[face:diagnostics]", {
-          event: "login_rejected",
-          distance: best.distance,
-          threshold,
-          rejectionReason: second && best.distance - second.distance <= minMargin ? "ambiguous_match" : "no_match",
-        });
-      }
       return genericFailure();
-    }
-    if (diagnosticsEnabled()) {
-      console.info("[face:diagnostics]", {
-        event: "login_candidate",
-        distance: best.distance,
-        threshold,
-        rejectionReason: "candidate_accepted",
-      });
     }
 
     const funcionario = await prisma.funcionario.findFirst({
-      where: { id: best.funcionarioId, ativo: true },
+      where: { id: best.funcionarioId, ativo: true, papel: PapelFuncionario.ADMIN },
       select: {
         id: true,
         nome: true,
@@ -227,39 +181,22 @@ export async function POST(request: Request) {
       return genericFailure();
     }
 
-    const consumed = await prisma.authChallenge.updateMany({
-      where: {
-        id: challenge.id,
-        tipo: "LOGIN_FACE_IDENTIFY",
-        usadoEm: null,
-        expiraEm: { gt: now },
-        preAuthTokenHash: hashSecret(loginToken),
-      },
-      data: { usadoEm: now },
-    });
-    if (consumed.count !== 1) {
-      await recordLoginFailure(funcionario.cracha, ipHash);
-      return genericFailure();
-    }
-
-    if (funcionario.papel === PapelFuncionario.ADMIN) {
-      const totp = await prisma.adminTotpCredential.findUnique({ where: { funcionarioId: funcionario.id } });
-      if (totp?.enabledAt) {
-        const preAuthToken = createSecret();
-        await prisma.authChallenge.create({
-          data: {
-            tipo: "ADMIN_TOTP",
-            preAuthTokenHash: hashSecret(preAuthToken),
-            funcionarioId: funcionario.id,
-            ipHash,
-            expiraEm: new Date(Date.now() + 5 * 60 * 1000),
-          },
-        });
-        await prisma.securityAuditEvent.create({
-          data: { acao: "FACE_IDENTIFY_LOGIN", resultado: "success", funcionarioId: funcionario.id, ipHash, detalhe: "admin_totp_required" },
-        });
-        return NextResponse.json({ step: "totp", preAuthToken }, { status: 202 });
-      }
+    const totp = await prisma.adminTotpCredential.findUnique({ where: { funcionarioId: funcionario.id } });
+    if (totp?.enabledAt) {
+      const preAuthToken = createSecret();
+      await prisma.authChallenge.create({
+        data: {
+          tipo: "ADMIN_TOTP",
+          preAuthTokenHash: hashSecret(preAuthToken),
+          funcionarioId: funcionario.id,
+          ipHash,
+          expiraEm: new Date(Date.now() + 5 * 60 * 1000),
+        },
+      });
+      await prisma.securityAuditEvent.create({
+        data: { acao: "FACE_IDENTIFY_LOGIN", resultado: "success", funcionarioId: funcionario.id, ipHash, detalhe: "admin_totp_required" },
+      });
+      return NextResponse.json({ step: "totp", preAuthToken }, { status: 202 });
     }
 
     const session = await createLoginSessionResponse(funcionario, getLoginAccessArea(funcionario.papel));
@@ -274,13 +211,13 @@ export async function POST(request: Request) {
     return session;
   } catch (error) {
     if (isLoginAttemptStorageUnavailable(error)) return loginAttemptStorageUnavailableResponse();
-    if (error instanceof FaceServiceUnavailableError) {
-      console.error("[face] Login facial indisponível por configuração do limiar.");
-      return NextResponse.json({ error: "O reconhecimento facial está temporariamente indisponível." }, { status: 503 });
+    if (error instanceof FaceRecognitionUnavailableError) {
+      console.error("[face] Login facial indisponível por configuração local do modelo, chave ou limiar.");
+      return unavailable();
     }
     if (error && typeof error === "object" && "code" in error && (error.code === "P2021" || error.code === "P2022")) {
       console.error("[face] Login facial indisponível: aplique a migration de templates faciais.", { code: error.code });
-      return NextResponse.json({ error: "O reconhecimento facial está temporariamente indisponível." }, { status: 503 });
+      return unavailable();
     }
     const errorId = randomUUID();
     console.error("Falha na identificação facial 1-para-N", { errorId, errorName: error instanceof Error ? error.name : "UnknownError" });

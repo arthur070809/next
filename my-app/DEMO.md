@@ -23,15 +23,16 @@ Configure os nomes abaixo sem compartilhar valores ou credenciais.
 | `LOGIN_CHALLENGE_SECRET` | Segredo local com pelo menos 32 caracteres | Environment Variable; manter segredo forte e estável entre deploys |
 | `TOTP_ENCRYPTION_KEY` | Chave de 32 bytes em hexadecimal ou Base64, se TOTP for usado | Environment Variable protegida |
 | `FACE_EMBEDDING_ENCRYPTION_KEY` | Chave de 32 bytes em hexadecimal ou Base64, se biometria facial for usada | Environment Variable protegida |
-| `FACE_SERVICE_URL` | URL do serviço facial, se habilitado | Environment Variable do serviço facial |
-| `FACE_MATCH_THRESHOLD` | Opcional; limiar de comparação facial | Opcional |
+| `FACE_EMBEDDING_MODEL_VERSION` | `human-3.3.6-mobileface-v3-a4bcf70` para os modelos locais fixados | Mesmo valor exato |
+| `FACE_MOBILEFACE_MATCH_THRESHOLD` | Obrigatório para login facial; definir somente após medir distâncias reais | Environment Variable definida após calibração |
+| `FACE_LOGIN_ENABLED` | `true` por padrão; `false` esconde e bloqueia login facial | `true` ou `false` |
+| `FACE_DIAGNOSTICS_ENABLED` | Opcional; habilita distâncias apenas para admin autenticado | `true` somente durante diagnóstico controlado |
 | `LOGIN_FACIAL_OBRIGATORIO` | Configuração existente; não alterada por este roteiro | Configuração existente; não alterada por este roteiro |
 | `NEXT_PUBLIC_APP_URL` | URL HTTPS local/de teste conforme o cenário | URL pública HTTPS da aplicação |
 | `WEBAUTHN_ORIGIN` | Origem HTTPS usada para WebAuthn | Origem HTTPS exata do domínio publicado |
 | `WEBAUTHN_RP_ID` | Host correspondente à origem WebAuthn | Host correspondente à origem WebAuthn |
 | `WEBAUTHN_RP_NAME` | Nome apresentado pelo navegador | Opcional; nome apresentado pelo navegador |
 | `NEXT_PUBLIC_VIAGEM_DEMO` | Recurso demo existente da viagem; manter configuração atual | Recurso demo existente da viagem; manter configuração atual |
-| `FACE_SERVICE_TOKEN` | Token do serviço facial, se habilitado | Environment Variable protegida |
 | `TRUSTED_DEVICE_LIMIT` | Opcional; limite de dispositivos confiáveis | Opcional |
 | `DEV_EXTRA_ORIGINS` | Somente desenvolvimento; origens adicionais locais | Não necessário; ignorado em produção |
 | `NODE_ENV` | Controlado pelo runtime local | Controlado pela Vercel |

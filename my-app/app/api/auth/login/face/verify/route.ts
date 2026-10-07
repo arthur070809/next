@@ -2,7 +2,8 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { areFaceTemplateVersionsCompatible, decryptEmbedding, FaceServiceUnavailableError, faceAttemptLimit, hashFaceNonce, verifyFaceCapture } from "@/lib/face";
+import { areFaceTemplateVersionsCompatible, decryptEmbedding, FaceRecognitionUnavailableError, faceAttemptLimit, faceEmbeddingDistance, getFaceMatchThreshold, hashFaceNonce, isFaceEmbeddingMatch, validateFaceEmbedding } from "@/lib/face";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import {
   clearBadgeLoginFailures,
   getLoginBlockRetryAfter,
@@ -23,7 +24,7 @@ const faceServiceUnavailable = () => NextResponse.json(
   { status: 503 },
 );
 
-async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture: string, ipHash: string) {
+async function verifyAlmoxarifeFace(challengeId: string, nonce: string, candidate: number[] | null, ipHash: string) {
   const challenge = await prisma.livenessChallenge.findUnique({
     where: { id: challengeId },
     include: { funcionario: true, trustedDevice: true },
@@ -69,19 +70,17 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
       return faceServiceUnavailable();
     }
     embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
+    const threshold = getFaceMatchThreshold();
+    matched = candidate !== null && embeddings.some((template) =>
+      isFaceEmbeddingMatch(faceEmbeddingDistance(candidate, template), threshold),
+    );
   } catch (error) {
+    if (error instanceof FaceRecognitionUnavailableError) return faceServiceUnavailable();
     console.error("[face] Não foi possível decifrar o template facial.", {
       errorName: error instanceof Error ? error.name : "UnknownError",
     });
     return faceServiceUnavailable();
   }
-  try {
-    matched = await verifyFaceCapture(capture, { tipo: challenge.tipo, nonce }, embeddings);
-  } catch (error) {
-    if (error instanceof FaceServiceUnavailableError) return faceServiceUnavailable();
-    matched = false;
-  }
-
   if (!matched) {
     const failureCount = recordFactorFailure(factorKey);
     await recordLoginFailure(challenge.funcionario.cracha, ipHash);
@@ -155,8 +154,9 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
 
 export async function POST(request: Request) {
   try {
+    if (!isFaceLoginEnabled()) return genericFailure();
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
-    if (Number(request.headers.get("content-length") ?? 0) > 4 * 1024 * 1024) return genericFailure();
+    if (Number(request.headers.get("content-length") ?? 0) > 32 * 1024) return genericFailure();
     const ipHash = getLoginClientIpHash(request);
     if (isRateLimited(`face-verify:${ipHash}`, 9, 15 * 60 * 1000)) {
       return NextResponse.json(
@@ -173,9 +173,14 @@ export async function POST(request: Request) {
     const challengeId = typeof body.challengeId === "string" ? body.challengeId : "";
     const loginToken = typeof body.loginToken === "string" ? body.loginToken : "";
     const nonce = typeof body.nonce === "string" ? body.nonce : "";
-    const capture = body.capture;
-    if (!challengeId || !nonce || typeof capture !== "string") return genericFailure();
-    if (!loginToken) return verifyAlmoxarifeFace(challengeId, nonce, capture, ipHash);
+    let candidate: number[] | null = null;
+    try {
+      if (body.challengeCompleted === true) candidate = validateFaceEmbedding(body.embedding);
+    } catch {
+      candidate = null;
+    }
+    if (!challengeId || !nonce) return genericFailure();
+    if (!loginToken) return verifyAlmoxarifeFace(challengeId, nonce, candidate, ipHash);
 
 
     const state = verifyLoginFaceState(loginToken);
@@ -226,21 +231,16 @@ export async function POST(request: Request) {
           return faceServiceUnavailable();
         }
         embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
+        const threshold = getFaceMatchThreshold();
+        matched = candidate !== null && embeddings.some((template) =>
+          isFaceEmbeddingMatch(faceEmbeddingDistance(candidate, template), threshold),
+        );
       } catch (error) {
+        if (error instanceof FaceRecognitionUnavailableError) return faceServiceUnavailable();
         console.error("[face] Não foi possível decifrar o template facial.", {
           errorName: error instanceof Error ? error.name : "UnknownError",
         });
         return faceServiceUnavailable();
-      }
-      try {
-        matched = await verifyFaceCapture(
-          capture,
-          { tipo: challenge.challenge ?? "", nonce },
-          embeddings,
-        );
-      } catch (error) {
-        if (error instanceof FaceServiceUnavailableError) return faceServiceUnavailable();
-        matched = false;
       }
     }
 

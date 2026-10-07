@@ -1,11 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { aggregateEnrollmentEmbeddings, assertFaceTemplateConfiguration, decryptEmbedding, encryptEmbedding, enrollFaceSamples, faceEmbeddingDistance, faceEnrollmentConsistencyDistance, faceEnrollmentDuplicateDistance, FaceEncryptionKeyUnavailableError, FaceEnrollmentVerificationError, FaceServiceUnavailableError, faceConsentVersion } from "@/lib/face";
+import { aggregateEnrollmentEmbeddings, assertFaceTemplateConfiguration, decryptEmbedding, encryptEmbedding, faceEmbeddingDistance, FaceEncryptionKeyUnavailableError, FaceEnrollmentVerificationError, FaceRecognitionUnavailableError, faceConsentVersion, getFaceMatchThreshold, validateFaceEmbedding } from "@/lib/face";
 import { faceEnrollmentAttemptLimit, getFaceEnrollmentLimit, recordFaceEnrollmentFailure } from "@/lib/face-enrollment-attempts";
 import { createFaceEnrollmentSession, findFaceEnrollmentSession, renewFaceEnrollmentSession } from "@/lib/face-enrollment-session";
-import { getFaceEnrollmentFrameCount } from "@/lib/facial/config";
-import { faceEnrollmentFrameMaxBytes } from "@/lib/facial/photo";
+import { faceEmbeddingDimension, faceEnrollmentMaximumBurstSize, getFaceEnrollmentFrameCount } from "@/lib/facial/config";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
 import { getClientIpHash, hashSecret } from "@/lib/webauthn";
@@ -32,7 +31,7 @@ export async function GET(request: Request) {
     try {
       assertFaceTemplateConfiguration();
     } catch (error) {
-      if (error instanceof FaceEncryptionKeyUnavailableError || error instanceof FaceServiceUnavailableError) {
+      if (error instanceof FaceEncryptionKeyUnavailableError || error instanceof FaceRecognitionUnavailableError) {
         console.error("[face] Cadastro facial indisponível: configure a chave e a versão do modelo.");
         return apiError(503, "FACE_CONFIGURATION_UNAVAILABLE", "O cadastro facial está temporariamente indisponível.");
       }
@@ -64,8 +63,7 @@ export async function POST(request: Request) {
     if (!auth.funcionario) return adminError(auth.status);
     if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem inválida." }, { status: 403 });
     const frameCount = getFaceEnrollmentFrameCount();
-    const maxFrameDataUrlCharacters = Math.ceil(faceEnrollmentFrameMaxBytes * 4 / 3) + 64;
-    const maxPayloadBytes = frameCount * maxFrameDataUrlCharacters + 32 * 1024;
+    const maxPayloadBytes = frameCount * faceEmbeddingDimension * 32 + 16 * 1024;
     const contentLength = request.headers.get("content-length");
     if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > maxPayloadBytes)) {
       return NextResponse.json({ error: "Capturas muito grandes." }, { status: 400 });
@@ -78,7 +76,7 @@ export async function POST(request: Request) {
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
     const sessionToken = typeof body.sessionToken === "string" ? body.sessionToken : "";
     const replaceConfirmed = body.replaceConfirmed === true;
-    if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || !consent || !Number.isFinite(consentAt.getTime()) || samples.length !== frameCount || samples.some((sample) => typeof sample !== "string") || samples.reduce<number>((total, sample) => total + (typeof sample === "string" ? sample.length : 0), 0) > frameCount * maxFrameDataUrlCharacters || !sessionId || !sessionToken) {
+    if (!Number.isSafeInteger(funcionarioId) || funcionarioId < 1 || !consent || !Number.isFinite(consentAt.getTime()) || samples.length !== frameCount || frameCount > faceEnrollmentMaximumBurstSize || !sessionId || !sessionToken) {
       return apiError(400, "FACE_ENROLLMENT_PAYLOAD_INVALID", "Confirme o consentimento e conclua a captura guiada.");
     }
     const employee = await prisma.funcionario.findFirst({ where: { id: funcionarioId, papel: { in: ["ADMIN", "ALMOXARIFE"] }, ativo: true }, select: { id: true } });
@@ -87,7 +85,7 @@ export async function POST(request: Request) {
     try {
       modelVersion = assertFaceTemplateConfiguration();
     } catch (error) {
-      if (error instanceof FaceEncryptionKeyUnavailableError || error instanceof FaceServiceUnavailableError) {
+      if (error instanceof FaceEncryptionKeyUnavailableError || error instanceof FaceRecognitionUnavailableError) {
         console.error("[face] Cadastro facial indisponível: configure a chave e a versão do modelo.");
         return apiError(503, "FACE_CONFIGURATION_UNAVAILABLE", "O cadastro facial está temporariamente indisponível.");
       }
@@ -108,51 +106,59 @@ export async function POST(request: Request) {
 
     let embeddings: number[][];
     try {
-      embeddings = await enrollFaceSamples(samples, { nonce: sessionToken });
+      embeddings = samples.map(validateFaceEmbedding);
     } catch (error) {
-      if (error instanceof FaceEnrollmentVerificationError) {
-        if (error.code === "FACE_INCONSISTENT_SAMPLES" || error.code === "FACE_CAPTURE_RETRY") {
-          if (diagnosticsEnabled()) {
-            console.info("[face:diagnostics]", {
-              event: "enrollment_retry",
-              qualityCriteriaPassed: true,
-              rejectionReason: "incoherent_burst",
-            });
-          }
-          return apiError(409, "FACE_CAPTURE_RETRY", "Mantenha apenas seu rosto diante da câmera.");
-        }
-        if (diagnosticsEnabled()) {
-          console.info("[face:diagnostics]", {
-            event: "enrollment_rejected",
-            rejectionReason: error.code,
-          });
-        }
-        const failure = await recordFaceEnrollmentFailure(auth.funcionario.id, employee.id);
-        if (failure.count >= faceEnrollmentAttemptLimit) {
-          return apiError(429, "FACE_ENROLLMENT_RATE_LIMITED", "Muitas tentativas. Aguarde e tente novamente.", undefined, { "Retry-After": String(failure.retryAfterSeconds) });
-        }
-        return apiError(422, error.code, error.message);
+      const failure = await recordFaceEnrollmentFailure(auth.funcionario.id, employee.id);
+      if (failure.count >= faceEnrollmentAttemptLimit) {
+        return apiError(429, "FACE_ENROLLMENT_RATE_LIMITED", "Muitas tentativas. Aguarde e tente novamente.", undefined, { "Retry-After": String(failure.retryAfterSeconds) });
       }
-      throw error;
+      const code = error instanceof FaceEnrollmentVerificationError ? error.code : "FACE_INVALID_VECTOR";
+      return apiError(422, code, "Não foi possível validar a captura facial. Olhe de frente e tente novamente.");
     }
     const consistency = aggregateEnrollmentEmbeddings(embeddings);
     if (!consistency.consistent || !consistency.embedding) {
-      if (diagnosticsEnabled()) {
-        console.info("[face:diagnostics]", {
-          event: "enrollment_retry",
-          qualityCriteriaPassed: true,
-          frameDistances: consistency.distances.filter(Number.isFinite),
-          threshold: faceEnrollmentConsistencyDistance,
-          rejectionReason: consistency.reason ?? "incoherent_burst",
-        });
-      }
       return apiError(409, "FACE_CAPTURE_RETRY", "Mantenha apenas seu rosto diante da câmera.");
     }
-    const otherTemplates = await prisma.faceTemplate.findMany({ where: { funcionarioId: { not: employee.id }, revogadoEm: null }, select: { embeddingEncrypted: true, iv: true, tag: true, modelVersion: true, funcionario: { select: { nome: true } } } });
-    for (const template of otherTemplates) {
-      if (template.modelVersion !== modelVersion && template.modelVersion !== "legacy-unknown") continue;
-      if (faceEmbeddingDistance(consistency.embedding, decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag)) <= faceEnrollmentDuplicateDistance) {
-        return apiError(409, "FACE_DUPLICATE", `Este rosto já está cadastrado para ${template.funcionario.nome}.`);
+    const enrollmentEmbedding = consistency.embedding;
+    const compatibleTemplates = await prisma.faceTemplate.findMany({
+      where: { revogadoEm: null, modelVersion },
+      select: {
+        funcionarioId: true,
+        embeddingEncrypted: true,
+        iv: true,
+        tag: true,
+        funcionario: { select: { nome: true, cracha: true } },
+      },
+    });
+    const comparisons = compatibleTemplates.flatMap((template) => {
+      const distance = faceEmbeddingDistance(
+        enrollmentEmbedding,
+        decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag),
+      );
+      return Number.isFinite(distance) ? [{
+        nome: template.funcionario.nome,
+        cracha: template.funcionario.cracha,
+        relation: template.funcionarioId === employee.id ? "same" as const : "different" as const,
+        distance,
+      }] : [];
+    });
+    let duplicateThreshold: number | null = null;
+    try {
+      duplicateThreshold = getFaceMatchThreshold();
+    } catch (error) {
+      if (!(error instanceof FaceRecognitionUnavailableError)) throw error;
+    }
+    if (duplicateThreshold === null && comparisons.length > 0) {
+      if (!diagnosticsEnabled()) throw new FaceRecognitionUnavailableError();
+      return NextResponse.json({
+        error: "O limiar MobileFace precisa ser configurado após avaliar as distâncias reais.",
+        code: "FACE_THRESHOLD_CALIBRATION_REQUIRED",
+        diagnostics: { comparisons, modelVersion },
+      }, { status: 409 });
+    }
+    for (const comparison of comparisons) {
+      if (comparison.relation === "different" && duplicateThreshold !== null && comparison.distance < duplicateThreshold) {
+        return apiError(409, "FACE_DUPLICATE", `Este rosto já está cadastrado para ${comparison.nome}.`);
       }
     }
     const enrolledAt = new Date();
@@ -160,7 +166,7 @@ export async function POST(request: Request) {
       const consumed = await transaction.faceEnrollmentSession.updateMany({ where: { id: session.id, tokenHash: hashSecret(sessionToken), adminId: auth.funcionario.id, funcionarioId: employee.id, usadoEm: null, expiraEm: { gt: enrolledAt } }, data: { usadoEm: enrolledAt, ultimaAtividade: enrolledAt } });
       if (consumed.count !== 1) return false;
       await transaction.faceTemplate.updateMany({ where: { funcionarioId, revogadoEm: null }, data: { revogadoEm: enrolledAt } });
-      const encrypted = encryptEmbedding(consistency.embedding);
+      const encrypted = encryptEmbedding(enrollmentEmbedding);
       await transaction.faceTemplate.create({ data: {
         funcionarioId,
         embeddingEncrypted: encrypted.ciphertext,
@@ -178,31 +184,21 @@ export async function POST(request: Request) {
       return true;
     });
     if (!saved) return apiError(409, "FACE_ENROLLMENT_SESSION_EXPIRED", "A sessão expirou. Reinicie a captura.");
-    if (diagnosticsEnabled()) {
-      console.info("[face:diagnostics]", {
-        event: "enrollment_saved",
-        qualityCriteriaPassed: true,
-        frameDistances: consistency.distances.filter(Number.isFinite),
-        threshold: faceEnrollmentConsistencyDistance,
-        discardedOutlier: consistency.discardedOutlier,
-      });
-    }
     return NextResponse.json({
       message: "Biometria cadastrada com sucesso.",
       code: "FACE_ENROLLMENT_CREATED",
       samples: samples.length,
       ...(diagnosticsEnabled() ? {
         diagnostics: {
-          frameDistances: consistency.distances.filter(Number.isFinite),
-          threshold: faceEnrollmentConsistencyDistance,
-          discardedOutlier: consistency.discardedOutlier,
+          comparisons,
+          modelVersion,
         },
       } : {}),
     }, { status: 201 });
   } catch (error) {
-    if (error instanceof FaceServiceUnavailableError || error instanceof FaceEncryptionKeyUnavailableError) {
-      console.error("[face] Cadastro facial indisponível por configuração ou serviço.");
-      return apiError(503, "FACE_SERVICE_UNAVAILABLE", "O serviço de reconhecimento facial está temporariamente indisponível. Tente novamente.");
+    if (error instanceof FaceRecognitionUnavailableError || error instanceof FaceEncryptionKeyUnavailableError) {
+      console.error("[face] Cadastro facial indisponível por configuração local.");
+      return apiError(503, "FACE_CONFIGURATION_UNAVAILABLE", "O reconhecimento facial está temporariamente indisponível. Tente novamente.");
     }
     if (isMissingFaceSchema(error)) {
       console.error("[face] Cadastro indisponível: aplique a migration de templates faciais.", { code: prismaErrorCode(error) });

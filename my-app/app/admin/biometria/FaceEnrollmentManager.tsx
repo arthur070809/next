@@ -5,7 +5,7 @@ import { faceConsentText } from "@/lib/face-consent";
 import { faceCaptureQuality, faceEnrollmentCandidateFrameCount, faceEnrollmentFrameIntervalMs } from "@/lib/facial/config";
 import { inspectFaceCount } from "@/lib/facial/face-count";
 import { enrollmentQualityInstruction, isEnrollmentQualityValid, scoreEnrollmentFrameQuality, selectBestEnrollmentFrames, shouldSubmitEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
-import { encodeFaceEnrollmentFrame } from "@/lib/facial/photo";
+import { extractFaceEmbedding, loadBrowserHuman, type BrowserFace, type BrowserHuman } from "@/lib/facial/human-browser";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
 import BuildIdentifier from "@/app/components/BuildIdentifier";
@@ -14,17 +14,19 @@ import styles from "./face-enrollment.module.css";
 type Employee = { id: number; nome: string; cracha: string; enrolled: boolean };
 type Session = { id: string; token: string; expiraEm: string };
 type Stage = "front" | "success" | "failed";
-type EnrollmentFrame = { image: string };
+type EnrollmentFrame = { embedding: number[] };
 type EnrollmentFrameCandidate = ScoredEnrollmentFrame<EnrollmentFrame>;
-type EnrollmentDiagnostics = { frameDistances?: number[]; threshold?: number; discardedOutlier?: boolean };
+type EnrollmentDiagnostics = {
+  comparisons?: Array<{ nome: string; cracha: string; relation: "same" | "different"; distance: number }>;
+  modelVersion?: string;
+};
 class EnrollmentResponseError extends Error {
   constructor(message: string, readonly code: string) {
     super(message);
   }
 }
 
-type FaceResult = { mesh?: Array<Array<number | undefined>>; boxRaw: [number, number, number, number]; score?: number; boxScore?: number; annotations?: Record<string, Array<Array<number | undefined>>>; rotation?: { angle: { roll: number; yaw: number; pitch: number } } | null };
-type HumanDetector = { detect(input: HTMLVideoElement | HTMLImageElement): Promise<{ face?: FaceResult[] }> };
+type FaceResult = BrowserFace;
 
 function eyesAreOpen(face: FaceResult) {
   const left = face.annotations?.leftEye ?? [];
@@ -83,6 +85,7 @@ export default function FaceEnrollmentManager({
   const [stage, setStage] = useState<Stage>("front");
   const [stageReady, setStageReady] = useState(false);
   const [modelState, setModelState] = useState<"loading" | "ready" | "error">("loading");
+  const [modelProgress, setModelProgress] = useState("Carregando modelos locais");
   const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready" | "denied" | "missing">("idle");
   const [instruction, setInstruction] = useState("Carregando modelos de visão");
   const [error, setError] = useState("");
@@ -108,7 +111,7 @@ export default function FaceEnrollmentManager({
   const cameraRef = useRef<CameraStreamController | null>(null);
   const detectorCleanupRef = useRef<(() => void) | null>(null);
   const renewalTimerRef = useRef<number | null>(null);
-  const humanRef = useRef<HumanDetector | null>(null);
+  const humanRef = useRef<BrowserHuman | null>(null);
   const sessionRef = useRef<Session | null>(null);
   const stableSinceRef = useRef(0);
   const burstFramesRef = useRef<EnrollmentFrameCandidate[]>([]);
@@ -145,21 +148,8 @@ export default function FaceEnrollmentManager({
 
   async function loadModels() {
     try {
-      const loadBrowserModule = new Function("url", "return import(url)") as (url: string) => Promise<{ default: new (config: Record<string, unknown>) => HumanDetector & { load(): Promise<void>; warmup(): Promise<void> } }>;
-      const { default: Human } = await loadBrowserModule("https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/dist/human.esm.js");
-      const modelBasePath = "https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/";
-      const config = { modelBasePath, cacheModels: true, debug: false, face: { detector: { maxDetected: faceCaptureQuality.detectorMaxFaces, minConfidence: faceCaptureQuality.detectorMinConfidence, rotation: true }, mesh: { enabled: true }, description: { enabled: true }, iris: { enabled: true } } };
-      let human = new Human({ ...config, backend: "webgl" });
-      try {
-        await human.load();
-        await human.warmup();
-        setBackend("webgl");
-      } catch {
-        human = new Human({ ...config, backend: "cpu" });
-        await human.load();
-        await human.warmup();
-        setBackend("cpu (fallback)");
-      }
+      const { human, backend: activeBackend } = await loadBrowserHuman(setModelProgress);
+      setBackend(activeBackend);
       humanRef.current = human;
       setModelState("ready");
       setInstruction("Selecione o funcionário e confirme a pessoa diante da câmera");
@@ -233,7 +223,7 @@ export default function FaceEnrollmentManager({
     if (!response.ok) return false; const data = await response.json(); const nextSession = { ...current, expiraEm: data.expiraEm }; sessionRef.current = nextSession; setSession(nextSession); return true;
   }, [employeeId]);
 
-  const submitEnrollment = useCallback(async function submitEnrollmentImpl(nextSamples: string[]) {
+  const submitEnrollment = useCallback(async function submitEnrollmentImpl(nextSamples: number[][]) {
     if (submittingRef.current || nextSamples.length !== frameCount || !sessionRef.current) return;
     submittingRef.current = true; setBusy(true); setInstruction("Processando e confirmando o cadastro");
     const current = sessionRef.current;
@@ -247,7 +237,10 @@ export default function FaceEnrollmentManager({
         }));
       }
       if (diagnosticsEnabled && data.diagnostics) {
-        setConsistencyDiagnostics(`limiar: ${data.diagnostics.threshold ?? "—"}; distâncias dos quadros: ${data.diagnostics.frameDistances?.join(", ") ?? "—"}; quadro discrepante descartado: ${data.diagnostics.discardedOutlier ? "sim" : "não"}`);
+        const comparisons = data.diagnostics.comparisons?.map((item) =>
+          `${item.relation === "same" ? "mesma pessoa" : "pessoa diferente"} (${item.cracha}): ${item.distance.toFixed(4)}`,
+        ).join("; ") ?? "sem templates compatíveis para comparação";
+        setConsistencyDiagnostics(`modelo ${data.diagnostics.modelVersion ?? "—"}; distâncias reais: ${comparisons}`);
       }
       if (response.status === 409 && data.code === "FACE_ENROLLMENT_SESSION_EXPIRED" && await renewSession()) { submittingRef.current = false; setBusy(false); await submitEnrollmentImpl(nextSamples); return; }
       if (response.status === 409 && data.code === "FACE_CAPTURE_RETRY") {
@@ -319,12 +312,6 @@ export default function FaceEnrollmentManager({
       setError(cameraErrorMessage(cause));
       setDebugMetrics((metrics) => ({ ...metrics, resultCode: name || "CAMERA_START_FAILED" }));
     }
-  }
-
-  function captureFrame() {
-    const video = videoRef.current; if (!video) return null;
-    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) return null;
-    return encodeFaceEnrollmentFrame(video, video.videoWidth, video.videoHeight);
   }
 
   useEffect(() => {
@@ -455,14 +442,14 @@ export default function FaceEnrollmentManager({
           });
           if (frameCount === 1) {
             if (!burstFramesRef.current[0] || score > burstFramesRef.current[0].score) {
-              const image = captureFrame();
-              if (!image) throw new Error("A câmera ainda não está pronta para capturar.");
-              burstFramesRef.current = [{ frame: { image }, score }];
+              const embedding = extractFaceEmbedding(face);
+              if (!embedding) throw new Error("Não foi possível gerar um vetor facial válido.");
+              burstFramesRef.current = [{ frame: { embedding }, score }];
             }
           } else {
-            const image = captureFrame();
-            if (!image) throw new Error("A câmera ainda não está pronta para capturar.");
-            burstFramesRef.current = [...burstFramesRef.current, { frame: { image }, score }];
+            const embedding = extractFaceEmbedding(face);
+            if (!embedding) throw new Error("Não foi possível gerar um vetor facial válido.");
+            burstFramesRef.current = [...burstFramesRef.current, { frame: { embedding }, score }];
           }
           candidateFramesObservedRef.current += 1;
           lastBurstFrameAtRef.current = time;
@@ -477,7 +464,7 @@ export default function FaceEnrollmentManager({
           setStageReady(true);
           setInstruction(`Piscada confirmada; selecionando ${frameCount === 1 ? "o melhor quadro" : "os melhores quadros"}`);
           const selected = selectBestEnrollmentFrames(burstFramesRef.current, frameCount);
-          void submitEnrollment(selected.map((candidate) => candidate.image));
+          void submitEnrollment(selected.map((candidate) => candidate.embedding));
         }
       } catch (cause) {
         stableSinceRef.current = 0;
@@ -533,7 +520,7 @@ export default function FaceEnrollmentManager({
           </select>
         </label>
         {employee && <p className={styles.target}><strong>{employee.nome}</strong> · crachá {employee.cracha}</p>}
-        {modelState === "loading" && <p className={styles.modelStatus}>Carregando modelos de visão...</p>}
+        {modelState === "loading" && <p className={styles.modelStatus}>{modelProgress}</p>}
         {modelState === "error" && <button type="button" onClick={() => void loadModels()}>Tentar carregar modelos</button>}
         <div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}>
           <video ref={videoRef} muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" />

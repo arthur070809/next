@@ -5,6 +5,9 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
+import { advanceBlinkState, faceEyeAspectRatio, initialBlinkState } from "@/lib/facial/blink";
+import { faceCaptureQuality } from "@/lib/facial/config";
+import { extractFaceEmbedding, loadBrowserHuman, type BrowserHuman } from "@/lib/facial/human-browser";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import BuildIdentifier from "@/app/components/BuildIdentifier";
 
@@ -30,7 +33,13 @@ type LoginResponse = {
 };
 type Stage = "code" | "totp" | "face";
 
-export default function LoginForm({ sessionExpired = false }: { sessionExpired?: boolean }) {
+export default function LoginForm({
+  sessionExpired = false,
+  faceLoginEnabled = true,
+}: {
+  sessionExpired?: boolean;
+  faceLoginEnabled?: boolean;
+}) {
   const router = useRouter();
   const [codigoCracha, setCodigoCracha] = useState("");
   const [senha, setSenha] = useState("");
@@ -41,12 +50,15 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
   const [preAuthToken, setPreAuthToken] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [faceChallenge, setFaceChallenge] = useState<FaceChallenge | null>(null);
+  const [faceModelProgress, setFaceModelProgress] = useState("Carregando reconhecedor local");
+  const [faceModelReady, setFaceModelReady] = useState(false);
   const [identifyMode, setIdentifyMode] = useState(false);
   const codeInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const totpInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const faceCameraRef = useRef<CameraStreamController | null>(null);
+  const faceHumanRef = useRef<BrowserHuman | null>(null);
 
   function stopFaceCamera() {
     const camera = faceCameraRef.current;
@@ -60,6 +72,24 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
   }
 
   useEffect(() => () => faceCameraRef.current?.dispose(), []);
+
+  useEffect(() => {
+    if (stage !== "face") return;
+    let cancelled = false;
+    void loadBrowserHuman(setFaceModelProgress).then(({ human }) => {
+      if (!cancelled) {
+        faceHumanRef.current = human;
+        setFaceModelReady(true);
+      }
+    }).catch(() => {
+      if (!cancelled) setError("Não foi possível carregar os modelos faciais locais. Tente novamente.");
+    });
+    return () => {
+      cancelled = true;
+      faceHumanRef.current = null;
+      setFaceModelReady(false);
+    };
+  }, [stage]);
 
   function completeLogin(data: LoginResult) {
     const destination = data.funcionario.role === "admin"
@@ -148,6 +178,7 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
   }
 
   async function startFaceLogin() {
+    if (!faceLoginEnabled) return;
     const useIdentifyFlow = !codigoCracha.trim();
     setIdentifyMode(useIdentifyFlow);
     setError("");
@@ -182,16 +213,54 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
 
   async function submitFace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (loading || !faceChallenge || !videoRef.current) return;
+    if (loading || !faceChallenge || !videoRef.current || !faceHumanRef.current) return;
     setLoading(true);
     setError("");
     try {
       const video = videoRef.current;
       if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.videoWidth < 320 || video.videoHeight < 240) throw new Error("A câmera ainda não está pronta. Aguarde um instante.");
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      setError(faceChallenge.challenge === "piscar"
+        ? "Olhe para a câmera e pisque uma vez."
+        : faceChallenge.challenge === "virar_esquerda"
+          ? "Vire levemente o rosto à esquerda e volte a olhar para a câmera."
+          : "Sorria levemente para a câmera.");
+      const deadline = Date.now() + 8_000;
+      let blinkState = initialBlinkState;
+      let turnedLeft = false;
+      let embedding: number[] | null = null;
+      while (Date.now() < deadline && !embedding) {
+        const result = await faceHumanRef.current.detect(video);
+        const faces = result.face ?? [];
+        if (faces.length === 1) {
+          const face = faces[0];
+          const rotation = face.rotation?.angle;
+          const centered = face.boxRaw[0] + face.boxRaw[2] / 2 > faceCaptureQuality.centerXMin
+            && face.boxRaw[0] + face.boxRaw[2] / 2 < faceCaptureQuality.centerXMax
+            && face.boxRaw[1] + face.boxRaw[3] / 2 > faceCaptureQuality.centerYMin
+            && face.boxRaw[1] + face.boxRaw[3] / 2 < faceCaptureQuality.centerYMax;
+          const frontal = Boolean(rotation
+            && Math.abs(rotation.yaw) <= faceCaptureQuality.yawLimitDegrees
+            && Math.abs(rotation.pitch) <= faceCaptureQuality.pitchLimitDegrees
+            && Math.abs(rotation.roll) <= faceCaptureQuality.rollLimitDegrees);
+          if (faceChallenge.challenge === "piscar") {
+            const mesh = (face.mesh ?? []).map((point) => [point[0] ?? Number.NaN, point[1] ?? Number.NaN]);
+            const ear = faceEyeAspectRatio(mesh);
+            if (ear !== null) blinkState = advanceBlinkState(blinkState, ear, Date.now());
+          } else if (faceChallenge.challenge === "virar_esquerda") {
+            if (rotation && rotation.yaw < -faceCaptureQuality.sideYawDegrees) turnedLeft = true;
+          } else if (faceChallenge.challenge === "sorrir" && (face.emotion ?? []).some(
+            (emotion) => emotion.emotion === "happy" && emotion.score >= 0.6,
+          )) {
+            turnedLeft = true;
+          }
+          const challengePassed = faceChallenge.challenge === "piscar"
+            ? blinkState.completedAt !== null
+            : turnedLeft && frontal;
+          if (centered && frontal && challengePassed) embedding = extractFaceEmbedding(face);
+        }
+        if (!embedding) await new Promise((resolve) => window.setTimeout(resolve, 100));
+      }
+      if (!embedding) throw new Error("Não foi possível concluir a verificação. Melhore a iluminação e tente novamente.");
       const response = await fetch(identifyMode ? "/api/auth/login/face/identify" : "/api/auth/login/face/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,7 +268,8 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
           challengeId: faceChallenge.challengeId,
           ...(faceChallenge.loginToken ? { loginToken: faceChallenge.loginToken } : {}),
           nonce: faceChallenge.nonce,
-          capture: canvas.toDataURL("image/jpeg", 0.85),
+          embedding,
+          challengeCompleted: true,
         }),
       });
       const data = await readResponse(response);
@@ -270,9 +340,9 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
         <p className="text-sm text-slate-600">A câmera ficará ativa apenas durante esta tentativa. {faceChallenge.challenge === "piscar" ? "Piscar" : faceChallenge.challenge === "virar_esquerda" ? "Virar levemente o rosto para a esquerda" : "Sorrir"} quando estiver enquadrado.</p>
         <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
         <BuildIdentifier />
-        <p className="text-xs text-slate-500">Expira em {new Date(faceChallenge.expiresAt).toLocaleTimeString("pt-BR")}. A decisão é feita no servidor.</p>
+        <p className="text-xs text-slate-500">{faceModelProgress}. Expira em {new Date(faceChallenge.expiresAt).toLocaleTimeString("pt-BR")}. A decisão final é feita no servidor.</p>
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
-        <div className="flex flex-col gap-3 sm:flex-row"><button type="button" disabled={loading} onClick={cancelFace} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Cancelar</button><button type="button" disabled={loading} onClick={() => void enableCamera()} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Ativar câmera</button><button type="submit" disabled={loading} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Verificando…" : "Verificar"}</button></div>
+        <div className="flex flex-col gap-3 sm:flex-row"><button type="button" disabled={loading} onClick={cancelFace} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Cancelar</button><button type="button" disabled={loading || !faceModelReady} onClick={() => void enableCamera()} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">{faceModelReady ? "Ativar câmera" : "Preparando modelos…"}</button><button type="submit" disabled={loading || !faceModelReady} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Verificando…" : "Verificar"}</button></div>
       </form> : stage === "totp" ? <form onSubmit={(event) => void submitTotp(event)} className="mt-7 space-y-5">
         <p className="text-sm text-slate-600">Digite o código de 6 dígitos do aplicativo autenticador do administrador.</p>
         <label htmlFor="totp-code" className="block text-sm font-semibold text-slate-800">Código de verificação<input ref={totpInputRef} id="totp-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={totpCode} onChange={(event) => setTotpCode(event.target.value.replace(/\D/g, ""))} className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-royal focus:ring-2 focus:ring-royal/20" /></label>
@@ -292,9 +362,9 @@ export default function LoginForm({ sessionExpired = false }: { sessionExpired?:
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <p className="text-xs text-slate-500">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
         <button type="submit" disabled={loading || !codigoCracha.trim() || !senha} className="min-h-12 w-full rounded-lg bg-royal px-4 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:bg-slate-400">{loading ? "Verificando…" : "Entrar com senha"}</button>
-        <button type="button" disabled={loading} onClick={() => void startFaceLogin()} className="min-h-11 w-full rounded-lg border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-50">
+        {faceLoginEnabled && <button type="button" disabled={loading} onClick={() => void startFaceLogin()} className="min-h-11 w-full rounded-lg border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-royal disabled:cursor-wait disabled:opacity-50">
           {loading ? "Preparando câmera…" : "Entrar com reconhecimento facial"}
-        </button>
+        </button>}
       </form>}
     </section>
   </main>;

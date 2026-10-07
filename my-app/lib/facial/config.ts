@@ -1,11 +1,15 @@
-// Provider-owned descriptor scale; its service contract does not identify an
-// embedding-library recommendation, so keep this value unchanged until FAR/FRR
-// data from that provider justifies a measured adjustment. Applied to median distance.
+// Enrollment separation heuristics are not login thresholds or FAR/FRR guarantees.
 export const faceEnrollmentConsistencyDistance = 0.35;
 export const faceEnrollmentDuplicateDistance = 0.42;
 export const faceEnrollmentMaximumBurstSize = 5;
 export const faceEnrollmentCandidateFrameCount = 5;
 export const faceEnrollmentFrameIntervalMs = 160;
+export const faceEmbeddingDimension = 256;
+export const faceEmbeddingModelVersion = "human-3.3.6-mobileface-v3-a4bcf70";
+
+export function isFaceLoginEnabled(value = process.env.FACE_LOGIN_ENABLED) {
+  return value !== "false";
+}
 
 export function getFaceEnrollmentFrameCount(value = process.env.FACE_ENROLL_FRAMES) {
   if (value === undefined) return 1;
@@ -13,10 +17,6 @@ export function getFaceEnrollmentFrameCount(value = process.env.FACE_ENROLL_FRAM
   if (!/^[1-5]$/.test(normalized)) return 1;
   return Number(normalized);
 }
-
-// Operational starting point documented in README.md; login remains fail-closed
-// and the biometric provider must calibrate FAR/FRR before production use.
-export const faceMatchThresholdDefault = 0.42;
 
 // Capture gates are application heuristics, not recommendations from Human.
 // The 0.6 detection-score floor matches the configured Human detector minConfidence.

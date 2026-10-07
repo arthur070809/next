@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { OPERATOR_IDLE_TIMEOUT_MS } from "@/lib/session-policy";
 import { papelParaRole, sessionCookieName } from "@/lib/auth";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import { createFaceNonce, hashFaceNonce } from "@/lib/face";
 import { prisma } from "@/lib/prisma";
 import { hashSecret } from "@/lib/webauthn";
@@ -114,6 +115,7 @@ export function verifyIdentifyFaceState(token: string): IdentifyFaceState | null
 }
 
 export function loginRequiresFace(papel: PapelFuncionario) {
+  if (!isFaceLoginEnabled()) return false;
   if (process.env.LOGIN_FACIAL_OBRIGATORIO === "false") {
     if (!disabledWarningShown) {
       const production = process.env.NODE_ENV === "production";

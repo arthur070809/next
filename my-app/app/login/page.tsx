@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAuthenticatedFuncionario, getRoleHomePath, requiresPasswordChange } from "@/lib/auth";
+import { isFaceLoginEnabled } from "@/lib/facial/config";
 import LoginForm from "./LoginForm";
 
 export default async function LoginPage({
@@ -14,5 +15,8 @@ export default async function LoginPage({
     redirect(destination);
   }
   const params = searchParams ? await searchParams : {};
-  return <LoginForm sessionExpired={params.aviso === "inatividade"} />;
+  return <LoginForm
+    sessionExpired={params.aviso === "inatividade"}
+    faceLoginEnabled={isFaceLoginEnabled()}
+  />;
 }

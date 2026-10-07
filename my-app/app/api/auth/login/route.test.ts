@@ -382,18 +382,15 @@ describe("login by badge code", () => {
     expect(prisma.sessao.create).not.toHaveBeenCalled();
   });
 
-  it("fails closed for an admin without a face template or TOTP", async () => {
+  it("allows an admin without a face template to sign in with badge and password", async () => {
     process.env.LOGIN_FACIAL_OBRIGATORIO = "true";
     vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
     vi.mocked(prisma.faceTemplate.count).mockResolvedValue(0);
 
     const response = await POST(request("1000"));
 
-    expect(response.status).toBe(503);
-    expect(await response.json()).toMatchObject({
-      error: expect.stringContaining("habilitar o TOTP"),
-    });
-    expect(prisma.sessao.create).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(prisma.sessao.create).toHaveBeenCalledOnce();
     expect(prisma.authChallenge.create).not.toHaveBeenCalled();
   });
 
