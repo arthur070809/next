@@ -5,6 +5,7 @@ import styles from "./stock-list.module.css";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
 import { freeStock, isAtOrBelowReorderPoint } from "@/lib/stock-status";
 import ProductEtiquetaScanner from "@/app/components/ProductEtiquetaScanner";
+import type { ScannerReadResult } from "@/lib/qr/camera-utils";
 import { parseEtiqueta } from "@/lib/qr/parseEtiqueta";
 import { localizarItemEstoquePorCodigo } from "@/lib/qr/localizarEstoqueItem";
 
@@ -91,16 +92,15 @@ export default function EstoquePage() {
     material.toLowerCase().includes(form.nome.toLowerCase())
   );
 
-  const handleQrRead = useCallback(async (raw: string) => {
+  const handleQrRead = useCallback(async (raw: string): Promise<ScannerReadResult> => {
     const parsed = parseEtiqueta(raw);
     if (!parsed.ok) {
       const message = `QR não reconhecido: ${parsed.motivo}`;
       setErro(message);
-      return message;
+      return { message, kind: "invalid-format" };
     }
     setErro("");
     setMensagem("");
-    setCameraAberta(false);
     const result = localizarItemEstoquePorCodigo(parsed.codigo, itens);
     if (result.type === "ambiguous") {
       setQrMatchedItem(null);
@@ -108,14 +108,14 @@ export default function EstoquePage() {
       setForm((current) => ({ ...current, codigo: parsed.codigo }));
       const message = `O código ${parsed.codigo} corresponde a mais de um material. Resolva a duplicidade antes de registrar uma entrada.`;
       setErro(message);
-      return message;
+      return { message, kind: "error" };
     }
     if (result.type === "found") {
       const item = itens.find(({ id }) => id === result.item.id);
       if (!item) {
         const message = "O material lido não está disponível na lista atual. Atualize o estoque e tente novamente.";
         setErro(message);
-        return message;
+        return { message, kind: "error" };
       }
       setQrMatchedItem(item);
       setCodigoNovoPorQr(false);
@@ -133,7 +133,7 @@ export default function EstoquePage() {
       window.requestAnimationFrame(() => {
         document.getElementById(`stock-item-${item.id}`)?.scrollIntoView({ block: "nearest" });
       });
-      return `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`;
+      return { message: `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`, kind: "confirmed" };
     }
 
     setQrMatchedItem(null);
@@ -148,7 +148,7 @@ export default function EstoquePage() {
       quantidadeEmbalagens: "",
     }));
     window.requestAnimationFrame(() => document.getElementById("categoria")?.focus());
-    return `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`;
+    return { message: `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`, kind: "confirmed" };
   }, [itens]);
 
   const carregarItens = async () => {
@@ -317,7 +317,7 @@ export default function EstoquePage() {
     : unidadeSelecionada ? "Informe as quantidades válidas para ver o total." : "Selecione o tipo de unidade.";
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] px-4 py-6 sm:px-8 md:px-12">
+    <main className="min-h-dvh bg-[#f5f7fb] px-4 py-6 sm:px-8 md:px-12">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">Almoxarifado Marcon</p>
@@ -427,8 +427,8 @@ export default function EstoquePage() {
             </form>
           </section>
 
-          <section className={`${styles.stockPanel} rounded-2xl border border-slate-200 bg-white p-5 shadow-sm`}>
-            <div className={styles.stockHeader}>
+          <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div>
               <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
               <h2 className="text-center text-xl font-bold text-slate-950 sm:col-start-2">Itens do estoque</h2>
               <div className="flex flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
@@ -440,7 +440,7 @@ export default function EstoquePage() {
               </div>
             </div>
             </div>
-            <div ref={listaRef} tabIndex={0} aria-label="Lista de itens do estoque" className={`${styles.stockBody} mt-5 space-y-3 pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal`}>
+            <div ref={listaRef} tabIndex={0} aria-label="Lista de itens do estoque" className="mt-5 min-w-0 space-y-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal">
               {carregando ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Carregando estoque...</p> : erroLista ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-700">{erroLista}</p> : itensFiltrados.length === 0 ? <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Nenhum item encontrado.</p> : itensFiltrados.map((item) => {
                 const tipoUltimaEntrada = item.tipoUnidade ? STOCK_UNITS.find((unit) => unit.value === item.tipoUnidade) : undefined;
                 return <article id={`stock-item-${item.id}`} key={item.id} tabIndex={0} data-qr-selected={qrMatchedItem?.id === item.id || undefined} className={`flex flex-col gap-4 rounded-lg border p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal sm:flex-row sm:items-center sm:justify-between ${qrMatchedItem?.id === item.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200"}`}>

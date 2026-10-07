@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { startAuthentication } from "@simplewebauthn/browser";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
+import { cameraErrorMessage } from "@/lib/qr/camera-utils";
+import BuildIdentifier from "@/app/components/BuildIdentifier";
 
 type LoginResult = { funcionario: { role: string; mustChangePassword: boolean } };
 type FaceChallenge = {
@@ -43,7 +46,20 @@ export default function LoginForm() {
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const totpInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const faceCameraRef = useRef<CameraStreamController | null>(null);
+
+  function stopFaceCamera() {
+    const camera = faceCameraRef.current;
+    faceCameraRef.current = null;
+    if (camera) camera.dispose();
+    else if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+      videoRef.current.removeAttribute("src");
+    }
+  }
+
+  useEffect(() => () => faceCameraRef.current?.dispose(), []);
 
   function completeLogin(data: LoginResult) {
     const destination = data.funcionario.role === "admin"
@@ -186,7 +202,10 @@ export default function LoginForm() {
           capture: canvas.toDataURL("image/jpeg", 0.85),
         }),
       });
-      await handleLoginResponse(response);
+      const data = await readResponse(response);
+      if (!data.funcionario) throw new Error("Não foi possível verificar o acesso.");
+      stopFaceCamera();
+      completeLogin({ funcionario: data.funcionario });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível verificar o acesso.");
     } finally {
@@ -197,20 +216,24 @@ export default function LoginForm() {
   async function enableCamera() {
     setError("");
     try {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
-      if (videoRef.current) {
-        videoRef.current.srcObject = streamRef.current;
-        await videoRef.current.play();
-      }
-    } catch {
-      setError("Não foi possível acessar a câmera. Verifique a permissão do navegador e tente novamente.");
+      const video = videoRef.current;
+      if (!video) throw new DOMException("Vídeo indisponível.", "NotFoundError");
+      stopFaceCamera();
+      const camera = createCameraStreamController({ video });
+      faceCameraRef.current = camera;
+      await camera.start({
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: false,
+      });
+    } catch (cause) {
+      faceCameraRef.current?.dispose();
+      faceCameraRef.current = null;
+      setError(cameraErrorMessage(cause));
     }
   }
 
   function cancelFace() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+    stopFaceCamera();
     setFaceChallenge(null);
     setIdentifyMode(false);
     setStage("code");
@@ -245,6 +268,7 @@ export default function LoginForm() {
       {stage === "face" && faceChallenge ? <form onSubmit={(event) => void submitFace(event)} className="mt-7 space-y-5">
         <p className="text-sm text-slate-600">A câmera ficará ativa apenas durante esta tentativa. {faceChallenge.challenge === "piscar" ? "Piscar" : faceChallenge.challenge === "virar_esquerda" ? "Virar levemente o rosto para a esquerda" : "Sorrir"} quando estiver enquadrado.</p>
         <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
+        <BuildIdentifier />
         <p className="text-xs text-slate-500">Expira em {new Date(faceChallenge.expiresAt).toLocaleTimeString("pt-BR")}. A decisão é feita no servidor.</p>
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <div className="flex flex-col gap-3 sm:flex-row"><button type="button" disabled={loading} onClick={cancelFace} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Cancelar</button><button type="button" disabled={loading} onClick={() => void enableCamera()} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Ativar câmera</button><button type="submit" disabled={loading} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Verificando…" : "Verificar"}</button></div>

@@ -11,18 +11,25 @@ describe("stock page scroll layout contract", () => {
     expect(styles).toContain("min-width: 0");
   });
 
-  it("limits the mobile list to viewport height and scrolls only its product body", () => {
-    expect(styles).toContain("max-height: 60dvh");
-    expect(styles).toContain("overflow-y: auto");
-    expect(styles.match(/overflow-y:\s*auto/g)).toHaveLength(1);
+  it("uses only document vertical scrolling and keeps horizontal table overflow local", () => {
+    expect(styles).not.toMatch(/overflow-y\s*:\s*(auto|scroll)/);
+    expect(styles).not.toMatch(/max-height\s*:\s*[^;]*(dvh|vh)/);
+    expect(styles).not.toMatch(/position\s*:\s*sticky/);
     expect(page.indexOf('id="novo-item"')).toBeLessThan(page.indexOf('aria-label="Lista de itens do estoque"'));
   });
 
-  it("sticks the desktop list below the app header and bounds it to the viewport", () => {
-    expect(styles).toContain("@media (min-width: 768px)");
-    expect(styles).toContain("position: sticky");
-    expect(styles).toContain("top: 5rem");
-    expect(styles).toContain("max-height: calc(100dvh - 6rem)");
-    expect(styles).toContain("stockHeader");
+  it("keeps search controls and product cards in their own labelled page section", () => {
+    expect(page).toContain("aria-label=\"Lista de itens do estoque\"");
+    expect(page).toContain("aria-label=\"Buscar item por nome ou categoria\"");
+    expect(page).toContain("Ler etiqueta QR");
+    expect(page).not.toMatch(/overflow-y-(auto|scroll)/);
+    expect(page).not.toContain("h-screen");
+    expect(page).not.toContain("min-h-screen");
+  });
+
+  it("retains the viewport-height document without constraining internal sections", () => {
+    expect(page).toContain("min-h-dvh");
+    expect(styles).not.toContain("100vh");
+    expect(styles).not.toContain("100dvh");
   });
 });

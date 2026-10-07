@@ -1,5 +1,17 @@
 export type CameraTrackLike = Pick<MediaStreamTrack, "stop">;
 export type CameraStreamLike = { getTracks(): CameraTrackLike[] };
+export type ScannerReadKind = "confirmed" | "already-confirmed" | "wrong-item" | "invalid-format" | "error";
+export type ScannerReadResult =
+  | { kind: "confirmed"; message: string }
+  | { kind: "already-confirmed"; message: string }
+  | { kind: "wrong-item"; message: string }
+  | { kind: "invalid-format"; message: string }
+  | { kind: "error"; message: string };
+export const SCANNER_SUCCESS_FEEDBACK_MS = 650;
+
+export function shouldCloseCamera(kind: ScannerReadKind): boolean {
+  return kind === "confirmed" || kind === "already-confirmed";
+}
 
 export const scannerVideoConstraints: MediaTrackConstraints = {
   facingMode: { ideal: "environment" },
@@ -96,5 +108,47 @@ export function createCameraLease() {
       stopCameraStream(ownedStream);
       return ownedStream;
     },
+  };
+}
+
+export function createScannerSession(
+  video: { srcObject: unknown },
+  lease: Pick<ReturnType<typeof createCameraLease>, "close">,
+  setActive: (active: boolean) => void,
+  onClose: () => void,
+) {
+  let scanner: { stop(): void } | null = null;
+  let closeTimer: ReturnType<typeof setTimeout> | null = null;
+  let successful = false;
+  let closed = false;
+
+  const close = (notify: boolean) => {
+    if (closed) return;
+    closed = true;
+    if (closeTimer !== null) clearTimeout(closeTimer);
+    closeTimer = null;
+    scanner?.stop();
+    scanner = null;
+    const stream = lease.close();
+    if (video.srcObject === stream) video.srcObject = null;
+    setActive(false);
+    if (notify) onClose();
+  };
+
+  return {
+    setScanner(next: { stop(): void }) {
+      if (closed) next.stop();
+      else scanner = next;
+    },
+    completeRead(success: boolean): boolean {
+      if (closed || successful || !success) return false;
+      successful = true;
+      closeTimer = setTimeout(() => close(true), SCANNER_SUCCESS_FEEDBACK_MS);
+      return true;
+    },
+    isClosed: () => closed,
+    hasSucceeded: () => successful,
+    close: () => close(true),
+    dispose: () => close(false),
   };
 }

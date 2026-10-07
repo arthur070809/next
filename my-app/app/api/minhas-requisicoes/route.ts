@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { decodeItemDescription } from "@/lib/requisition-metadata";
+import { resolveRequisitionItemMetadata } from "@/lib/requisition-description";
 
 const PAGE_SIZE = 20;
 
@@ -32,6 +32,7 @@ export async function GET(request: Request) {
         status: true,
         prioridade: true,
         criadoEm: true,
+        observacao: true,
         itens: {
           select: {
             id: true,
@@ -57,14 +58,14 @@ export async function GET(request: Request) {
         status: requisicao.status,
         criadoEm: requisicao.criadoEm.toISOString(),
         prioridade: requisicao.prioridade === "PRIORITARIO" ? "prioridade" : "padrao",
-        itens: requisicao.itens.map((item) => ({
+        itens: requisicao.itens.map((item, index) => ({
           nome: item.item.nome,
           codigo: item.item.codigo,
           categoria: item.item.categoria,
           quantidadePedida: item.quantidade,
           quantidadeSeparada: item.movimentacoes.reduce((total, movement) => total + movement.quantidade, 0),
           unidadeMedida: item.unidadeMedida,
-          descricao: decodeItemDescription(item.descricao).descricao,
+          descricao: resolveRequisitionItemMetadata(item.descricao, requisicao.observacao, index === 0).descricao,
           motivo: item.motivoNaoAtendido,
         })),
       })),

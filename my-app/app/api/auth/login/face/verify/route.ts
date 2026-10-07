@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { PapelFuncionario } from "@/generated/prisma/client";
-import { decryptEmbedding, faceAttemptLimit, hashFaceNonce, verifyFaceCapture } from "@/lib/face";
+import { decryptEmbedding, FaceServiceUnavailableError, faceAttemptLimit, hashFaceNonce, verifyFaceCapture } from "@/lib/face";
 import {
   clearBadgeLoginFailures,
   getLoginBlockRetryAfter,
@@ -18,6 +18,10 @@ import { clearFactorFailures, isFactorBlocked, recordFactorFailure } from "@/lib
 import { hashSecret, trustedDeviceCookieName } from "@/lib/webauthn";
 
 const genericFailure = () => NextResponse.json({ error: "Não foi possível verificar o acesso. Tente novamente ou procure o administrador." }, { status: 401 });
+const faceServiceUnavailable = () => NextResponse.json(
+  { error: "O reconhecimento facial está temporariamente indisponível. Tente novamente mais tarde ou procure o administrador." },
+  { status: 503 },
+);
 
 async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture: string, ipHash: string) {
   const challenge = await prisma.livenessChallenge.findUnique({
@@ -58,13 +62,16 @@ async function verifyAlmoxarifeFace(challengeId: string, nonce: string, capture:
     select: { embeddingEncrypted: true, iv: true, tag: true },
   });
   let matched = false;
+  let embeddings: number[][];
   try {
-    matched = await verifyFaceCapture(
-      capture,
-      { tipo: challenge.tipo, nonce },
-      templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag)),
-    );
+    embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
   } catch {
+    return faceServiceUnavailable();
+  }
+  try {
+    matched = await verifyFaceCapture(capture, { tipo: challenge.tipo, nonce }, embeddings);
+  } catch (error) {
+    if (error instanceof FaceServiceUnavailableError) return faceServiceUnavailable();
     matched = false;
   }
 
@@ -205,13 +212,20 @@ export async function POST(request: Request) {
     });
     let matched = false;
     if (templates.length > 0) {
+      let embeddings: number[][];
+      try {
+        embeddings = templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag));
+      } catch {
+        return faceServiceUnavailable();
+      }
       try {
         matched = await verifyFaceCapture(
           capture,
           { tipo: challenge.challenge ?? "", nonce },
-          templates.map((template) => decryptEmbedding(template.embeddingEncrypted, template.iv, template.tag)),
+          embeddings,
         );
-      } catch {
+      } catch (error) {
+        if (error instanceof FaceServiceUnavailableError) return faceServiceUnavailable();
         matched = false;
       }
     }

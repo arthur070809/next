@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { isSameOrigin } from "@/lib/security";
-import { decodeItemDescription } from "@/lib/requisition-metadata";
+import { resolveRequisitionItemMetadata } from "@/lib/requisition-description";
 import { prisma } from "@/lib/prisma";
 import {
   finalizarItemComQuantidade,
@@ -85,8 +85,12 @@ export async function GET(_request: Request, { params }: RouteContext) {
         atendente: requisicao.atendente?.nome ?? null,
         atendenteId: requisicao.atendente?.id ?? null,
         podeFinalizar: requisicao.atendente?.id === funcionario.id,
-        itens: requisicao.itens.map((item) => {
-          const metadata = decodeItemDescription(item.descricao);
+        itens: requisicao.itens.map((item, index) => {
+          const metadata = resolveRequisitionItemMetadata(
+            item.descricao,
+            requisicao.observacao,
+            index === 0,
+          );
           return {
             id: item.id,
             itemId: item.item.id,

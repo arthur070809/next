@@ -19,6 +19,22 @@ export const faceEnrollmentNonceTtlMs = 2 * 60 * 1000;
 type FaceServiceEmbeddingResponse = { embeddings?: number[][]; reason?: string; code?: string };
 type FaceServiceVerifyResponse = { livenessPassed?: boolean; matched?: boolean };
 
+export class FaceServiceUnavailableError extends Error {
+  constructor() {
+    super("Facial verification service is unavailable.");
+    this.name = "FaceServiceUnavailableError";
+  }
+}
+
+export function getFaceMatchThreshold(value = process.env.FACE_MATCH_THRESHOLD) {
+  if (value === undefined) return faceMatchThresholdDefault;
+  const threshold = Number(value.trim());
+  if (!value.trim() || !Number.isFinite(threshold) || threshold < 0) {
+    throw new FaceServiceUnavailableError();
+  }
+  return threshold;
+}
+
 export class FaceEnrollmentVerificationError extends Error {
   readonly code: string;
 
@@ -82,14 +98,22 @@ function validateCapture(value: unknown) {
 }
 
 async function callFaceService<T>(path: string, body: Record<string, unknown>) {
-  const response = await fetch(`${serviceUrl()}${path}`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${process.env.FACE_SERVICE_TOKEN ?? ""}` },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!response.ok) throw new Error(`Face service returned ${response.status}.`);
-  return await response.json() as T;
+  try {
+    const response = await fetch(`${serviceUrl()}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${process.env.FACE_SERVICE_TOKEN ?? ""}` },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) throw new FaceServiceUnavailableError();
+    const payload: unknown = await response.json();
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      throw new FaceServiceUnavailableError();
+    }
+    return payload as T;
+  } catch {
+    throw new FaceServiceUnavailableError();
+  }
 }
 
 function enrollmentVerificationMessage(code: string | undefined, reason: string | undefined) {
@@ -110,25 +134,37 @@ export async function enrollFaceSamples(samples: unknown[], options: { nonce?: s
   if (samples.length < 3 || samples.length > 5) throw new Error("Enrollment requires 3 to 5 captures.");
   const captures = samples.map(validateCapture);
   const result = await callFaceService<FaceServiceEmbeddingResponse>("/v1/enroll", { captures, nonce: options.nonce });
+  if (typeof result.code !== "undefined" && typeof result.code !== "string") throw new FaceServiceUnavailableError();
+  if (typeof result.reason !== "undefined" && typeof result.reason !== "string") throw new FaceServiceUnavailableError();
   if (result.code || result.reason) {
     const failure = enrollmentVerificationMessage(result.code, result.reason);
     throw new FaceEnrollmentVerificationError(failure.message, failure.code);
   }
-  if (!Array.isArray(result.embeddings) || result.embeddings.length !== captures.length || result.embeddings.some((embedding) => !Array.isArray(embedding) || embedding.length < 32)) {
-    throw new Error("Face service returned invalid embeddings.");
+  const embeddings = result.embeddings;
+  if (!Array.isArray(embeddings) || embeddings.length !== captures.length
+    || embeddings.some((embedding) => !Array.isArray(embedding) || embedding.length < 32)
+    || embeddings.some((embedding) => embedding.length !== embeddings[0].length
+      || embedding.some((value) => typeof value !== "number" || !Number.isFinite(value)))) {
+    throw new FaceServiceUnavailableError();
   }
-  return result.embeddings;
+  return embeddings;
 }
 
 export async function verifyFaceCapture(capture: unknown, challenge: { tipo: string; nonce: string }, templates: number[][]) {
   const image = validateCapture(capture);
+  if (templates.length === 0) return false;
+  if (templates.some((embedding) => embedding.length < 32
+    || embedding.some((value) => !Number.isFinite(value)))) return false;
   const result = await callFaceService<FaceServiceVerifyResponse>("/v1/verify", {
     capture: image,
     challenge: challenge.tipo,
     nonce: challenge.nonce,
     templates,
-    threshold: Number(process.env.FACE_MATCH_THRESHOLD ?? faceMatchThresholdDefault),
+    threshold: getFaceMatchThreshold(),
   });
+  if (typeof result.livenessPassed !== "boolean" || typeof result.matched !== "boolean") {
+    throw new FaceServiceUnavailableError();
+  }
   return result.livenessPassed === true && result.matched === true;
 }
 

@@ -1,10 +1,15 @@
 "use client";
 
+import NextImage from "next/image";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { faceConsentText } from "@/lib/face-consent";
 import { faceCaptureQuality } from "@/lib/facial/config";
+import { canUseFaceGallery, getNextEnrollmentStage, type EnrollmentStage } from "@/lib/facial/enrollment-flow";
 import { inspectFaceCount } from "@/lib/facial/face-count";
+import { encodeFacePhoto, normalizeFacePhoto, validateFacePhoto } from "@/lib/facial/photo";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
+import { createCameraStreamController, type CameraStreamController } from "@/lib/camera/camera-stream";
+import BuildIdentifier from "@/app/components/BuildIdentifier";
 import styles from "./face-enrollment.module.css";
 
 type Employee = { id: number; nome: string; cracha: string; enrolled: boolean };
@@ -18,7 +23,15 @@ class EnrollmentResponseError extends Error {
 }
 
 type FaceResult = { mesh?: Array<Array<number | undefined>>; boxRaw: [number, number, number, number]; score?: number; boxScore?: number; annotations?: Record<string, Array<Array<number | undefined>>>; rotation?: { angle: { roll: number; yaw: number; pitch: number } } | null };
-type HumanDetector = { detect(input: HTMLVideoElement): Promise<{ face?: FaceResult[] }> };
+type HumanDetector = { detect(input: HTMLVideoElement | HTMLImageElement): Promise<{ face?: FaceResult[] }> };
+function isCaptureStage(stage: Stage): stage is EnrollmentStage {
+  return stage === "front" || stage === "left" || stage === "right" || stage === "blink";
+}
+
+function createStageOrder(): EnrollmentStage[] {
+  return ["front", ...(Math.random() > 0.5 ? ["left", "right"] as EnrollmentStage[] : ["right", "left"] as EnrollmentStage[]), "blink"];
+}
+
 function eyesAreOpen(face: FaceResult) {
   const left = face.annotations?.leftEye ?? [];
   const right = face.annotations?.rightEye ?? [];
@@ -30,7 +43,7 @@ function eyesAreOpen(face: FaceResult) {
   return ratio(left) > faceCaptureQuality.eyeAspectRatioMin && ratio(right) > faceCaptureQuality.eyeAspectRatioMin;
 }
 
-function inspectLight(video: HTMLVideoElement) {
+function inspectLight(video: CanvasImageSource) {
   const canvas = document.createElement("canvas");
   canvas.width = faceCaptureQuality.lightSampleWidth;
   canvas.height = faceCaptureQuality.lightSampleHeight;
@@ -63,6 +76,10 @@ export default function FaceEnrollmentManager() {
   const [confirmedPerson, setConfirmedPerson] = useState(false);
   const [samples, setSamples] = useState<string[]>([]);
   const [stage, setStage] = useState<Stage>("front");
+  const [stageReady, setStageReady] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoSource, setPhotoSource] = useState<"camera" | "gallery">("camera");
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [modelState, setModelState] = useState<"loading" | "ready" | "error">("loading");
   const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready" | "denied" | "missing">("idle");
   const [instruction, setInstruction] = useState("Carregando modelos de visão");
@@ -84,18 +101,34 @@ export default function FaceEnrollmentManager() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const cameraRef = useRef<CameraStreamController | null>(null);
+  const detectorCleanupRef = useRef<(() => void) | null>(null);
+  const renewalTimerRef = useRef<number | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const humanRef = useRef<HumanDetector | null>(null);
   const stageRef = useRef<Stage>("front");
+  const stageOrderRef = useRef<EnrollmentStage[]>([]);
   const sessionRef = useRef<Session | null>(null);
   const samplesRef = useRef<string[]>([]);
   const stableSinceRef = useRef(0);
-  const capturedStageRef = useRef<Stage | null>(null);
   const submittingRef = useRef(false);
   const lastDebugAtRef = useRef(0);
 
   function stopCamera() {
-    streamRef.current?.getTracks().forEach((track) => track.stop()); streamRef.current = null;
-    if (videoRef.current) videoRef.current.srcObject = null;
+    detectorCleanupRef.current?.();
+    detectorCleanupRef.current = null;
+    if (renewalTimerRef.current !== null) window.clearInterval(renewalTimerRef.current);
+    renewalTimerRef.current = null;
+    const camera = cameraRef.current;
+    cameraRef.current = null;
+    streamRef.current = null;
+    if (camera) camera.dispose();
+    else if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+      videoRef.current.removeAttribute("src");
+    }
+    setStageReady(false);
     setCameraState("idle");
   }
 
@@ -166,7 +199,7 @@ export default function FaceEnrollmentManager() {
   useEffect(() => { samplesRef.current = samples; }, [samples]);
 
   async function selectEmployee(value: string) {
-    stopCamera(); setEmployeeId(value); setSession(null); localStorage.removeItem("marcon-face-enrollment-session"); setSamples([]); samplesRef.current = []; setConfirmedPerson(false); setConsent(false); setError(""); setMessage("");
+    stopCamera(); setEmployeeId(value); setSession(null); localStorage.removeItem("marcon-face-enrollment-session"); setSamples([]); samplesRef.current = []; stageOrderRef.current = []; stageRef.current = "front"; setStage("front"); setPhotoPreview(null); setConfirmedPerson(false); setConsent(false); setError(""); setMessage("");
     if (!value) return;
     const response = await fetch(`/api/admin/face-enrollment?funcionarioId=${encodeURIComponent(value)}`); const data = await response.json();
     if (!response.ok) { setError(data.error ?? "Não foi possível iniciar a sessão."); return; }
@@ -210,13 +243,38 @@ export default function FaceEnrollmentManager() {
 
   async function startCamera() {
     if (!confirmedPerson || !consent || modelState !== "ready") return;
+    if (!stageOrderRef.current.length) stageOrderRef.current = createStageOrder();
     setError(""); setCameraState("starting");
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("missing", "NotFoundError");
-      stopCamera();       streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: faceCaptureQuality.cameraWidth }, height: { ideal: faceCaptureQuality.cameraHeight } }, audio: false });
-      if (videoRef.current) { videoRef.current.srcObject = streamRef.current; await videoRef.current.play(); }
-      setCameraState("ready"); setStage("front"); stageRef.current = "front"; capturedStageRef.current = null; setInstruction("Posicione o rosto na oval");
+      stopCamera();
+      const video = videoRef.current;
+      const camera = createCameraStreamController({
+        video,
+        onLifecycleStop: () => {
+          if (renewalTimerRef.current !== null) window.clearInterval(renewalTimerRef.current);
+          renewalTimerRef.current = null;
+          streamRef.current = null;
+          setCameraState("idle");
+        },
+      });
+      cameraRef.current = camera;
+      streamRef.current = await camera.start({
+        video: {
+          facingMode: "user",
+          width: { ideal: faceCaptureQuality.cameraWidth },
+          height: { ideal: faceCaptureQuality.cameraHeight },
+        },
+        audio: false,
+      });
+      setCameraState("ready");
+      setStageReady(false);
+      setInstruction(stageRef.current === "front" ? "Posicione o rosto na oval" : "Posicione o rosto para a próxima captura");
     } catch (cause) {
+      if (cause instanceof DOMException && cause.name === "AbortError") return;
+      cameraRef.current?.dispose();
+      cameraRef.current = null;
+      streamRef.current = null;
       const name = cause instanceof DOMException ? cause.name : "";
       setCameraState(name === "NotFoundError" ? "missing" : "denied");
       setError(cameraErrorMessage(cause));
@@ -227,7 +285,143 @@ export default function FaceEnrollmentManager() {
   function captureFrame() {
     const video = videoRef.current; if (!video) return null;
     if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) return null;
-    const canvas = document.createElement("canvas"); canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height); return canvas.toDataURL("image/jpeg", 0.86);
+    return encodeFacePhoto(video, video.videoWidth, video.videoHeight);
+  }
+
+  function captureCurrentPhoto() {
+    if (!stageReady || photoBusy) return;
+    let image: string | null;
+    try {
+      image = captureFrame();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível preparar a captura.");
+      return;
+    }
+    if (!image) {
+      setError("A câmera ainda não está pronta para capturar.");
+      return;
+    }
+    setPhotoSource("camera");
+    setPhotoPreview(image);
+    setError("");
+    setInstruction("Confira a captura antes de usá-la");
+    stopCamera();
+  }
+
+  function retakePhoto() {
+    setPhotoPreview(null);
+    setError("");
+    if (photoSource === "camera") void startCamera();
+    else photoInputRef.current?.click();
+  }
+
+  function restartCaptureFlow() {
+    stopCamera();
+    samplesRef.current = [];
+    setSamples([]);
+    stageOrderRef.current = [];
+    stageRef.current = "front";
+    setStage("front");
+    setPhotoPreview(null);
+    setError("");
+    setMessage("");
+    setInstruction("Posicione o rosto na oval");
+  }
+
+  async function handleGalleryPhoto(file: Blob) {
+    const validationError = validateFacePhoto(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    try {
+      const image = await normalizeFacePhoto(file);
+      setPhotoSource("gallery");
+      setPhotoPreview(image);
+      setError("");
+      stopCamera();
+      setInstruction("Confira a foto frontal antes de usá-la");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível abrir a imagem.");
+    }
+  }
+
+  async function acceptPhotoPreview() {
+    if (!photoPreview || photoBusy || !humanRef.current) return;
+    if (!isCaptureStage(stageRef.current)) return;
+    if (photoSource === "gallery" && !canUseFaceGallery(stageRef.current, samplesRef.current.length)) {
+      setError("A galeria só pode fornecer a primeira foto frontal. As demais etapas exigem captura ao vivo.");
+      return;
+    }
+    setPhotoBusy(true);
+    setError("");
+    try {
+      const image = new Image();
+      image.src = photoPreview;
+      let result: { face?: FaceResult[] };
+      try {
+        await image.decode();
+        result = await humanRef.current.detect(image);
+      } catch {
+        throw new Error("Não foi possível analisar esta imagem. Escolha outra foto ou capture novamente.");
+      }
+      const faces = result.face ?? [];
+      const faceCheck = inspectFaceCount(faces);
+      const face = faceCheck.face;
+      if (!face) throw new Error(faceCheck.message ?? "Nenhum rosto detectado.");
+      const box = face.boxRaw;
+      const centerX = box[0] + box[2] / 2;
+      const centerY = box[1] + box[3] / 2;
+      const centered = centerX > faceCaptureQuality.centerXMin && centerX < faceCaptureQuality.centerXMax
+        && centerY > faceCaptureQuality.centerYMin && centerY < faceCaptureQuality.centerYMax;
+      const sizeValid = box[2] > faceCaptureQuality.faceWidthMin && box[2] < faceCaptureQuality.faceWidthMax;
+      const rotation = face.rotation?.angle;
+      const frontFacing = !rotation
+        || (Math.abs(rotation.yaw) <= faceCaptureQuality.yawLimitDegrees
+          && Math.abs(rotation.pitch) <= faceCaptureQuality.pitchLimitDegrees
+          && Math.abs(rotation.roll) <= faceCaptureQuality.rollLimitDegrees);
+      const light = inspectLight(image);
+      if (!centered) throw new Error("Posicione o rosto no centro da oval.");
+      if (!sizeValid) throw new Error("Aproxime ou afaste o rosto para enquadrá-lo.");
+      if (!frontFacing) throw new Error("Olhe para a câmera para esta captura.");
+      if (light.brightness < faceCaptureQuality.brightnessMin || light.brightness > faceCaptureQuality.brightnessMax) {
+        throw new Error("A iluminação da foto está fora do intervalo permitido.");
+      }
+      if (light.sharpness < faceCaptureQuality.sharpnessMin) throw new Error("A imagem está sem nitidez suficiente.");
+      if (face.boxScore !== undefined && face.boxScore < faceCaptureQuality.detectorMinConfidence) {
+        throw new Error("A detecção facial ficou abaixo do mínimo.");
+      }
+
+      const currentStage = stageRef.current;
+      const yaw = rotation?.yaw ?? 0;
+      const stagePassed = currentStage === "front"
+        || (currentStage === "left" && yaw < -faceCaptureQuality.sideYawDegrees)
+        || (currentStage === "right" && yaw > faceCaptureQuality.sideYawDegrees)
+        || (currentStage === "blink" && !eyesAreOpen(face));
+      if (!stagePassed) {
+        throw new Error(currentStage === "blink"
+          ? "A captura precisa mostrar o desafio de piscar feito ao vivo."
+          : "Vire levemente o rosto na direção indicada.");
+      }
+
+      const next = [...samplesRef.current, photoPreview];
+      samplesRef.current = next;
+      setSamples(next);
+      setPhotoPreview(null);
+      setStageReady(false);
+      if (!stageOrderRef.current.length) stageOrderRef.current = createStageOrder();
+      const nextStage = getNextEnrollmentStage(stageOrderRef.current, currentStage);
+      stageRef.current = nextStage;
+      setStage(nextStage);
+      if (nextStage === "success") await submitEnrollment(next);
+      else setInstruction(nextStage === "blink"
+        ? "Inicie a câmera e pisque antes de capturar"
+        : `Inicie a câmera e vire levemente para a ${nextStage === "left" ? "esquerda" : "direita"}`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível validar a imagem.");
+    } finally {
+      setPhotoBusy(false);
+    }
   }
 
   useEffect(() => {
@@ -236,7 +430,6 @@ export default function FaceEnrollmentManager() {
     let pending = false;
     let lastRun = 0;
     let frame = 0;
-    const stages: Stage[] = ["front", ...(Math.random() > 0.5 ? ["left", "right"] as Stage[] : ["right", "left"] as Stage[]), "blink"];
     const detect = async (time: number) => {
       if (stopped) return;
       frame = requestAnimationFrame(detect);
@@ -247,6 +440,7 @@ export default function FaceEnrollmentManager() {
       try {
         const inferenceStarted = performance.now();
         const result = await humanRef.current.detect(videoRef.current);
+        if (stopped) return;
         const inferenceMs = Math.round(performance.now() - inferenceStarted);
         const faces = result.face ?? [];
         const faceCheck = inspectFaceCount(faces);
@@ -267,6 +461,7 @@ export default function FaceEnrollmentManager() {
         }
         if (!face) {
           stableSinceRef.current = 0;
+          setStageReady(false);
           setInstruction(faceCheck.message ?? "Nenhum rosto detectado. Posicione o rosto na oval");
           return;
         }
@@ -292,6 +487,7 @@ export default function FaceEnrollmentManager() {
           && (face.boxScore === undefined || face.boxScore >= faceCaptureQuality.detectorMinConfidence);
         if (!ready) {
           stableSinceRef.current = 0;
+          setStageReady(false);
           setInstruction(!center
             ? "Posicione o rosto na oval"
             : !size
@@ -316,24 +512,13 @@ export default function FaceEnrollmentManager() {
         setInstruction(currentStage === "front" ? "Fique parado" : currentStage === "blink" ? "Pisque" : currentStage === "left" ? "Vire levemente para a esquerda" : "Vire levemente para a direita");
         if (!stagePassed) {
           stableSinceRef.current = 0;
+          setStageReady(false);
           return;
         }
         if (!stableSinceRef.current) stableSinceRef.current = time;
-        if (time - stableSinceRef.current >= faceCaptureQuality.stableCaptureMs && capturedStageRef.current !== currentStage) {
-          const image = captureFrame();
-          if (!image) return;
-          const next = [...samplesRef.current, image];
-          capturedStageRef.current = currentStage;
-          samplesRef.current = next;
-          setSamples(next);
-          const nextStage = stages[stages.indexOf(currentStage) + 1] ?? "success";
-          stageRef.current = nextStage;
-          setStage(nextStage);
-          if (nextStage === "success") void submitEnrollment(next);
-          else {
-            stableSinceRef.current = 0;
-            capturedStageRef.current = null;
-          }
+        if (time - stableSinceRef.current >= faceCaptureQuality.stableCaptureMs) {
+          setStageReady(true);
+          setInstruction("Pronto para capturar. Confira a posição e toque em Capturar foto.");
         }
       } catch {
         setInstruction("Não foi possível processar o quadro. Tente novamente");
@@ -342,18 +527,38 @@ export default function FaceEnrollmentManager() {
         pending = false;
       }
     };
-    frame = requestAnimationFrame(detect); return () => { stopped = true; cancelAnimationFrame(frame); };
+    const stopDetection = () => {
+      if (stopped) return;
+      stopped = true;
+      cancelAnimationFrame(frame);
+      if (detectorCleanupRef.current === stopDetection) detectorCleanupRef.current = null;
+    };
+    detectorCleanupRef.current = stopDetection;
+    const unregisterCleanup = cameraRef.current?.registerCleanup(stopDetection);
+    frame = requestAnimationFrame(detect);
+    return () => {
+      stopDetection();
+      unregisterCleanup?.();
+    };
   }, [cameraState, modelState, employeeId, submitEnrollment, debug]);
 
-  useEffect(() => { if (cameraState !== "ready") return; const timer = window.setInterval(() => { void renewSession(); }, 60_000); return () => window.clearInterval(timer); }, [cameraState, employeeId, renewSession]);
+  useEffect(() => {
+    if (cameraState !== "ready") return;
+    renewalTimerRef.current = window.setInterval(() => { void renewSession(); }, 60_000);
+    return () => {
+      if (renewalTimerRef.current !== null) window.clearInterval(renewalTimerRef.current);
+      renewalTimerRef.current = null;
+    };
+  }, [cameraState, employeeId, renewSession]);
 
-  const employee = employees.find((item) => item.id === Number(employeeId)); const progress = Math.min(100, samples.length * 20);
+  const employee = employees.find((item) => item.id === Number(employeeId)); const progress = Math.min(100, samples.length * 25);
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <p className={styles.eyebrow}>Administração</p>
         <h1>Cadastro facial presencial</h1>
         <p>Imagens processadas em memória. Apenas o template matemático cifrado é mantido.</p>
+        <BuildIdentifier />
       </header>
       {(error || message) && <p role={error ? "alert" : "status"} className={error ? styles.error : styles.success}>{error || message}</p>}
       <section className={styles.panel} aria-busy={busy}>
@@ -368,12 +573,34 @@ export default function FaceEnrollmentManager() {
         {modelState === "loading" && <p className={styles.modelStatus}>Carregando modelos de visão...</p>}
         {modelState === "error" && <button type="button" onClick={() => void loadModels()}>Tentar carregar modelos</button>}
         <div className={`${styles.scanner} ${stage === "success" ? styles.scannerSuccess : ""}`}>
-          <video ref={videoRef} muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" />
-          <canvas ref={overlayRef} className={styles.overlay} aria-hidden="true" />
+          {photoPreview
+            ? <NextImage src={photoPreview} width={1280} height={960} unoptimized className={styles.video} alt="Prévia da foto facial antes da validação" />
+            : <video ref={videoRef} muted playsInline className={styles.video} aria-label="Prévia da câmera para cadastro facial" />}
+          {!photoPreview && <canvas ref={overlayRef} className={styles.overlay} aria-hidden="true" />}
           <div className={styles.oval} aria-hidden="true" style={{ "--progress": `${progress}%` } as CSSProperties} />
-          <p className={styles.instruction} aria-live="polite">{cameraState === "starting" ? "Pedindo permissão da câmera" : instruction}</p>
+          <p className={styles.instruction} aria-live="polite">
+            {photoBusy ? "Validando a captura" : cameraState === "starting" ? "Pedindo permissão da câmera" : instruction}
+          </p>
           {stage === "success" && <span className={styles.check} aria-label="Cadastro concluído">✓</span>}
         </div>
+        {photoPreview && (
+          <div className={styles.actions}>
+            <button type="button" className={styles.primary} disabled={photoBusy || busy} onClick={() => void acceptPhotoPreview()}>
+              {photoBusy ? "Validando…" : "Usar esta foto"}
+            </button>
+            <button type="button" disabled={photoBusy || busy} onClick={retakePhoto}>
+              {photoSource === "camera" ? "Tirar outra" : "Escolher outra"}
+            </button>
+          </div>
+        )}
+        {stage === "failed" && samples.length >= 3 && (
+          <div className={styles.actions}>
+            <button type="button" className={styles.primary} disabled={busy} onClick={() => void submitEnrollment(samplesRef.current)}>
+              Tentar enviar novamente
+            </button>
+            <button type="button" disabled={busy} onClick={restartCaptureFlow}>Refazer capturas</button>
+          </div>
+        )}
         {debug && (
           <section aria-label="Diagnóstico facial" className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-800 sm:grid-cols-3">
             <p>Modelos: {modelState}</p>
@@ -398,11 +625,34 @@ export default function FaceEnrollmentManager() {
           <span>{faceConsentText}</span>
         </label>
         <div className={styles.actions}>
-          <button type="button" className={styles.primary} disabled={!employee || !confirmedPerson || !consent || modelState !== "ready" || cameraState === "starting"} onClick={() => void startCamera()}>
-            {cameraState === "ready" ? "Reiniciar" : "Iniciar captura"}
+          <button type="button" className={styles.primary} disabled={!employee || !confirmedPerson || !consent || modelState !== "ready" || cameraState === "starting" || Boolean(photoPreview) || busy || photoBusy || !isCaptureStage(stage)} onClick={() => void startCamera()}>
+            {cameraState === "ready" ? "Reiniciar câmera" : samples.length ? "Iniciar câmera para o próximo movimento" : "Iniciar captura"}
           </button>
-          <button type="button" onClick={stopCamera}>Cancelar</button>
+          {cameraState === "ready" && <button type="button" className={styles.primary} disabled={!stageReady || photoBusy} onClick={captureCurrentPhoto}>Capturar foto</button>}
+          {isCaptureStage(stage) && canUseFaceGallery(stage, samples.length) && !photoPreview && (
+            <>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                aria-label="Escolher foto frontal da galeria"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file) void handleGalleryPhoto(file);
+                }}
+              />
+              <button type="button" disabled={!employee || !confirmedPerson || !consent || modelState !== "ready"} onClick={() => photoInputRef.current?.click()}>
+                Escolher foto frontal
+              </button>
+            </>
+          )}
+          <button type="button" onClick={stopCamera}>Cancelar câmera</button>
         </div>
+        <p className={styles.hint}>
+          Cada imagem é validada localmente. A galeria só pode ser usada na etapa frontal; as etapas de movimento e piscada exigem novas capturas ao vivo para preservar a prova de vida.
+        </p>
       </section>
     </main>
   );

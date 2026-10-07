@@ -1,4 +1,4 @@
-import TextoDescricao from "./TextoDescricao";
+import RequisitionDescription from "./RequisitionDescription";
 
 export default function ItemDescription({
   categoria,
@@ -11,6 +11,6 @@ export default function ItemDescription({
 }) {
   return <div className={`min-w-0 break-words whitespace-pre-wrap ${className}`}>
     <p>Categoria: {categoria?.trim() || "—"}</p>
-    <p>Descrição do pedido: <TextoDescricao value={descricao} /></p>
+    <div className="min-w-0"><span>Descrição do pedido: </span><RequisitionDescription value={descricao} /></div>
   </div>;
 }

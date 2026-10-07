@@ -1,4 +1,4 @@
-import { decodeItemDescription } from "@/lib/requisition-metadata";
+import RequisitionDescription from "./RequisitionDescription";
 
 export default function TextoDescricao({
   value,
@@ -7,7 +7,5 @@ export default function TextoDescricao({
   value?: string | null;
   className?: string;
 }) {
-  return <span className={`break-words whitespace-pre-wrap ${className}`}>
-    {decodeItemDescription(value).descricao || "—"}
-  </span>;
+  return <RequisitionDescription value={value} className={className} />;
 }

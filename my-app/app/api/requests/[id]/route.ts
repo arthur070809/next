@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getAuthenticatedFuncionario } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { decodeItemDescription, stripIdempotencyMetadata } from "@/lib/requisition-metadata";
+import { stripIdempotencyMetadata } from "@/lib/requisition-metadata";
+import { resolveRequisitionItemMetadata } from "@/lib/requisition-description";
 import { PapelFuncionario } from "@/generated/prisma/client";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -38,8 +39,12 @@ export async function GET(_request: Request, { params }: RouteContext) {
       requisicao: {
         ...requisicao,
         observacao: stripIdempotencyMetadata(requisicao.observacao),
-        itens: requisicao.itens.map((item) => {
-          const metadata = decodeItemDescription(item.descricao);
+        itens: requisicao.itens.map((item, index) => {
+          const metadata = resolveRequisitionItemMetadata(
+            item.descricao,
+            requisicao.observacao,
+            index === 0,
+          );
           return {
             ...item,
             descricao: metadata.descricao,

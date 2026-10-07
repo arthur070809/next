@@ -15,7 +15,8 @@ vi.mock("@/lib/security", () => ({ isSameOrigin: vi.fn(() => true) }));
 import { POST } from "./route";
 import { requireAlmoxarife } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MANUAL_DEPOSIT_REASONS } from "@/lib/deposito-constants";
+import { MANUAL_DEPOSIT_REASONS, MAX_MANUAL_DEPOSIT_QUANTITY } from "@/lib/deposito-constants";
+import { createDepositOperationIdentity } from "@/lib/deposito-idempotency";
 
 const key = "10000000-0000-4000-8000-000000000001";
 
@@ -65,6 +66,7 @@ describe("POST /api/deposito/entrada-manual", () => {
     }));
 
     expect(response.status).toBe(201);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(await response.json()).toMatchObject({
       message: "Sobra adicionada ao depósito.",
       deposito: { itemId: "item-1", quantidade: 7 },
@@ -123,6 +125,72 @@ describe("POST /api/deposito/entrada-manual", () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["zero", 0],
+    ["negative", -1],
+    ["non-finite", Number.NaN],
+    ["fractional", 1.5],
+    ["above the maximum", MAX_MANUAL_DEPOSIT_QUANTITY + 1],
+  ])("rejects %s quantities before opening a transaction", async (_label, quantidade) => {
+    const response = await POST(request({
+      itemId: "item-1",
+      quantidade,
+      motivo: MANUAL_DEPOSIT_REASONS.SEM_REQUISICAO,
+    }));
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toContain("quantidade inteira");
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects an item that is missing or inactive before writing stock or movements", async () => {
+    transaction.item.findUnique.mockResolvedValueOnce(null);
+    const response = await POST(request({
+      itemId: "missing-item",
+      quantidade: 2,
+      motivo: MANUAL_DEPOSIT_REASONS.SEM_REQUISICAO,
+    }));
+
+    expect(response.status).toBe(404);
+    expect((await response.json()).error).toBe("Item não encontrado.");
+    expect(transaction.saldoEstoque.upsert).not.toHaveBeenCalled();
+    expect(transaction.movimentacao.create).not.toHaveBeenCalled();
+  });
+
+  it("replays the same idempotency key without adding stock or a second movement", async () => {
+    const identity = createDepositOperationIdentity(
+      27,
+      key,
+      "entrada",
+      {
+        itemId: "item-1",
+        quantity: 2,
+        requisitionNumber: null,
+        reason: MANUAL_DEPOSIT_REASONS.SEM_REQUISICAO,
+        observation: "",
+      },
+    );
+    transaction.movimentacao.findUnique.mockResolvedValueOnce({
+      id: identity.movementId,
+      observacao: identity.marker,
+      quantidade: 2,
+      saldoApos: 9,
+    });
+    const response = await POST(request({
+      itemId: "item-1",
+      quantidade: 2,
+      motivo: MANUAL_DEPOSIT_REASONS.SEM_REQUISICAO,
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      replayed: true,
+      deposito: { itemId: "item-1", quantidade: 9 },
+    });
+    expect(transaction.saldoEstoque.upsert).not.toHaveBeenCalled();
+    expect(transaction.movimentacao.create).not.toHaveBeenCalled();
+  });
+
   it("refuses a return that exceeds the unreturned quantity of a completed request", async () => {
     transaction.requisicao.findUnique.mockResolvedValue({
       id: "request-id",
@@ -154,6 +222,20 @@ describe("POST /api/deposito/entrada-manual", () => {
     }));
     expect(response.status).toBe(409);
     expect((await response.json()).error).toMatch(/Disponível: 1/);
+    expect(transaction.movimentacao.create).not.toHaveBeenCalled();
+  });
+
+  it("aborts the transaction if the source balance changes during a transfer", async () => {
+    transaction.saldoEstoque.updateMany.mockResolvedValueOnce({ count: 0 });
+    const response = await POST(request({
+      itemId: "item-1",
+      quantidade: 2,
+      motivo: MANUAL_DEPOSIT_REASONS.SEM_REQUISICAO,
+    }));
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).error).toContain("saldo do estoque mudou");
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(transaction.movimentacao.create).not.toHaveBeenCalled();
   });
 });

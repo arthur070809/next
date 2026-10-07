@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
-import PriorityBadge from "../components/PriorityBadge";
+import PriorityBadge, { PRIORITY_QUEUE_ROW_CLASS } from "../components/PriorityBadge";
 import ItemDescription from "../components/ItemDescription";
+import RequisitionDescription from "../components/RequisitionDescription";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import type { RequisicaoMock } from "../../lib/types/almoxarifado";
 import { startVisibilityPolling } from "../../lib/visibility-polling";
@@ -20,7 +21,7 @@ import {
   ExecutorAssuncaoLote,
   type ResultadoAssuncaoLote,
 } from "../../lib/viagem/assumir-lote";
-import { ordenarRequisicoes } from "./utils";
+import { sortRequisitionsByPriority } from "./utils";
 
 const podeAtivarDemonstracao = viagemDemoDisponivel(
   process.env.NODE_ENV,
@@ -155,7 +156,7 @@ export default function RequisicoesQueuePage() {
     };
   }, [mostrarViagens, modoDemonstracao]);
 
-  const filtradas = useMemo(() => ordenarRequisicoes(requisicoes
+  const filtradas = useMemo(() => sortRequisitionsByPriority(requisicoes
     .filter((request) => `${request.numeroPedido} ${request.item} ${request.solicitante ?? ""}`.toLowerCase().includes(busca.toLowerCase()))
   ), [requisicoes, busca]);
 
@@ -357,13 +358,13 @@ export default function RequisicoesQueuePage() {
         <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">Nenhuma requisição encontrada.</p>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full min-w-[900px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[1040px] border-collapse text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>{["Nº", "Setor", "Itens", "Idade", "Prioridade", "Status", "Solicitante", "Checklist"].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr>
+              <tr>{["Nº", "Setor", "Itens", "Idade", "Prioridade", "Descrição", "Status", "Solicitante", "Checklist"].map((heading) => <th key={heading} className="border-b border-slate-200 px-4 py-3 font-semibold">{heading}</th>)}</tr>
             </thead>
             <tbody>
               {filtradas.map((request) => (
-                <tr key={request.numeroPedido} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                <tr key={request.numeroPedido} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${request.prioridade === "prioridade" ? PRIORITY_QUEUE_ROW_CLASS : ""}`}>
                   <td className="px-4 py-3 font-semibold text-slate-900">{request.numeroPedido}</td>
                   <td className="px-4 py-3 text-slate-600">{request.setor}</td>
                   <td className="max-w-sm break-words px-4 py-3">
@@ -374,6 +375,7 @@ export default function RequisicoesQueuePage() {
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">{formatarIdade(request.data)}</td>
                   <td className="px-4 py-3"><PriorityBadge priority={request.prioridade} /></td>
+                  <td className="max-w-64 px-4 py-3"><RequisitionDescription value={request.descricao} variant="queue" priority={request.prioridade === "prioridade"} /></td>
                   <td className="px-4 py-3"><StatusBadge label={request.status === "pendente" ? "Aguardando" : "Em atendimento"} tone={request.status === "pendente" ? "warning" : "brand"} /></td>
                   <td className="px-4 py-3">{request.solicitante ?? "—"}</td>
                   <td className="px-4 py-3">

@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import PriorityBadge from "./PriorityBadge";
+import {
+  DESCRIPTION_MAX_LENGTH,
+  DESCRIPTION_MAX_LENGTH_ERROR,
+  limitRequisitionDescriptionInput,
+  normalizeRequisitionDescription,
+} from "@/lib/requisition-description";
 
 type CatalogItem = {
   id: string;
@@ -46,6 +52,7 @@ export default function FormularioItem({
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [catalogError, setCatalogError] = useState("");
   const [form, setForm] = useState<ItemFormData>(editingItem ?? emptyForm);
+  const [descriptionInputError, setDescriptionInputError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -66,7 +73,7 @@ export default function FormularioItem({
     : null;
   const insufficientFreeStock = selectedItem && validQuantity && selectedItem.disponivel < quantity;
   const descricaoObrigatoria = form.prioridade === "prioridade";
-  const isValid = Boolean(form.itemId && validQuantity && (!descricaoObrigatoria || form.descricao.trim()));
+  const isValid = Boolean(form.itemId && validQuantity && !descriptionInputError && (!descricaoObrigatoria || form.descricao.trim()));
 
   function update<K extends keyof ItemFormData>(key: K, value: ItemFormData[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -79,9 +86,11 @@ export default function FormularioItem({
       ...form,
       itemNome: selectedItem.nome,
       unidadeMedida: selectedItem.unidade,
+      descricao: normalizeRequisitionDescription(form.descricao),
       saldoDepositoPrevio: selectedItem.quantidadeDeposito,
       saldoEstoquePrevio: selectedItem.quantidade,
     });
+    setDescriptionInputError("");
     setForm(emptyForm);
   }} className="space-y-3">
     <div>
@@ -106,10 +115,35 @@ export default function FormularioItem({
 
     <div>
       <span className="text-sm font-medium text-slate-800">Prioridade</span>
-      <div className="mt-2 flex gap-2"><button type="button" aria-pressed={form.prioridade === "padrao"} onClick={() => update("prioridade", "padrao")} className={`rounded-lg px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-royal ${form.prioridade === "padrao" ? "ring-2 ring-royal" : "border border-slate-200"}`}><PriorityBadge priority="padrao" /></button><button type="button" aria-pressed={form.prioridade === "prioridade"} onClick={() => update("prioridade", "prioridade")} className={`rounded-lg px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-royal ${form.prioridade === "prioridade" ? "ring-2 ring-royal" : "border border-slate-200"}`}><PriorityBadge priority="prioridade" /></button></div>
+      <div className="mt-2 flex gap-2"><button type="button" aria-pressed={form.prioridade === "padrao"} onClick={() => update("prioridade", "padrao")} className={`rounded-lg px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-royal ${form.prioridade === "padrao" ? "ring-2 ring-royal" : "border border-slate-200"}`}><span className="text-sm font-semibold text-slate-700">Padrão</span></button><button type="button" aria-pressed={form.prioridade === "prioridade"} onClick={() => update("prioridade", "prioridade")} className={`rounded-lg px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-royal ${form.prioridade === "prioridade" ? "ring-2 ring-royal" : "border border-slate-200"}`}><PriorityBadge priority="prioridade" /></button></div>
     </div>
 
-    <label className="block text-sm font-medium text-slate-800">Descrição / Motivo{descricaoObrigatoria ? " (obrigatória para prioridade)" : " (opcional)"}<textarea value={form.descricao} onChange={(event) => update("descricao", event.target.value)} rows={3} className="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2" />{descricaoObrigatoria && !form.descricao.trim() && <span className="mt-1 block text-xs text-amber-800">Informe o motivo do pedido prioritário.</span>}</label>
+    <div>
+      <label htmlFor="descricao-requisicao" className="block text-sm font-medium text-slate-800">Descrição / Motivo{descricaoObrigatoria ? " (obrigatória para prioridade)" : " (opcional)"}</label>
+      <textarea
+        id="descricao-requisicao"
+        value={form.descricao}
+        maxLength={DESCRIPTION_MAX_LENGTH * 2}
+        aria-describedby="descricao-contador descricao-erro"
+        aria-invalid={Boolean(descriptionInputError)}
+        onChange={(event) => {
+          const input = event.target.value.replace(/\r\n?|\n/g, " ");
+          setDescriptionInputError(
+            Array.from(input).length > DESCRIPTION_MAX_LENGTH
+              ? DESCRIPTION_MAX_LENGTH_ERROR
+              : "",
+          );
+          update("descricao", limitRequisitionDescriptionInput(input));
+        }}
+        rows={3}
+        className="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2"
+      />
+      <p id="descricao-contador" aria-live="polite" className="mt-1 text-right text-xs text-slate-600">
+        {Array.from(form.descricao).length}/{DESCRIPTION_MAX_LENGTH}
+      </p>
+      {descriptionInputError && <p id="descricao-erro" role="alert" className="mt-1 text-sm text-red-700">{descriptionInputError}</p>}
+      {descricaoObrigatoria && !form.descricao.trim() && <p className="mt-1 text-xs text-amber-800">Informe o motivo do pedido prioritário.</p>}
+    </div>
 
     <div aria-live="polite" className="min-h-12 rounded-lg bg-slate-50 px-3 py-2 text-sm">
       {previewOrigin === "ESTOQUE" && <p className="font-medium text-slate-700">Será atendido pelo estoque.</p>}
@@ -117,6 +151,6 @@ export default function FormularioItem({
       {!selectedItem && <p className="text-slate-500">Escolha um item para ver o saldo livre.</p>}
       {selectedItem && !validQuantity && <p className="text-slate-500">Informe uma quantidade inteira positiva.</p>}
     </div>
-    <div className="flex gap-3"><button type="submit" disabled={!isValid} className="min-h-11 flex-1 rounded-lg bg-royal py-3 text-white disabled:opacity-50">Adicionar item</button><button type="button" onClick={() => setForm(emptyForm)} className="min-h-11 flex-1 rounded-lg border border-slate-300 py-3">Limpar</button></div>
+    <div className="flex gap-3"><button type="submit" disabled={!isValid} className="min-h-11 flex-1 rounded-lg bg-royal py-3 text-white disabled:opacity-50">Adicionar item</button><button type="button" onClick={() => { setForm(emptyForm); setDescriptionInputError(""); }} className="min-h-11 flex-1 rounded-lg border border-slate-300 py-3">Limpar</button></div>
   </form>;
 }

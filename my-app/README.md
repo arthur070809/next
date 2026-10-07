@@ -146,7 +146,11 @@ Usuarios do almoxarifado passam por senha, aparelho confiavel/WebAuthn e, depois
 
 O servico facial e externo ao Next.js e deve expor `POST /v1/enroll`, recebendo `{ "captures": [data-uri, ...] }` e retornando `{ "embeddings": [[...], ...] }`, e `POST /v1/verify`, retornando somente `{ "livenessPassed": boolean, "matched": boolean }`. Use HTTPS entre os servicos, `FACE_SERVICE_TOKEN`, validacao de tipo/tamanho/dimensoes e memoria volatil para imagens.
 
+O cadastro oferece captura manual por etapa e aceita uma foto da galeria somente para a primeira amostra frontal (JPG/PNG/WebP, ate 5 MB). A imagem e orientada pelo EXIF, redimensionada/compactada no navegador para respeitar o limite de 1 KB a 2 MB do endpoint e validada pela mesma deteccao de rosto, enquadramento e qualidade; movimentos laterais e piscada ainda exigem capturas novas da camera. As amostras permanecem apenas no estado da pagina e continuam sujeitas a validacao de consistencia e ao nonce do servidor.
+
 O fornecedor deve confirmar licenca comercial do modelo e fornecer PAD/liveness adequado. Pesos do InsightFace/ArcFace nao devem ser tratados como liberados para uso comercial sem verificacao da licenca. O backend falha fechado quando `FACE_SERVICE_URL` ou a chave de embeddings nao estao configuradas.
+
+Uma indisponibilidade, resposta invalida ou threshold `FACE_MATCH_THRESHOLD` vazio/negativo/nao finito e reportada como indisponibilidade tecnica (HTTP 503), sem consumir uma tentativa de identidade. O threshold predefinido permanece `0.42`; nao o ajuste sem medicao FAR/FRR do fornecedor. Para diagnosticar qual deploy esta servindo as telas de camera, consulte `GET /api/diagnostics/build` (retorna apenas os primeiros oito caracteres hexadecimais do commit da Vercel ou `local`).
 
 ### Migration e rollback
 

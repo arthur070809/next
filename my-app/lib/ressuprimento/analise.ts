@@ -31,8 +31,49 @@ export interface SugestaoRessuprimento {
   diasCobertura: number | null;
   pontoAtual: number | null;
   pontoSugerido: number | null;
+  quantidadeSugerida: number | null;
   classe: ClasseRessuprimento;
   confianca: ConfiancaRessuprimento;
+}
+
+export function calcularQuantidadeRessuprimento(
+  estoqueAtual: number,
+  estoqueMinimo: number | null | undefined,
+  estoqueMaximo?: number | null,
+): number | null {
+  inteiroNaoNegativo(estoqueAtual, "estoqueAtual");
+  if (estoqueMaximo !== null && estoqueMaximo !== undefined) {
+    inteiroNaoNegativo(estoqueMaximo, "estoqueMaximo");
+  }
+  if (estoqueMinimo === null || estoqueMinimo === undefined || estoqueMinimo === 0) return null;
+  inteiroNaoNegativo(estoqueMinimo, "estoqueMinimo");
+
+  const alvo = estoqueMaximo ?? estoqueMinimo;
+  inteiroNaoNegativo(alvo, "estoqueMaximo");
+  if (alvo < estoqueMinimo) {
+    throw new RangeError("estoqueMaximo não pode ser menor que estoqueMinimo.");
+  }
+  if (estoqueAtual > estoqueMinimo) return 0;
+
+  const quantidade = alvo - estoqueAtual;
+  if (!Number.isSafeInteger(quantidade) || quantidade > MAX_STOCK_BALANCE) {
+    throw new RangeError("A quantidade sugerida excede o limite permitido.");
+  }
+  return quantidade;
+}
+
+export function ordenarPorDeficitRessuprimento<T extends Pick<SugestaoRessuprimento, "id" | "estoque" | "pontoAtual">>(
+  items: readonly T[],
+): T[] {
+  return [...items].sort((left, right) => {
+    const leftDeficit = left.pontoAtual && left.pontoAtual > 0
+      ? Math.max(0, left.pontoAtual - left.estoque)
+      : 0;
+    const rightDeficit = right.pontoAtual && right.pontoAtual > 0
+      ? Math.max(0, right.pontoAtual - right.estoque)
+      : 0;
+    return rightDeficit - leftDeficit || left.id.localeCompare(right.id);
+  });
 }
 
 function inteiroNaoNegativo(valor: number, nome: string, limite = MAX_STOCK_BALANCE): void {
@@ -170,6 +211,7 @@ export function sugestao(
     diasCobertura: Number.isFinite(cobertura) ? cobertura : Number.POSITIVE_INFINITY,
     pontoAtual,
     pontoSugerido: pontoSugerido(consumoDiario, prazoDias, margemDias),
+    quantidadeSugerida: calcularQuantidadeRessuprimento(item.estoque, pontoAtual),
     classe: classificar(consumoDiario === null ? null : cobertura, prazoDias),
     confianca,
   };

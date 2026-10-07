@@ -55,6 +55,29 @@ describe("GET /api/minhas-requisicoes", () => {
     expect(JSON.stringify(body)).not.toContain("[[setor:");
   });
 
+  it("uses a legacy request observation when the first item description is missing", async () => {
+    vi.mocked(prisma.requisicao.findMany).mockResolvedValueOnce([{
+      numeroPedido: "REQ-LEGACY",
+      status: "PENDENTE",
+      prioridade: "PADRAO",
+      criadoEm: new Date("2026-10-01T12:00:00Z"),
+      observacao: "Descrição antiga do pedido",
+      itens: [{
+        quantidade: 1,
+        unidadeMedida: "UN",
+        descricao: null,
+        motivoNaoAtendido: null,
+        item: { nome: "Arruela", codigo: "129" },
+        movimentacoes: [],
+      }],
+    }] as never);
+
+    const response = await GET(new Request("http://localhost/api/minhas-requisicoes"));
+    const body = await response.json();
+
+    expect(body.requisicoes[0].itens[0].descricao).toBe("Descrição antiga do pedido");
+  });
+
   it("rejects non-operators before querying requisitions", async () => {
     vi.mocked(getAuthenticatedFuncionario).mockResolvedValueOnce({
       id: 1,

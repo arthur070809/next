@@ -6,7 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
 import PriorityBadge from "../../../components/PriorityBadge";
 import ItemDescription from "../../../components/ItemDescription";
-import { parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
+import { normalizarCodigoEtiqueta, parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
+import { shouldCloseCamera, type ScannerReadKind, type ScannerReadResult } from "../../../../lib/qr/camera-utils";
 
 type ChecklistItem = {
   id: string;
@@ -63,20 +64,16 @@ export default function ChecklistRequisicaoPage() {
   const [motivosDivergencia, setMotivosDivergencia] = useState<Record<string, MotivoDivergencia | "">>({});
   const [codigoManual, setCodigoManual] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [mensagemKind, setMensagemKind] = useState<ScannerReadKind | null>(null);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [cameraAberta, setCameraAberta] = useState(false);
-  const [lerEmSequencia, setLerEmSequencia] = useState(true);
   const [finalizando, setFinalizando] = useState(false);
   const [finalizado, setFinalizado] = useState<NonNullable<FinalizeResponse["resumo"]> | null>(null);
   const quantidadeRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const ultimoCodigoRef = useRef<{ codigo: string; quando: number } | null>(null);
-  const sequenceRef = useRef(lerEmSequencia);
+  const requisicaoRef = useRef<ChecklistRequest | null>(requisicao);
+  const ultimoCodigoRef = useRef<{ codigo: string; quando: number; kind: ScannerReadKind; message: string } | null>(null);
   const finalizationInFlight = useRef(false);
-
-  useEffect(() => {
-    sequenceRef.current = lerEmSequencia;
-  }, [lerEmSequencia]);
 
   useEffect(() => {
     let active = true;
@@ -86,7 +83,12 @@ export default function ChecklistRequisicaoPage() {
         if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar o checklist.");
         return data.requisicao as ChecklistRequest;
       })
-      .then((data) => { if (active) setRequisicao(data); })
+      .then((data) => {
+        if (active) {
+          requisicaoRef.current = data;
+          setRequisicao(data);
+        }
+      })
       .catch((cause) => {
         if (active) setErro(cause instanceof Error ? cause.message : "Não foi possível carregar o checklist.");
       })
@@ -118,20 +120,40 @@ export default function ChecklistRequisicaoPage() {
   const conferirCodigo = useCallback(async (raw: string, origem: "QR" | "digitacao") => {
     setErro("");
     setMensagem("");
+    setMensagemKind(null);
     const parsed = parseEtiqueta(raw);
     if (!parsed.ok) {
       const feedback = `Etiqueta inválida: ${parsed.motivo}`;
       setErro(feedback);
-      return feedback;
+      return { message: feedback, kind: "invalid-format" as const };
+    }
+    const currentRequest = requisicaoRef.current;
+    const matchingItems = currentRequest?.itens.filter((item) =>
+      item.codigo !== null &&
+      normalizarCodigoEtiqueta(item.codigo) === normalizarCodigoEtiqueta(parsed.codigo),
+    ) ?? [];
+    if (matchingItems.length === 1 && matchingItems[0].conferido) {
+      const feedback = "Esse item já foi conferido";
+      ultimoCodigoRef.current = { codigo: parsed.codigo, quando: Date.now(), kind: "already-confirmed", message: feedback };
+      setErro("");
+      setMensagem(feedback);
+      setMensagemKind("already-confirmed");
+      return { message: feedback, kind: "already-confirmed" as const };
     }
     const now = Date.now();
     if (
       ultimoCodigoRef.current?.codigo === parsed.codigo &&
       now - ultimoCodigoRef.current.quando < 2000
     ) {
-      return `Leitura repetida ignorada (${parsed.codigo}).`;
+      return {
+        message: ultimoCodigoRef.current.kind === "confirmed" || ultimoCodigoRef.current.kind === "already-confirmed"
+          ? ultimoCodigoRef.current.message
+          : `Leitura repetida ignorada (${parsed.codigo}).`,
+        kind: ultimoCodigoRef.current.kind,
+      };
     }
-    ultimoCodigoRef.current = { codigo: parsed.codigo, quando: now };
+    const scan = { codigo: parsed.codigo, quando: now, kind: "error" as ScannerReadKind, message: "" };
+    ultimoCodigoRef.current = scan;
 
     try {
       const response = await fetch(`/api/almoxarifado/requisicoes/${encodeURIComponent(numeroPedido)}`, {
@@ -144,48 +166,57 @@ export default function ChecklistRequisicaoPage() {
         const feedback = data.produto
           ? `Este item não está nesta requisição: ${data.produto.codigo ?? parsed.codigo} · ${data.produto.nome}.`
           : data.error ?? "Não foi possível conferir este código.";
+        const kind = data.produto ? "wrong-item" as const : "error" as const;
+        scan.kind = kind;
+        scan.message = feedback;
         setErro(feedback);
-        return feedback;
+        return { message: feedback, kind };
       }
       if (data.itemId) {
-        setRequisicao((current) => current ? ({
+        const update = (current: ChecklistRequest | null) => current ? ({
           ...current,
           itens: current.itens.map((item) =>
             item.id === data.itemId ? { ...item, conferido: true } : item,
           ),
-        }) : current);
+        }) : current;
+        requisicaoRef.current = update(requisicaoRef.current);
+        setRequisicao(update);
         if (!data.jaConferido) {
           window.requestAnimationFrame(() => quantidadeRefs.current[data.itemId!]?.focus());
         }
       }
-      const feedback = data.message ?? "Item conferido.";
+      const kind = data.jaConferido ? "already-confirmed" as const : "confirmed" as const;
+      const feedback = data.jaConferido ? "Esse item já foi conferido" : data.message ?? "Item conferido.";
+      setErro("");
       setMensagem(feedback);
-      return feedback;
+      scan.kind = kind;
+      scan.message = feedback;
+      setMensagemKind(kind);
+      return { message: feedback, kind };
     } catch {
       const feedback = "Falha de comunicação. Verifique a conexão e tente novamente.";
       setErro(feedback);
-      return feedback;
+      scan.kind = "error";
+      scan.message = feedback;
+      return { message: feedback, kind: "error" as const };
     }
   }, [numeroPedido]);
 
-  const handleCameraRead = useCallback(async (raw: string) => {
+  const handleCameraRead = useCallback(async (raw: string): Promise<ScannerReadResult> => {
     const parsed = parseEtiqueta(raw);
     if (!parsed.ok) {
       const feedback = `QR lido, mas formato não reconhecido: “${raw.slice(0, 80)}”. ${parsed.motivo}`;
       setErro(feedback);
-      return feedback;
+      return { message: feedback, kind: "invalid-format" };
     }
-    const feedback = await conferirCodigo(raw, "QR");
-    if (!sequenceRef.current && (feedback.startsWith("Item conferido") || feedback.includes("já foi conferido"))) {
-      setCameraAberta(false);
-    }
-    return feedback;
+    return conferirCodigo(raw, "QR");
   }, [conferirCodigo]);
 
   async function submitManual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!codigoManual.trim() || !requisicaoAtiva) return;
-    await conferirCodigo(codigoManual, "digitacao");
+    const result = await conferirCodigo(codigoManual, "digitacao");
+    if (cameraAberta && shouldCloseCamera(result.kind)) setCameraAberta(false);
     setCodigoManual("");
   }
 
@@ -303,12 +334,10 @@ export default function ChecklistRequisicaoPage() {
           />
           <button type="submit" disabled={!codigoManual.trim() || !requisicaoAtiva} className="min-h-11 rounded-lg border border-slate-300 px-5 py-2 font-semibold text-slate-800 disabled:opacity-50">Confirmar código</button>
         </form>
-        <label className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-          <input type="checkbox" checked={lerEmSequencia} onChange={(event) => setLerEmSequencia(event.target.checked)} disabled={!requisicaoAtiva} className="h-4 w-4 accent-royal" />
-          Ler em sequência (manter câmera aberta)
-        </label>
         {erro && <p role="alert" aria-live="assertive" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{erro}</p>}
-        {mensagem && <p role="status" aria-live="polite" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{mensagem}</p>}
+        {mensagem && <p role="status" aria-live="polite" className={`mt-4 rounded-lg p-3 text-sm ${mensagemKind === "already-confirmed" ? "bg-blue-50 text-blue-900" : "bg-emerald-50 text-emerald-800"}`}>
+          {mensagemKind === "already-confirmed" ? <><span aria-hidden="true">ℹ </span><span>Informação: </span></> : null}{mensagem}
+        </p>}
       </section>
 
       <section aria-label="Itens da requisição" className="space-y-3">

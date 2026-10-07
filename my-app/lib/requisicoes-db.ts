@@ -6,9 +6,9 @@ import { prisma } from "@/lib/prisma";
 import type { RequisicaoMock } from "@/lib/types/almoxarifado";
 import {
   createIdempotencyMarker,
-  decodeItemDescription,
   idempotencyMarkerPrefix,
 } from "@/lib/requisition-metadata";
+import { resolveRequisitionItemMetadata } from "@/lib/requisition-description";
 import {
   PrismaClient,
   Prisma,
@@ -52,13 +52,18 @@ function statusToFront(status: StatusRequisicao): RequisicaoMock["status"] {
 /** Monta um RequisicaoMock a partir do modelo Prisma */
 export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
   const primeiroItem = req.itens[0];
-  const primeiroItemMetadata = decodeItemDescription(primeiroItem?.descricao);
+  const primeiroItemMetadata = resolveRequisitionItemMetadata(
+    primeiroItem?.descricao,
+    req.observacao,
+    true,
+  );
   const almoxarifadoSlug = primeiroItem?.local?.slug ?? "estoque";
   const almoxarifadoFront = (["central", "embalagens", "materia-prima", "importados"] as const).find(
     (s) => s === almoxarifadoSlug
   ) ?? "central";
 
   return {
+    id: req.id,
     numeroPedido: req.numeroPedido,
     almoxarifado: almoxarifadoFront,
     setor: primeiroItemMetadata.setor ?? "setor1",
@@ -75,15 +80,18 @@ export function toRequisicaoMock(req: RequisicaoWithRelations): RequisicaoMock {
     assumidaAt: req.assumidaEm?.toISOString() ?? undefined,
     anuladoPorCracha: undefined,
     anuladoAt: req.anuladaEm?.toISOString() ?? undefined,
-    itens: req.itens.map((ri) => ({
-      id: ri.id,
-      nome: ri.item?.nome ?? "Item",
-      categoria: ri.item?.categoria ?? undefined,
-      descricao: decodeItemDescription(ri.descricao).descricao,
-      quantidade: ri.quantidade,
-      unidadeMedida: ri.unidadeMedida,
-      setor: decodeItemDescription(ri.descricao).setor ?? undefined,
-    })),
+    itens: req.itens.map((ri, index) => {
+      const metadata = resolveRequisitionItemMetadata(ri.descricao, req.observacao, index === 0);
+      return {
+        id: ri.id,
+        nome: ri.item?.nome ?? "Item",
+        categoria: ri.item?.categoria ?? undefined,
+        descricao: metadata.descricao,
+        quantidade: ri.quantidade,
+        unidadeMedida: ri.unidadeMedida,
+        setor: metadata.setor ?? undefined,
+      };
+    }),
   };
 }
 
@@ -92,7 +100,7 @@ export async function listOpenRequisitions(): Promise<RequisicaoMock[]> {
   const requisicoes = await prisma.requisicao.findMany({
     where: { status: { in: [StatusRequisicao.PENDENTE, StatusRequisicao.ASSUMIDA] } },
     include: REQUISICAO_INCLUDE,
-    orderBy: [{ prioridade: "desc" }, { criadoEm: "asc" }],
+    orderBy: [{ prioridade: "desc" }, { criadoEm: "asc" }, { id: "asc" }],
     take: 200, // limite razoável para fila de trabalho
   });
   return requisicoes.map(toRequisicaoMock);
