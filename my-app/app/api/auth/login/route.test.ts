@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({ prisma: {
   funcionario: { findFirst: vi.fn() },
@@ -72,7 +72,25 @@ function request(codigoCracha: string, ip = "192.0.2.10") {
   });
 }
 
+function requestWithPassword(codigoCracha: string, password: string) {
+  return new Request("http://localhost/api/auth/login", {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "http://localhost" },
+    body: JSON.stringify({ codigoCracha, credential: "password", password }),
+  });
+}
+
+function configureProductionDemoLogin() {
+  vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("LOGIN_MODO_DEMO", "true");
+  vi.stubEnv("DEMO_DB_NOME", "marcon_demo");
+  vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
+  vi.stubEnv("DATABASE_URL", "mysql://demo:demo@localhost:4000/marcon_demo");
+}
+
 describe("login by badge code", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
@@ -159,6 +177,102 @@ describe("login by badge code", () => {
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({ error: "Código inválido." });
     expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("keeps an unlisted real badge on password verification when demo mode is active", async () => {
+    configureProductionDemoLogin();
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(admin as never);
+    vi.mocked(bcrypt.compare).mockImplementation(() => Promise.resolve(false));
+
+    const response = await POST(requestWithPassword("1000", "incorrect"));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(bcrypt.compare).toHaveBeenCalledWith("incorrect", passwordHash);
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty password for a real badge without comparing or creating a session", async () => {
+    configureProductionDemoLogin();
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
+
+    const response = await POST(requestWithPassword("2000", ""));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("does not bypass password for an allowlisted badge when demo mode is disabled", async () => {
+    vi.stubEnv("LOGIN_DEMO_CRACHAS", "1111,2222,3333");
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...operator, cracha: "1111" } as never);
+    vi.mocked(bcrypt.compare).mockImplementation(() => Promise.resolve(false));
+
+    const response = await POST(requestWithPassword("1111", "incorrect"));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(bcrypt.compare).toHaveBeenCalledWith("incorrect", passwordHash);
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects an absent or malformed stored password hash without treating it as valid", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue({ ...operator, senha: "" } as never);
+
+    const response = await POST(requestWithPassword("2000", "some-password"));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown badge with the same generic response in demo mode", async () => {
+    configureProductionDemoLogin();
+
+    const response = await POST(requestWithPassword("4444", "incorrect"));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Código inválido." });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+  });
+
+  it("limits passwordless production demo login to the three configured demo badges", async () => {
+    configureProductionDemoLogin();
+    const demoUsers = [
+      { badge: "1111", user: { ...operator, cracha: "1111" } },
+      { badge: "2222", user: { ...stockkeeper, cracha: "2222" } },
+      { badge: "3333", user: demoAdmin },
+    ];
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    for (const { badge, user } of demoUsers) {
+      vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(user as never);
+      const response = await POST(requestWithPassword(badge, "definitely-not-the-password"));
+      expect(response.status).toBe(200);
+    }
+
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+    expect(prisma.sessao.create).toHaveBeenCalledTimes(3);
+    const output = JSON.stringify([...warn.mock.calls, ...error.mock.calls]);
+    expect(output).not.toContain("definitely-not-the-password");
+    expect(output).not.toContain(passwordHash);
+  });
+
+  it("fails closed if password comparison errors and logs no password or hash", async () => {
+    vi.mocked(prisma.funcionario.findFirst).mockResolvedValue(operator as never);
+    vi.mocked(bcrypt.compare).mockRejectedValue(new Error("password compare failure"));
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const response = await POST(requestWithPassword("2000", "private-password"));
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toMatchObject({ error: "Não foi possível concluir o login." });
+    expect(prisma.sessao.create).not.toHaveBeenCalled();
+    expect(JSON.stringify(error.mock.calls)).not.toContain("private-password");
+    expect(JSON.stringify(error.mock.calls)).not.toContain(passwordHash);
   });
 
   it("requires password in the ordinary login path", async () => {

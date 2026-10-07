@@ -10,7 +10,8 @@ import { isFaceBlinkRequired } from "@/lib/facial/config";
 import { canStartAutomaticAttempt, FACE_QUALITY_LIMITS, evaluateFaceQuality, selectDominantFace, shouldFinishFrameCollection } from "@/lib/facial/face-quality";
 import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
-import { extractFaceEmbedding, loadBrowserHuman, type BrowserHuman } from "@/lib/facial/human-browser";
+import { extractFaceEmbedding, loadBrowserHuman, loadFaceDescriptor, loadFaceEmotion, type BrowserHuman } from "@/lib/facial/human-browser";
+import { createFaceLoadDiagnostics, startFaceLoadWatchdog, withFaceLoadError } from "@/lib/facial/load-diagnostics";
 import { cameraErrorMessage } from "@/lib/qr/camera-utils";
 import BuildIdentifier from "@/app/components/BuildIdentifier";
 
@@ -57,6 +58,8 @@ export default function LoginForm({
   const [faceChallenge, setFaceChallenge] = useState<FaceChallenge | null>(null);
   const [faceModelProgress, setFaceModelProgress] = useState("Carregando reconhecedor local");
   const [faceModelReady, setFaceModelReady] = useState(false);
+  const [faceModelState, setFaceModelState] = useState<"loading" | "slow" | "error" | "ready">("loading");
+  const [faceModelErrorName, setFaceModelErrorName] = useState("");
   const [cameraState, setCameraState] = useState<FaceCameraState>("idle");
   const [automaticAttempts, setAutomaticAttempts] = useState(0);
   const [cameraRestartKey, setCameraRestartKey] = useState(0);
@@ -79,6 +82,8 @@ export default function LoginForm({
   const faceCandidatesRef = useRef<FaceCandidate[]>([]);
   const blinkStateRef = useRef<BlinkState>(initialBlinkState);
   const leftTurnObservedRef = useRef(false);
+  const faceLoadDiagnosticsRef = useRef(createFaceLoadDiagnostics());
+  const faceLoadWatchdogRef = useRef<ReturnType<typeof startFaceLoadWatchdog> | null>(null);
 
   function stopFaceCamera() {
     const camera = faceCameraRef.current;
@@ -94,24 +99,80 @@ export default function LoginForm({
   }
 
   useEffect(() => () => faceCameraRef.current?.dispose(), []);
+  useEffect(() => () => faceLoadWatchdogRef.current?.clear(), []);
 
   useEffect(() => {
     if (stage !== "face") return;
     let cancelled = false;
-    void loadBrowserHuman(setFaceModelProgress).then(({ human }) => {
+    const watchdog = startFaceLoadWatchdog(
+      () => {
+        if (!cancelled) {
+          setFaceModelState("slow");
+          setFaceModelProgress("Conexão lenta; os modelos ainda estão carregando");
+        }
+      },
+      () => {
+        if (!cancelled) {
+          setFaceModelState("error");
+          setFaceModelErrorName("TimeoutError");
+          setError("O carregamento facial excedeu 60 segundos. Recomece a verificação.");
+          faceLoadDiagnosticsRef.current = withFaceLoadError(
+            faceLoadDiagnosticsRef.current,
+            Object.assign(new Error("Tempo limite de 60 segundos excedido."), { name: "TimeoutError" }),
+          );
+        }
+      },
+    );
+    faceLoadWatchdogRef.current = watchdog;
+    const callbacks = {
+      onProgress: setFaceModelProgress,
+      onDiagnostics: (diagnostics: typeof faceLoadDiagnosticsRef.current) => {
+        faceLoadDiagnosticsRef.current = diagnostics;
+      },
+    };
+    const initialDiagnostics = { ...createFaceLoadDiagnostics(), startedAt: Date.now(), stage: "checando-backend" as const };
+    void loadBrowserHuman(callbacks, initialDiagnostics).then(async ({ human }) => {
+      await loadFaceDescriptor(human, callbacks, faceLoadDiagnosticsRef.current);
+      const challenge = faceChallengeRef.current?.challenge;
+      if (isFaceBlinkRequired() && (challenge === "sorrir" || challenge === "smile")) {
+        await loadFaceEmotion(human, callbacks, faceLoadDiagnosticsRef.current);
+      }
+      if (cancelled || watchdog.didTimeout()) return;
       if (!cancelled) {
+        watchdog.clear();
         faceHumanRef.current = human;
         setFaceModelReady(true);
+        setFaceModelState("ready");
       }
-    }).catch(() => {
-      if (!cancelled) setError("Não foi possível carregar os modelos faciais locais. Tente novamente.");
+    }).catch((cause: unknown) => {
+      if (!cancelled && !watchdog.didTimeout()) {
+        const name = cause instanceof Error ? cause.name : "UnknownError";
+        watchdog.clear();
+        faceLoadDiagnosticsRef.current = withFaceLoadError(faceLoadDiagnosticsRef.current, cause);
+        setFaceModelErrorName(name);
+        setFaceModelState("error");
+        setError(`Não foi possível carregar os modelos faciais (${name}). Tente novamente.`);
+      }
     });
     return () => {
       cancelled = true;
+      watchdog.clear();
       faceHumanRef.current = null;
       setFaceModelReady(false);
     };
   }, [stage, modelRetryKey]);
+
+  function retryFaceModelLoad() {
+    if (faceModelState === "slow" || faceModelErrorName === "TimeoutError") {
+      window.location.reload();
+      return;
+    }
+    setError("");
+    setFaceModelReady(false);
+    setFaceModelState("loading");
+    setFaceModelErrorName("");
+    setModelRetryKey((key) => key + 1);
+  }
 
   function completeLogin(data: LoginResult) {
     const destination = data.funcionario.role === "admin"
@@ -151,6 +212,9 @@ export default function LoginForm({
     collectionStartedAtRef.current = 0;
     blinkStateRef.current = initialBlinkState;
     leftTurnObservedRef.current = false;
+    setFaceModelReady(false);
+    setFaceModelState("loading");
+    setFaceModelErrorName("");
     setStage("face");
   }
 
@@ -565,7 +629,7 @@ export default function LoginForm({
         <p className="text-sm text-slate-600">A câmera será iniciada automaticamente. {isFaceBlinkRequired()
           ? faceChallenge.challenge === "piscar" ? "Pisque uma vez quando estiver enquadrado." : faceChallenge.challenge === "virar_esquerda" ? "Vire levemente o rosto à esquerda e volte." : "Sorria levemente quando estiver enquadrado."
           : "O reconhecimento tentará automaticamente quando encontrar um rosto adequado."}</p>
-        <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
+        <div className="overflow-hidden rounded-xl bg-slate-950"><video ref={videoRef} autoPlay muted playsInline className="aspect-[4/3] w-full object-cover" aria-label="Prévia da câmera" /></div>
         <BuildIdentifier />
         <p className="text-xs text-slate-500" aria-live="polite">
           {!faceModelReady ? faceModelProgress
@@ -582,8 +646,8 @@ export default function LoginForm({
         <div aria-live="assertive" aria-atomic="true" className="min-h-11">{error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}</div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button type="button" disabled={attemptBusy} onClick={cancelFace} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Cancelar</button>
-          {!faceModelReady
-            ? <button type="button" onClick={() => { setError(""); setModelRetryKey((key) => key + 1); }} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">Tentar carregar modelos</button>
+          {!faceModelReady && faceModelState !== "loading"
+            ? <button type="button" onClick={retryFaceModelLoad} className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700">{faceModelState === "slow" ? "Recomeçar" : "Tentar carregar modelos"}</button>
             : ["paused", "error", "exhausted"].includes(cameraState)
               ? <button type="button" disabled={attemptBusy} onClick={() => void restartFaceSession()} className="min-h-11 flex-1 rounded-lg bg-royal px-4 text-sm font-semibold text-white">Tentar novamente</button>
               : null}
