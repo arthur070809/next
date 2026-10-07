@@ -6,16 +6,16 @@ import {
   cameraErrorMessage,
   createCameraLease,
   createScannerSession,
-  isSuccessfulScannerFeedback,
   requestScannerStream,
   shouldAcceptScan,
+  type ScannerReadResult,
 } from "../../lib/qr/camera-utils";
 
 export default function ProductEtiquetaScanner({
   onRead,
   onClose,
 }: {
-  onRead: (raw: string, format: string) => Promise<string>;
+  onRead: (raw: string, format: string) => Promise<ScannerReadResult>;
   onClose: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,6 +25,7 @@ export default function ProductEtiquetaScanner({
   const unlockTimerRef = useRef<number | null>(null);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("Procurando QR… Aponte a câmera para a etiqueta.");
+  const [successFeedback, setSuccessFeedback] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -92,11 +93,12 @@ export default function ProductEtiquetaScanner({
             if ("vibrate" in navigator) navigator.vibrate(100);
             let succeeded = false;
             try {
-              const message = await onRead(detected.rawValue, detected.format);
+              const result = await onRead(detected.rawValue, detected.format);
               if (lease.isActive()) {
-                setFeedback(message);
-                setParserResult(message);
-                succeeded = session.completeSuccess(message);
+                setFeedback(result.message);
+                setSuccessFeedback(result.success);
+                setParserResult(result.message);
+                succeeded = session.completeRead(result.success);
               }
             } finally {
               if (!succeeded) {
@@ -147,6 +149,7 @@ export default function ProductEtiquetaScanner({
     unlockTimerRef.current = null;
     setError("");
     setFeedback("Procurando QR… Aponte a câmera para a etiqueta.");
+    setSuccessFeedback(false);
     previousRef.current = null;
     busyRef.current = false;
     setRetryKey((value) => value + 1);
@@ -167,7 +170,7 @@ export default function ProductEtiquetaScanner({
         {error && <div role="alert" className="absolute mx-5 max-w-lg rounded-xl bg-white p-5 text-slate-900 shadow-xl"><p>{error}</p><button type="button" onClick={retryCamera} className="mt-4 rounded-lg bg-royal px-4 py-2 font-semibold text-white">Tentar novamente</button></div>}
       </div>
       <footer className="space-y-3 px-4 py-4">
-        <p aria-live="polite" className={`text-center text-sm ${isSuccessfulScannerFeedback(feedback) ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : ""}`}>{feedback}</p>
+        <p aria-live="polite" className={`text-center text-sm ${successFeedback ? "rounded-lg bg-emerald-900 p-3 font-semibold text-emerald-100" : ""}`}>{feedback}</p>
         <form
           className="mx-auto flex max-w-lg gap-2"
           onSubmit={async (event) => {
@@ -175,11 +178,12 @@ export default function ProductEtiquetaScanner({
             if (!manualValue.trim() || busyRef.current || sessionRef.current?.hasSucceeded()) return;
             busyRef.current = true;
             try {
-              const message = await onRead(manualValue, "manual");
-              setFeedback(message);
-              setParserResult(message);
+              const result = await onRead(manualValue, "manual");
+              setFeedback(result.message);
+              setSuccessFeedback(result.success);
+              setParserResult(result.message);
               setManualValue("");
-              if (sessionRef.current?.completeSuccess(message)) return;
+              if (sessionRef.current?.completeRead(result.success)) return;
             } finally {
               if (!sessionRef.current?.hasSucceeded()) busyRef.current = false;
             }

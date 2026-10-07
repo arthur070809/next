@@ -1,5 +1,6 @@
 export type CameraTrackLike = Pick<MediaStreamTrack, "stop">;
 export type CameraStreamLike = { getTracks(): CameraTrackLike[] };
+export type ScannerReadResult = { message: string; success: boolean };
 export const SCANNER_SUCCESS_FEEDBACK_MS = 650;
 
 export const scannerVideoConstraints: MediaTrackConstraints = {
@@ -73,13 +74,6 @@ export function shouldAcceptScan(
   return !lastScan || lastScan.value !== value || now - lastScan.at >= debounceMs;
 }
 
-export function isSuccessfulScannerFeedback(message: string): boolean {
-  return message.startsWith("Item conferido")
-    || message.includes("já foi conferido")
-    || message.startsWith("Item encontrado:")
-    || (message.startsWith("Código ") && message.includes(" não cadastrado."));
-}
-
 export function stopCameraStream(stream: CameraStreamLike | null): void {
   stream?.getTracks().forEach((track) => track.stop());
 }
@@ -136,8 +130,8 @@ export function createScannerSession(
       if (closed) next.stop();
       else scanner = next;
     },
-    completeSuccess(message: string): boolean {
-      if (closed || successful || !isSuccessfulScannerFeedback(message)) return false;
+    completeRead(success: boolean): boolean {
+      if (closed || successful || !success) return false;
       successful = true;
       closeTimer = setTimeout(() => close(true), SCANNER_SUCCESS_FEEDBACK_MS);
       return true;

@@ -3,7 +3,6 @@ import {
   cameraErrorMessage,
   createCameraLease,
   createScannerSession,
-  isSuccessfulScannerFeedback,
   SCANNER_SUCCESS_FEEDBACK_MS,
   requestScannerStream,
   shouldAcceptScan,
@@ -102,7 +101,7 @@ describe("camera scanner helpers", () => {
       const session = createScannerSession(video, lease, setActive, onClose);
       session.setScanner({ stop: stopScanner });
 
-      expect(session.completeSuccess("Item conferido.")).toBe(true);
+      expect(session.completeRead(true)).toBe(true);
       expect(stopTrack1).not.toHaveBeenCalled();
       expect(stopScanner).not.toHaveBeenCalled();
       expect(video.srcObject).toBe(stream);
@@ -125,7 +124,7 @@ describe("camera scanner helpers", () => {
   it.each([
     "Este item não está nesta requisição: 130 · Outro material.",
     "QR não reconhecido: formato desconhecido.",
-  ])("keeps the camera open after an unsuccessful result: %s", (message) => {
+  ])("keeps the camera open after an unsuccessful result: %s", () => {
     vi.useFakeTimers();
     try {
       const stopTrack = vi.fn();
@@ -135,8 +134,7 @@ describe("camera scanner helpers", () => {
       const onClose = vi.fn();
       const session = createScannerSession({ srcObject: stream }, lease, vi.fn(), onClose);
 
-      expect(isSuccessfulScannerFeedback(message)).toBe(false);
-      expect(session.completeSuccess(message)).toBe(false);
+      expect(session.completeRead(false)).toBe(false);
       vi.advanceTimersByTime(SCANNER_SUCCESS_FEEDBACK_MS * 2);
       expect(stopTrack).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
@@ -152,8 +150,8 @@ describe("camera scanner helpers", () => {
       const lease = createCameraLease();
       const session = createScannerSession({ srcObject: null }, lease, vi.fn(), onClose);
 
-      expect(session.completeSuccess("Item conferido.")).toBe(true);
-      expect(session.completeSuccess("Item conferido.")).toBe(false);
+      expect(session.completeRead(true)).toBe(true);
+      expect(session.completeRead(true)).toBe(false);
       vi.advanceTimersByTime(SCANNER_SUCCESS_FEEDBACK_MS);
       expect(onClose).toHaveBeenCalledOnce();
     } finally {
@@ -168,7 +166,7 @@ describe("camera scanner helpers", () => {
       const firstLease = createCameraLease();
       firstLease.attach({ getTracks: () => [{ stop: firstStop }] });
       const first = createScannerSession({ srcObject: null }, firstLease, vi.fn(), vi.fn());
-      first.completeSuccess("Item encontrado: Luva.");
+      first.completeRead(true);
       vi.advanceTimersByTime(SCANNER_SUCCESS_FEEDBACK_MS);
 
       const secondStop = vi.fn();
@@ -177,7 +175,7 @@ describe("camera scanner helpers", () => {
       expect(secondLease.attach(secondStream)).toBe(true);
       const second = createScannerSession({ srcObject: secondStream }, secondLease, vi.fn(), vi.fn());
       expect(second.isClosed()).toBe(false);
-      expect(second.completeSuccess("Item conferido.")).toBe(true);
+      expect(second.completeRead(true)).toBe(true);
       expect(firstStop).toHaveBeenCalledOnce();
       expect(secondStop).not.toHaveBeenCalled();
     } finally {
@@ -215,7 +213,7 @@ describe("camera scanner helpers", () => {
         (active) => activeChanges.push(active),
         vi.fn(),
       );
-      session.completeSuccess("Código 123 não cadastrado. Preencha o formulário.");
+      session.completeRead(true);
       vi.advanceTimersByTime(SCANNER_SUCCESS_FEEDBACK_MS);
       expect(activeChanges).toEqual([false]);
     } finally {

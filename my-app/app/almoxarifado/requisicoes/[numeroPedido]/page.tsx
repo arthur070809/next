@@ -7,6 +7,7 @@ import ProductEtiquetaScanner from "../../../components/ProductEtiquetaScanner";
 import PriorityBadge from "../../../components/PriorityBadge";
 import ItemDescription from "../../../components/ItemDescription";
 import { parseEtiqueta } from "../../../../lib/qr/parseEtiqueta";
+import type { ScannerReadResult } from "../../../../lib/qr/camera-utils";
 
 type ChecklistItem = {
   id: string;
@@ -69,7 +70,7 @@ export default function ChecklistRequisicaoPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [finalizado, setFinalizado] = useState<NonNullable<FinalizeResponse["resumo"]> | null>(null);
   const quantidadeRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const ultimoCodigoRef = useRef<{ codigo: string; quando: number } | null>(null);
+  const ultimoCodigoRef = useRef<{ codigo: string; quando: number; conferido: boolean } | null>(null);
   const finalizationInFlight = useRef(false);
 
   useEffect(() => {
@@ -116,16 +117,20 @@ export default function ChecklistRequisicaoPage() {
     if (!parsed.ok) {
       const feedback = `Etiqueta inválida: ${parsed.motivo}`;
       setErro(feedback);
-      return feedback;
+      return { message: feedback, success: false };
     }
     const now = Date.now();
     if (
       ultimoCodigoRef.current?.codigo === parsed.codigo &&
       now - ultimoCodigoRef.current.quando < 2000
     ) {
-      return `Leitura repetida ignorada (${parsed.codigo}).`;
+      return {
+        message: `Leitura repetida ignorada (${parsed.codigo}).`,
+        success: ultimoCodigoRef.current.conferido,
+      };
     }
-    ultimoCodigoRef.current = { codigo: parsed.codigo, quando: now };
+    const scan = { codigo: parsed.codigo, quando: now, conferido: false };
+    ultimoCodigoRef.current = scan;
 
     try {
       const response = await fetch(`/api/almoxarifado/requisicoes/${encodeURIComponent(numeroPedido)}`, {
@@ -139,7 +144,7 @@ export default function ChecklistRequisicaoPage() {
           ? `Este item não está nesta requisição: ${data.produto.codigo ?? parsed.codigo} · ${data.produto.nome}.`
           : data.error ?? "Não foi possível conferir este código.";
         setErro(feedback);
-        return feedback;
+        return { message: feedback, success: false };
       }
       if (data.itemId) {
         setRequisicao((current) => current ? ({
@@ -154,20 +159,21 @@ export default function ChecklistRequisicaoPage() {
       }
       const feedback = data.message ?? "Item conferido.";
       setMensagem(feedback);
-      return feedback;
+      scan.conferido = true;
+      return { message: feedback, success: true };
     } catch {
       const feedback = "Falha de comunicação. Verifique a conexão e tente novamente.";
       setErro(feedback);
-      return feedback;
+      return { message: feedback, success: false };
     }
   }, [numeroPedido]);
 
-  const handleCameraRead = useCallback(async (raw: string) => {
+  const handleCameraRead = useCallback(async (raw: string): Promise<ScannerReadResult> => {
     const parsed = parseEtiqueta(raw);
     if (!parsed.ok) {
       const feedback = `QR lido, mas formato não reconhecido: “${raw.slice(0, 80)}”. ${parsed.motivo}`;
       setErro(feedback);
-      return feedback;
+      return { message: feedback, success: false };
     }
     return conferirCodigo(raw, "QR");
   }, [conferirCodigo]);

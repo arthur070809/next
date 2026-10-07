@@ -5,6 +5,7 @@ import styles from "./stock-list.module.css";
 import { MAX_STOCK_BALANCE, MAX_STOCK_INPUT, STOCK_UNITS, StockUnit } from "@/lib/stock-units";
 import { freeStock, isAtOrBelowReorderPoint } from "@/lib/stock-status";
 import ProductEtiquetaScanner from "@/app/components/ProductEtiquetaScanner";
+import type { ScannerReadResult } from "@/lib/qr/camera-utils";
 import { parseEtiqueta } from "@/lib/qr/parseEtiqueta";
 import { localizarItemEstoquePorCodigo } from "@/lib/qr/localizarEstoqueItem";
 
@@ -91,12 +92,12 @@ export default function EstoquePage() {
     material.toLowerCase().includes(form.nome.toLowerCase())
   );
 
-  const handleQrRead = useCallback(async (raw: string) => {
+  const handleQrRead = useCallback(async (raw: string): Promise<ScannerReadResult> => {
     const parsed = parseEtiqueta(raw);
     if (!parsed.ok) {
       const message = `QR não reconhecido: ${parsed.motivo}`;
       setErro(message);
-      return message;
+      return { message, success: false };
     }
     setErro("");
     setMensagem("");
@@ -107,14 +108,14 @@ export default function EstoquePage() {
       setForm((current) => ({ ...current, codigo: parsed.codigo }));
       const message = `O código ${parsed.codigo} corresponde a mais de um material. Resolva a duplicidade antes de registrar uma entrada.`;
       setErro(message);
-      return message;
+      return { message, success: false };
     }
     if (result.type === "found") {
       const item = itens.find(({ id }) => id === result.item.id);
       if (!item) {
         const message = "O material lido não está disponível na lista atual. Atualize o estoque e tente novamente.";
         setErro(message);
-        return message;
+        return { message, success: false };
       }
       setQrMatchedItem(item);
       setCodigoNovoPorQr(false);
@@ -132,7 +133,7 @@ export default function EstoquePage() {
       window.requestAnimationFrame(() => {
         document.getElementById(`stock-item-${item.id}`)?.scrollIntoView({ block: "nearest" });
       });
-      return `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`;
+      return { message: `Item encontrado: ${item.nome}. Informe a quantidade para registrar a entrada.`, success: true };
     }
 
     setQrMatchedItem(null);
@@ -147,7 +148,7 @@ export default function EstoquePage() {
       quantidadeEmbalagens: "",
     }));
     window.requestAnimationFrame(() => document.getElementById("categoria")?.focus());
-    return `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`;
+    return { message: `Código ${parsed.codigo} não cadastrado. Preencha categoria, nome e quantidade para criar o item com esta etiqueta.`, success: true };
   }, [itens]);
 
   const carregarItens = async () => {
