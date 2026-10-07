@@ -138,6 +138,30 @@ describe("POST /api/requests", () => {
     expect(criarRequisicaoIdempotente).toHaveBeenCalled();
   });
 
+  it("accepts a 50-character description and normalizes whitespace on the server", async () => {
+    const response = await POST(request(
+      { "Idempotency-Key": badge },
+      { descricao: `  ${"x".repeat(50)}\n ` },
+    ));
+
+    expect(response.status).toBe(201);
+    expect(criarRequisicaoIdempotente).toHaveBeenCalledWith(expect.objectContaining({
+      itens: [expect.objectContaining({ descricao: `[[setor:v1:setor3]]\n${"x".repeat(50)}` })],
+    }));
+  });
+
+  it("rejects a 51-character description on the server before database writes", async () => {
+    const response = await POST(request(
+      { "Idempotency-Key": badge },
+      { descricao: `${"x".repeat(51)}  ` },
+    ));
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe("A descrição deve ter no máximo 50 caracteres.");
+    expect(prisma.localEstoque.upsert).not.toHaveBeenCalled();
+    expect(criarRequisicaoIdempotente).not.toHaveBeenCalled();
+  });
+
   it("requires a description for a priority request on the server", async () => {
     const response = await POST(request(
       { "Idempotency-Key": badge },

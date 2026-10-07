@@ -5,6 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/security";
 import { criarRequisicaoIdempotente, toRequisicaoMock } from "@/lib/requisicoes-db";
 import { encodeItemDescription, type SetorRequisicao } from "@/lib/requisition-metadata";
+import {
+  DESCRIPTION_MAX_LENGTH,
+  DESCRIPTION_MAX_LENGTH_ERROR,
+  normalizeRequisitionDescription,
+} from "@/lib/requisition-description";
 import { LOCAL_ESTOQUE_SLUG } from "@/lib/stock-locations";
 import { PapelFuncionario, StatusRequisicao, TipoMovimentacao } from "@/generated/prisma/client";
 
@@ -107,6 +112,18 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const descriptions: unknown[] = Array.isArray(body?.itens)
+      ? body.itens.map((item: { descricao?: unknown }) => item?.descricao)
+      : [body?.observacao];
+    if (descriptions.some((value) =>
+      typeof value === "string" &&
+      Array.from(normalizeRequisitionDescription(value)).length > DESCRIPTION_MAX_LENGTH
+    )) {
+      return NextResponse.json(
+        { error: DESCRIPTION_MAX_LENGTH_ERROR },
+        { status: 400 },
+      );
+    }
     const rawIdempotencyKey = request.headers.get("Idempotency-Key")?.trim() ?? "";
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rawIdempotencyKey)) {
       return NextResponse.json({ error: "Chave de idempotência inválida ou ausente." }, { status: 400 });
@@ -138,7 +155,9 @@ export async function POST(request: Request) {
         const itemId = typeof rawItem?.itemId === "string" ? rawItem.itemId : undefined;
         const quantidade = Number(rawItem?.quantidade);
         const setor = rawItem?.setor;
-        const descricao = typeof rawItem?.descricao === "string" ? rawItem.descricao.trim() : "";
+        const descricao = typeof rawItem?.descricao === "string"
+          ? normalizeRequisitionDescription(rawItem.descricao)
+          : "";
 
         if (
           (!itemNome && !itemId) ||
@@ -188,7 +207,9 @@ export async function POST(request: Request) {
     else if (body?.item) {
       const itemNome = typeof body.item === "string" ? body.item.trim() : "";
       const quantidade = Number(body.quantidade);
-      observacao = typeof body.observacao === "string" ? body.observacao.trim() : undefined;
+      observacao = typeof body.observacao === "string"
+        ? normalizeRequisitionDescription(body.observacao)
+        : undefined;
 
       if (!itemNome || !Number.isInteger(quantidade) || quantidade < 1) {
         return NextResponse.json(
