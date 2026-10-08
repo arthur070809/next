@@ -430,16 +430,16 @@ export default function EstoquePage() {
 
           <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-surface p-5 shadow-card`}>
             <div className={styles.stockHeader}>
-              <div className="grid min-w-0 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-              <h2 className="text-center text-xl font-bold text-foreground sm:col-start-2">Itens do estoque</h2>
-              <div className="flex min-w-0 flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
-                <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand">
-                  <option value="">Todas as categorias</option>
-                  {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
-                </select>
-                <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="min-w-0 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand sm:w-48" />
+              <div className="grid min-w-0 gap-3">
+                <h2 className="text-lg font-bold text-foreground">Itens do estoque</h2>
+                <div className="grid min-w-0 gap-2 lg:grid-cols-2">
+                  <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="min-h-11 w-full min-w-0 truncate rounded-lg border border-border bg-surface px-3 py-2 text-base outline-none focus:border-brand">
+                    <option value="">Todas as categorias</option>
+                    {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+                  </select>
+                  <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="min-h-11 w-full min-w-0 rounded-lg border border-border px-3 py-2 text-base outline-none focus:border-brand" />
+                </div>
               </div>
-            </div>
             </div>
             <div ref={listaRef} tabIndex={0} role="region" aria-label="Lista de itens do estoque" data-list-empty={!carregando && !erroLista && itensFiltrados.length === 0} className={`${styles.stockBody} mt-5 min-w-0 space-y-3`}>
               {carregando ? <LoadingState label="Carregando estoque…" rows={4} /> : erroLista ? <ErrorState message={erroLista} onRetry={() => {
