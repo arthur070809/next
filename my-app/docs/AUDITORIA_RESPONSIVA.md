@@ -18,7 +18,7 @@ Revisão estática dos componentes, classes Tailwind e breakpoints. Não foi ini
 
 | Tela | Achado estático/correção presente | Arquivos examinados | Estado |
 |---|---|---|---|
-| Login | Formulário em coluna, senha com mostrar/ocultar, botão de atalho facial e botões de pelo menos 44 px (`min-h-11`). Não há input de arquivo; login facial mantém câmera. | `app/login/LoginForm.tsx`, `app/login/LoginForm.test.ts` | Não verificado em dispositivo |
+| Login | Formulário em coluna, campo de crachá com scanner de barras nativo/fallback manual, senha com mostrar/ocultar e botões de pelo menos 44 px (`min-h-11`). O desafio facial permanece condicionado à resposta da API. | `app/login/LoginForm.tsx`, `app/components/BadgeBarcodeScanner.tsx` | Câmera real não verificada em dispositivo |
 | Operador — nova requisição | Grid responsivo; conferir selects, tabela/lista de itens e ação de prioridade com teclado aberto e largura estreita. | `app/requisicao/page.tsx` | Não verificado em dispositivo |
 | Operador — Minhas Requisições | Conferir cartões/listagem, estado vazio, textos longos e largura da navegação em 360/390 px. | `app/requisicao/minhas/page.tsx` | Não verificado em dispositivo |
 | Fila do almoxarifado | A tabela possui largura mínima e wrapper com rolagem horizontal contida; testar filtros e prioridade. | `app/almoxarifado/queue.tsx` | Não verificado em dispositivo |
@@ -27,7 +27,7 @@ Revisão estática dos componentes, classes Tailwind e breakpoints. Não foi ini
 | Histórico | Filtros usam grids responsivos e cartões devem se ajustar; conferir textos longos e a tabela/rolagem no celular. | `app/historico/page.tsx` | Não verificado em dispositivo |
 | Dashboard | Cards/grids são responsivos; conferir gráficos, ações administrativas e textos em telas estreitas. | `app/admin/dashboard.tsx` | Não verificado em dispositivo |
 | Ressuprimento | Lista/tabela com rolagem horizontal própria quando necessário; conferir filtros, sugestões e cards de alerta. | `app/admin/ressuprimento/page.tsx`, `app/admin/ressuprimento/RessuprimentoTabela.tsx` | Não verificado em dispositivo |
-| Biometria | Fluxo existente usa captura guiada; revisar câmera, consentimento e controles em viewport baixo. Cadastro por uma única foto não foi implementado. | `app/admin/biometria/page.tsx`, `app/api/admin/face-enrollment/route.ts` | Não verificado em dispositivo |
+| Biometria | A interface `/admin/biometria` foi removida; não deve mais ser aberta pela navegação. A etapa facial condicional do login e os endpoints legados permanecem. | `app/login/LoginForm.tsx`, `app/api/admin/face-enrollment/route.ts` | Câmera real não verificada em dispositivo |
 
 ## Verificações pendentes em aparelho/browser
 

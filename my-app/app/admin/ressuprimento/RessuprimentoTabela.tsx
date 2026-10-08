@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type {
   ClasseRessuprimento,
   SugestaoRessuprimento,
 } from "@/lib/ressuprimento/analise";
 import { ordenarPorDeficitRessuprimento } from "@/lib/ressuprimento/analise";
 import { isAtOrBelowReorderPoint } from "@/lib/stock-status";
+import { MAX_STOCK_INPUT } from "@/lib/stock-units";
 import { PageHeader, StatusBadge } from "@/app/components/industrial";
 import { EmptyState } from "@/app/components/ui";
 
@@ -43,6 +45,80 @@ function coberturaTexto(dias: number | null): string {
   if (dias === null) return "Sem dados";
   if (!Number.isFinite(dias)) return "Sem consumo";
   return `${dias.toFixed(1)} dias`;
+}
+
+function PontoAtualEditor({
+  item,
+}: {
+  item: SugestaoRessuprimento;
+}) {
+  const router = useRouter();
+  const [valor, setValor] = useState(item.pontoAtual === null ? "" : String(item.pontoAtual));
+  const [salvando, setSalvando] = useState(false);
+  const [mensagem, setMensagem] = useState<{ tipo: "erro" | "sucesso"; texto: string } | null>(null);
+
+  async function salvar(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const pontoAtual = Number(valor);
+    if (!valor.trim() || !Number.isInteger(pontoAtual) || pontoAtual < 0 || pontoAtual > MAX_STOCK_INPUT) {
+      setMensagem({ tipo: "erro", texto: `Informe um inteiro entre 0 e ${MAX_STOCK_INPUT.toLocaleString("pt-BR")}.` });
+      return;
+    }
+
+    setSalvando(true);
+    setMensagem(null);
+    try {
+      const response = await fetch("/api/admin/ressuprimento", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, pontoAtual }),
+      });
+      const body = await response.json() as { error?: string };
+      if (!response.ok) {
+        setMensagem({ tipo: "erro", texto: body.error ?? "Não foi possível salvar o ponto atual." });
+        return;
+      }
+      setValor(String(pontoAtual));
+      setMensagem({ tipo: "sucesso", texto: "Ponto atual salvo." });
+      router.refresh();
+    } catch {
+      setMensagem({ tipo: "erro", texto: "Não foi possível salvar o ponto atual. Verifique sua conexão e tente novamente." });
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  const idMensagem = `ponto-atual-feedback-${item.id}`;
+  return <form onSubmit={salvar} className="flex min-w-40 flex-col gap-2">
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        min={0}
+        max={MAX_STOCK_INPUT}
+        step={1}
+        required
+        value={valor}
+        onChange={(event) => setValor(event.target.value)}
+        aria-label={`Ponto atual para ${item.nome}`}
+        aria-describedby={mensagem ? idMensagem : undefined}
+        className="min-h-11 w-24 rounded-control border border-border bg-surface px-2 py-1 text-foreground"
+      />
+      <button
+        type="submit"
+        disabled={salvando}
+        className="min-h-11 rounded-control bg-brand px-3 py-2 font-semibold text-surface hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-wait disabled:opacity-60"
+      >
+        {salvando ? "Salvando…" : "Salvar"}
+      </button>
+    </div>
+    {mensagem && <p
+      id={idMensagem}
+      role={mensagem.tipo === "erro" ? "alert" : "status"}
+      className={mensagem.tipo === "erro" ? "text-xs text-error" : "text-xs text-success"}
+    >
+      {mensagem.texto}
+    </p>}
+  </form>;
 }
 
 export default function RessuprimentoTabela({
@@ -143,7 +219,7 @@ export default function RessuprimentoTabela({
           <table className="w-full min-w-[900px] border-collapse text-left text-sm">
             <caption className="sr-only">Ressuprimento sugerido por item, ordenado pelo maior déficit em relação ao ponto atual</caption>
             <thead className="sticky top-0 bg-background text-xs uppercase text-text-secondary">
-              <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Ponto sugerido", "Classe", "Confiança", "Ação"].map((heading) =>
+              <tr>{["Item", "Estoque livre", "Consumo/dia", "Cobertura", "Ponto atual", "Quantidade sugerida", "Classe", "Prévia"].map((heading) =>
                 <th key={heading} scope="col" className="border-b border-border-subtle px-4 py-3 font-semibold">{heading}</th>)}</tr>
             </thead>
             <tbody>
@@ -152,11 +228,9 @@ export default function RessuprimentoTabela({
                 <td className="px-4 py-3">{item.estoque}</td>
                 <td className="px-4 py-3">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</td>
                 <td className="px-4 py-3">{coberturaTexto(item.diasCobertura)}</td>
-                <td className="px-4 py-3">{item.pontoAtual ?? "Não definido"}</td>
+                <td className="px-4 py-3"><PontoAtualEditor item={item} /></td>
                 <td className="px-4 py-3">{item.quantidadeSugerida ?? "Não definido"}</td>
-                <td className="px-4 py-3">{item.pontoSugerido ?? "Sem dados"}</td>
                 <td className="px-4 py-3"><StatusBadge label={classeTexto[item.classe]} tone={classeTom[item.classe]} /></td>
-                <td className="px-4 py-3">{item.confianca === "BAIXA" ? "Baixa" : "Adequada"}</td>
                 <td className="px-4 py-3">
                   <button type="button" onClick={() => setPrevisualizando(item.id)} className="min-h-11 whitespace-nowrap rounded-control border border-brand px-3 text-sm font-semibold text-brand hover:bg-priority-surface">
                     Aceitar sugestão (prévia)
@@ -179,9 +253,8 @@ export default function RessuprimentoTabela({
               <div><dt className="text-text-secondary">Estoque livre</dt><dd className="font-semibold text-foreground">{item.estoque}</dd></div>
               <div><dt className="text-text-secondary">Consumo/dia</dt><dd className="font-semibold text-foreground">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</dd></div>
               <div><dt className="text-text-secondary">Cobertura</dt><dd className="font-semibold text-foreground">{coberturaTexto(item.diasCobertura)}</dd></div>
-              <div><dt className="text-text-secondary">Ponto atual</dt><dd className="font-semibold text-foreground">{item.pontoAtual ?? "Não definido"}</dd></div>
+              <div><dt className="mb-1 text-text-secondary">Ponto atual</dt><dd><PontoAtualEditor item={item} /></dd></div>
               <div><dt className="text-text-secondary">Quantidade sugerida</dt><dd className="font-semibold text-foreground">{item.quantidadeSugerida ?? "Não definido"}</dd></div>
-              <div><dt className="text-text-secondary">Confiança</dt><dd className="font-semibold text-foreground">{item.confianca === "BAIXA" ? "Baixa" : "Adequada"}</dd></div>
             </dl>
             <button type="button" onClick={() => setPrevisualizando(item.id)} className="mt-4 min-h-11 w-full rounded-control border border-brand px-3 text-sm font-semibold text-brand hover:bg-priority-surface">
               Aceitar sugestão (prévia)

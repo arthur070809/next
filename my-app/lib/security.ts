@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 
-export const BADGE_PATTERN = /^\d{4,10}$/;
+export { BADGE_PATTERN } from "./badge-code";
 export const MIN_PASSWORD_LENGTH = 12;
 
 export function validatePassword(password: string) {

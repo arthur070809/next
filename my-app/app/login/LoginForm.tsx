@@ -11,6 +11,8 @@ import { canStartAutomaticAttempt, FACE_QUALITY_LIMITS, evaluateFaceQuality, sel
 import { measureFaceFrame } from "@/lib/facial/frame-metrics";
 import { selectBestEnrollmentFrames, type ScoredEnrollmentFrame } from "@/lib/facial/enrollment-capture";
 import { extractFaceEmbedding, loadBrowserHuman, loadFaceDescriptor, loadFaceEmotion, type BrowserHuman } from "@/lib/facial/human-browser";
+import BadgeBarcodeScanner from "@/app/components/BadgeBarcodeScanner";
+import { advanceFromBadgeFieldOnEnter, isValidBadgeCode, normalizeBadgeCode } from "@/lib/badge-code";
 import {
   createFaceLoadDiagnostics,
   faceCameraConstraintFallbacks,
@@ -49,11 +51,9 @@ type FaceCandidate = ScoredEnrollmentFrame<number[]>;
 
 export default function LoginForm({
   sessionExpired = false,
-  faceLoginEnabled = true,
   demoPhotoMode = false,
 }: {
   sessionExpired?: boolean;
-  faceLoginEnabled?: boolean;
   demoPhotoMode?: boolean;
 }) {
   const router = useRouter();
@@ -83,7 +83,6 @@ export default function LoginForm({
   const faceCameraRef = useRef<CameraStreamController | null>(null);
   const faceHumanRef = useRef<BrowserHuman | null>(null);
   const faceChallengeRef = useRef<FaceChallenge | null>(null);
-  const identifyModeRef = useRef(false);
   const attemptCountRef = useRef(0);
   const lastAttemptAtRef = useRef(0);
   const attemptInFlightRef = useRef(false);
@@ -95,6 +94,12 @@ export default function LoginForm({
   const leftTurnObservedRef = useRef(false);
   const faceLoadDiagnosticsRef = useRef(createFaceLoadDiagnostics());
   const faceLoadWatchdogRef = useRef<ReturnType<typeof startFaceLoadWatchdog> | null>(null);
+
+  useEffect(() => {
+    if (stage === "code" && window.matchMedia("(min-width: 768px)").matches) {
+      codeInputRef.current?.focus();
+    }
+  }, [stage]);
 
   function stopFaceCamera() {
     const camera = faceCameraRef.current;
@@ -267,12 +272,18 @@ export default function LoginForm({
     event.preventDefault();
     if (loading) return;
     setError("");
+    const normalizedCode = normalizeBadgeCode(codigoCracha);
+    if (!isValidBadgeCode(normalizedCode)) {
+      setError("O crachá deve conter de 4 a 10 dígitos.");
+      codeInputRef.current?.focus();
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoCracha, credential: "password", password: senha }),
+        body: JSON.stringify({ codigoCracha: normalizedCode, credential: "password", password: senha }),
       });
       await handleLoginResponse(response);
     } catch (cause) {
@@ -282,45 +293,6 @@ export default function LoginForm({
       setLoading(false);
     }
 
-  }
-
-  async function startFaceLogin() {
-    if (!faceLoginEnabled) return;
-    if (demoPhotoMode && !codigoCracha.trim()) {
-      setError("Informe o crachá para iniciar o reconhecimento facial.");
-      codeInputRef.current?.focus();
-      return;
-    }
-    const useIdentifyFlow = !codigoCracha.trim();
-    identifyModeRef.current = useIdentifyFlow;
-    setError("");
-    setLoading(true);
-    try {
-      if (useIdentifyFlow) {
-        const response = await fetch("/api/auth/login/face/identify/start", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-        const data = await readResponse(response);
-        acceptFaceChallenge(data);
-        return;
-      }
-      if (!codigoCracha.trim()) {
-        setError("Informe o crachá para iniciar o reconhecimento facial.");
-        codeInputRef.current?.focus();
-        return;
-      }
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoCracha, credential: "face" }),
-      });
-      await handleLoginResponse(response);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o reconhecimento facial.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   function setFreshChallenge(data: LoginResponse) {
@@ -344,16 +316,11 @@ export default function LoginForm({
   }
 
   async function requestFreshFaceChallenge() {
-    const response = identifyModeRef.current
-      ? await fetch("/api/auth/login/face/identify/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-      : await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoCracha, credential: "face" }),
-      });
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codigoCracha: normalizeBadgeCode(codigoCracha), credential: "face" }),
+    });
     const data = await response.json() as LoginResponse;
     if (!response.ok || response.status !== 202 || data.step !== "face") {
       throw new Error("Não foi possível iniciar uma nova tentativa.");
@@ -379,7 +346,7 @@ export default function LoginForm({
     faceCandidatesRef.current = [];
     collectionStartedAtRef.current = 0;
     try {
-      const response = await fetch(identifyModeRef.current ? "/api/auth/login/face/identify" : "/api/auth/login/face/verify", {
+      const response = await fetch("/api/auth/login/face/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -683,7 +650,6 @@ export default function LoginForm({
     stopFaceCamera();
     faceChallengeRef.current = null;
     setFaceChallenge(null);
-    identifyModeRef.current = false;
     setCameraState("idle");
     setStage("code");
     setError("");
@@ -721,7 +687,6 @@ export default function LoginForm({
       <h1 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">{stage === "face" ? "Verificação facial" : stage === "totp" ? "Verificação em duas etapas" : "Entrar com código"}</h1>
       {sessionExpired && <p role="status" className="mt-3 rounded-control bg-warning-surface px-3 py-2 text-sm text-warning">Sessão encerrada por inatividade</p>}
       {stage === "face" && faceChallenge ? <section className="mt-7 space-y-5">
-        {demoPhotoMode && <p role="status" className="rounded-control bg-warning-surface px-3 py-2 text-sm font-semibold text-warning">Modo demonstração: reconhecimento simulado</p>}
         <p className="text-sm text-text-secondary">{demoPhotoMode
           ? "Abra a câmera. Quando houver um rosto no quadro, toque em Entrar."
           : <>A câmera será iniciada automaticamente. {isFaceBlinkRequired()
@@ -770,7 +735,10 @@ export default function LoginForm({
         {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
         <div className="flex flex-col gap-2 sm:flex-row"><Button variant="secondary" disabled={loading} onClick={() => { setStage("code"); setPreAuthToken(""); setTotpCode(""); setError(""); }} className="flex-1">Voltar</Button><Button type="submit" disabled={totpCode.length !== 6} loading={loading} loadingLabel="Verificando…" className="flex-1">Verificar</Button></div>
       </form> : <form onSubmit={(event) => void submitCode(event)} className="mt-4 grid grid-cols-1 gap-3" noValidate>
-        <Field label="Código do crachá" htmlFor="codigo-cracha"><input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={10} autoFocus value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 text-base text-foreground" /></Field>
+        <Field label="Código do crachá" htmlFor="codigo-cracha"><div className="mt-1 flex min-w-0 gap-2">
+          <input ref={codeInputRef} id="codigo-cracha" name="codigoCracha" required type="text" inputMode="numeric" autoComplete="off" maxLength={20} value={codigoCracha} onChange={(event) => setCodigoCracha(event.target.value)} onKeyDown={(event) => { advanceFromBadgeFieldOnEnter(event, passwordInputRef.current); }} className="min-h-11 min-w-0 flex-1 rounded-control border border-border bg-surface px-4 text-base text-foreground" />
+          <BadgeBarcodeScanner label="Ler o código de barras do crachá" validate={isValidBadgeCode} onDetect={(value) => { setCodigoCracha(value); setError(""); passwordInputRef.current?.focus(); }} onManual={() => codeInputRef.current?.focus()} />
+        </div></Field>
         <div>
           <label htmlFor="login-password" className="text-sm font-semibold text-foreground">Senha</label>
           <div className="mt-1 flex gap-2">
@@ -783,9 +751,6 @@ export default function LoginForm({
         {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
         <p className="text-xs text-text-secondary">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
         <Button type="submit" disabled={!codigoCracha.trim() || !senha} loading={loading} loadingLabel="Verificando…" className="min-h-12 w-full">Entrar com senha</Button>
-        {faceLoginEnabled && <Button type="button" variant="secondary" disabled={loading} onClick={() => void startFaceLogin()} className="w-full">
-          {loading ? "Preparando câmera…" : "Entrar com reconhecimento facial"}
-        </Button>}
       </form>}
       </div>
     </Card>

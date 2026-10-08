@@ -26,10 +26,6 @@ const nextConfig: NextConfig = {
         source: "/almoxarifado/estoque/:path*",
         headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
       },
-      {
-        source: "/admin/biometria/:path*",
-        headers: [{ key: "Permissions-Policy", value: "camera=(self)" }],
-      },
     ];
   },
 };

@@ -11,14 +11,14 @@ Escopo: alterações locais da revisão de fluxo, QR e cadastro facial. Não hou
 | Sobras/excedentes | A página de resumo foi removida; o endpoint de leitura `/api/deposito/sobras` permanece disponível e protegido. | É excesso entregue ao solicitante, não estoque físico recuperado. |
 | QR de estoque | Código conhecido localiza/destaca item; código não conhecido pode alimentar cadastro; entrada utiliza a API existente. Entrada manual permanece. | Fluxo de UI com câmera física e viewport não testado neste ambiente. |
 | QR de checklist | Detector nativo tem fallback de inicialização/leitura para `jsqr`; ownership de streams é por montagem e desmontagem. | Testes unitários simulam câmera; não validam hardware/navegadores integrados. |
-| Facial | Uma única face é exigida nas capturas atuais; qualidade/configuração e consistência local têm testes. Rejeição distingue serviço remoto de comparação local. | Não calibra modelo externo nem altera threshold de login. |
+| Facial | A página de cadastro facial e o botão de início voluntário do login foram removidos. O login mantém a etapa facial somente quando a API responde com um desafio `step: "face"`. | APIs de cadastro/identificação e schema foram preservados; endpoints sem interface ficam como código legado após a demonstração. |
 | Cadastro facial por foto única | Não implementado. | O contrato atual manda amostras de imagem ao serviço remoto; não há pipeline compatível para persistir só um descritor local. |
 
 ## Acessos
 
 - `/api/deposito/sobras`: endpoint de leitura protegido para almoxarife/admin; não há página de resumo na interface.
 - Scanner de estoque: interfaces administrativas/de almoxarife usam o scanner existente; criação/entrada continuam restritas pela API atual.
-- `/admin/biometria`: página e APIs permanecem admin-only.
+- `/admin/biometria`: página removida (404 direta); APIs relacionadas foram preservadas conforme o escopo.
 
 ## Próximo estado
 
