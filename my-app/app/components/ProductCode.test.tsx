@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import ProductCode from "./ProductCode";
 
 describe("ProductCode", () => {
-  it("renders the product code in a prominent monospaced line", () => {
+  it("renders the product code in a compact monospaced block", () => {
     const markup = renderToStaticMarkup(createElement(ProductCode, { code: "00129" }));
 
     expect(markup).toContain(">Código</span>");
@@ -12,6 +12,7 @@ describe("ProductCode", () => {
     expect(markup).toContain("font-mono");
     expect(markup).toContain("text-base");
     expect(markup).toContain("text-foreground");
+    expect(markup).toContain("min-h-11");
   });
 
   it.each([null, undefined, "", "   "])("shows a safe fallback for an absent product code (%s)", (code) => {

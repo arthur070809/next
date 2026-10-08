@@ -9,7 +9,7 @@ describe("login form", () => {
     expect(loginFormSource).toContain("/api/auth/login/totp");
     expect(loginFormSource).toContain("/api/auth/login/webauthn/verify");
     expect(loginFormSource).toContain("Verificação em duas etapas");
-    expect(loginFormSource).toContain("Entrar com senha");
+    expect(loginFormSource).toContain(">Entrar</Button>");
   });
 
   it("only opens a face challenge when the login API requires it", () => {

@@ -80,6 +80,7 @@ export default function EstoquePage() {
   const [carregando, setCarregando] = useState(true);
   const [nomeAberto, setNomeAberto] = useState(false);
   const [cameraAberta, setCameraAberta] = useState(false);
+  const [codigoDetalhesAberto, setCodigoDetalhesAberto] = useState(false);
   const [qrMatchedItem, setQrMatchedItem] = useState<EstoqueItem | null>(null);
   const [codigoNovoPorQr, setCodigoNovoPorQr] = useState(false);
   const salvandoRef = useRef(false);
@@ -102,6 +103,7 @@ export default function EstoquePage() {
     }
     setErro("");
     setMensagem("");
+    setCodigoDetalhesAberto(true);
     const result = localizarItemEstoquePorCodigo(parsed.codigo, itens);
     if (result.type === "ambiguous") {
       setQrMatchedItem(null);
@@ -284,6 +286,7 @@ export default function EstoquePage() {
       }));
       setQrMatchedItem(null);
       setCodigoNovoPorQr(false);
+      setCodigoDetalhesAberto(false);
       setErrosQuantidade({});
       setNomeAberto(false);
       setMensagem("Item cadastrado no estoque.");
@@ -318,29 +321,44 @@ export default function EstoquePage() {
     : unidadeSelecionada ? "Informe as quantidades válidas para ver o total." : "Selecione o tipo de unidade.";
 
   return (
-    <main className={`${styles.stockPage} bg-background px-4 py-6 sm:px-8 md:px-12`}>
+    <main className={`${styles.stockPage} bg-background px-4 py-4 sm:px-8 md:px-12 lg:py-2`}>
       <div className={`${styles.stockContent} mx-auto w-full max-w-7xl`}>
-        <header className="shrink-0 rounded-2xl bg-surface p-5 shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Almoxarifado Marcon</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">Estoque</h1>
-          <p className="mt-2 text-sm text-text-secondary">Cadastre e acompanhe os materiais disponíveis com uma visão mais clara da operação.</p>
+        <header className="shrink-0 rounded-2xl bg-surface p-3 shadow-card sm:p-4 lg:p-2">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.22em] text-brand lg:hidden">Almoxarifado Marcon</p>
+              <h1 className="mt-1 text-2xl font-black tracking-tight text-foreground">Estoque</h1>
+              <p className="mt-1 text-sm text-text-secondary lg:hidden">Cadastre e acompanhe os materiais disponíveis.</p>
+            </div>
+            <section className="grid shrink-0 gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
+              <div className="flex min-w-36 items-center justify-between gap-3 rounded-xl bg-background px-3 py-2">
+                <p className="text-sm text-text-secondary">Itens cadastrados</p>
+                <p className="text-lg font-bold text-foreground">{itens.length}</p>
+              </div>
+              <div className="flex min-w-36 items-center justify-between gap-3 rounded-xl bg-background px-3 py-2">
+                <p className="text-sm text-text-secondary">Categorias</p>
+                <p className="text-lg font-bold text-foreground">{new Set(itens.map((item) => item.categoria)).size}</p>
+              </div>
+            </section>
+          </div>
         </header>
 
-        <section className="grid shrink-0 gap-3 sm:grid-cols-2" aria-label="Resumo do estoque">
-          <div className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3 shadow-card">
-            <p className="text-sm text-text-secondary">Itens cadastrados</p>
-            <p className="text-2xl font-black text-foreground">{itens.length}</p>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3 shadow-card">
-            <p className="text-sm text-text-secondary">Categorias</p>
-            <p className="text-2xl font-black text-foreground">{new Set(itens.map((item) => item.categoria)).size}</p>
-          </div>
-        </section>
-
-        <div className="mt-4 grid items-start gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:mt-0 lg:min-h-0 lg:flex-1 lg:items-stretch">
-          <section id="novo-item" className={`${styles.formPanel} min-h-0 rounded-2xl bg-surface p-4 shadow-card`}>
+        <div className="mt-4 grid items-start gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:grid-cols-1 lg:grid-rows-[min-content_minmax(0,1fr)] lg:mt-0 lg:min-h-0 lg:flex-1 lg:items-stretch">
+          <section id="novo-item" style={{ overflowY: "visible" }} className={`${styles.formPanel} min-h-0 rounded-2xl bg-surface p-4 shadow-card lg:p-2`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-foreground">{qrMatchedItem ? "Entrada do item identificado" : "Novo item / registrar entrada"}</h2>
+              <h2 className="text-lg font-bold text-foreground">{qrMatchedItem ? "Entrada do item identificado" : "Novo item"}</h2>
+              <details open={codigoDetalhesAberto} onToggle={(event) => setCodigoDetalhesAberto(event.currentTarget.open)}>
+                <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-brand">Código opcional</summary>
+                <label htmlFor="codigo" className="text-sm font-semibold text-foreground">Código da etiqueta</label>
+                <input id="codigo" inputMode="numeric" maxLength={8} value={form.codigo} onChange={(event) => {
+                  const codigo = event.target.value;
+                  setForm((current) => ({ ...current, codigo }));
+                  if (codigo !== qrMatchedItem?.codigo) {
+                    setQrMatchedItem(null);
+                    setCodigoNovoPorQr(false);
+                  }
+                }} className="mt-1 block min-h-11 w-full rounded-lg border border-border px-3 py-2 text-base" />
+              </details>
               <button type="button" onClick={() => setCameraAberta(true)} className="min-h-11 rounded-lg border border-brand px-4 text-sm font-semibold text-brand hover:bg-priority-surface">
                 Ler etiqueta QR
               </button>
@@ -349,40 +367,29 @@ export default function EstoquePage() {
               {qrMatchedItem.nome} · código {qrMatchedItem.codigo}. Informe a quantidade abaixo; a entrada será registrada pela operação existente.
             </p>}
             <form onSubmit={cadastrarItem} noValidate className={`${styles.formLayout} mt-2`}>
-              <div className={`${styles.formBody} space-y-2`}>
-              <div>
-                <label htmlFor="codigo" className="text-xs font-semibold text-foreground">Código da etiqueta (opcional)</label>
-                <input id="codigo" inputMode="numeric" maxLength={8} value={form.codigo} onChange={(event) => {
-                  const codigo = event.target.value;
-                  setForm((current) => ({ ...current, codigo }));
-                  if (codigo !== qrMatchedItem?.codigo) {
-                    setQrMatchedItem(null);
-                    setCodigoNovoPorQr(false);
-                  }
-                }} className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label htmlFor="categoria" className="text-xs font-semibold text-foreground">Categoria</label>
+              <div className={`${styles.formBody} grid grid-cols-1 gap-x-3 gap-y-2 lg:grid-cols-4 lg:content-start lg:items-start`}>
+              <div className="min-w-0">
+                <label htmlFor="categoria" className="text-sm font-semibold text-foreground">Categoria</label>
                 <select id="categoria" required value={form.categoria} onChange={(event) => {
                   setForm({ ...form, categoria: event.target.value, nome: "" });
                   setQrMatchedItem(null);
-                }} className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+                }} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-surface px-3 py-2 text-base">
                   <option value="">Selecione uma categoria</option>
                   {form.categoria && !categorias.includes(form.categoria) && <option value={form.categoria}>{form.categoria}</option>}
                   {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
               </div>
-              <div>
-                <label htmlFor="nome" className="text-xs font-semibold text-foreground">Nome do material</label>
+              <div className="min-w-0">
+                <label htmlFor="nome" className="text-sm font-semibold text-foreground">Nome do material</label>
                 <div className="relative mt-1">
-                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setQrMatchedItem(null); setNomeAberto(true); }} className="block w-full rounded-lg border border-border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-background" />
+                  <input id="nome" required disabled={!form.categoria} autoComplete="off" spellCheck={false} placeholder={form.categoria ? "Selecione ou digite o material" : "Selecione a categoria primeiro"} value={form.nome} onFocus={() => setNomeAberto(true)} onChange={(event) => { setForm({ ...form, nome: event.target.value }); setQrMatchedItem(null); setNomeAberto(true); }} className="block min-h-11 w-full rounded-lg border border-border px-3 py-2 text-base disabled:cursor-not-allowed disabled:bg-background" />
                   {nomeAberto && form.categoria && materiaisSugeridos.length > 0 && <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-border bg-surface p-1 shadow-lg">
                     {materiaisSugeridos.map((material) => <button key={material} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setForm({ ...form, nome: material }); setNomeAberto(false); }} className="block w-full rounded-md px-3 py-2 text-left text-sm leading-5 text-foreground hover:bg-priority-surface focus:bg-priority-surface focus:outline-none">{material}</button>)}
                   </div>}
                 </div>
               </div>
-              <div>
-                <label htmlFor="tipoUnidade" className="text-xs font-semibold text-foreground">Tipo de unidade</label>
+              <div className="min-w-0 lg:col-span-1">
+                <label htmlFor="tipoUnidade" className="text-sm font-semibold text-foreground">Tipo de unidade</label>
                 <select id="tipoUnidade" required value={form.tipoUnidade} onChange={(event) => {
                   const tipoUnidade = event.target.value as StockUnit | "";
                   setForm((current) => ({
@@ -393,55 +400,55 @@ export default function EstoquePage() {
                   }));
                   setErrosQuantidade({});
                   setErro("");
-                }} className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+                }} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-surface px-3 py-2 text-base">
                   <option value="">Selecione o tipo de unidade</option>
                   {STOCK_UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
                 </select>
               </div>
-              <div key={form.tipoUnidade} className={styles.quantityFields}>
-                {!unidadeSelecionada ? null : <div className={form.tipoUnidade === "unidade" ? "" : "grid gap-2 md:grid-cols-2"}>
+              <div key={form.tipoUnidade} className={`${styles.quantityFields} ${form.tipoUnidade === "unidade" ? "" : "lg:col-span-2"}`}>
+                {!unidadeSelecionada ? null : <div className={form.tipoUnidade === "unidade" ? "" : "grid gap-2 lg:grid-cols-2"}>
                   {form.tipoUnidade !== "unidade" && <div>
-                    <label htmlFor="quantidadePorEmbalagem" className="text-xs font-semibold text-foreground">Quantidade por {unidadeSelecionada.singular}</label>
+                    <label htmlFor="quantidadePorEmbalagem" className="text-sm font-semibold text-foreground">Quantidade por {unidadeSelecionada.singular}</label>
                     <input id="quantidadePorEmbalagem" required type="number" inputMode="numeric" min={1} max={MAX_STOCK_INPUT} step={1} value={form.quantidadePorEmbalagem} aria-invalid={Boolean(errosQuantidade.quantidadePorEmbalagem)} aria-describedby={errosQuantidade.quantidadePorEmbalagem ? "quantidadePorEmbalagem-erro" : undefined} onChange={(event) => {
                       setForm((current) => ({ ...current, quantidadePorEmbalagem: event.target.value }));
                       setErrosQuantidade((current) => ({ ...current, quantidadePorEmbalagem: undefined }));
-                    }} className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm aria-invalid:border-error" />
+                    }} className="mt-1 block min-h-11 w-full rounded-lg border border-border px-3 py-2 text-base aria-invalid:border-error" />
                     {errosQuantidade.quantidadePorEmbalagem && <p id="quantidadePorEmbalagem-erro" className="mt-1 text-xs text-error">{errosQuantidade.quantidadePorEmbalagem}</p>}
                   </div>}
                   <div>
-                    <label htmlFor="quantidadeEmbalagens" className="text-xs font-semibold text-foreground">Quantidade de {unidadeSelecionada.countLabel}</label>
+                    <label htmlFor="quantidadeEmbalagens" className="text-sm font-semibold text-foreground">Qtd. de {unidadeSelecionada.countLabel}</label>
                     <input id="quantidadeEmbalagens" required type="number" inputMode="numeric" min={1} max={MAX_STOCK_INPUT} step={1} value={form.quantidadeEmbalagens} aria-invalid={Boolean(errosQuantidade.quantidadeEmbalagens)} aria-describedby={errosQuantidade.quantidadeEmbalagens ? "quantidadeEmbalagens-erro" : undefined} onChange={(event) => {
                       setForm((current) => ({ ...current, quantidadeEmbalagens: event.target.value }));
                       setErrosQuantidade((current) => ({ ...current, quantidadeEmbalagens: undefined }));
-                    }} className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm aria-invalid:border-error" />
+                    }} className="mt-1 block min-h-11 w-full rounded-lg border border-border px-3 py-2 text-base aria-invalid:border-error" />
                     {errosQuantidade.quantidadeEmbalagens && <p id="quantidadeEmbalagens-erro" className="mt-1 text-xs text-error">{errosQuantidade.quantidadeEmbalagens}</p>}
                   </div>
                 </div>}
               </div>
               </div>
-              <div className={styles.formFooter}>
+              <div className={`${styles.formFooter} lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-3 lg:pt-0`}>
               {erro && <p role="alert" className="rounded-lg bg-error-surface px-3 py-2 text-sm text-error">{erro}</p>}
               {mensagem && <p role="status" className="rounded-lg bg-success-surface px-3 py-2 text-sm text-success">{mensagem}</p>}
               <p aria-live="polite" className="min-h-5 text-sm font-medium text-text-secondary">{resumo}</p>
-              <button type="submit" disabled={salvando} className="mt-2 min-h-11 w-full rounded-lg bg-brand px-5 text-sm font-semibold text-surface hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-wait disabled:bg-border-subtle">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
+              <button type="submit" disabled={salvando} className="mt-2 min-h-11 w-full rounded-lg bg-brand px-5 text-sm font-semibold text-surface hover:bg-brand-hover active:bg-brand-pressed disabled:cursor-wait disabled:bg-border-subtle lg:mt-0 lg:w-auto">{salvando ? "Salvando..." : qrMatchedItem ? "Registrar entrada" : "Cadastrar item"}</button>
               </div>
             </form>
           </section>
 
-          <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-surface p-5 shadow-card`}>
-            <div className={styles.stockHeader}>
-              <div className="grid min-w-0 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-              <h2 className="text-center text-xl font-bold text-foreground sm:col-start-2">Itens do estoque</h2>
-              <div className="flex min-w-0 flex-col gap-2 sm:col-start-3 sm:flex-row sm:justify-self-end">
-                <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="w-40 min-w-0 truncate rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand">
-                  <option value="">Todas as categorias</option>
-                  {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
-                </select>
-                <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="min-w-0 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand sm:w-48" />
+          <section className={`${styles.stockPanel} min-w-0 rounded-2xl bg-surface p-5 shadow-card lg:p-2`}>
+            <div className={`${styles.stockHeader} grid gap-2 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-4`}>
+              <div className="grid min-w-0 gap-3 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-4">
+                <h2 className="text-lg font-bold text-foreground">Itens do estoque</h2>
+                <div className="grid min-w-0 gap-2 lg:grid-cols-2">
+                  <select aria-label="Filtrar por categoria" value={categoriaBusca} onChange={(event) => setCategoriaBusca(event.target.value)} className="min-h-11 w-full min-w-0 truncate rounded-lg border border-border bg-surface px-3 py-2 text-base outline-none focus:border-brand">
+                    <option value="">Todas as categorias</option>
+                    {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+                  </select>
+                  <input aria-label="Buscar item por nome ou categoria" placeholder="Buscar material ou categoria" value={busca} onChange={(event) => setBusca(event.target.value)} className="min-h-11 w-full min-w-0 rounded-lg border border-border px-3 py-2 text-base outline-none focus:border-brand" />
+                </div>
               </div>
             </div>
-            </div>
-            <div ref={listaRef} tabIndex={0} role="region" aria-label="Lista de itens do estoque" data-list-empty={!carregando && !erroLista && itensFiltrados.length === 0} className={`${styles.stockBody} mt-5 min-w-0 space-y-3`}>
+            <div ref={listaRef} tabIndex={0} role="region" aria-label="Lista de itens do estoque" data-list-empty={!carregando && !erroLista && itensFiltrados.length === 0} className={`${styles.stockBody} mt-5 min-w-0 space-y-3 lg:mt-2`}>
               {carregando ? <LoadingState label="Carregando estoque…" rows={4} /> : erroLista ? <ErrorState message={erroLista} onRetry={() => {
                 setCarregando(true);
                 void carregarItens();
@@ -457,7 +464,7 @@ export default function EstoquePage() {
           </section>
         </div>
       </div>
-      <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-border-subtle pt-4 text-center text-xs text-text-secondary md:mt-auto md:shrink-0">
+      <footer className="mx-auto mt-10 hidden w-full max-w-7xl border-t border-border-subtle pt-4 text-center text-xs text-text-secondary md:mt-auto md:shrink-0 lg:block">
         Almoxarifado Marcon
       </footer>
       {cameraAberta && <ProductEtiquetaScanner onRead={handleQrRead} onClose={() => setCameraAberta(false)} />}

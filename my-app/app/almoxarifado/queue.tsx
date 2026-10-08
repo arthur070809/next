@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ModalAcaoRequisicao from "../components/ModalAcaoRequisicao";
 import PriorityBadge, { PRIORITY_QUEUE_ROW_CLASS } from "../components/PriorityBadge";
-import ItemDescription from "../components/ItemDescription";
+import QueueItemList from "../components/QueueItemList";
 import RequisitionDescription from "../components/RequisitionDescription";
 import { PageHeader, StatusBadge } from "../components/industrial";
 import { EmptyState, ErrorState, LoadingState } from "../components/ui";
@@ -22,6 +22,7 @@ import {
   ExecutorAssuncaoLote,
   type ResultadoAssuncaoLote,
 } from "../../lib/viagem/assumir-lote";
+import { decodeItemDescription } from "../../lib/requisition-metadata";
 import { sortRequisitionsByPriority } from "./utils";
 
 const podeAtivarDemonstracao = viagemDemoDisponivel(
@@ -366,28 +367,37 @@ export default function RequisicoesQueuePage() {
         <EmptyState title="Nenhuma requisição encontrada" message="Não há pedidos que correspondam aos filtros atuais." />
       ) : (
         <>
-        <div className="hidden overflow-x-auto rounded-card bg-surface shadow-card md:block">
-          <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
+        <div className="hidden min-w-0 rounded-card bg-surface shadow-card xl:block">
+          <table className="w-full table-fixed border-collapse text-left text-sm">
+            <colgroup>
+              <col className="w-[10%]" />
+              <col className="w-[7%]" />
+              <col className="w-[15%]" />
+              <col className="w-[8%]" />
+              <col className="w-[12%]" />
+              <col className="w-[10%]" />
+              <col className="w-[13%]" />
+              <col className="w-[12%]" />
+              <col className="w-[13%]" />
+            </colgroup>
             <thead className="sticky top-0 z-10 bg-background text-xs uppercase tracking-wide text-text-secondary">
-              <tr>{["Nº", "Setor", "Itens", "Idade", "Prioridade", "Descrição", "Status", "Solicitante", "Checklist"].map((heading) => <th key={heading} className="border-b border-border-subtle px-4 py-3 font-semibold">{heading}</th>)}</tr>
+              <tr>{["Nº", "Setor", "Itens", "Idade", "Prioridade", "Descrição", "Status", "Solicitante", "Checklist"].map((heading) => <th key={heading} className="whitespace-nowrap border-b border-border-subtle px-2 py-3 text-[11px] font-semibold leading-tight tracking-normal">{heading}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-border-subtle">
               {filtradas.map((request) => (
                 <tr key={request.numeroPedido} className={`align-top odd:bg-background/60 hover:bg-priority-surface ${request.prioridade === "prioridade" ? PRIORITY_QUEUE_ROW_CLASS : ""}`}>
-                  <td className="px-4 py-3 font-semibold text-foreground">{request.numeroPedido}</td>
-                  <td className="px-4 py-3 text-text-secondary">{request.setor}</td>
-                  <td className="max-w-sm break-words px-4 py-3">
+                  <td className="break-words px-2 py-3 font-semibold text-foreground [overflow-wrap:anywhere]">{request.numeroPedido}</td>
+                  <td className="break-words px-2 py-3 text-text-secondary">{request.setor}</td>
+                  <td className="min-w-0 px-2 py-3">
                     <span className="font-medium">{request.itens?.length ?? 0} {request.itens?.length === 1 ? "item" : "itens"}</span>
-                    {request.itens?.map((item) => <div key={item.id} className="mt-1 text-xs text-text-secondary">
-                      {item.nome}<ItemDescription className="mt-1" categoria={item.categoria} descricao={item.descricao} />
-                    </div>)}
+                    <QueueItemList items={request.itens} />
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3">{formatarIdade(request.data)}</td>
-                  <td className="px-4 py-3"><PriorityBadge priority={request.prioridade} /></td>
-                  <td className="max-w-64 px-4 py-3"><RequisitionDescription value={request.descricao} variant="queue" priority={request.prioridade === "prioridade"} /></td>
-                  <td className="px-4 py-3"><StatusBadge label={request.status === "pendente" ? "Aguardando" : "Em atendimento"} tone={request.status === "pendente" ? "warning" : "brand"} /></td>
-                  <td className="px-4 py-3">{request.solicitante ?? "—"}</td>
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-2 py-3 text-xs">{formatarIdade(request.data)}</td>
+                  <td className="px-2 py-3"><PriorityBadge priority={request.prioridade} /></td>
+                  <td className="min-w-0 px-2 py-3"><RequisitionDescription value={request.descricao} variant="queue" /></td>
+                  <td className="break-words px-2 py-3"><StatusBadge className="!gap-1 !px-1 !text-[11px] min-w-0 max-w-full whitespace-nowrap leading-tight" label={request.status === "pendente" ? "Aguardando" : "Em atendimento"} tone={request.status === "pendente" ? "warning" : "brand"} /></td>
+                  <td className="break-words px-2 py-3 [overflow-wrap:anywhere]">{request.solicitante ?? "—"}</td>
+                  <td className="px-2 py-3">
                     {request.status === "pendente" ? (
                       <>
                         <button
@@ -402,7 +412,7 @@ export default function RequisicoesQueuePage() {
                         {modoDemonstracao && <span className="ml-2 text-xs text-text-secondary">Indisponível durante a simulação</span>}
                       </>
                     ) : (
-                      <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="font-semibold text-brand hover:underline">
+                      <Link href={`/almoxarifado/requisicoes/${encodeURIComponent(request.numeroPedido)}`} className="inline-flex min-h-11 items-center font-semibold text-brand hover:underline">
                         Abrir checklist
                       </Link>
                     )}
@@ -412,7 +422,7 @@ export default function RequisicoesQueuePage() {
             </tbody>
           </table>
         </div>
-        <div className="grid gap-3 md:hidden">
+        <div className="grid gap-3 xl:hidden">
           {filtradas.map((request) => (
             <article key={request.numeroPedido} className={`grid gap-4 rounded-card bg-surface p-4 shadow-card ${request.prioridade === "prioridade" ? "border-l-4 border-priority bg-priority-surface/50" : ""}`}>
               <header className="flex flex-wrap items-start justify-between gap-3">
@@ -425,13 +435,10 @@ export default function RequisicoesQueuePage() {
                 <div><dt className="text-text-secondary">Quantidade</dt><dd className="font-medium">{request.quantidade} {request.unidadeMedida}</dd></div>
                 <div><dt className="text-text-secondary">Prioridade</dt><dd className="mt-1"><PriorityBadge priority={request.prioridade} /></dd></div>
               </dl>
-              <ul className="divide-y divide-border-subtle">
-                {request.itens?.map((item) => <li key={item.id} className="py-3 first:pt-0">
-                  <p className="font-semibold text-foreground">{item.nome}</p>
-                  <ItemDescription className="mt-1 text-text-secondary" categoria={item.categoria} descricao={item.descricao} />
-                </li>)}
-              </ul>
-              {request.descricao && <RequisitionDescription value={request.descricao} variant="queue" priority={request.prioridade === "prioridade"} />}
+              <QueueItemList items={request.itens} />
+              {decodeItemDescription(request.descricao).descricao && (
+                <RequisitionDescription value={request.descricao} variant="queue" />
+              )}
               {request.status === "pendente" ? (
                 <button type="button" disabled={modoDemonstracao} onClick={() => { setErroAcao(""); setRequisicaoParaAssumir(request); }} className="min-h-11 w-full rounded-control bg-brand px-4 text-sm font-semibold text-surface hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50">Assumir requisição</button>
               ) : (
