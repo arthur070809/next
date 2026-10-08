@@ -750,7 +750,7 @@ export default function LoginForm({
         </div>
         {error && <div aria-live="assertive" aria-atomic="true"><p role="alert" className="rounded-control bg-error-surface px-3 py-2 text-sm text-error">{error}</p></div>}
         <p className="text-xs text-text-secondary">A senha não substitui verificações adicionais configuradas para o seu perfil.</p>
-        <Button type="submit" disabled={!codigoCracha.trim() || !senha} loading={loading} loadingLabel="Verificando…" className="min-h-12 w-full">Entrar com senha</Button>
+        <Button type="submit" disabled={!codigoCracha.trim() || !senha} loading={loading} loadingLabel="Entrando…" className="min-h-12 w-full">Entrar</Button>
       </form>}
       </div>
     </Card>
