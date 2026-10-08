@@ -19,7 +19,7 @@ describe("shared session heartbeat lifecycle", () => {
     lifecycle.onInterval();
     await vi.waitFor(() => expect(state.heartbeat).toHaveBeenCalledTimes(1));
     state.visible = false;
-    lifecycle.onInterval();
+    lifecycle.onInterval();//
     await Promise.resolve();
     expect(state.heartbeat).toHaveBeenCalledTimes(1);
   });
