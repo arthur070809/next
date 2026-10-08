@@ -28,5 +28,5 @@ export default function DepositoBalanceContent({
   if (empty) return filtered
     ? <EmptyState title="Nenhum saldo encontrado" message="Altere a busca ou os filtros para encontrar materiais." />
     : <DepositoEmptyState filtered={filtered} onAdd={onAdd} />;
-  return <div className="divide-y divide-border-subtle">{children}</div>;
+  return <div className="space-y-3">{children}</div>;
 }
