@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SessionHeartbeat from "./SessionHeartbeat";
 import { Button, Icon, type IconName } from "./ui";
 
@@ -46,13 +46,37 @@ export default function PortalShell({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [desktop, setDesktop] = useState(false);
+  const openMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMenuButtonRef = useRef<HTMLButtonElement>(null);
   const isAdmin = role === "admin";
   const isOperator = role === "operador";
   const homeHref = isAdmin ? "/admin" : isOperator ? "/requisicao" : "/almoxarifado";
   const menu = isAdmin ? adminMenu : isOperator ? operatorMenu : warehouseMenu;
   const roleLabel = isAdmin ? "Admin" : isOperator ? "Operador" : "Almoxarifado";
+  const sidebarInert = !open && !desktop;
   const [logoutError, setLogoutError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const breakpoint = window.matchMedia("(min-width: 1024px)");
+    const updateDesktop = (event?: MediaQueryListEvent) => setDesktop(event?.matches ?? breakpoint.matches);
+    updateDesktop();
+    breakpoint.addEventListener("change", updateDesktop);
+    return () => breakpoint.removeEventListener("change", updateDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    closeMenuButtonRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      if (!window.matchMedia("(min-width: 1024px)").matches) openMenuButtonRef.current?.focus();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
 
   const logout = async () => {
     if (loggingOut) return;
@@ -73,6 +97,9 @@ export default function PortalShell({
     <div className="min-h-dvh bg-background text-foreground" data-shell>
       <SessionHeartbeat />
       <aside
+        id="portal-navigation"
+        inert={sidebarInert}
+        aria-hidden={sidebarInert}
         className={`fixed left-0 top-0 z-30 flex h-dvh w-72 flex-col overflow-hidden border-r border-brand-pressed bg-brand px-5 py-5 text-surface transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between gap-4">
@@ -81,7 +108,11 @@ export default function PortalShell({
           </Link>
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            ref={closeMenuButtonRef}
+            onClick={() => {
+              setOpen(false);
+              if (!desktop) openMenuButtonRef.current?.focus();
+            }}
             className="min-h-11 min-w-11 rounded-control border border-surface/30 p-2 text-surface hover:bg-surface/10 lg:hidden"
             aria-label="Fechar menu"
           >
@@ -127,7 +158,10 @@ export default function PortalShell({
         <button
           type="button"
           className="fixed inset-0 z-20 bg-foreground/60 lg:hidden"
-          onClick={() => setOpen(false)}
+          onClick={() => {
+            setOpen(false);
+            openMenuButtonRef.current?.focus();
+          }}
           aria-label="Fechar menu"
         />
       )}
@@ -136,16 +170,18 @@ export default function PortalShell({
         <header className="border-b border-border-subtle bg-surface px-4 sm:px-8">
           <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <Button
-                variant="secondary"
+              <button
+                type="button"
                 onClick={() => setOpen(true)}
-                className="min-w-11 shrink-0 px-3 lg:hidden"
+                ref={openMenuButtonRef}
+                className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-control border border-brand bg-surface px-3 py-2 text-sm font-semibold text-brand transition-colors hover:bg-priority-surface active:bg-brand/10 lg:hidden"
                 aria-label="Abrir menu"
                 aria-expanded={open}
+                aria-controls="portal-navigation"
               >
                 <Icon name="menu" size={18} />
                 <span className="hidden sm:inline">Menu</span>
-              </Button>
+              </button>
               <Link href={homeHref} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control bg-surface p-1.5 lg:hidden" aria-label="Marcon Metalúrgicos, início">
                 <Image src="/marcon-logo.svg" width={143} height={28} alt="Marcon Metalúrgicos" priority />
               </Link>
