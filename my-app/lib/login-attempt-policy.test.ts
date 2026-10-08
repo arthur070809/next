@@ -6,9 +6,9 @@ afterEach(() => {
 });
 
 describe("login attempt policy", () => {
-  it("keeps default protections while allowing more generous demo limits", () => {
+  it("uses a 20-attempt default for normal and demo logins", () => {
     expect(getLoginAttemptPolicy()).toEqual({
-      limit: 5,
+      limit: 20,
       windowMs: 900_000,
       blockDurationMs: 900_000,
     });

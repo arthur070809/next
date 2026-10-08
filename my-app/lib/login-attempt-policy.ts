@@ -4,7 +4,7 @@ export type LoginAttemptPolicy = {
   blockDurationMs: number;
 };
 
-const normalDefaults = { limit: 5, windowMs: 15 * 60 * 1000, blockDurationMs: 15 * 60 * 1000 };
+const normalDefaults = { limit: 20, windowMs: 15 * 60 * 1000, blockDurationMs: 15 * 60 * 1000 };
 const demoDefaults = { limit: 20, windowMs: 15 * 60 * 1000, blockDurationMs: 5 * 60 * 1000 };
 
 function positiveInteger(value: string | undefined, fallback: number, maximum: number): number {
