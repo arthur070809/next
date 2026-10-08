@@ -355,9 +355,12 @@ export default function ChecklistRequisicaoPage() {
             <article key={item.id} className={`rounded-xl border bg-surface p-4 ${item.conferido ? "border-success/30" : "border-border-subtle"}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-semibold text-foreground">{item.nome}</h2>
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <h2 className="font-semibold text-foreground">{item.nome}</h2>
+                    {item.categoria?.trim() && <span className="inline-flex max-w-full items-center rounded-full bg-background px-2 py-1 text-xs font-medium text-text-secondary">{item.categoria}</span>}
+                  </div>
                   <ProductCode code={item.codigo} />
-                  <ItemDescription className="mt-1 text-sm text-text-secondary" categoria={item.categoria} descricao={item.descricao} />
+                  <ItemDescription className="mt-1" descricao={item.descricao} variant="checklist" />
                   <p className="mt-1 text-sm text-text-secondary">Pedido: {item.quantidadeSolicitada} {item.unidadeMedida}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.conferido ? "bg-success-surface text-success" : "bg-background text-foreground"}`}>{item.conferido ? "Conferido" : "Pendente"}</span>

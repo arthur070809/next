@@ -29,6 +29,24 @@ describe("ItemDescription", () => {
     expect(markup).not.toContain("undefined");
   });
 
+  it("renders only a sanitized description or a dash in checklist mode", () => {
+    const marker = `[[idem:v1:${"a".repeat(64)}:${"b".repeat(64)}]]`;
+    const withDescription = renderToStaticMarkup(createElement(ItemDescription, {
+      descricao: `${marker}Inspeção — seção A`,
+      variant: "checklist",
+    }));
+    const withoutDescription = renderToStaticMarkup(createElement(ItemDescription, {
+      descricao: `[[setor:v1:setor1]]${marker}`,
+      variant: "checklist",
+    }));
+
+    expect(renderedText(withDescription)).toBe("Inspeção — seção A");
+    expect(withDescription).not.toContain("Descrição do pedido");
+    expect(withDescription).not.toContain("[[");
+    expect(renderedText(withoutDescription)).toBe("—");
+    expect(withoutDescription).toContain("text-text-secondary");
+  });
+
   it("sanitizes free-standing item descriptions before rendering", () => {
     const markup = renderToStaticMarkup(createElement(TextoDescricao, {
       value: `[[idem:v1:${"a".repeat(64)}:${"b".repeat(64)}]]Reparo – revisão`,
