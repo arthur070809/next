@@ -306,7 +306,7 @@ export default function ChecklistRequisicaoPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/almoxarifado/requisicoes" className="text-sm font-semibold text-brand hover:underline">← Voltar à fila</Link>
+        <Link href="/almoxarifado/requisicoes" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand hover:underline">← Voltar à fila</Link>
         <span className="rounded-full bg-priority-surface px-3 py-1 text-sm font-semibold text-brand">{totalConferidos} de {requisicao.itens.length} conferidos</span>
       </div>
       <header className="rounded-xl border border-border-subtle bg-surface p-5">

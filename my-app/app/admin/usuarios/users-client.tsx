@@ -123,12 +123,12 @@ export default function AdminUsersClient() {
         )}
         <section className="mt-6 rounded-card bg-surface p-4 shadow-card sm:p-6">
           <h2 className="text-xl font-bold text-foreground">Cadastrar usuário</h2>
-          <form onSubmit={submit} className="mt-5 grid gap-4 sm:grid-cols-2" noValidate>
-            <label className="text-sm font-semibold">
+          <form onSubmit={submit} className="mt-5 grid min-w-0 gap-4 sm:grid-cols-2" noValidate>
+            <label className="min-w-0 text-sm font-semibold">
               Nome
               <input required value={form.nome} onChange={(event) => setForm({ ...form, nome: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal" />
             </label>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="user-badge" className="text-sm font-semibold">Código do crachá</label>
               <div className="mt-2 flex min-w-0 gap-2">
                 <input
@@ -160,11 +160,11 @@ export default function AdminUsersClient() {
               </div>
               {crachaError && <p id="badge-create-error" role="alert" aria-live="polite" className="mt-1 text-sm font-medium text-error">{crachaError}</p>}
             </div>
-            <label className="text-sm font-semibold">
+            <label className="min-w-0 text-sm font-semibold">
               Senha inicial
               <input ref={passwordInputRef} required minLength={12} type={showPassword ? "text" : "password"} value={form.senha} onChange={(event) => setForm({ ...form, senha: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal text-base" />
             </label>
-            <label className="text-sm font-semibold">
+            <label className="min-w-0 text-sm font-semibold">
               Confirmar senha
               <input required minLength={12} type={showPassword ? "text" : "password"} value={form.confirmarSenha} onChange={(event) => setForm({ ...form, confirmarSenha: event.target.value })} className="mt-2 w-full rounded-lg border border-border px-3 py-2.5 font-normal text-base" />
             </label>

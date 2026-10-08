@@ -89,7 +89,7 @@ function PontoAtualEditor({
   }
 
   const idMensagem = `ponto-atual-feedback-${item.id}`;
-  return <form onSubmit={salvar} className="flex min-w-40 flex-col gap-2">
+  return <form onSubmit={salvar} className="flex w-full min-w-0 flex-col gap-2">
     <div className="flex items-center gap-2">
       <input
         type="number"
@@ -253,7 +253,7 @@ export default function RessuprimentoTabela({
               <div><dt className="text-text-secondary">Estoque livre</dt><dd className="font-semibold text-foreground">{item.estoque}</dd></div>
               <div><dt className="text-text-secondary">Consumo/dia</dt><dd className="font-semibold text-foreground">{item.consumoDiario === null ? "Sem dados" : item.consumoDiario.toFixed(2)}</dd></div>
               <div><dt className="text-text-secondary">Cobertura</dt><dd className="font-semibold text-foreground">{coberturaTexto(item.diasCobertura)}</dd></div>
-              <div><dt className="mb-1 text-text-secondary">Ponto atual</dt><dd><PontoAtualEditor item={item} /></dd></div>
+              <div className="col-span-2 sm:col-span-1"><dt className="mb-1 text-text-secondary">Ponto atual</dt><dd><PontoAtualEditor item={item} /></dd></div>
               <div><dt className="text-text-secondary">Quantidade sugerida</dt><dd className="font-semibold text-foreground">{item.quantidadeSugerida ?? "Não definido"}</dd></div>
             </dl>
             <button type="button" onClick={() => setPrevisualizando(item.id)} className="mt-4 min-h-11 w-full rounded-control border border-brand px-3 text-sm font-semibold text-brand hover:bg-priority-surface">
