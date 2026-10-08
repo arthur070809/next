@@ -14,7 +14,7 @@ type ShellMenuItem = { href: string; label: string; icon: IconName };
 const adminMenu = [
   { href: "/admin", label: "Início", icon: "home" },
   { href: "/almoxarifado/requisicoes", label: "Fila de requisições", icon: "list" },
-  { href: "/historico", label: "Histórico", icon: "history" },
+  { href: "/admin/historico", label: "Histórico", icon: "history" },
   { href: "/admin/ressuprimento", label: "Ressuprimento", icon: "route" },
   { href: "/admin/estoque", label: "Estoque", icon: "inventory" },
   { href: "/admin/deposito", label: "Depósito de sobras", icon: "package" },
@@ -146,7 +146,7 @@ export default function PortalShell({
                 <Icon name="menu" size={18} />
                 <span className="hidden sm:inline">Menu</span>
               </Button>
-              <Link href={homeHref} className="inline-flex rounded-control bg-surface p-1.5 lg:hidden" aria-label="Marcon Metalúrgicos, início">
+              <Link href={homeHref} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control bg-surface p-1.5 lg:hidden" aria-label="Marcon Metalúrgicos, início">
                 <Image src="/marcon-logo.svg" width={143} height={28} alt="Marcon Metalúrgicos" priority />
               </Link>
             </div>

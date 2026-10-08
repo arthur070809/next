@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader, StatusBadge } from "../../../components/industrial";
 import { ErrorState, LoadingState } from "../../../components/ui";
@@ -9,6 +9,10 @@ import type { RequisicaoAtendida } from "../../../../lib/types/requisicao";
 
 export default function RequisicaoDetalhePage() {
   const { id } = useParams<{ id: string }>();
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin/");
+  const dashboardHref = isAdminRoute ? "/admin" : "/almoxarifado";
+  const depositHref = isAdminRoute ? "/admin/deposito?aba=historico" : "/deposito?aba=historico";
   const [requisicao, setRequisicao] = useState<RequisicaoAtendida | null>(null);
   const [quantidade, setQuantidade] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -69,7 +73,7 @@ export default function RequisicaoDetalhePage() {
     setErro("");
     setCarregando(true);
     setRetryCount((current) => current + 1);
-  }} /><Link href="/almoxarifado" className="inline-flex min-h-11 items-center font-semibold text-brand">Voltar às requisições</Link></main>;
+  }} /><Link href={dashboardHref} className="inline-flex min-h-11 items-center font-semibold text-brand">Voltar às requisições</Link></main>;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -79,10 +83,10 @@ export default function RequisicaoDetalhePage() {
         description={`${requisicao.quantidade} ${requisicao.unidadeMedida} retirados do ${requisicao.origem === "DEPOSITO" ? "depósito" : "estoque"}.`}
         action={
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/almoxarifado" className="rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
+            <Link href={dashboardHref} className="inline-flex min-h-11 items-center rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
               Voltar
             </Link>
-            <Link href="/deposito?aba=historico" className="rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
+            <Link href={depositHref} className="inline-flex min-h-11 items-center rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground shadow-sm">
               Histórico do depósito
             </Link>
           </div>
