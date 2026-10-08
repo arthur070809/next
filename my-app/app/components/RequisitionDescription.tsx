@@ -4,29 +4,21 @@ export default function RequisitionDescription({
   value,
   className = "",
   variant = "default",
-  priority = false,
 }: {
   value?: string | null;
   className?: string;
   variant?: "default" | "queue";
-  priority?: boolean;
 }) {
   const description = decodeItemDescription(value).descricao.trim();
   if (variant === "queue") {
-    const accessibleDescription = description || "Sem descrição";
     return <div
       title={description || undefined}
-      aria-label={`Descrição: ${accessibleDescription}`}
-      className={`min-w-0 rounded-md px-2 py-1.5 text-sm leading-5 ${
-        description
-          ? priority
-            ? "border-l-2 border-warning/30 bg-warning-surface text-foreground"
-            : "border-l-2 border-border bg-background text-foreground"
-          : "border-l-2 border-border-subtle bg-background text-text-secondary"
+      aria-label={description ? `Descrição: ${description}` : "Descrição não informada"}
+      className={`line-clamp-2 min-w-0 break-words [overflow-wrap:anywhere] text-sm leading-5 ${
+        description ? "text-foreground" : "text-text-secondary"
       } ${className}`}
     >
-      <span className="block font-semibold">Descrição</span>
-      <span className="line-clamp-2 block break-words [overflow-wrap:anywhere]">{accessibleDescription}</span>
+      {description || "—"}
     </div>;
   }
   return <span className={`block min-w-0 [overflow-wrap:anywhere] whitespace-pre-wrap text-text-secondary ${className}`}>

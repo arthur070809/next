@@ -8,27 +8,30 @@ function renderedText(markup: string) {
 }
 
 describe("RequisitionDescription queue variant", () => {
-  it("renders an explicit description field with strong, readable text", () => {
+  it("renders only the description text with a readable accessible name", () => {
     const markup = renderToStaticMarkup(createElement(RequisitionDescription, {
       value: "Parada de máquina",
       variant: "queue",
     }));
 
-    expect(renderedText(markup)).toContain("DescriçãoParada de máquina");
+    expect(renderedText(markup)).toBe("Parada de máquina");
     expect(markup).toContain("text-sm");
     expect(markup).toContain("leading-5");
     expect(markup).toContain("text-foreground");
     expect(markup).toContain('aria-label="Descrição: Parada de máquina"');
+    expect(markup).toContain('title="Parada de máquina"');
   });
 
-  it("shows a consistent empty label without leaking null or undefined", () => {
+  it("shows a secondary dash for an absent description", () => {
     for (const value of [null, undefined, "", "   "]) {
       const markup = renderToStaticMarkup(createElement(RequisitionDescription, {
         value,
         variant: "queue",
       }));
 
-      expect(renderedText(markup)).toContain("DescriçãoSem descrição");
+      expect(renderedText(markup)).toBe("—");
+      expect(markup).toContain("text-text-secondary");
+      expect(markup).not.toContain("title=");
       expect(markup).not.toContain(">null<");
       expect(markup).not.toContain(">undefined<");
     }
@@ -39,7 +42,6 @@ describe("RequisitionDescription queue variant", () => {
     const queueMarkup = renderToStaticMarkup(createElement(RequisitionDescription, {
       value: legacy,
       variant: "queue",
-      priority: true,
     }));
     const detailMarkup = renderToStaticMarkup(createElement(RequisitionDescription, { value: legacy }));
 
