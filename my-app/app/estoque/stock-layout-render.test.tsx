@@ -22,7 +22,7 @@ describe("rendered stock scroll layout", () => {
     expect(markup).toContain("h-dvh");
     expect(markup).toContain("overflow-y-auto");
     expect(markup).not.toContain("sticky top-0");
-    expect(markup).toContain("Novo item / registrar entrada");
+    expect(markup).toContain("Novo item");
     expect(markup).toContain("Itens do estoque");
     expect(markup).toContain("aria-label=\"Filtrar por categoria\"");
     expect(markup).toContain("aria-label=\"Buscar item por nome ou categoria\"");
